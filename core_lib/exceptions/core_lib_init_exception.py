@@ -1,0 +1,2 @@
+class CoreLibInitException(Exception):
+    pass
