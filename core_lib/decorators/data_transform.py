@@ -1,8 +1,10 @@
 import datetime
 import enum
+from collections import Iterable
 from typing import Callable, Awaitable
 
 from sqlalchemy import inspect
+from sqlalchemy.orm import class_mapper
 
 from core_lib.data_layers.data.db.base import Base
 
@@ -22,16 +24,37 @@ def __tuple_to_dict(obj):
     return result
 
 
-def __base_as_dict(obj):
+def __base_as_dict(obj, found=None):
+    if not found:
+        found = set()
     result = {}
-    for c in inspect(obj).mapper.column_attrs:
+    mapper = inspect(obj).mapper
+    for c in mapper.column_attrs:
         result[c.key] = __transform_value(getattr(obj, c.key))
+
+    for name, relation in mapper.relationships.items():
+        if relation not in found:
+            found.add(relation)
+            try:
+                related_obj = getattr(obj, name)
+                print(related_obj)
+                if related_obj is not None:
+                    if isinstance(related_obj, Iterable):
+                        result_arr = []
+                        for r_obj in related_obj:
+                            result_arr.append(__base_as_dict(r_obj, found))
+                        result[name] = result_arr
+                    else:
+                        result[name] = __base_as_dict(related_obj, found)
+            except:
+                pass # Do nothing here unable to load relationship
+
+        # __base_as_dict
+
     return result
 
 
 def __convert_object(value):
-
-
     return value
 
 
