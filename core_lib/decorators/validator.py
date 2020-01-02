@@ -1,4 +1,5 @@
 import datetime
+import inspect
 from functools import wraps
 import dateutil.parser as datetime_parser
 
@@ -49,26 +50,28 @@ def _validate_dict_by_rules(rules: dict, update_dict: dict):
             raise PermissionError('attempt to perform invalid update update key:[{}] custom validation failed'.format(key))
 
 
-
 class ValidationDictParameterByRules(object):
 
-    def __init__(self, rules: int, parameter_index: int):
+    def __init__(self, rules: int, parameter_name: str):
         if not rules: raise ValueError('db update validation: rules missing');
         if not isinstance(rules, dict): raise ValueError('db update validation: rules must be of type dict')
-        if not parameter_index: raise ValueError('db update validation: parameter_index missing');
-        if parameter_index < 0: raise ValueError('db update validation: parameter_index must be positive number');
+        if not parameter_name: raise ValueError('db update validation: parameter_index missing');
 
         self.rules = rules
-        self.parameter_index = parameter_index
+        self.parameter_name = parameter_name
 
-    def __call__(self, func, *args, **kwargs):
-        def __wrapper(request, *args, **kwargs):
-            if self.parameter_index >= len(args): raise ValueError('dict validation failed on {}: parameter_index must be less the len(args) '.format(func.__name__))
-            update_dict = args[self.parameter_index]
-            if not isinstance(update_dict, dict): raise ValueError('dict validation failed on {}: parameter_index must to point to a dict variable'.format(func.__name__))
+    def __call__(self, func):
+        def __wrapper(*args, **kwargs):
+            parameters = inspect.signature(func).parameters
+            if self.parameter_name not in parameters:
+                raise ValueError('dict validation failed on. parameter named: {}. dose not exists in the target function. {} '.format(self.parameter_name, func.__name__))
+
+            parameter_index = list(parameters).index(self.parameter_name)
+            update_dict = args[parameter_index]
+            if not isinstance(update_dict, dict): raise ValueError('dict validation failed on {}: parameter name: {} must to point to a dict variable'.format(func.__name__, self.parameter_name))
 
             _validate_dict_by_rules(self.rules, update_dict)
 
-            return func(request, *args, **kwargs)
+            return func(*args, **kwargs)
 
         return __wrapper
