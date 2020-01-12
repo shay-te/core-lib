@@ -5,7 +5,7 @@ class DataAccess(SingleInstance):
 
     __instances = []
 
-    def __init__(self, sessions):
+    def __init__(self, sessions: dict):
         self.sessions = sessions
 
     def __new__(cls, *args, **kwargs):
@@ -14,4 +14,9 @@ class DataAccess(SingleInstance):
         return instance
 
     def get_session(self, name: str, params: dict):
-        self.sessions[name].
+        if not name and self.sessions:
+            session = next(iter(self.sessions.values()))
+        else:
+            session = self.sessions[name].get_session(params)
+
+        return session.get_session(params)
