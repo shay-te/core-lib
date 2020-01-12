@@ -4,7 +4,6 @@ from collections import Iterable
 from typing import Callable, Awaitable
 
 from sqlalchemy import inspect
-from sqlalchemy.orm import class_mapper
 
 from core_lib.data_layers.data.db.base import Base
 
@@ -27,6 +26,7 @@ def __tuple_to_dict(obj):
 def __base_as_dict(obj, found=None):
     if not found:
         found = set()
+
     result = {}
     mapper = inspect(obj).mapper
     for c in mapper.column_attrs:
@@ -37,7 +37,6 @@ def __base_as_dict(obj, found=None):
             found.add(relation)
             try:
                 related_obj = getattr(obj, name)
-                print(related_obj)
                 if related_obj is not None:
                     if isinstance(related_obj, Iterable):
                         result_arr = []
@@ -49,13 +48,7 @@ def __base_as_dict(obj, found=None):
             except:
                 pass # Do nothing here unable to load relationship
 
-        # __base_as_dict
-
     return result
-
-
-def __convert_object(value):
-    return value
 
 
 def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
@@ -68,6 +61,11 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
     # Do the actual conversion
     if isinstance(return_val, Base):
         results = __base_as_dict(return_val)
+        # get also fields that was loaded onto the model
+        for key, value in return_val.__dict__.items():
+            if key not in results and key is not '_sa_instance_state':
+                results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+
     elif isinstance(return_val, tuple):
         results = __tuple_to_dict(return_val)
     else:
@@ -96,4 +94,3 @@ class ResultToDict(object):
             return_val = func(*args, **kwargs)
             return result_to_dict(return_val, properties_as_dict=True, callback=self.callback)
         return __wrapper
-

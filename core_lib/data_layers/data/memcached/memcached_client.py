@@ -39,28 +39,4 @@ class MemcachedClient(object):
         return expire.total_seconds() if expire and isinstance(expire, datetime.timedelta) else None
 
 
-class MemCached(object):
-
-    def __init__(self, key: str = None, expire: timedelta = None):
-        self.key    = key
-        self.expire = expire
-
-    def __call__(self, func, *args, **kwargs):
-        key_local       = self.key
-
-        def __wrapper(*args, **kwargs):
-            key = key_local.format(*args) if key_local else func.__name__
-            # result = MemcachedClient.memcached().get(key)
-            # if result:
-            #     result = json.loads(result)
-            # else:
-            #     result = func(*args, **kwargs)
-            #     if isinstance(result, dict):
-            #         MemcachedClient.memcached().set(key, json.dumps(result), time=MemcachedClient.__delta_to_seconds(self.expire))
-            #     else:
-            #         raise ValueError('result must be of type "dict"')
-            # return result
-            return func(*args, **kwargs)
-
-        return __wrapper
 

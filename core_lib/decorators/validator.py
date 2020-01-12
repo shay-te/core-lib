@@ -1,16 +1,6 @@
 import datetime
 import inspect
-from functools import wraps
 import dateutil.parser as datetime_parser
-
-def validate_first_parameter_int(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        if type(args[1]) == int:
-            return f(*args, **kwargs)
-        raise ValueError('User not found')
-
-    return wrapped
 
 
 class RuleValidator(object):

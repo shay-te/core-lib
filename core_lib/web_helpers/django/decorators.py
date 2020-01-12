@@ -1,4 +1,6 @@
 import json
+from functools import wraps
+from http import HTTPStatus
 
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -7,24 +9,13 @@ import logging
 
 from core_lib.session.session_manager import SessionManager
 from core_lib.web_helpers.constants_media_type import MediaType
-
-#
-# SESSION
-#
-
-
-def build_page_context(request):
-    return {
-        'user_id': request.user.id,
-        'facebook_id': request.user.facebook_id,
-        'csrf_token': request.META['CSRF_COOKIE'] if 'CSRF_COOKIE' in request.META else ''
-    }
+from core_lib.web_helpers.exceptions import NotFoundException
+from core_lib.web_helpers.request_response_helpers import _response_message
 
 
 #
 # DECORATORS
 #
-
 
 class RequireLogin(object):
 
@@ -43,7 +34,7 @@ class RequireLogin(object):
                 session_value = SessionManager.get().decode(token)
 
             if session_value and hasattr(request, 'user'):
-                if request.user.id == session_value['user_id'] :
+                if request.user.id == session_value['user_id']:
                     try:
                         return func(request, *args, **kwargs)
                     except Exception as e:
@@ -55,7 +46,7 @@ class RequireLogin(object):
                     return redirect(self.login_url)
                 else:
                     self.logger.debug('RequireLogin: unable to fing login_url will return 401')
-                    return response_unauthorized()
+                    return response(status=HTTPStatus.UNAUTHORIZED)
         return __wrapper
 
 #
@@ -64,34 +55,27 @@ class RequireLogin(object):
 
 
 def response_ok():
-    return response_msg('ok')
+    return response_message()
 
 
-def response_unauthorized():
-    return response_msg('401 Unauthorized', status=401)
+def response(status=HTTPStatus.OK):
+    return response_message(status=status)
 
 
-def response_msg(message, status=200, is_error=False):
-    if message is None and 200 <= status < 300:
-        message = 'ok'
-
-    if is_error:
-        status = 500
-        data = {'error': message}
-    else:
-        data = {'message': message}
-
-    return response_json(data, status)
-
-
-def response_json(data, status=200):
+def response_message(message, status=HTTPStatus.OK):
+    data = _response_message(message, status)
     return HttpResponse(json.dumps(data), status=status, content_type=MediaType.APPLICATION_JSON.value)
 
 
-#
-# HELPERS
-#
+def handle_exceptions(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except NotFoundException as n:
+            return response_message(status=HTTPStatus.NOT_FOUND)
+        except BaseException as e:
+            raise e
+    return wrapper
 
 
-def request_body_dict(request):
-    return json.loads(request.body.decode('utf-8'))

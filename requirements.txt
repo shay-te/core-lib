@@ -1,7 +1,6 @@
 #Core lib
-sqlalchemy==1.3.11
+sqlalchemy
 python-dateutil==2.8.1
-
 
 schedule==0.6.0
 python-memcached==1.59
@@ -12,3 +11,7 @@ pymysql==0.9.3
 psycopg2-binary==2.8.3
 pysolr==3.8.1
 cryptography==2.8
+
+# web
+django
+flask
