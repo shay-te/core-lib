@@ -2,7 +2,7 @@ import unittest
 from datetime import timedelta
 from time import sleep
 
-from core_lib.decorators.cache import CacheRam
+from core_lib.cache.cache_ram import CacheRam
 
 
 class CacheTest(unittest.TestCase):

@@ -11,3 +11,12 @@
 **/__pycache__/*
 __pycache__/
 
+
+# TESTS
+/tests/data_output
+
+# BUILD
+core_lib.egg-info/
+build/
+dist/
+.eggs

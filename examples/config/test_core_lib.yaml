@@ -1,0 +1,19 @@
+core_lib:
+  app:
+    secret: f3122579438d1d1de31de3fbd874e0d4cd6
+  db:
+    protocol: mysql
+    username: test
+    password: test
+    address: localhost
+    port: 3306
+    file: test
+    log_queries: False
+  solr:
+    protocol: http
+    host: localhost
+    port: 8983
+    file: solr/test
+  memcached:
+    host: localhost
+    port: 11211

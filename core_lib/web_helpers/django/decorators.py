@@ -23,7 +23,7 @@ class RequireLogin(object):
         if not login_url:
             raise ValueError('login_url is missing');
         self.login_url = login_url
-        self.logger = logging.getLogger(str(RequireLogin))
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def __call__(self, func, *args, **kwargs):
 

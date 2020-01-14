@@ -1,0 +1,31 @@
+version: '2'
+
+services:
+  db:
+    image: sqlite
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mount_docker_data/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+
+  solr:
+      image: solr
+      ports:
+        - '8983:8983'
+      entrypoint:
+        - docker-entrypoint.sh
+        - solr-precreate
+        - test
+
+  memcached:
+      container_name: memcached
+      image: memcached:latest
+      ports:
+          - "11211:11211"
+

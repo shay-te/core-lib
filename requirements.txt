@@ -1,16 +1,18 @@
 #Core lib
 sqlalchemy
-python-dateutil==2.8.1
+python-dateutil
 
-schedule==0.6.0
-python-memcached==1.59
-PyJWT==1.7.1
+schedule
+
+PyJWT
 
 # Connectors
-pymysql==0.9.3
-psycopg2-binary==2.8.3
-pysolr==3.8.1
-cryptography==2.8
+pymysql
+psycopg2-binary
+pysolr
+pymongo
+python-memcached
+cryptography
 
 # web
 django
