@@ -1,6 +1,6 @@
 import pysolr
 from memcache import Client
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from sqlalchemy import create_engine
 
 from core_lib.cache.cache_memcashed import CacheMemcached
@@ -9,17 +9,17 @@ from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data_access.sessions.db_data_session import DBDataSession
 from core_lib.data_layers.data_access.sessions.object_data_session import ObjectDataSession
 from core_lib.session.session_manager import SessionManager
+from examples.objects_core_lib.data_layers.service.objects_service import UserService
 from examples.test_core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
 from examples.test_core_lib.data_layers.data_access.test2_data_access import Test2DataAccess
 from examples.test_core_lib.data_layers.data_access.user_data_access import UserDataAccess
 from examples.test_core_lib.data_layers.service.test1_service import Test1Service
 from examples.test_core_lib.data_layers.service.test2_service import Test2Service
-from examples.test_core_lib.data_layers.service.user_service import UserService
 
 
 class TestCoreLib(CoreLib):
 
-    def __init__(self, conf: OmegaConf):
+    def __init__(self, conf: DictConfig):
         self.config = conf
 
         SessionManager.init(self.config.app.secret)

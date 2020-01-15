@@ -1,5 +1,5 @@
 from memcache import Client
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from pymongo import MongoClient
 
 from core_lib.cache.cache_memcashed import CacheMemcached
@@ -12,7 +12,7 @@ from examples.demo_core_lib.data_layers.service.demo_service import DemoService
 
 class DemoCoreLib(CoreLib):
 
-    def __init__(self, conf: OmegaConf):
+    def __init__(self, conf: DictConfig):
         self.config = conf
 
         CacheMemcached.set_client(Client([build_url(**self.config.memcached)]))

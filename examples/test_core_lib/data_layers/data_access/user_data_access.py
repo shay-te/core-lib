@@ -4,7 +4,7 @@ import logging
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.rule_validator.validator import ValidationDictParameterByRules, RuleValidator
 from core_lib.web_helpers.exceptions import NotFoundException
-from examples.demo_core_lib.data_layers.data.db.user import User
+from examples.test_core_lib.data_layers.data.db.user import User
 
 allowed_update_types = {
     User.birthday.key: RuleValidator(datetime.datetime, True),
