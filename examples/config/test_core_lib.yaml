@@ -1,14 +1,15 @@
 core_lib:
   app:
-    secret: f3122579438d1d1de31de3fbd874e0d4cd6
+    secret: 000000000000000000101010110
   db:
     protocol: mysql
     username: test
     password: test
-    address: localhost
+    host: localhost
     port: 3306
     file: test
     log_queries: False
+    create_db: True
   solr:
     protocol: http
     host: localhost

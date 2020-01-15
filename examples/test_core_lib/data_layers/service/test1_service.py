@@ -1,5 +1,5 @@
 from core_lib.data_layers.service.service import Service
-from examples.demo_core_lib.data_layers.data_access.demo_data_access import Test1DataAccess
+from examples.test_core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
 
 
 class Test1Service(Service):

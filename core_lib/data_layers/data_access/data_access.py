@@ -22,10 +22,10 @@ class DataAccess(SingleInstance):
         DataAccess.__instances.append(instance)
         return instance
 
-    def get_session(self, name: str, params: dict):
+    def get_session(self, name: str, params: dict = {}):
         if not name and self.data_sessions:
             session = next(iter(self.data_sessions.values()))
         else:
-            session = self.data_sessions[name].get_session(params)
+            session = self.data_sessions[name]
 
         return session.get_session(params)

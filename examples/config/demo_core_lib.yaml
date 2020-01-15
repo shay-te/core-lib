@@ -3,7 +3,7 @@ core_lib:
     protocol: mysql
     username: test
     password: test
-    address: localhost
+    host: localhost
     port: 3306
     file: test
     log_queries: False

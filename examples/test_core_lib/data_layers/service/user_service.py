@@ -1,6 +1,6 @@
 from core_lib.data_layers.service.data_transform import ResultToDict
 from core_lib.data_layers.service.service import Service
-from examples.demo_core_lib.data_layers.data_access.user_data_access import UserDataAccess
+from examples.test_core_lib.data_layers.data_access.user_data_access import UserDataAccess
 
 
 class UserService(Service):

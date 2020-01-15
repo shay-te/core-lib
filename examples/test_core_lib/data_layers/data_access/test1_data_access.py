@@ -9,7 +9,7 @@ class Test1DataAccess(DataAccess):
 
     def get_by_id(self, id: int):
         with self.get_session(DBDataSession.name) as session:
-            pass
+            return 1
 
     def get_by_id_2(self, id: int):
         # get the default session

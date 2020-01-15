@@ -1,12 +1,11 @@
 #Core lib
-sqlalchemy
+hydra-core
 python-dateutil
-
 schedule
-
 PyJWT
 
 # Connectors
+sqlalchemy
 pymysql
 psycopg2-binary
 pysolr

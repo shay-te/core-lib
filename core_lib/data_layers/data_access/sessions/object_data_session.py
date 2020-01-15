@@ -7,8 +7,5 @@ class ObjectDataSession(DataSession):
         DataSession.__init__(self, name)
         self.obj = obj
 
-    def get_name(self):
-        return self.name
-
     def get_session(self, params: dict):
         return self.obj

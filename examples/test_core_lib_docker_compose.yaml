@@ -2,11 +2,9 @@ version: '2'
 
 services:
   db:
-    image: sqlite
+    image: mysql
     ports:
       - '3306:3306'
-    volumes:
-      - ./mount_docker_data/mysql:/var/lib/mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: test

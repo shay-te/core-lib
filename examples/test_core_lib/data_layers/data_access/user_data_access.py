@@ -15,7 +15,7 @@ allowed_update_types = {
 class UserDataAccess(DataAccess):
 
     def __init__(self, data_sessions: list):
-        DataAccess.__init__(data_sessions)
+        DataAccess.__init__(self, data_sessions)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def get_user_by_id(self, user_id):
