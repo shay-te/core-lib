@@ -15,7 +15,7 @@ setuptools.setup(
    description='basic onion architecture libraray utils',
    long_description=long_description,
    long_description_content_type="text/markdown",
-   url="https://github.com/shacoshe/bigpipe-response",
+   url="https://github.com/shacoshe/core-lib.git",
    setup_requires=['wheel'],
    author='Shay Tessler',
    author_email='shay.te@gmail.com',

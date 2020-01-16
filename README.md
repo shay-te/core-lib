@@ -12,23 +12,28 @@ make sure you have python `> 3.7` installed
 
 ### Installing
 
-    pip install bigpipe-response
+install core-lib as a dependency 
 
-### Running tests
+    pip install core-lib
+
+## Running the tests
 
     python -m unittest discover
+
+### And coding style tests
 
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ## Authors
 
 **Shay Tessler**  - [github](https://github.com/shacoshe)
 
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
