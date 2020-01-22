@@ -17,6 +17,7 @@ class CacheBase(object):
             key = self.__generate_key(func, *args, **kwargs)
             if self.invalidate:
                 self.invalidate_cache(key)
+                return func(*args, **kwargs)
             else:
                 result = self.from_cache(key)
                 if not result:
