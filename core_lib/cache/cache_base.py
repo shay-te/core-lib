@@ -30,9 +30,13 @@ class CacheBase(object):
     def __generate_key(self, func, *args, **kwargs):
         if self.key:
             format_params = {}
+            args_len = len(args)
             for index, arg in enumerate(inspect.getfullargspec(func).args):
                 if arg is not 'self':
-                    format_params[arg] = args[index]
+                    if index < args_len:
+                        format_params[arg] = args[index]
+                    else: 
+                        format_params[arg] = '_'  # Handle optional parameters that missing
             return self.key.format(**format_params)
         else:
             return func.__name__
