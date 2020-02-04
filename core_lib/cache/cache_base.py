@@ -36,7 +36,7 @@ class CacheBase(object):
                     if index < args_len:
                         format_params[arg] = args[index]
                     else: 
-                        format_params[arg] = '_'  # Handle optional parameters that missing
+                        format_params[arg] = kwargs[arg] if arg in kwargs else '_'  # Handle optional parameters that missing
             return self.key.format(**format_params)
         else:
             return func.__name__
