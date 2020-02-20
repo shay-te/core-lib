@@ -1,21 +1,11 @@
-import json
-from functools import wraps
 from http import HTTPStatus
 
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.conf import settings
 import logging
-
 from core_lib.session.session_manager import SessionManager
-from core_lib.web_helpers.constants_media_type import MediaType
-from core_lib.web_helpers.exceptions import NotFoundException
-from core_lib.web_helpers.request_response_helpers import _response_message
+from core_lib.web_helpers.django.request_response_helpers import response
 
-
-#
-# DECORATORS
-#
 
 class RequireLogin(object):
 
@@ -48,34 +38,4 @@ class RequireLogin(object):
                     self.logger.debug('RequireLogin: unable to fing login_url will return 401')
                     return response(status=HTTPStatus.UNAUTHORIZED)
         return __wrapper
-
-#
-# RESPONSE
-#
-
-
-def response_ok():
-    return response_message()
-
-
-def response(status=HTTPStatus.OK):
-    return response_message(status=status)
-
-
-def response_message(message, status=HTTPStatus.OK):
-    data = _response_message(message, status)
-    return HttpResponse(json.dumps(data), status=status, content_type=MediaType.APPLICATION_JSON.value)
-
-
-def handle_exceptions(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except NotFoundException as n:
-            return response_message(status=HTTPStatus.NOT_FOUND)
-        except BaseException as e:
-            raise e
-    return wrapper
-
 

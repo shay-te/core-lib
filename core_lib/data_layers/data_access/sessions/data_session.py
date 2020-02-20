@@ -6,12 +6,10 @@ from abc import ABC, abstractmethod
 # and will call the "get_session" method
 class DataSession(ABC):
 
-    def __init__(self, session_name):
-        self.session_name = session_name
-
-    def get_name(self):
-        return self.session_name
+    @abstractmethod
+    def __enter__(self):
+        pass
 
     @abstractmethod
-    def get_session(self, params: dict):
+    def __exit__(self, type, value, traceback):
         pass

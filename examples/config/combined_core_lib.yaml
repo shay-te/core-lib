@@ -1,3 +1,0 @@
-defaults:
-  - demo_core_lib: test_core_lib
-  - test_core_lib: demo_core_lib

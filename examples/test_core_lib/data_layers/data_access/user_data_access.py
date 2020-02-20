@@ -1,9 +1,10 @@
 import datetime
 import logging
+from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
+from core_lib.exceptions.status_code_exception import StatusCodeException
 from core_lib.rule_validator.validator import ValidationDictParameterByRules, RuleValidator
-from core_lib.web_helpers.exceptions import NotFoundException
 from examples.test_core_lib.data_layers.data.db.user import User
 
 allowed_update_types = {
@@ -24,7 +25,7 @@ class UserDataAccess(DataAccess):
             if user:
                 return user
             else:
-                raise NotFoundException('User not found by id [{}]'.format(user_id))
+                raise StatusCodeException(HTTPStatus.NOT_FOUND, 'User not found by id [{}]'.format(user_id))
 
     @ValidationDictParameterByRules(allowed_update_types, parameter_name='update')
     def update_user(self, user_id: int, update: dict):

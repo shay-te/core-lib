@@ -30,16 +30,21 @@ class SubprocessExecute(object):
         poll = process.poll()
         if poll is None:
             if debug:
-                threading.Thread(target=self.__output_reader, args=('STDOUT', process.stdout,)).start()
-                threading.Thread(target=self.__output_reader, args=('STDERR', process.stderr,)).start()
+                if process.stdout:
+                    threading.Thread(target=self.__output_reader, args=('STDOUT', process.stdout,)).start()
+                if process.stderr:
+                    threading.Thread(target=self.__output_reader, args=('STDERR', process.stderr,)).start()
             return process
         else:
             out, err = process.communicate()
             raise OSError('{}\n{}'.format(out.decode("utf-8"), err.decode("utf-8")))
 
     def __output_reader(self, name: str, stream):
-        for line in iter(stream.readline, b''):
-            self.logger.debug('{}: {}'.format(name, line.decode('utf-8')))
+        try:
+            for line in iter(stream.readline, b''):
+                self.logger.info('{}: {}'.format(name, line.strip().decode('utf-8')))
+        except BaseException as ex:
+            self.logger.error(ex)
 
     @staticmethod
     def kill(process):

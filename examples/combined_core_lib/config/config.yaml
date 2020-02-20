@@ -1,0 +1,32 @@
+core_lib:
+  app:
+    secret: 17043528
+  db:
+    create_db: true
+    file: ${env:mysql_db}
+    host: 127.0.0.1
+    log_queries: true
+    password: ${env:mysql_root_password}
+    port: 3306
+    protocol: mysql
+    username: ${env:mysql_user}
+  memcached:
+    host: localhost
+    port: 11211
+  mongo:
+    file: test
+    host: localhost
+    log_queries: false
+    password: test
+    port: 3306
+    protocol: mysql
+    username: test
+  s3:
+    aws_access_key_id: mysql
+    aws_secret_access_key: test
+    aws_session_token: test
+  solr:
+    file: solr/test
+    host: localhost
+    port: 8983
+    protocol: http

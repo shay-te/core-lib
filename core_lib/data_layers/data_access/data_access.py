@@ -1,3 +1,4 @@
+from core_lib.data_layers.data_access.sessions.data_session_factory import DataSessionFactory
 from core_lib.single_instance import SingleInstance
 
 
@@ -12,20 +13,8 @@ from core_lib.single_instance import SingleInstance
 #
 class DataAccess(SingleInstance):
 
-    __instances = []
+    def __init__(self, data_session_factory: DataSessionFactory):
+        self.data_session_factory = data_session_factory
 
-    def __init__(self, data_sessions: list):
-        self.data_sessions = {data_session.get_name(): data_session for data_session in data_sessions}
-
-    def __new__(cls, *args, **kwargs):
-        instance = super(SingleInstance, cls).__new__(cls)
-        DataAccess.__instances.append(instance)
-        return instance
-
-    def get_session(self, name: str, params: dict = {}):
-        if not name and self.data_sessions:
-            session = next(iter(self.data_sessions.values()))
-        else:
-            session = self.data_sessions[name]
-
-        return session.get_session(params)
+    def get_session(self, name: str = "", params: dict = {}):
+        return self.data_session_factory.get_session(name, params)

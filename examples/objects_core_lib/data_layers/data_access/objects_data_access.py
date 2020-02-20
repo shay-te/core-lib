@@ -3,12 +3,13 @@ import tempfile
 from sys import path
 
 from core_lib.data_layers.data_access.data_access import DataAccess
+from core_lib.data_layers.data_access.sessions.data_session_factory import DataSessionFactory
 
 
 class ObjectsDataAccess(DataAccess):
 
-    def __init__(self, data_sessions: list):
-        DataAccess.__init__(data_sessions)
+    def __init__(self, data_session_factory: DataSessionFactory):
+        DataAccess.__init__(self, data_session_factory)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def get_object(self, bucket_name: str, object_name: str):
@@ -19,9 +20,7 @@ class ObjectsDataAccess(DataAccess):
         return file_content
 
     def set_object(self, bucket_name: str, value):
-        with tempfile.TemporaryFile() as file_name:
-            with open(file_name) as the_file:
-                the_file.write(value)
-
-                with self.get_session() as s3:
-                    s3.upload_file(file_name, bucket_name, value)
+        with tempfile.TemporaryFile() as tmp_file:
+            tmp_file.write(value.encode())
+            with self.get_session() as session:
+                session.upload_file(tmp_file.name, bucket_name, value)

@@ -1,11 +1,13 @@
 from core_lib.data_layers.data_access.sessions.data_session import DataSession
 
 
-# this is the most simple "DataSession" it will always return the same object
 class ObjectDataSession(DataSession):
-    def __init__(self, name: str, obj: object):
-        DataSession.__init__(self, name)
+
+    def __init__(self, obj):
         self.obj = obj
 
-    def get_session(self, params: dict):
+    def __enter__(self):
         return self.obj
+
+    def __exit__(self, type, value, traceback):
+        pass

@@ -1,0 +1,21 @@
+core_lib:
+  app:
+    secret: 000000000000000000101010110
+  db:
+    protocol: mysql
+    username: ${env:mysql_user}
+    password: ${env:mysql_root_password}
+    host: 127.0.0.1
+    port: 3306
+    file: ${env:mysql_db}
+
+    log_queries: true
+    create_db: true
+  solr:
+    protocol: http
+    host: localhost
+    port: 8983
+    file: solr/test
+  memcached:
+    host: localhost
+    port: 11211

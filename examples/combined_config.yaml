@@ -1,0 +1,4 @@
+defaults:
+  - test_core_lib/config/config
+  - demo_core_lib/config/config
+  - objects_core_lib/config/config

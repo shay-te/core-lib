@@ -1,14 +1,19 @@
-from core_lib.data_layers.data.db.db_session import DBSession
-from core_lib.data_layers.data_access.sessions.data_session import DataSession
+from sqlalchemy.orm import sessionmaker
 
 
-class DBDataSession(DataSession):
-    name = "db"
+class DBDataSession(object):
 
     def __init__(self, engine):
-        DataSession.__init__(self, DBDataSession.name)
         self.engine = engine
 
-    def get_session(self, params: dict):
-        return DBSession(self.engine)
+    def __enter__(self):
+        self.session = self._session()
+        return self.session
 
+    def __exit__(self, type, value, traceback):
+        self.session.commit()
+        self.session.flush()
+        self.session.close()
+
+    def _session(self):
+        return sessionmaker(bind=self.engine, expire_on_commit=False)()
