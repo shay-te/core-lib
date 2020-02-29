@@ -6,19 +6,21 @@ import threading
 from contextlib import suppress
 from subprocess import Popen
 from time import sleep
-
+from functools import partial
 
 class SubprocessExecute(object):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def popen(self, *args, **kwargs):
-        debug = True if 'log_output' in kwargs and kwargs['log_output'] else False
+        debug = False
+        if 'log_output' in kwargs:
+            debug = kwargs['log_output']
+            del kwargs['log_output']
+
         if debug:
             kwargs['stdout'] = subprocess.PIPE
             kwargs['stderr'] = subprocess.PIPE
-
-            del kwargs['log_output']
         else:
             if 'stdout' in kwargs:
                 del kwargs['stdout']
@@ -40,11 +42,15 @@ class SubprocessExecute(object):
             raise OSError('{}\n{}'.format(out.decode("utf-8"), err.decode("utf-8")))
 
     def __output_reader(self, name: str, stream):
-        try:
-            for line in iter(stream.readline, b''):
-                self.logger.info('{}: {}'.format(name, line.strip().decode('utf-8')))
-        except BaseException as ex:
-            self.logger.error(ex)
+        chunk_size = 1024
+        for data in iter(partial(stream.read, chunk_size), b''):
+            try:
+                if not data:
+                    break
+            except BaseException as ex:
+                self.logger.error(ex)
+
+            self.logger.info('{}: {}'.format(name, data.decode('utf-8').strip()))
 
     @staticmethod
     def kill(process):

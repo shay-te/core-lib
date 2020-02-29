@@ -5,21 +5,23 @@ from typing import Callable, Awaitable
 
 from sqlalchemy import inspect
 
-from core_lib.data_layers.data.db.base import Base
+from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-def __transform_value(value):
+def __update_result(result, key, value):
+    update_value = value
     if isinstance(value, enum.Enum):
-        value = value.value
+        update_value = value.value
     if isinstance(value, (datetime.date, datetime.datetime)):
-        return value.isoformat()
-    return value
+        update_value = value.isoformat()
+
+    result[key] = update_value
 
 
 def __tuple_to_dict(obj):
     result = {}
     for key in obj._fields:
-        result[key] = __transform_value(getattr(obj, key))
+        __update_result(result, key, getattr(obj, key))
     return result
 
 
@@ -30,7 +32,7 @@ def __base_as_dict(obj, found=None):
     result = {}
     mapper = inspect(obj).mapper
     for c in mapper.column_attrs:
-        result[c.key] = __transform_value(getattr(obj, c.key))
+        __update_result(result, c.key, getattr(obj, c.key))
 
     for name, relation in mapper.relationships.items():
         if relation not in found:

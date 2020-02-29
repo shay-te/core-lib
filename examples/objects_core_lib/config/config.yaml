@@ -1,5 +1,11 @@
 core_lib:
   s3:
-    aws_access_key_id: mysql
-    aws_secret_access_key: test
-    aws_session_token: test
+    aws_region: ${env:s3_aws_region}
+    aws_access_key_id: ${env:s3_aws_access_key_id}
+    aws_secret_access_key: ${env:s3_aws_secret_access_key}
+    aws_s3_bocket: ${env:s3_aws_s3_bucket}
+    basic_auth_user: ${env:s3_basic_auth_user}
+    basic_auth_pass: ${env:s3_basic_auth_pass}
+    access_log: ${env:s3_access_log}
+    aws_session_token: ${env:s3_aws_session_token}
+    proxy: ${env:s3_proxy}

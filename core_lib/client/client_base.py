@@ -24,7 +24,7 @@ class ClientBase(object):
         return self.session.delete(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
 
     def __build_url(self, path):
-        return "{}/{}".format(self.base_url, path.lstrip("/"))
+        return "{}/{}".format(self.base_url.rstrip("/"), path.lstrip("/"))
 
     def process_kwargs(self, **kwargs):
         if self.headers:

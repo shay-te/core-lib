@@ -11,11 +11,13 @@ core_lib:
 
     log_queries: true
     create_db: true
+
   solr:
     protocol: http
     host: localhost
     port: 8983
     file: solr/test
+
   memcached:
     host: localhost
     port: 11211

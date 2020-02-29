@@ -17,3 +17,7 @@ boto3
 # web
 django
 flask
+
+
+# Test
+python-dotenv

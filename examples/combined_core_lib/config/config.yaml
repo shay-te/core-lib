@@ -1,32 +1,49 @@
+#defaults:
+#  - test_core_lib_config
+#  - demo_core_lib_config
+#  - objects_core_lib_config
+
 core_lib:
+
   app:
-    secret: 17043528
+    secret: 000000000000000000101010110
+
   db:
-    create_db: true
-    file: ${env:mysql_db}
-    host: 127.0.0.1
-    log_queries: true
-    password: ${env:mysql_root_password}
-    port: 3306
     protocol: mysql
     username: ${env:mysql_user}
+    password: ${env:mysql_root_password}
+    host: 127.0.0.1
+    port: 3306
+    file: ${env:mysql_db}
+    log_queries: False
+    create_db: true
+
+  mongo:
+    protocol: mongodb
+    username: test
+    password: test
+    host: localhost
+    port: 27017
+    file: test
+
   memcached:
     host: localhost
     port: 11211
-  mongo:
-    file: test
-    host: localhost
-    log_queries: false
-    password: test
-    port: 3306
-    protocol: mysql
-    username: test
+
   s3:
-    aws_access_key_id: mysql
-    aws_secret_access_key: test
-    aws_session_token: test
+    aws_region: ${env:s3_aws_region}
+    aws_access_key_id: ${env:s3_aws_access_key_id}
+    aws_secret_access_key: ${env:s3_aws_secret_access_key}
+    aws_s3_bocket: ${env:s3_aws_s3_bucket}
+    basic_auth_user: ${env:s3_basic_auth_user}
+    basic_auth_pass: ${env:s3_basic_auth_pass}
+    access_log: ${env:s3_access_log}
+    aws_session_token: ${env:s3_aws_session_token}
+    aws_max_pool_connections: ${env:s3_aws_max_pool_connections}
+    proxy: ${env:s3_proxy}
+
   solr:
-    file: solr/test
+    protocol: http
     host: localhost
     port: 8983
-    protocol: http
+    file: solr/demo

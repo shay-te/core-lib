@@ -12,9 +12,4 @@ from core_lib.single_instance import SingleInstance
 # 2. Assure of only single instance of this data access
 #
 class DataAccess(SingleInstance):
-
-    def __init__(self, data_session_factory: DataSessionFactory):
-        self.data_session_factory = data_session_factory
-
-    def get_session(self, name: str = "", params: dict = {}):
-        return self.data_session_factory.get_session(name, params)
+    pass

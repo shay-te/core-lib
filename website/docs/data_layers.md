@@ -14,41 +14,6 @@ Keep Data Flow with the SAME rules and architecture.
 
 [For more information about Data Lyaers.](#atricle_layers.md)
 
-## The Folder Structure
-
-Code-Lib recommended Data Structure:
-
- ``` 
-This is how code of Core-Lib is mapped internally. 
-Core-Lib can be connected to a network of Core-Lib that can 
-easly expand by extending each other pipe-line (Look at the code for combine example)
- ```
-
-
-
-```
-core_lib // root folder of our library
-└─── data_layers
-|    └─── data // store all connector, definition, mapping to data sources
-|    │    └─── db // store database ORM entities
-|    │       └─── migrations // data base migration scripts
-|    │    └─── elastic // store elastice search base classes
-|    │    // etc..
-|    └─── data_access // expose API that uses data layer
-|	 |    └─── user // grather data access by user
-|	 |    	   └─── user_data_access.py
-|	 |    	   └─── user_list_data_access.py
-|	 |    └─── some_data_access.py 
-|    └─── service // expost the core-lib services
-|    core_lib_app.py //The file that glow the entire up togther 
-└─── jobs // jobs defenitions
-tests // Unit test the enttire data_layers 
-```
-
-## Sample Application
-
-Imagine we have application the have the following requirements:
-
 ### Data Layer
 
 In this layer we will define all entities, migration, connectors, mapping, this is the layers define low level assets that needed to connect to various data sources.
@@ -57,9 +22,9 @@ In this layer we will define all entities, migration, connectors, mapping, this 
 
 ```python
 import enum
-from core_lib.data_layers.data.db.base import Base
-from core_lib.data_layers.data.db.enums.int_enum import IntEnum
-from core_lib.data_layers.data.db.mixins.time_stamp_mixin import TimeStampMixin
+from core_lib.data_layers.data.db.sqlalchemy.base import Base
+from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
+from core_lib.data_layers.data.db.sqlalchemy.mixins.time_stamp_mixin import TimeStampMixin
 from sqlalchemy import Column, Integer, VARCHAR
 
 
@@ -127,3 +92,8 @@ class UserService(Service):
         return user
 ```
 
+
+
+## Sample Application
+
+Sample applications can be found here 

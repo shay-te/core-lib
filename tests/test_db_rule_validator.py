@@ -1,7 +1,7 @@
 import unittest
 import enum
 
-from core_lib.rule_validator.validator import RuleValidator, _validate_dict_by_rules
+from core_lib.validation.rule_validator import ValueRuleValidator, RuleValidator
 
 USER_MIN_AGE = 18
 USER_MAX_AGE = 90
@@ -14,21 +14,31 @@ class TestUpdateValidate(unittest.TestCase):
             FEMALE = enum.auto()
             MALE = enum.auto()
 
-        allowed_update_types = {
-            'gender': RuleValidator(int, lambda value: 0 <= value <= len(Gender)),
-            'orientation': RuleValidator(int),
-            'age_from': RuleValidator(int, nullable=False, custom_validator=lambda value: 0 <= value > USER_MIN_AGE),
-            'age_to': RuleValidator(int, nullable=False, custom_validator=lambda value: 0 <= value < USER_MAX_AGE),
-            'location_mode': RuleValidator(int),
-            'city_id': RuleValidator(int),
-            'radius': RuleValidator(int)
-        }
+        allowed_update_types = [
+            ValueRuleValidator('gender', int, custom_validator=lambda value: 0 <= value <= len(Gender)),
+            ValueRuleValidator('orientation', int),
+            ValueRuleValidator('age_from', int, nullable=False, custom_validator=lambda value: 0 <= value > USER_MIN_AGE),
+            ValueRuleValidator('age_to', int, nullable=False, custom_validator=lambda value: 0 <= value < USER_MAX_AGE),
+            ValueRuleValidator('location_mode', int),
+            ValueRuleValidator('city_id', int),
+            ValueRuleValidator('radius', int),
+            ValueRuleValidator('email', str),
+            ValueRuleValidator('prohibited_key', str),
+        ]
 
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'gender': -1})
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'gender': 3})
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'gender': ''})
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'shastalkata': 11 })
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'age_from': (USER_MIN_AGE - 1)})
-        self.assertRaises(PermissionError, _validate_dict_by_rules, allowed_update_types, {'age_to': (USER_MAX_AGE + 1)})
+        rules_validator = RuleValidator(allowed_update_types, mandatory_keys=['gender'], prohibited_keys=['email'])
 
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 1, 'shastalkata': 11})  # No rule for key `shastalkata`
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': -1})  # Invalid gender. custom_validator fail
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 3})  # Invalid gender. custom_validator fail
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': ''})  # Invalid gender. not a number
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 1, 'age_from': (USER_MIN_AGE - 1)})  # less then min age
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 1, 'age_to': (USER_MAX_AGE + 1)}) # greater then max age
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'radius': 1})  # mandatory_keys gender missing
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 1, 'email': 'email@gmail.com'})  # prohibited_keys email
+        self.assertRaises(PermissionError, rules_validator.validate_dict, {'gender': 1, 'prohibited_key': 'value'}, prohibited_keys='prohibited_key')  # prohibited_keys locally on the function
 
+        try:
+            rules_validator.validate_dict({'gender': 1, 'new_field_i_am': 'value'}, strict_mode=False)
+        except PermissionError:
+            self.fail("`strict_mode=False`. new field introduced without a rule defined.")

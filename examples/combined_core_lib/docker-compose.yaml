@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+
+#  combined_core_lib:
+#    build: .
+#    depends_on:
+#    - db
+#    - solr
+#    - memcached
+
+  db:
+    image: mysql:latest
+    ports:
+      - '3306:3306'
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${mysql_root_password}
+      MYSQL_DATABASE: ${mysql_db}
+      MYSQL_USER: ${mysql_user}
+      MYSQL_PASSWORD: ${mysql_password}
+
+  solr:
+      image: solr
+      ports:
+        - '8983:8983'
+      volumes:
+        - ../../tests/test_data/docker/solr/demo:/var/solr/data/demo
+        - ../../tests/test_data/docker/solr/lib:/opt/solr/lib
+      entrypoint:
+        - docker-entrypoint.sh
+        - solr-precreate
+        - demo
+
+  memcached:
+      image: memcached:latest
+      ports:
+          - "11211:11211"

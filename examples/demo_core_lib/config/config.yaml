@@ -1,12 +1,6 @@
 core_lib:
-  mongo:
-    protocol: mysql
-    username: test
-    password: test
+  solr:
+    protocol: http
     host: localhost
-    port: 3306
-    file: test
-    log_queries: False
-  memcached:
-    host: localhost
-    port: 11211
+    port: 8983
+    file: solr/demo

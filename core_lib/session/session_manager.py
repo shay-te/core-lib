@@ -38,7 +38,6 @@ class SessionManager(object):
             # check what with verify=False
             return jwt.decode(encoded, self.secret, algorithms=['HS256'], exp=self.__expiration(), verify=False)
         except jwt.ExpiredSignatureError as e:
-            # LOG INGO
             self.logger.error(e)
 
             return None

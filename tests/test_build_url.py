@@ -3,7 +3,7 @@ import unittest
 from core_lib.data_layers.data.data_helpers import build_url
 
 
-class BuildUrlTest(unittest.TestCase):
+class TestBuildUrl(unittest.TestCase):
 
     def test_build_url(self):
         self.assertEqual(build_url(host="some_domain.com"), "some_domain.com")

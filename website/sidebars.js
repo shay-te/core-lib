@@ -7,9 +7,8 @@
 
 module.exports = {
   someSidebar: {
-    'Core-Lib': ['main', 'data_layers', 'cache'],
-    'Library your WEB Application': ['article_main', 'article_expected_outcome', 'article_responsibilities', 'article_layers', 'article_personal_story'],
-
+    'Core-Lib': ['main', 'data_layers', 'project_structure', 'basic_classes', 'rules_validator', 'session_manager', 'job', 'cache', 'helpers', 'web'],
+    'Library your WEB Application': ['article_main', 'article_expected_outcome', 'article_responsibilities', 'article_layers'],
     Features: ['mdx'],
   },
 };

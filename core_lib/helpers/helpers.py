@@ -17,7 +17,7 @@ def compose_configuration(config_dir, config_file, caller_stack_depth=2, config_
 
 def compose_to_target_file(source_file, target_file, caller_stack_depth=3, config_override: list = []):
     source_file_name = os.path.basename(source_file)
-    config = compose_configuration(source_file[::-len(source_file_name)],
+    config = compose_configuration(source_file[0:-len(source_file_name)],
                                    source_file_name,
                                    caller_stack_depth=caller_stack_depth,
                                    config_override=config_override)

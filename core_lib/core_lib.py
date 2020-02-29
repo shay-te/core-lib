@@ -1,19 +1,25 @@
-from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data_access.data_access_listener import DataAccessListener
+import logging
+
+from core_lib.core_lib_listener import CoreLibListener
 from core_lib.exceptions.core_lib_init_exception import CoreLibInitException
 from core_lib.single_instance import SingleInstance
 
+logger = logging.getLogger(__name__)
+
 
 class CoreLib(SingleInstance):
-    core_lib_started = False
+
+    _core_lib_started = False
 
     def start_core_lib(self):
-        if CoreLib.core_lib_started:
+        if CoreLib._core_lib_started:
             raise CoreLibInitException('CoreLib already initialized')
 
-        for instance in DataAccess._DataAccess__instances:
-            if isinstance(instance, DataAccessListener):
-                instance.on_core_lib_ready()
+        for key, instance in SingleInstance._instances.items():
+            if isinstance(instance, CoreLibListener):
+                try:
+                    instance.on_core_lib_ready()
+                except BaseException as ex:
+                    logger.error("error on on_core_lib_ready event for class `{}`".format(instance))
 
-        DataAccess._DataAccess__instances = None
-        CoreLib.core_lib_started = True
+        CoreLib._core_lib_started = True
