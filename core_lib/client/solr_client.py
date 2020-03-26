@@ -7,7 +7,6 @@ from core_lib.client.client_base import ClientBase
 class SolrClient(ClientBase):
 
     def __init__(self, target_url):
-        self.target_url = target_url
         ClientBase.__init__(self, target_url)
 
     def data_import(self, core: str, command: str = None, abort: bool = None, clean: bool = None, commit: bool = None, debug: bool = None):

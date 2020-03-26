@@ -20,6 +20,6 @@ class CoreLib(SingleInstance):
                 try:
                     instance.on_core_lib_ready()
                 except BaseException as ex:
-                    logger.error("error on on_core_lib_ready event for class `{}`".format(instance))
+                    logger.error("error on on_core_lib_ready event for class `{}`".format(instance), exc_info=True)
 
         CoreLib._core_lib_started = True

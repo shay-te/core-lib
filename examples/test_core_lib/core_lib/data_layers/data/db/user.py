@@ -6,7 +6,7 @@ from sqlalchemy.orm import validates
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.time_stamp_mixin import TimeStampMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-from core_lib.helpers.helpers import valid_email
+from core_lib.validation.validation import valid_email
 
 
 class User(TimeStampMixin, Base):

@@ -1,19 +1,32 @@
+import logging
+
 from sqlalchemy.orm import sessionmaker
 
+from core_lib.data_layers.data_access.sessions.data_session import DataSession
 
-class DBDataSession(object):
+logger = logging.getLogger(__name__)
 
-    def __init__(self, engine):
+
+class DBDataSession(DataSession):
+
+    def __init__(self, engine, use_parent_instance: bool, on_exit):
         self.engine = engine
+        self.use_parent_instance = use_parent_instance
+        self.on_exit = on_exit
+        self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
 
     def __enter__(self):
-        self.session = self._session()
         return self.session
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exec_type, exec_value, traceback):
+        if exec_type or exec_value or traceback:
+            logger.error("Error in DB session", exc_info=(exec_type, exec_value, traceback))
+            self.session.rollback()
+
+        if self.on_exit:
+            self.on_exit(self)
+
+    def close(self):
         self.session.commit()
         self.session.flush()
         self.session.close()
-
-    def _session(self):
-        return sessionmaker(bind=self.engine, expire_on_commit=False)()

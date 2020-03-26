@@ -1,4 +1,3 @@
-from core_lib.data_layers.data_access.sessions.data_session_factory import DataSessionFactory
 from core_lib.single_instance import SingleInstance
 
 

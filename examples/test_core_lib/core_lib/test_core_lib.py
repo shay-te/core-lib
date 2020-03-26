@@ -2,9 +2,9 @@ from memcache import Client
 from omegaconf import DictConfig
 from sqlalchemy import create_engine
 
-from core_lib.cache.cache import Cache
-from core_lib.cache.cache_client_factory import CacheClientFactory
+from core_lib.cache.cache_decorator import Cache
 from core_lib.cache.cache_client_memcached import CacheClientMemcached
+from core_lib.cache.default_cache_factory import DefaultCacheFactory
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
@@ -29,9 +29,9 @@ class TestCoreLib(CoreLib):
         SessionManager.init(self.config.app.secret)
 
         cache_client_memcached = CacheClientMemcached(Client([build_url(**self.config.memcached)]))
-        cache_factory = CacheClientFactory()
+        cache_factory = DefaultCacheFactory()
         cache_factory.register("memcached", cache_client_memcached)
-        Cache.set_cache_factory(cache_factory)
+        Cache.set_factory(cache_factory)
 
         self.__engine = create_engine(build_url(**self.config.db), echo=self.config.db.log_queries)
         self.__engine.connect()

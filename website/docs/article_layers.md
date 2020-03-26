@@ -28,7 +28,7 @@ We will decide upfront of some rules:
 1. Data layer will get data internally only from layers beside or below it.    
 2. Each layer will be agnostic and will handle error/create custom exceptions/logging/etc.. internally   
    To make our layers independent and portable
-
+3. Keep code/classes/variable/constants where they need to be (WEB container code only in the web layer, DB queries in the DataAccess etc....)   
 
 ## Data Layer:
 <table><tr>

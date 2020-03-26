@@ -3,12 +3,12 @@ import tempfile
 from sys import path
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data_access.sessions.data_session_factory import DataSessionFactory
+from core_lib.data_layers.data_access.sessions.object_data_session_factory import ObjectDataSessionFactory
 
 
 class ObjectsDataAccess(DataAccess):
 
-    def __init__(self, data_session_factory: DataSessionFactory):
+    def __init__(self, data_session_factory: ObjectDataSessionFactory):
         DataAccess.__init__(self, data_session_factory)
         self.logger = logging.getLogger(self.__class__.__name__)
 

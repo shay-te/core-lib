@@ -2,10 +2,10 @@ import unittest
 from datetime import timedelta
 from time import sleep
 
-from core_lib.cache.cache import Cache
-from core_lib.cache.cache_client_factory import CacheClientFactory
+from core_lib.cache.cache_decorator import Cache
 from core_lib.cache.cache_client_ram import CacheClientRam
 from core_lib.cache.cache_key_generator import CacheKeyGenerator
+from core_lib.cache.default_cache_factory import DefaultCacheFactory
 
 cache_client_name = "xyz"
 
@@ -16,19 +16,32 @@ class TestCache(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cache_factory = CacheClientFactory()
+        cache_factory = DefaultCacheFactory()
         cache_factory.register(cache_client_name, CacheClientRam())
-        Cache.set_cache_factory(cache_factory)
+        Cache.set_factory(cache_factory)
 
     def test_cache_generates_key(self):
-        cache_key_gen = CacheKeyGenerator(max_key_length=10)
-
         def boo(param_1, param_2):
             return 1
 
-        key = cache_key_gen.generate_key("asdfghjklzxcvbnm", boo, [1234, 12345134], {})
-        self.assertNotEqual(key, None)
-        self.assertEqual(len(key), 10)
+        limit_key_length = 10
+        cache_key_gen = CacheKeyGenerator(max_key_length=limit_key_length)
+        key1 = cache_key_gen.generate_key("asdfghjklzxcvbnm", boo, *[1234, 12345134], **{})
+        self.assertNotEqual(key1, None)
+        self.assertEqual(len(key1), limit_key_length)
+
+        cache_key_gen = CacheKeyGenerator(max_key_length=250)
+        key2 = cache_key_gen.generate_key("xyz_{param_1}_{param_2}", boo, *[11, 22], **{})
+        self.assertNotEqual(key2, None)
+        self.assertEqual(key2, "xyz_11_22")
+
+        key3 = cache_key_gen.generate_key("xyz_{param_1}_{param_2}", boo, *[11], **{})
+        self.assertNotEqual(key3, None)
+        self.assertEqual(key3, "xyz_11_param_2")
+
+        key4 = cache_key_gen.generate_key("xyz_{param_1}_{param_2}", boo, *[], **{"param_2": "pp2"})
+        self.assertNotEqual(key4, None)
+        self.assertEqual(key4, "xyz_param_1_pp2")
 
     def test_cache_client_register(self):
         self.assertRaises(ValueError, self.not_exists_cache_client_name)

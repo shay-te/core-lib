@@ -6,7 +6,8 @@ sidebar_label: Getting started
 
 # What is Core-Lib
 
-CoreLib provides basic simple classes for creating a WEB Application as a Library using the Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs)   
+`CoreLib` provides basic simple classes for creating a WEB Application as a Library using the Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs)
+`CoreLib` is a plugin and plug-able to other `CoreLib's`   
 
 # Why Core-Lib
 
@@ -42,7 +43,7 @@ it will only provide basic tools to arrange our code more efficiently.
    
 ## Example project
 
-[https://github.com/shacoshe/bigpipe-response-example](https://github.com/shacoshe/bigpipe-response-example)
+[https://github.com/shacoshe/core-lib/examples](https://github.com/shacoshe/core-lib/examples)
 
 ## Pros:    
 * no need to wait for javascript code to ajax and fetch data/code  

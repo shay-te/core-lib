@@ -1,6 +1,7 @@
 import datetime
 import enum
 from collections import Iterable
+from functools import wraps
 from typing import Callable, Awaitable
 
 from sqlalchemy import inspect
@@ -25,7 +26,7 @@ def __tuple_to_dict(obj):
     return result
 
 
-def __base_as_dict(obj, found=None):
+def __base_to_dict(obj, found=None):
     if not found:
         found = set()
 
@@ -43,10 +44,10 @@ def __base_as_dict(obj, found=None):
                     if isinstance(related_obj, Iterable):
                         result_arr = []
                         for r_obj in related_obj:
-                            result_arr.append(__base_as_dict(r_obj, found))
+                            result_arr.append(__base_to_dict(r_obj, found))
                         result[name] = result_arr
                     else:
-                        result[name] = __base_as_dict(related_obj, found)
+                        result[name] = __base_to_dict(related_obj, found)
             except:
                 pass # Do nothing here unable to load relationship
 
@@ -62,7 +63,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
     # Do the actual conversion
     if isinstance(return_val, Base):
-        results = __base_as_dict(return_val)
+        results = __base_to_dict(return_val)
         # get also fields that was loaded onto the model
         for key, value in return_val.__dict__.items():
             if key not in results and key is not '_sa_instance_state':
@@ -92,6 +93,8 @@ class ResultToDict(object):
         self.callback = callback
 
     def __call__(self, func, *args, **kwargs):
+
+        @wraps(func)
         def __wrapper(*args, **kwargs):
             return_val = func(*args, **kwargs)
             return result_to_dict(return_val, properties_as_dict=True, callback=self.callback)

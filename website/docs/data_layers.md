@@ -61,7 +61,7 @@ class UserDataAccess(DataAccess):
         DataAccess.__init__(self, data_sessions)
         self.logger = logging.getLogger(str(UserDataAccess))
 
-    def get_by_id(self, id: int):
+    def get(self, id: int):
         with self.get_session(DBDataSessionFactory.name) as session:
             return session.Query(User).get(id)
 ```
@@ -75,7 +75,7 @@ class UserDataAccess(DataAccess):
 3. Caching
 
 ```python
-from core_lib.data_layers.service.data_transform import ResultToDict
+from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
 
 class UserService(Service):
@@ -86,13 +86,24 @@ class UserService(Service):
 
     @ResultToDict # Transform data to dict. 
     def get_info(self, user_id: int):
-        user = self.user_data_access.get_by_id(user_id)
+        user = self.user_data_access.get(user_id)
         if user.something:
             user.friends = self.user_friends_data_acccess.get_user_friends(user_id)
         return user
 ```
 
+### Approach
 
+`Core-Lib` API is very loose and build of minimul and simple utilities that can be used for your specific need.
+
+the idea i behind it is that no matter how strict! the framework API is. 
+we will still not follow it guide lines by attantion or mistake.
+ 
+this is the reason why `Core-Lib` gives only simple utilities and recomendation. 
+follow the rules if you wish
+
+
+   
 
 ## Sample Application
 

@@ -1,3 +1,5 @@
+from functools import wraps
+
 import schedule
 
 time_units = ['s', 'm', 'h', 'd', 'w']
@@ -36,6 +38,8 @@ class Every(object):
         self.time, self.time_frame = parse_input_time_string(str)
 
     def __call__(self, func, *args, **kwargs):
+
+        @wraps(func)
         def __wrapper(request, *args, **kwargs):
             if self.time_frame == 's':
                 schedule.every(self.expression).seconds.do(func)
@@ -57,6 +61,8 @@ class On(object):
         self.time, self.time_frame = parse_input_time_string(str)
 
     def __call__(self, func, *args, **kwargs):
+
+        @wraps(func)
         def __wrapper(request, *args, **kwargs):
             return ''
         return __wrapper

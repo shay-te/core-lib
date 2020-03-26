@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from core_lib.cache.cache import Cache
+from core_lib.cache.cache_decorator import Cache
 from core_lib.data_layers.data_access.data_access import DataAccess
 
 

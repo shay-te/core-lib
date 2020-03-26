@@ -16,6 +16,7 @@ demo_rule_validators = [
 ]
 demo_rule_validator = RuleValidator(demo_rule_validators)
 
+
 class DemoDataAccess(DataAccess):
 
     def __init__(self, db: DBDataSessionFactory):
@@ -23,12 +24,12 @@ class DemoDataAccess(DataAccess):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def create(self, data_data: dict):
-        with self.db.get_session() as session:
+        with self.db.get() as session:
             demo_info = DemoInfo(**data_data)
             session.add(demo_info)
         return demo_info
 
     @ParameterRuleValidator('demo_info', demo_rule_validator)
     def update(self, demo_id: int, demo_info: dict):
-        with self.db.get_session() as session:
+        with self.db.get() as session:
             return session.query(DemoInfo).filter(DemoInfo.id == demo_id).update(demo_info)

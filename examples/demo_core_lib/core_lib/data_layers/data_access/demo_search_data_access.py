@@ -7,7 +7,7 @@ class DemoSearchDataAccess(DataAccess):
         self.solr = data_session_factory
 
     def search(self, demo_info: str):
-        with self.solr.get_session() as session:
+        with self.solr.get() as session:
             filter_queries = ["demo_info_1:*{}*".format(demo_info), "demo_info_2:*{}*".format(demo_info)]
             query = {
                 'fq': filter_queries

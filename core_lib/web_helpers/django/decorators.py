@@ -1,10 +1,11 @@
+from functools import wraps
 from http import HTTPStatus
 
 from django.shortcuts import redirect
 from django.conf import settings
 import logging
 from core_lib.session.session_manager import SessionManager
-from core_lib.web_helpers.django.request_response_helpers import response
+from core_lib.web_helpers.request_response_helpers import response
 
 
 class RequireLogin(object):
@@ -17,6 +18,7 @@ class RequireLogin(object):
 
     def __call__(self, func, *args, **kwargs):
 
+        @wraps(func)
         def __wrapper(request, *args, **kwargs):
             session_value = None
             if settings.COOKIE_NAME in request.COOKIES:

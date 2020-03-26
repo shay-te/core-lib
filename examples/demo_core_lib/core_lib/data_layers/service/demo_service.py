@@ -1,4 +1,4 @@
-from core_lib.data_layers.service.data_transform import ResultToDict
+from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
 from examples.demo_core_lib.core_lib.data_layers.data_access.demo_data_access import DemoDataAccess
 

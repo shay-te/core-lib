@@ -1,15 +1,13 @@
 import os
 import unittest
-from datetime import datetime
 from datetime import date
 from http import HTTPStatus
 from time import sleep
 
-from dateutil.parser import parse
 from dotenv import load_dotenv
 from hydra.plugins.common.utils import configure_log
 
-from core_lib.helpers.helpers import compose_configuration
+from core_lib.helpers.hydra import compose_configuration
 from core_lib.helpers.test_utils import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
@@ -18,7 +16,7 @@ import pymysql
 #
 # Docker
 #
-from examples.demo_core_lib.core_lib.client.solr_client import SolrClient
+from core_lib.client.solr_client import SolrClient
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
 pymysql.install_as_MySQLdb()

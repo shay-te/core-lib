@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-# This class is used by the "DataAccess"
-# the method "DataAccess.get_session" will fetch the desired "DataAccess" class
-# and will call the "get_session" method
+# Make `__enter__` and `__exit__` to hint the user of the factory use
 class DataSession(ABC):
 
     @abstractmethod
