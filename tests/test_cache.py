@@ -109,7 +109,10 @@ class TestCache(unittest.TestCase):
     def test_cash_only_param_optional(self):
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_only_param_optional(), 100)
-        self.assertEqual(self.get_cache_only_param_optional(10, 20, 30, 40), 100)
+        TestCache.test_value = 200
+        self.assertEqual(self.get_cache_only_param_optional(10, 20, 30, 40), 200)
+        TestCache.test_value = 300
+        self.assertEqual(self.get_cache_only_param_optional(param_4=40), 300)
 
 
     # Cache without params
