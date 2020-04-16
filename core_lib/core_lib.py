@@ -1,7 +1,7 @@
 import logging
 
 from core_lib.core_lib_listener import CoreLibListener
-from core_lib.exceptions.core_lib_init_exception import CoreLibInitException
+from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
 from core_lib.single_instance import SingleInstance
 
 logger = logging.getLogger(__name__)
