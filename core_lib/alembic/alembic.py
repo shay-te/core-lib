@@ -1,30 +1,50 @@
+import os
+
+import pymysql
+from alembic import command
+from alembic.config import Config
+from alembic.script import ScriptDirectory
+from omegaconf import DictConfig
+from sqlalchemy import create_engine
+
+from core_lib.data_layers.data.data_helpers import build_url
+
+
+pymysql.install_as_MySQLdb()
+
+
+
 class Alembic(object):
 
-    def __init__(self, db_url: str, alembic_ini_path: str, version_folder_path: str, version_file_name: str = ".migration_ver"):
-        self.db_url = db_url
-        self.alembic_ini_path = alembic_ini_path
+    def __init__(self, config: DictConfig):
+        self.config = config.core_lib.alembic
+        self.alembic_cfg = Config()
 
-        if not os.path.isdir(version_folder_path):
-            raise ValueError("version_folder_path dose not exists")
+        self.config['sqlalchemy.url'] = build_url(**config.core_lib.data.sqlalchemy.url)
 
-        if not version_file_name:
-            raise ValueError("version_file_name cannot be None")
+        self.__engine = create_engine(self.config['sqlalchemy.url'], echo=config.core_lib.data.sqlalchemy.log_queries)
 
-        self.version_folder_path = version_folder_path
-        self.version_file_path = os.path.join(version_folder_path, version_file_name)
-        if not os.path.isfile(self.version_file_path):
-            raise ValueError("`{}` dose not exists".format(self.version_file_path))
+        self.script_location = None
+        if self.config.script_location:
+            self.script_location = self.config.script_location if os.path.isabs(self.config.script_location) else os.path.join(os.getcwd(), self.config.script_location)
+            self.script_location = os.path.normpath(self.script_location)
+
+        if not self.script_location or not os.path.isdir(self.script_location):
+            raise ValueError("config.alembic.script_location dose not exists `{}`".format(self.script_location))
+
+        if not self.config.version_file_name:
+            raise ValueError("config.alembic.version_file_name cannot be None")
+
+        for key, value in self.config.items():
+            if isinstance(value, str):
+                self.alembic_cfg.set_main_option(key, value)
+        # alembic_cfg.set_main_option("script_location", self.config.script_location)
+        # alembic_cfg.set_main_option("version_table", self.config.version_table)
 
     def __migrate_to_revision(self, update_rev: str, migrate_up: bool = True):
-        script_path = os.path.dirname(migrations.__file__)
-        alembic_cfg = Config()
-        alembic_cfg.set_main_option("script_location", script_path)
-        alembic_cfg.set_main_option("sqlalchemy.url", str(self.__engine.engine.url))
-        alembic_cfg.set_main_option("version_table", conversation_alembic_version)
-
         with self.__engine.begin() as connection:
-            alembic_cfg.attributes['connection'] = connection
-            script = ScriptDirectory.from_config(alembic_cfg)
+            # self.config.attributes['connection'] = connection
+            script = ScriptDirectory.from_config(self.alembic_cfg)
 
             def downgrade(rev, context):
                 return script._downgrade_revs(update_rev, rev)
@@ -37,11 +57,12 @@ class Alembic(object):
                 fn = downgrade
 
             from alembic.runtime.environment import EnvironmentContext
-            with EnvironmentContext(alembic_cfg,
+            with EnvironmentContext(self.alembic_cfg,
                                     script,
                                     fn=fn) as context:
-                context.configure(version_table=conversation_alembic_version, connection=connection)
-                script.run_env()
+                context.configure(version_table=self.config.version_table, connection=connection)
+                with context.begin_transaction():
+                    context.run_migrations()
 
     def upgrade(self, revision: str = "base"):
         self.__migrate_to_revision(revision, True)
@@ -49,29 +70,22 @@ class Alembic(object):
     def downgrade(self, revision: str = "base"):
         self.__migrate_to_revision(revision, False)
 
-
     def create_migration(self, migration_name):
         if not migration_name:
             raise ValueError("Migration name must be set")
 
-        alembic_conf = Config(file_=self.alembic_ini_path)
-        alembic_conf.set_main_option("script_location", self.version_folder_path)
-        alembic_conf.set_main_option("sqlalchemy.url", self.db_url)
-
         version = self._read_version()
         new_version = version + 1
-        command.revision(alembic_conf, message=migration_name, rev_id=str(new_version))
+        command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
         self._write_version(new_version)
 
     def _read_version(self):
-        with open(self.version_file_path, 'r') as file:
-            content = file.read()
-
-        if not content.isdigit():
-            raise ValueError("Version file `{}` content must be a number".format(self.version_file_path))
-
-        return int(content)
+        script = ScriptDirectory.from_config(self.alembic_cfg)
+        count = 0
+        for _ in script.walk_revisions():
+            count = count + 1
+        return count
 
     def _write_version(self, version):
-        with open(self.version_file_path, 'w') as file:
+        with open(os.path.join(self.script_location, self.config.version_file_name), 'w') as file:
             file.write(str(version))

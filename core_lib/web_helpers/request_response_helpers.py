@@ -10,15 +10,11 @@ from core_lib.web_helpers.flask.response_generator import generate_response_flas
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 
-def response_ok():
-    return response_message()
+def response_ok(status: int = HTTPStatus.OK.value):
+    return response_message('ok', status)
 
 
-def response(status=HTTPStatus.OK.value):
-    return response_message(status=status)
-
-
-def response_message(message, status=HTTPStatus.OK.value):
+def response_message(message='', status: int = HTTPStatus.OK.value):
     if not message:
         message = responses[status] if status in responses else ''
 
@@ -27,6 +23,10 @@ def response_message(message, status=HTTPStatus.OK.value):
     else:
         data = {'message': message}
 
+    return response_json(data, status)
+
+
+def response_json(data: dict, status: int = HTTPStatus.OK.value):
     if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
         return generate_response_django(data, status)
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:

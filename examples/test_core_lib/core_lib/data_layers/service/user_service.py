@@ -8,16 +8,16 @@ class UserService(Service):
         self.data_access = data_access
 
     @ResultToDict()
-    def create_user(self, user_data):
-        return self.data_access.create_user(user_data)
+    def create(self, user_data):
+        return self.data_access.create(user_data)
 
     @ResultToDict()
-    def get_user_by_id(self, user_id):
-        return self.data_access.get_user_by_id(user_id)
+    def get(self, user_id):
+        return self.data_access.get(user_id)
 
-    def update_user(self, user_id: int, update: dict):
-        return self.data_access.update_user(user_id, update)
+    def update(self, user_id: int, update: dict):
+        return self.data_access.update(user_id, update)
 
     @ResultToDict()
-    def get_or_create_user(self, user_info):
+    def get_or_create(self, user_info):
         return self.data_access.get_or_create_user(user_info)

@@ -99,12 +99,13 @@ class DemoCoreLib(CoreLib):
 
 ```python
 
+# return cached value or generate result and store in cache
 @Cache(key="test_cache_param_{foo_id}", expire=timedelta(houers=3, minutes=2, seconds=1))
 def get_foo(foo_id):
     value = ... # Do some calculation
     return value
 
-
+# Clear the cache 
 @Cache(key="test_cache_param_{foo_id}", invalidate=True)
 def set_foo(self, foo_id, foo_value):
     ... # update the value

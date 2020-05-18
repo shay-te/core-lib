@@ -5,9 +5,9 @@ from http import HTTPStatus
 from time import sleep
 
 from dotenv import load_dotenv
+from hydra.experimental import initialize, compose
 from hydra.plugins.common.utils import configure_log
 
-from core_lib.helpers.hydra import compose_configuration
 from core_lib.helpers.test_utils import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
@@ -28,7 +28,7 @@ example_path = os.path.normpath(os.path.join(current_path, '../', 'examples'))
 combined_core_lib_path = os.path.join(example_path, 'combined_core_lib')
 
 from pathlib import Path
-env_path = Path(os.path.join(current_path, 'test_data', 'examples.env'))
+env_path = Path(os.path.join(current_path, 'test_data', 'load_env.env'))
 load_dotenv(dotenv_path=env_path)
 
 
@@ -37,7 +37,8 @@ load_dotenv(dotenv_path=env_path)
 #
 config_directory = os.path.join(combined_core_lib_path, 'config')
 config_file = 'config.yaml'
-config = compose_configuration(config_directory, config_file)
+initialize(config_dir=config_directory, strict=True)
+config = compose(config_file)
 
 
 solr_core = "demo"
@@ -89,7 +90,7 @@ class TestCombinedExample(unittest.TestCase):
             "gender": User.Gender.MALE.value
         }
 
-        user_create = core_lib.test.user.create_user(user_data)
+        user_create = core_lib.test.user.create(user_data)
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_data["username"], user_create["username"])
         self.assertEqual(user_data["password"], user_create["password"])
@@ -99,7 +100,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_data["gender"], user_create["gender"])
 
         # Get
-        user_get = core_lib.test.user.get_user_by_id(user_create["id"])
+        user_get = core_lib.test.user.get(user_create["id"])
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_get["username"], user_create["username"])
         self.assertEqual(user_get["password"], user_create["password"])
@@ -115,7 +116,7 @@ class TestCombinedExample(unittest.TestCase):
         update_first_name = generate_random_string()
         update_birthday = date.today()
         update_gender = User.Gender.FEMALE.value
-        user_update_status = core_lib.test.user.update_user(user_create["id"], {
+        user_update_status = core_lib.test.user.update(user_create["id"], {
             "username": update_username,
             "password": update_password,
             "nick_name": update_nick_name,
@@ -125,7 +126,7 @@ class TestCombinedExample(unittest.TestCase):
         })
         self.assertEqual(user_update_status, 1)
 
-        user_get = core_lib.test.user.get_user_by_id(user_create["id"])
+        user_get = core_lib.test.user.get(user_create["id"])
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_get["username"], update_username)
         self.assertEqual(user_get["password"], update_password)
@@ -135,7 +136,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_get["gender"], update_gender)
 
         # Rules preventing to update birthday so say the rules
-        self.assertRaises(PermissionError, core_lib.test.user.update_user, user_create["id"], {"email":  generate_email()})
+        self.assertRaises(PermissionError, core_lib.test.user.update, user_create["id"], {"email":  generate_email()})
 
         # Create
         user_data_invalie_email = {
@@ -146,7 +147,7 @@ class TestCombinedExample(unittest.TestCase):
             "email": 'non valid email',
             "gender": User.Gender.MALE
         }
-        self.assertRaises(PermissionError, core_lib.test.user.create_user, user_data_invalie_email)
+        self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
 
     def test_04_demo_solr_sync(self):
         for _ in range(15):

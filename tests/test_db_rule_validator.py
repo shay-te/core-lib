@@ -20,7 +20,6 @@ class TestUpdateValidate(unittest.TestCase):
             ValueRuleValidator('age_from', int, nullable=False, custom_validator=lambda value: 0 <= value > USER_MIN_AGE),
             ValueRuleValidator('age_to', int, nullable=False, custom_validator=lambda value: 0 <= value < USER_MAX_AGE),
             ValueRuleValidator('location_mode', int),
-            ValueRuleValidator('city_id', int),
             ValueRuleValidator('radius', int),
             ValueRuleValidator('email', str),
             ValueRuleValidator('prohibited_key', str),

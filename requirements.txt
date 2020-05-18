@@ -3,9 +3,11 @@ hydra-core
 python-dateutil
 schedule
 PyJWT
+argh
 
 # Connectors
 sqlalchemy
+alembic
 pymysql
 psycopg2-binary
 pysolr

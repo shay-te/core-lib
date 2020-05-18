@@ -25,12 +25,8 @@ class SessionManager(object):
             raise NameError('SessionManager not initialized')
         return SessionManager.__instance
 
-    def encode(self, user_id, facebook_id):
-        message = {
-            'user_id': user_id,
-            'facebook_id': facebook_id,
-            'exp': self.__expiration()
-        }
+    def encode(self, message: dict):
+        message['exp'] = self.__expiration()
         return jwt.encode(message, self.secret, algorithm='HS256').decode("utf-8")
 
     def decode(self, encoded):

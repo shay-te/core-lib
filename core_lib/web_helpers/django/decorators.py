@@ -1,43 +1,25 @@
 from functools import wraps
-from http import HTTPStatus
-
-from django.shortcuts import redirect
-from django.conf import settings
+from core_lib.session.security_handler import SecurityHandler
 import logging
-from core_lib.session.session_manager import SessionManager
-from core_lib.web_helpers.request_response_helpers import response
+
+logger = logging.getLogger(__name__)
 
 
 class RequireLogin(object):
 
-    def __init__(self, login_url):
-        if not login_url:
-            raise ValueError('login_url is missing');
-        self.login_url = login_url
-        self.logger = logging.getLogger(self.__class__.__name__)
+    def __init__(self, policies: list = []):
+        self.policies = policies
 
     def __call__(self, func, *args, **kwargs):
 
         @wraps(func)
         def __wrapper(request, *args, **kwargs):
-            session_value = None
-            if settings.COOKIE_NAME in request.COOKIES:
-                token = request.COOKIES[settings.COOKIE_NAME]
-                session_value = SessionManager.get().decode(token)
+            response = SecurityHandler.get()._secure_entry(request, self.policies)
+            if not response:
+                try:
+                    return func(request, *args, **kwargs)
+                except Exception as e:
+                    logger.error('error while loading target page for controller entry name {}'.format(func.__name__), exc_info=True)
+            return response
 
-            if session_value and hasattr(request, 'user'):
-                if request.user.id == session_value['user_id']:
-                    try:
-                        return func(request, *args, **kwargs)
-                    except Exception as e:
-                        self.logger.error('error while loading target page for controller entry name {}'.format(func.__name__), exc_info=True)
-                        return ''
-                return redirect(self.login_url)
-            else:
-                if self.login_url:
-                    return redirect(self.login_url)
-                else:
-                    self.logger.debug('RequireLogin: unable to fing login_url will return 401')
-                    return response(status=HTTPStatus.UNAUTHORIZED)
         return __wrapper
-

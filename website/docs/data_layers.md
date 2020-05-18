@@ -92,16 +92,6 @@ class UserService(Service):
         return user
 ```
 
-### Approach
-
-`Core-Lib` API is very loose and build of minimul and simple utilities that can be used for your specific need.
-
-the idea i behind it is that no matter how strict! the framework API is. 
-we will still not follow it guide lines by attantion or mistake.
- 
-this is the reason why `Core-Lib` gives only simple utilities and recomendation. 
-follow the rules if you wish
-
 
    
 

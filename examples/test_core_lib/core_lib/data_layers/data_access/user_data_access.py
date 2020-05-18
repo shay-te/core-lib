@@ -4,9 +4,10 @@ from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.data_layers.data_access.sessions.db_data_session_factory import DBDataSessionFactory
-from core_lib.exceptions.status_code_exception import StatusCodeException
-from core_lib.validation.validation import valid_email
-from core_lib.validation.rule_validator import ValueRuleValidator, RuleValidator, ParameterRuleValidator
+from core_lib.error_handling.status_code_exception import StatusCodeException
+from core_lib.helpers.validation import valid_email
+from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
+from core_lib.rule_validator.rule_validator_decorator import ParameterRuleValidator
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
 
@@ -34,15 +35,15 @@ class UserDataAccess(DataAccess):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    @ParameterRuleValidator('user_data', user_rule_validator)
-    def create_user(self, user_data):
+    @ParameterRuleValidator(user_rule_validator, 'user_data')
+    def create(self, user_data):
         with self.db.get() as session:
             user = User(**user_data)
             session.add(user)
         return user
 
-    @ParameterRuleValidator('user_data', user_rule_validator, prohibited_keys=[User.email.key])
-    def update_user(self, user_id: int, user_data: dict):
+    @ParameterRuleValidator(user_rule_validator, 'user_data', prohibited_keys=[User.email.key])
+    def update(self, user_id: int, user_data: dict):
         with self.db.get() as session:
             return session.query(User).filter(User.id == user_id).update(user_data)
 
@@ -60,7 +61,7 @@ class UserDataAccess(DataAccess):
                 session.add(user)
         return user
 
-    def get_user_by_id(self, user_id):
+    def get(self, user_id):
         with self.db.get() as session:
             user = session.query(User).get(user_id)
             if user:

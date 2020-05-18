@@ -10,8 +10,8 @@ class WebHelpersUtils(object):
         DJANGO = 'django'
 
     @staticmethod
-    def init(server_type):
-        WebHelpersUtils.server_type = WebHelpersUtils.ServerType[server_type]
+    def init(server_type: ServerType):
+        WebHelpersUtils.server_type = server_type
 
     @staticmethod
     def get_server_type():

@@ -1,28 +1,32 @@
-core-lib:
+core_lib:
   mode_production: false
 
   datetime_format: null
   date_format: null
   time_format: null
 
-  sqlalchemy:
-    session:
-      pool_recycle: 3600
-      pool_pre_ping: False
+  data:
+    sqlalchemy:
+      log_queries: false
+      create_db: false
 
+      session:
+        pool_recycle: 3600
+        pool_pre_ping: False
+
+      url:
+        protocol: 'sqlite'
 
   alembic:
-    version_table: null
-    sqlalchemy.url: driver://user:pass@localhost/dbname
-
-
+    version_table: alembic_version
+    sqlalchemy.url: ${core_lib.data}
     # A generic, single database configuration.
 
     # path to migration scripts
-    script_location: conversation_core_lib/data_layers/data/db/migrations
+    script_location: null
 
     # template used to generate migration files
-    file_template:  %%(year)d-%%(month).2d-%%(day).2d_%%(rev)s_%%(slug)s
+    file_template:  "%%(year)d-%%(month).2d-%%(day).2d_%%(rev)s_%%(slug)s"
 
     # timezone to use when rendering the date
     # within the migration file as well as the filename.
@@ -52,9 +56,6 @@ core-lib:
     # are written from script.py.mako
     output_encoding: utf-8
 
-
-
-
     post_write_hooks:
     # post_write_hooks defines scripts or Python functions that are run
     # on newly generated revision scripts.  See the documentation for further
@@ -75,8 +76,8 @@ core-lib:
 
       formatters:
         generic:
-          format: %(levelname)-5.5s %(name)s %(message)s
-          datefmt: %H:%M:%S
+          format: "%(levelname)-5.5s %(name)s %(message)s"
+          datefmt: "%H:%M:%S"
 
       loggers:
         root:
@@ -100,4 +101,4 @@ core-lib:
           level: NOTSET
           formatter: generic
 
-
+    version_file_name: '.migration_ver'

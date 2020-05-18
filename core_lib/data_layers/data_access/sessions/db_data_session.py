@@ -13,7 +13,7 @@ class DBDataSession(DataSession):
         self.engine = engine
         self.use_parent_instance = use_parent_instance
         self.on_exit = on_exit
-        self.session = sessionmaker(bind=self.engine, expire_on_commit=False, pool_recycle=3600)()
+        self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
 
     def __enter__(self):
         return self.session
