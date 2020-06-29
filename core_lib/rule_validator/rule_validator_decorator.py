@@ -1,6 +1,6 @@
 from functools import wraps
 
-from core_lib.helpers.func_utils import get_parameter_index_by_name
+from core_lib.helpers.func_utils import get_func_parameter_index_by_name
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 
@@ -30,7 +30,7 @@ class ParameterRuleValidator(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
 
-            parameter_index = get_parameter_index_by_name(func, self.parameter_name)
+            parameter_index = get_func_parameter_index_by_name(func, self.parameter_name)
             update_dict = args[parameter_index]
             if not isinstance(update_dict, dict):
                 raise ValueError("`ParameterRuleValidator`. function `{}`, parameter `{}`. apply only when updating the database with `dict` parameters ".format(func.__name__, self.parameter_name))

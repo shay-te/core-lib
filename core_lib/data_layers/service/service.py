@@ -1,8 +1,2 @@
-from core_lib.single_instance import SingleInstance
-
-
-class Service(SingleInstance):
+class Service(object):
     pass
-
-
-

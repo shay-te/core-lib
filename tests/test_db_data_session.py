@@ -1,12 +1,10 @@
-import os
 import unittest
 from contextlib import suppress
 
 from sqlalchemy import create_engine, Integer, Column, VARCHAR
-from sqlalchemy.orm import sessionmaker
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data_access.sessions.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
 
 # path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
 

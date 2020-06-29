@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from hydra.experimental import initialize, compose
 from hydra.plugins.common.utils import configure_log
 
-from core_lib.helpers.test_utils import generate_email, generate_random_string
+from core_lib.helpers.generate_data import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
 import pymysql

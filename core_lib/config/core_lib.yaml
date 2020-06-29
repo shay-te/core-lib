@@ -23,7 +23,7 @@ core_lib:
     # A generic, single database configuration.
 
     # path to migration scripts
-    script_location: null
+    script_location: data_layers/data/db/migrations
 
     # template used to generate migration files
     file_template:  "%%(year)d-%%(month).2d-%%(day).2d_%%(rev)s_%%(slug)s"
@@ -102,3 +102,7 @@ core_lib:
           formatter: generic
 
     version_file_name: '.migration_ver'
+
+hydra:
+  run:
+    dir: .

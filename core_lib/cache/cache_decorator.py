@@ -33,7 +33,7 @@ class Cache(object):
 
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            cache_client = self._get_cache_client()
+            cache_client = Cache.get_cache_client(self.cache_client_name)
             key = self.cache_key_generator.generate_key(self.key, func, *args, **kwargs)
 
             if self.invalidate:
@@ -46,21 +46,23 @@ class Cache(object):
                 result = cache_client.from_cache(key)
                 if not result:
                     result = func(*args, **kwargs)
+                if result:
                     cache_client.to_cache(key, result, self.expire)
                 return result
 
         return __wrapper
 
-    def _get_cache_client(self):
+    @staticmethod
+    def get_cache_client(cache_client_name: str = None):
         if not Cache._factory:
-            raise ValueError("factory was not set to `{}`".format(self.__class__.__name__))
-        cache_client = Cache._factory.get(self.cache_client_name)
+            raise ValueError("factory was not set to `{}`".format(Cache.__class__.__name__))
+        cache_client = Cache._factory.get(cache_client_name)
 
         if not cache_client:
-            raise ValueError("CacheClient by name `{}` was not found in factory".format(self.cache_client_name, Cache._factory))
+            raise ValueError("CacheClient by name `{}` was not found in factory".format(cache_client_name, Cache._factory))
 
         if not isinstance(cache_client, CacheClient):
-            raise ValueError("CacheClient by name `{}` not instance of CacheClient".format(self.cache_client_name))
+            raise ValueError("CacheClient by name `{}` not instance of CacheClient".format(cache_client_name))
 
         return cache_client
 

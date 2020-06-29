@@ -3,7 +3,7 @@ import tempfile
 from sys import path
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data_access.sessions.object_data_session_factory import ObjectDataSessionFactory
+from core_lib.data_layers.data.session.object_data_session_factory import ObjectDataSessionFactory
 
 
 class ObjectsDataAccess(DataAccess):

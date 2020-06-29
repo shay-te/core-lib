@@ -7,7 +7,7 @@ from core_lib.error_handling.status_code_exception import StatusCodeException
 logger = logging.getLogger(__name__)
 
 
-def empty_result_error_handler(func):
+def not_found_error_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)

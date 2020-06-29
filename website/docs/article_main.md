@@ -8,6 +8,17 @@ sidebar_label: The Why
 
 Data Flow is a subject I am fascinated about.    
 Since it have a direct effect on how our product scale over time.
+
+an efficient data flows is important, for the application code And also for how a development environment perform.
+the effiency of day to day work take a big role on how fast the organizations move.
+
+imagine a scenario.
+two startup that have similar value for in the market place, similar budget, same technologies, same market, same country, same taxes, same salery prices, same 24 hours a day
+one will do well then the other for many reasons and factors. 
+
+single important factor is how fast you are moving compering to the other. 
+how much time you have to make mistakes, evolve and try new things.
+
      
 The data flows describes our code and classes. 
 And Growth of code in the long run it's something that we need to consider at the beginning of a project.     

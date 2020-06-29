@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 import os
 import sys
+
+# parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(os.path.join(parent_dir, 'core_lib'))
+# sys.path.append(parent_dir)
+# print(sys.path)
+
+
 from hydra.experimental import compose, initialize
 from core_lib.alembic.alembic import Alembic
 from core_lib.helpers.primitive_utils import is_int
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
 alembic = None
-
 
 def head():
     alembic.upgrade('head')
@@ -49,7 +52,7 @@ options = {
 if __name__ == '__main__':
     initialize(config_dir=os.path.join(os.getcwd(), 'config'), strict=True)
     cfg = compose('app_config.yaml')
-    alembic = Alembic(cfg)
+    alembic = Alembic(os.path.join(os.getcwd(), cfg.core_lib_module), cfg)
 
     if len(sys.argv) > 1:
         target = None

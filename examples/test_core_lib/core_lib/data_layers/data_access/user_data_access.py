@@ -3,7 +3,7 @@ import logging
 from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data_access.sessions.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.validation import valid_email
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator

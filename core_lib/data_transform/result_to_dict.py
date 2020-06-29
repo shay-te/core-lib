@@ -9,21 +9,23 @@ from sqlalchemy import inspect
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-def __update_result(result, key, value):
-    update_value = value
+def __convert_value(value):
     if isinstance(value, enum.Enum):
-        update_value = value.value
+        return value.value
     if isinstance(value, (datetime.date, datetime.datetime)):
-        update_value = value.isoformat()
+        return value.isoformat()
+    return value
 
-    result[key] = update_value
+
+def __name_tuple_to_dict(obj):
+    result = {}
+    for key in obj._fields:
+        result[key] = __convert_value(getattr(obj, key))
+    return result
 
 
 def __tuple_to_dict(obj):
-    result = {}
-    for key in obj._fields:
-        __update_result(result, key, getattr(obj, key))
-    return result
+    return [__convert_value(item) for item in obj]
 
 
 def __base_to_dict(obj, found=None):
@@ -33,7 +35,7 @@ def __base_to_dict(obj, found=None):
     result = {}
     mapper = inspect(obj).mapper
     for c in mapper.column_attrs:
-        __update_result(result, c.key, getattr(obj, c.key))
+        result[c.key] = __convert_value(getattr(obj, c.key))
 
     for name, relation in mapper.relationships.items():
         if relation not in found:
@@ -70,7 +72,10 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
                 results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
 
     elif isinstance(return_val, tuple):
-        results = __tuple_to_dict(return_val)
+        if hasattr(return_val, '_fields') and len(return_val._fields) > 0:
+            results = __name_tuple_to_dict(return_val)
+        else:
+            results = __tuple_to_dict(return_val)
     else:
         results = return_val
 
@@ -80,9 +85,9 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
                 if not isinstance(value, (int, float, bool, str)):
                     results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
 
-        # must be last!
-        if callback:
-            results = callback(results)
+    # must be last!
+    if callback:
+        results = callback(results)
 
     return results
 

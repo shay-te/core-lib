@@ -2,7 +2,7 @@
 #
 # import boto3
 # from dotenv import load_dotenv
-# from core_lib.data_layers.data_access.sessions.object_data_session_factory import ObjectDataSessionFactory
+# from core_lib.data_layers.data_access.session.object_data_session_factory import ObjectDataSessionFactory
 # from examples.objects_core_lib.core_lib.data_layers.data_access.objects_data_access import ObjectsDataAccess
 #
 # current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))

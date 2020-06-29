@@ -1,3 +1,8 @@
+#
+# Extend this class to make sure only single instance of your class is allowed
+#
+
+
 class SingleInstance(object):
 
     _instances = {}

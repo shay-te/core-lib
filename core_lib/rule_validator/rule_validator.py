@@ -76,19 +76,19 @@ class RuleValidator(object):
             parsed_value = rule.custom_converter(value)
 
         # `str` to `int`
-        elif rule.value_type is int and type(value) is str:
+        elif value and rule.value_type is int and type(value) is str:
             if value.isdigit():
                 parsed_value = int(value)
             else:
                 raise PermissionError("Invalid update key:`{}` illegal type `{}`".format(key, type(value)))
         # `str` to `datetime`
-        elif rule.value_type is datetime.datetime and type(value) is str:
+        elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
             except BaseException as ex:
                 raise PermissionError("Invalid update key:`{}` illegal datetime formatted value `{}`. only ISO format is accepted".format(key, value)) from ex
 
-        elif rule.value_type is not type(parsed_value):
+        elif value and rule.value_type is not type(parsed_value):
             raise PermissionError("Invalid update key:`{}` illegal type `{}`".format(key, type(parsed_value)))
 
         if rule.custom_validator and rule.custom_validator(parsed_value) is not True:

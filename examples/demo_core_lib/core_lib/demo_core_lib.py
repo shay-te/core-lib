@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
 
-from core_lib.data_layers.data_access.sessions.db_data_session_factory import DBDataSessionFactory
-from core_lib.data_layers.data_access.sessions.object_data_session_factory import ObjectDataSessionFactory
+from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.session.object_data_session_factory import ObjectDataSessionFactory
 from examples.demo_core_lib.core_lib.data_layers.data_access.demo_data_access import DemoDataAccess
 from examples.demo_core_lib.core_lib.data_layers.data_access.demo_search_data_access import DemoSearchDataAccess
 from examples.demo_core_lib.core_lib.data_layers.service.demo_search_service import DemoSearchService

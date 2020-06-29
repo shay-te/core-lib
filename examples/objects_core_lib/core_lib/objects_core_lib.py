@@ -3,7 +3,7 @@ from boto import Config
 from omegaconf import DictConfig
 
 from core_lib.core_lib import CoreLib
-from core_lib.data_layers.data_access.sessions.object_data_session_factory import ObjectDataSessionFactory
+from core_lib.data_layers.data.session.object_data_session_factory import ObjectDataSessionFactory
 from examples.objects_core_lib.core_lib.data_layers.data_access.objects_data_access import ObjectsDataAccess
 from examples.objects_core_lib.core_lib.data_layers.service.objects_service import ObjectsService
 
