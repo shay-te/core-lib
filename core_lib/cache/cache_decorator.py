@@ -39,7 +39,9 @@ class Cache(object):
             if self.invalidate:
                 result = func(*args, **kwargs)
                 # Invalidate the cache only after calling decorated function.
-                # With the intention to make cached item available during the invalidate function rum
+                # Reasons:
+                # 1. make cached item available during the invalidate function rum
+                # 2. On exception don't invalidate
                 cache_client.invalidate_cache(key)
                 return result
             else:

@@ -9,7 +9,7 @@ from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
-from core_lib.session.session_manager import SessionManager
+from core_lib.session.jwt_token_handler import JWTTokenHandler
 from examples.test_core_lib.core_lib.data_layers.data_access.slow_large_data_data_access import SlowLargeDataDataAccess
 from examples.test_core_lib.core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
 from examples.test_core_lib.core_lib.data_layers.data_access.test2_data_access import Test2DataAccess
@@ -26,7 +26,7 @@ class TestCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         self.config = conf
 
-        SessionManager.init(self.config.app.secret)
+        JWTTokenHandler.init(self.config.app.secret)
 
         cache_client_memcached = CacheClientMemcached(Client([build_url(**self.config.memcached)]))
         cache_factory = DefaultCacheFactory()

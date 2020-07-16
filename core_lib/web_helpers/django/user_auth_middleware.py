@@ -5,7 +5,7 @@ from core_lib.session.security_handler import SecurityHandler
 
 
 class UserAuthMiddleware(MiddlewareMixin):
-    
+
     def process_request(self, request):
         assert hasattr(request, 'session'), (
             "The Django authentication middleware requires session middleware "
@@ -14,4 +14,4 @@ class UserAuthMiddleware(MiddlewareMixin):
             "'django.contrib.auth.middleware.AuthenticationMiddleware'."
         ) % ("_CLASSES" if settings.MIDDLEWARE is None else "")
         if settings.COOKIE_NAME in request.COOKIES:
-            request.__class__.user = SecurityHandler.get().token_to_session_object(request.COOKIES[settings.COOKIE_NAME])
+            request.user = SecurityHandler.get().token_to_session_object(request.COOKIES[settings.COOKIE_NAME])
