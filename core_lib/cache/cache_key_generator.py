@@ -32,7 +32,7 @@ class CacheKeyGenerator(object):
             format_params = {**{p: p for p in params}, **kwargs}
 
             for index, arg in enumerate(args):
-                if params[index] is not 'self':
+                if params[index] != 'self':
                     param_name = params[index]
                     format_params[param_name] = args[index]
 

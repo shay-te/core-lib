@@ -91,8 +91,11 @@ class RuleValidator(object):
         elif value and rule.value_type is not type(parsed_value):
             raise PermissionError("Invalid update key:`{}` illegal type `{}`".format(key, type(parsed_value)))
 
-        if rule.custom_validator and rule.custom_validator(parsed_value) is not True:
-            raise PermissionError("Update of key:`{}` failed by custom validation".format(key))
+        try:
+            if rule.custom_validator and rule.custom_validator(parsed_value) is not True:
+                raise PermissionError("Update of key:`{}` failed by custom validation".format(key))
+        except BaseException as ex:
+            raise PermissionError("Error running custom validator with  `{}` and value `{}`".format(key, parsed_value)) from ex
 
         return parsed_value
 

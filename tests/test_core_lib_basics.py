@@ -30,12 +30,17 @@ class EventsService(Service, CoreLibListener):
 class EventsCoreLib(CoreLib, CoreLibListener):
 
     def __init__(self):
+        CoreLib.__init__(self)
         self.core_lib_ready_called = False
 
         data_access = EventsDataAccess()
         self.service = EventsService(data_access)
 
         self._data_access = data_access
+
+        self.register_listener(self)
+        self.register_listener(self.service)
+        self.register_listener(self._data_access)
 
     @property
     def core_lib_ready_service_called(self):
@@ -59,11 +64,3 @@ class TestCoreLibBasics(unittest.TestCase):
         self.assertEqual(core_lib.core_lib_ready_called, True)
         self.assertEqual(core_lib.core_lib_ready_data_access_called, True)
         self.assertEqual(core_lib.core_lib_ready_service_called, True)
-
-    def test_02_single_instance(self):
-        with self.assertRaises(RuntimeError) as ex:
-            EventsDataAccess()
-        with self.assertRaises(RuntimeError) as ex:
-            EventsService()
-        with self.assertRaises(RuntimeError) as ex:
-            EventsCoreLib()

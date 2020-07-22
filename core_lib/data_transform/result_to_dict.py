@@ -68,7 +68,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
         results = __base_to_dict(return_val)
         # get also fields that was loaded onto the model
         for key, value in return_val.__dict__.items():
-            if key not in results and key is not '_sa_instance_state':
+            if key not in results and key != '_sa_instance_state':
                 results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
 
     elif isinstance(return_val, tuple):
