@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import logging
 import os
 import sys
 
@@ -12,13 +13,19 @@ from hydra.experimental import compose, initialize
 from core_lib.alembic.alembic import Alembic
 from core_lib.helpers.primitive_utils import is_int
 
+
+logger = logging.getLogger(__name__)
+
 alembic = None
 
+
 def head():
+    logger.info('migrating to `head`')
     alembic.upgrade('head')
 
 
 def base():
+    logger.info('migrating to `base`')
     alembic.downgrade('base')
 
 
@@ -26,10 +33,12 @@ def new(*args):
     name = ''
     for n in args:
         name = name + n + ' '
+    logger.info('creating new migrating named: `{}`'.format(name))
     alembic.create_migration(name)
 
 
 def number(number):
+    logger.info('migrating to `{}`'.format(str(number)))
     if number >= 0:
         alembic.upgrade('+{}'.format(number))
     else:
@@ -53,6 +62,7 @@ if __name__ == '__main__':
     initialize(config_dir=os.path.join(os.getcwd(), 'config'), strict=True)
     cfg = compose('app_config.yaml')
     alembic = Alembic(os.path.join(os.getcwd(), cfg.core_lib_module), cfg)
+    logging.getLogger('alembic').setLevel(logging.INFO)
 
     if len(sys.argv) > 1:
         target = None

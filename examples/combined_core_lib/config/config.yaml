@@ -10,11 +10,11 @@ core_lib:
 
   db:
     protocol: mysql
-    username: ${env:mysql_user}
-    password: ${env:mysql_root_password}
+    username: ${env:MYSQL_USER}
+    password: ${env:MYSQL_ROOT_PASSWORD}
     host: 127.0.0.1
     port: 3306
-    file: ${env:mysql_db}
+    file: ${env:MYSQL_DB}
     log_queries: False
     create_db: true
 

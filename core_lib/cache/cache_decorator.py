@@ -2,16 +2,13 @@ import logging
 from datetime import timedelta
 from functools import wraps
 
-from core_lib.cache.cache_client import CacheClient
-from core_lib.cache.cache_key_generator import CacheKeyGenerator
-from core_lib.factory.factory import Factory
+from core_lib.core_lib import CoreLib
+from core_lib.helpers.func_utils import build_value_by_func_parameters
 
 logger = logging.getLogger(__name__)
 
 
 class Cache(object):
-
-    _factory = None
 
     # key: The key used to store the value with, when no key specified the function.__qualname__ is used
     # expire: period of time when the value is expired
@@ -24,17 +21,17 @@ class Cache(object):
                  invalidate: bool = False,
                  cache_client_name: str = None):
         self.key = key
+        self.max_key_length = max_key_length
         self.expire = expire
         self.invalidate = invalidate
         self.cache_client_name = cache_client_name
-        self.cache_key_generator = CacheKeyGenerator(max_key_length)
 
     def __call__(self, func, *args, **kwargs):
 
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            cache_client = Cache.get_cache_client(self.cache_client_name)
-            key = self.cache_key_generator.generate_key(self.key, func, *args, **kwargs)
+            cache_client = CoreLib.cache_factory.get(self.cache_client_name)
+            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length]
 
             if self.invalidate:
                 result = func(*args, **kwargs)
@@ -53,21 +50,3 @@ class Cache(object):
                 return result
 
         return __wrapper
-
-    @staticmethod
-    def get_cache_client(cache_client_name: str = None):
-        if not Cache._factory:
-            raise ValueError("factory was not set to `{}`".format(Cache.__class__.__name__))
-        cache_client = Cache._factory.get(cache_client_name)
-
-        if not cache_client:
-            raise ValueError("CacheClient by name `{}` was not found in factory".format(cache_client_name, Cache._factory))
-
-        if not isinstance(cache_client, CacheClient):
-            raise ValueError("CacheClient by name `{}` not instance of CacheClient".format(cache_client_name))
-
-        return cache_client
-
-    @staticmethod
-    def set_factory(factory: Factory):
-        Cache._factory = factory

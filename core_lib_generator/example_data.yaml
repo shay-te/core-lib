@@ -1,7 +1,7 @@
 variables:
-  mysql_user: xyz
-  mysql_password: xx
-  mysql_db: db
+  MYSQL_USER: xyz
+  MYSQL_PASSWORD: xx
+  MYSQL_DB: db
   postgres_user: x
   postgres_password: x
   postgres_db: s
@@ -12,11 +12,11 @@ core_lib:
   data:
     db:
       - protocol: mysql
-        username: ${env:mysql_user}
-        password: ${env:mysql_password}
+        username: ${env:MYSQL_USER}
+        password: ${env:MYSQL_PASSWORD}
         address: localhost
         port: 3306
-        file: ${env:mysql_db}
+        file: ${env:MYSQL_DB}
       - protocol: sqlite
         file: ${env:sqlite_db}
       - protocol: postgres
@@ -60,7 +60,7 @@ services:
     ports:
       - '3306:3306'
     environment:
-      MYSQL_ROOT_PASSWORD: ${mysql_root_password}
-      MYSQL_DATABASE: ${mysql_db}
-      MYSQL_USER: ${mysql_user}
-      MYSQL_PASSWORD: ${mysql_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}

@@ -8,6 +8,7 @@ from core_lib.cache.cache_client import CacheClient
 class CacheClientMemcached(CacheClient):
 
     def __init__(self, memcached_client: Client):
+        assert isinstance(memcached_client, Client)
         self.memcached_client = memcached_client
 
     def from_cache(self, key):

@@ -18,6 +18,6 @@ get the default first if no name provided.
 
 used in DataSessionFactory
 
-cache  DefaultCacheFactory
+cache  CacheFactory
 
 events  

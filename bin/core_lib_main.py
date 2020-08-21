@@ -30,7 +30,9 @@ def _to_camel_case(snake_str):
 
 
 def _to_core_lib_class(core_lib_name):
-    return """from omegaconf import DictConfig
+    return """from core_lib.data_layers.data.data_helpers import build_url
+from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+    from omegaconf import DictConfig
 from core_lib.core_lib import CoreLib
 
 

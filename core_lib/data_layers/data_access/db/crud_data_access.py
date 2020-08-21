@@ -1,6 +1,6 @@
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
-from core_lib.error_handling.decorators import not_found_error_handler
+from core_lib.error_handling.decorators import NotFoundErrorHandler
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 
@@ -11,7 +11,7 @@ class CRUDDataAccess(DataAccess):
         self._db = db
         self._rule_validator = rule_validator
 
-    @not_found_error_handler
+    @NotFoundErrorHandler()
     def get(self, id: int):
         with self._db.get() as session:
             return session.query(self._db_entity).get(id)

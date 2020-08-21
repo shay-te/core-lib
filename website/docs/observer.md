@@ -25,9 +25,9 @@ class UserObserverListener(ObserverListener):
 
 ```python
 from core_lib.core_lib import CoreLib
-from core_lib.observer.default_observer_factory import DefaultObserverFactory
+from core_lib.observer.observer_factory import ObserverFactory
 from core_lib.observer.observer import Observer
-from core_lib.observer.observer_decorator import ObserverNotify
+from core_lib.observer.observer_decorator import Observe
 
 class MyCoreLib(CoreLib):
 
@@ -36,13 +36,13 @@ class MyCoreLib(CoreLib):
 
         main_observer = Observer()
         main_observer.attach(UserObserverListener())
-        observer_factory = DefaultObserverFactory()
+        observer_factory = ObserverFactory()
         observer_factory.register("main", main_observer)
-        ObserverNotify.set_factory(observer_factory)
+        Observe.set_factory(observer_factory)
 ```
 
 
-# ObserverNotify decorator
+# Observe decorator
 
 ```python
 class UserDataAccess(DataAccess):
@@ -50,7 +50,7 @@ class UserDataAccess(DataAccess):
     def __init__(self, db: DBDataSessionFactory):
         self._db = db
 
-    @ObserverNotify(event_key=UserObserverListener.EVENT_USER_CHANGE, notify_before=False)
+    @Observe(event_key=UserObserverListener.EVENT_USER_CHANGE, notify_before=False)
     def update(self, user_id: int, update):
         with self._db.get() as session:
             session.query(User).filter(User.id == user_id).update(update)
@@ -58,14 +58,14 @@ class UserDataAccess(DataAccess):
 ```
 
 
-### ObserverNotify.\_\_init\_\_
+### Observe.\_\_init\_\_
 `value_rule_validators` a list of `ValueRuleValidator` objects. 
 
 `event_key` event key to notify  (type: `str`, default: `None`)
 
 `value_param_name` event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as `dict` (type: `str`, default: `None`)
   
-`observer_name` when multiple observers register to the `DefaultObserverFactory`. (type: `str`, default: `None`)
+`observer_name` when multiple observers register to the `ObserverFactory`. (type: `str`, default: `None`)
  
 `notify_before` when to send the event before the func call or after (type: `bool`, default: `False`)
 

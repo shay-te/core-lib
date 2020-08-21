@@ -3,12 +3,13 @@ import logging
 from contextlib import suppress
 from functools import wraps
 
+from core_lib.helpers.func_utils import build_value_by_func_parameters
+
 
 class Logging(object):
 
-    def __init__(self, message: str = '', parameters: list = [], level: int = logging.INFO, stack_depth=1):
+    def __init__(self, message: str = '', level: int = logging.INFO, stack_depth=1):
         self.message = message
-        self.parameters = parameters
         self.level = level
         self.calling_module = None
 
@@ -30,19 +31,8 @@ class Logging(object):
 
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            additional_params = []
-            parameters = list(inspect.signature(func).parameters)
-            for param in self.parameters:
-                parameter_index = parameters.index(param)
-                if 0 <= parameter_index < len(args):
-                    additional_params.append('{}={}'.format(param, args[parameter_index]))
-                else:
-                    if param in kwargs:
-                        additional_params.append('{}={}'.format(param, kwargs[param]))
-                    else:
-                        additional_params.append('{}=?'.format(param))
-
-            logging.getLogger(self.calling_module).log(self.level, '{}. {}'.format(self.message, ', '.join(additional_params)))
+            message = build_value_by_func_parameters(self.message, func, *args, **kwargs)
+            logging.getLogger(self.calling_module).log(self.level, '{}. {}'.format(self.message, ', '.join(message)))
             return func(*args, **kwargs)
 
         return __wrapper
