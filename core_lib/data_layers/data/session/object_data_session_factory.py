@@ -1,8 +1,8 @@
+from core_lib.data_layers.data.session.data_session_factory import DataSessionFactory
 from core_lib.data_layers.data.session.object_data_session import ObjectDataSession
-from core_lib.factory.factory import Factory
 
 
-class ObjectDataSessionFactory(Factory):
+class ObjectDataSessionFactory(DataSessionFactory):
 
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self.obj = obj

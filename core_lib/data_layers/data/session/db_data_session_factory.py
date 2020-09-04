@@ -1,9 +1,9 @@
+from core_lib.data_layers.data.session.data_session_factory import DataSessionFactory
 from core_lib.data_layers.data.session.db_data_session import DBDataSession
-from core_lib.factory.factory import Factory
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
 
 
-class DBDataSessionFactory(Factory):
+class DBDataSessionFactory(DataSessionFactory):
 
     def __init__(self, engine):
         self.engine = engine

@@ -85,7 +85,7 @@ class UserService(Service):
         self.user_friends_data_acccess = user_friends_data_acccess
 
     @ResultToDict # Transform data to dict. 
-    def get_info(self, user_id: int):
+    def get(self, user_id: int):
         user = self.user_data_access.get(user_id)
         if user.something:
             user.friends = self.user_friends_data_acccess.get_user_friends(user_id)
