@@ -1,8 +1,8 @@
-from core_lib.data_layers.data.session.data_session_factory import DataSessionFactory
-from core_lib.data_layers.data.session.object_data_session import ObjectDataSession
+from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerFactory
+from core_lib.data_layers.data.handler.object_data_handler import ObjectDataHandler
 
 
-class ObjectDataSessionFactory(DataSessionFactory):
+class ObjectDataHandlerFactory(DataHandlerFactory):
 
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self.obj = obj
@@ -13,5 +13,5 @@ class ObjectDataSessionFactory(DataSessionFactory):
         obj = self.obj
         if self.new_session_callback:
             obj = self.new_session_callback(self.obj)
-        return ObjectDataSession(obj, self.close_session_callback)
+        return ObjectDataHandler(obj, self.close_session_callback)
 

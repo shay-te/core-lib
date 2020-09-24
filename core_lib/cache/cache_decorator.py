@@ -1,9 +1,11 @@
 import logging
 from datetime import timedelta
 from functools import wraps
+from typing import Union
 
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.func_utils import build_value_by_func_parameters
+from core_lib.helpers.timedelta_utils import parse
 
 logger = logging.getLogger(__name__)
 
@@ -11,13 +13,13 @@ logger = logging.getLogger(__name__)
 class Cache(object):
 
     # key: The key used to store the value with, when no key specified the function.__qualname__ is used
-    # expire: period of time when the value is expired
+    # expire: period of time when the value is expired, string will be parse with `timedelta_utils.parse`
     # invalidate : remove the value from the cache using the key
-    # cache_client_name: what name to use to get the correct `CacheClient`
+    # cache_client_name: what name to use to get the correct `CacheHandler`
     def __init__(self,
                  key: str = None,
                  max_key_length: int = 250,
-                 expire: timedelta = None,
+                 expire: Union[timedelta, str] = None,
                  invalidate: bool = False,
                  cache_client_name: str = None):
         self.key = key
@@ -25,6 +27,10 @@ class Cache(object):
         self.expire = expire
         self.invalidate = invalidate
         self.cache_client_name = cache_client_name
+
+        # validate expire BEFORE USE, in a reason to promote errors to startup time
+        if self.expire and isinstance(self.expire, str):
+            parse(expire)  # Will raise an error on wrong expression
 
     def __call__(self, func, *args, **kwargs):
 
@@ -46,7 +52,10 @@ class Cache(object):
                 if not result:
                     result = func(*args, **kwargs)
                 if result:
-                    cache_client.to_cache(key, result, self.expire)
+                    expire = self.expire
+                    if expire and isinstance(expire, str):
+                        expire = parse(expire)
+                    cache_client.to_cache(key, result, expire)
                 return result
 
         return __wrapper

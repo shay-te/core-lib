@@ -24,3 +24,11 @@ class TestFunctionUtils(unittest.TestCase):
         key4 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', boo, *[], **{'param_2': 'pp2'})
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_param_1_pp2')
+
+        key5 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', boo, 1, 2)
+        self.assertNotEqual(key5, None)
+        self.assertEqual(key5, 'xyz_1_2')
+
+        key6 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', boo, None, None)
+        self.assertNotEqual(key6, None)
+        self.assertEqual(key6, 'xyz_None_None')

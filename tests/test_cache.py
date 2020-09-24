@@ -3,7 +3,7 @@ from datetime import timedelta
 from time import sleep
 
 from core_lib.cache.cache_decorator import Cache
-from core_lib.cache.cache_client_ram import CacheClientRam
+from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
 
 cache_client_name = "xyz"
@@ -15,7 +15,7 @@ class TestCache(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        CoreLib.cache_factory.register(cache_client_name, CacheClientRam())
+        CoreLib.cache_factory.register(cache_client_name, CacheHandlerRam())
 
     def test_cache_client_register(self):
         self.assertRaises(ValueError, self.not_exists_cache_client_name)

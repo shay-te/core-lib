@@ -2,10 +2,10 @@ import pysolr
 from neo4j import GraphDatabase, basic_auth
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.session.object_data_session_factory import ObjectDataSessionFactory
+from core_lib.data_layers.data.handler.object_data_handler_factory import ObjectDataHandlerFactory
 from sqlalchemy import create_engine
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
 
 
 def connect_neo4j(config):
@@ -13,7 +13,7 @@ def connect_neo4j(config):
                                         auth=basic_auth(config.credentials.username,
                                                         config.credentials.password),
                                         encrypted=False)
-    return ObjectDataSessionFactory(neo4j_driver, lambda driver: driver.session(), lambda session: session.close())
+    return ObjectDataHandlerFactory(neo4j_driver, new_session_callback=lambda driver: driver.session(), close_session_callback=lambda session: session.close())
 
 
 def connect_sqlalchemy(config):
@@ -23,9 +23,9 @@ def connect_sqlalchemy(config):
     engine.connect()
     if config.create_db:
         Base.metadata.create_all(engine)
-    return DBDataSessionFactory(engine)
+    return SqlAlchemyDataHandlerFactory(engine)
 
 
 def connect_solr(config):
     solr_address = build_url(**config.url)
-    return ObjectDataSessionFactory(pysolr.Solr(solr_address, always_commit=True))
+    return ObjectDataHandlerFactory(pysolr.Solr(solr_address, always_commit=True))

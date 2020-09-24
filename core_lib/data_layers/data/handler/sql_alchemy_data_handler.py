@@ -2,12 +2,12 @@ import logging
 
 from sqlalchemy.orm import sessionmaker
 
-from core_lib.data_layers.data.session.data_session import DataSession
+from core_lib.data_layers.data.handler.data_handler import DataHandler
 
 logger = logging.getLogger(__name__)
 
 
-class DBDataSession(DataSession):
+class SqlAlchemyDataHandler(DataHandler):
 
     def __init__(self, engine, use_parent_instance: bool, on_exit):
         self.engine = engine
@@ -20,7 +20,7 @@ class DBDataSession(DataSession):
 
     def __exit__(self, exec_type, exec_value, traceback):
         if exec_type or exec_value or traceback:
-            logger.error("Error in DB session", exc_info=(exec_type, exec_value, traceback))
+            logger.error("Error in DB handler", exc_info=(exec_type, exec_value, traceback))
             self.session.rollback()
 
         if self.on_exit:

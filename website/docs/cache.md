@@ -6,12 +6,12 @@ sidebar_label: Cache
 
 `Core-Lib` provide plug-able cache functionalists that can be extended. And used as a decorator and as an instance.
 
-## CacheClient
+## CacheHandler
 
-`CacheClient` base class provides the basic API functions used by `Core-Lib`.
+`CacheHandler` base class provides the basic API functions used by `Core-Lib`.
 
 ```python
-class CacheClient(ABC):
+class CacheHandler(ABC):
 
     # Fetch data from the cache using the `key`, returns None when no value was found
     @abstractmethod
@@ -30,26 +30,26 @@ class CacheClient(ABC):
         pass
 ```
 
-By default `Core-Lib` provides two `CacheClient` implementation.   
-1. `core_lib.cache.cache_client_ram.CacheClientRam`
-2. `core_lib.cache.cache_client_memcached.CacheClientMemcached`
+By default `Core-Lib` provides two `CacheHandler` implementation.   
+1. `core_lib.cache.cache_client_ram.CacheHandlerRam`
+2. `core_lib.cache.cache_client_memcached.CacheHandlerMemcached`
 
 
 ## CacheClientFactory
 
-`CacheClientFactory` class holds all instances of `CacheClient` classes and provides two main functions.
+`CacheClientFactory` class holds all instances of `CacheHandler` classes and provides two main functions.
 
 ```python
 from core_lib.cache.cache_client_factory import CacheClientFactory
-from core_lib.cache.cache_client_ram import CacheClientRam
+from core_lib.cache.cache_handler_ram import CacheHandlerRam
 
 cache_client_factory = CacheClientFactory()
-cache_client_factory.register("mem", CacheClientRam())
+cache_client_factory.register("mem", CacheHandlerRam())
 ...
-cache_client_factory.get("mem") # returns registered `CacheClientRam`
-cache_client_factory.get() # returns registered `CacheClientRam`. Only when a single client is registered, 
+cache_client_factory.get("mem") # returns registered `CacheHandlerRam`
+cache_client_factory.get() # returns registered `CacheHandlerRam`. Only when a single client is registered, 
 
-cache_client_factory.register("mem2", CacheClientRam())
+cache_client_factory.register("mem2", CacheHandlerRam())
 cache_client_factory.get() # returns None. Multiple client registered.
 ``` 
 
@@ -71,12 +71,12 @@ class Cache(object):
     when a parameter is optional and empty `_` is used. 
 * `expire` Period of time when the value is expired.
 * `invalidate` Remove the value from the cache using the key.
-* `cache_client_name` The name to use to get the correct `CacheClient`.
+* `cache_client_name` The name to use to get the correct `CacheHandler`.
 
 
 ### Cache Initialization
 
-The `Cache` decorator is using the `CacheClientFactory` to get the designated `CacheClient`   
+The `Cache` decorator is using the `CacheClientFactory` to get the designated `CacheHandler`   
 Initializing `Core-Lib` with `Cache` example: 
 
 ```python
@@ -88,7 +88,7 @@ class DemoCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         self.config = conf
 
-        cache_client_memcached = CacheClientMemcached(Client([build_url(**self.config.memcached)]))
+        cache_client_memcached = CacheHandlerMemcached(Client([build_url(**self.config.memcached)]))
         cache_factory = CacheClientFactory()
         cache_factory.register("memcached", cache_client_memcached)
         Cache.set_cache_factory(cache_factory)

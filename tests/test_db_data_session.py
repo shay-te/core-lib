@@ -4,7 +4,7 @@ from contextlib import suppress
 from sqlalchemy import create_engine, Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
 
 # path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
 
@@ -24,7 +24,7 @@ class TestDBRuleValidator(unittest.TestCase):
         cls.engine = create_engine("sqlite://", echo=True)
         cls.engine.connect()
         Base.metadata.create_all(cls.engine)
-        cls.db_data_session = DBDataSessionFactory(cls.engine)
+        cls.db_data_session = SqlAlchemyDataHandlerFactory(cls.engine)
 
     def test_query(self):
         with self.__class__.db_data_session.get() as session:

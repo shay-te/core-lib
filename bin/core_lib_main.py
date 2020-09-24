@@ -31,7 +31,7 @@ def _to_camel_case(snake_str):
 
 def _to_core_lib_class(core_lib_name):
     return """from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.handler.db_data_session_factory import SqlAlchemyDataHandlerFactory
     from omegaconf import DictConfig
 from core_lib.core_lib import CoreLib
 
@@ -47,10 +47,10 @@ class {}(CoreLib):
 def _to_core_lib_class_db():
     return """
         engine = create_engine(build_url(**self._config.core_lib.data.sqlalchemy.url),
-                               pool_recycle=self._config.core_lib.data.sqlalchemy.session.pool_recycle,
+                               pool_recycle=self._config.core_lib.data.sqlalchemy.handler.pool_recycle,
                                echo=self._config.core_lib.data.sqlalchemy.log_queries)
         engine.connect()
-        db_data_session = DBDataSessionFactory(engine)    
+        db_data_session = SqlAlchemyDataHandlerFactory(engine)    
 """
 
 

@@ -1,4 +1,5 @@
 import inspect
+import threading
 
 
 class InstanceUnderStack(object):
@@ -11,13 +12,17 @@ class InstanceUnderStack(object):
         stack = inspect.stack()
         lst = []
         for stack_frame in stack[self.stack_start_index:]:
-            line = stack_frame.code_context[0] if stack_frame.code_context else "!NO_CODE_CONTEXT!"
-            line = line.replace(" ", "").split("(")[0]
-            lst.insert(0, "{}:{}".format(line, id(stack_frame.frame)))
-        return "<-#->".join(lst)
+            line = stack_frame.code_context[0] if stack_frame.code_context else '!NO_CODE_CONTEXT!'
+            # line = line.replace(' ', '').split('(')[0]
+            line = line.strip().split('(')[0]
+            lst.insert(0, '{}:{}'.format(line, id(stack_frame.frame)))
+        stack_path = '<-#->'.join(lst)
+        return 'thread:{},path:{}'.format(threading.get_native_id(), stack_path)
 
     def store(self, obj):
-        self.object_to_instance_path[obj] = self.get_stack_path()
+        stack_path = self.get_stack_path()
+        self.object_to_instance_path[obj] = stack_path
+        return stack_path
 
     def stored(self, obj) -> bool:
         return True if obj in self.object_to_instance_path else False

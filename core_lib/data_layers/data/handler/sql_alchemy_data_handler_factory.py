@@ -1,13 +1,13 @@
-from core_lib.data_layers.data.session.data_session_factory import DataSessionFactory
-from core_lib.data_layers.data.session.db_data_session import DBDataSession
+from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler import SqlAlchemyDataHandler
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
 
 
-class DBDataSessionFactory(DataSessionFactory):
+class SqlAlchemyDataHandlerFactory(DataHandlerFactory):
 
     def __init__(self, engine):
         self.engine = engine
-        self.instance_under_path = InstanceUnderStack()
+        self.instance_under_path = InstanceUnderStack(stack_start_index=4)
         self.session_to_count = {}
 
     def get(self, use_parent_instance=True, *args, **kwargs):
@@ -17,14 +17,14 @@ class DBDataSessionFactory(DataSessionFactory):
                 db_session_count = self.session_to_count[db_session]
                 self.session_to_count[db_session] = db_session_count + 1
             else:
-                db_session = DBDataSession(self.engine, use_parent_instance, self._on_db_session_exit)
+                db_session = SqlAlchemyDataHandler(self.engine, use_parent_instance, self._on_db_session_exit)
                 self.instance_under_path.store(db_session)
                 self.session_to_count[db_session] = 1
             return db_session
         else:
-            return DBDataSession(self.engine, use_parent_instance, self._on_db_session_exit)
+            return SqlAlchemyDataHandler(self.engine, use_parent_instance, self._on_db_session_exit)
 
-    def _on_db_session_exit(self, db_session):
+    def _on_db_session_exit(self, db_session: SqlAlchemyDataHandler):
         if db_session.use_parent_instance: 
             instance_count = self.session_to_count[db_session]
             if instance_count is not None:

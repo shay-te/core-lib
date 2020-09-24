@@ -60,7 +60,7 @@ class Alembic(object):
             with EnvironmentContext(self.alembic_cfg,
                                     script,
                                     fn=callback) as context:
-                context.configure(version_table=self.config.version_table, connection=connection)
+                context.configure(version_table=self.config.version_table, connection=connection, render_as_batch=self.config.render_as_batch)
                 with context.begin_transaction():
                     context.run_migrations()
 

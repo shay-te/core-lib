@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 
 
-class CacheClient(ABC):
+class CacheHandler(ABC):
 
     # Fetch data from cache using the `key`, returns None when no value was found
     @abstractmethod

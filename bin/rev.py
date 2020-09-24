@@ -11,8 +11,7 @@ import sys
 
 from hydra.experimental import compose, initialize
 from core_lib.alembic.alembic import Alembic
-from core_lib.helpers.primitive_utils import is_int
-
+from core_lib.helpers.validation import is_int
 
 logger = logging.getLogger(__name__)
 

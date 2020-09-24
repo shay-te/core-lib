@@ -6,7 +6,7 @@ from sqlalchemy.orm import validates
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.time_stamp_mixin import TimeStampMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-from core_lib.helpers.validation import valid_email
+from core_lib.helpers.validation import is_email
 
 
 class User(TimeStampMixin, Base):
@@ -30,6 +30,6 @@ class User(TimeStampMixin, Base):
 
     @validates('email')
     def validate_email(self, key, email):
-        if not email or not valid_email(email):
+        if not email or not is_email(email):
             raise AssertionError('email must be ser and valid')
         return email

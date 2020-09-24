@@ -14,10 +14,10 @@ def handle_exceptions(func):
         try:
             return func(*args, **kwargs)
         except StatusCodeException as n:
-            logger.exception(n)
+            logger.exception(n, exc_info=True)
             return response_message(status=n.status_code)
         except BaseException as bx:
-            logger.exception(bx)
+            logger.exception(bx, exc_info=True)
             return response_message(status=500)
 
     return wrapper

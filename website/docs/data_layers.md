@@ -62,7 +62,7 @@ class UserDataAccess(DataAccess):
         self.logger = logging.getLogger(str(UserDataAccess))
 
     def get(self, id: int):
-        with self.get_session(DBDataSessionFactory.name) as session:
+        with self.get_session(SqlAlchemyDataHandlerFactory.name) as session:
             return session.Query(User).get(id)
 ```
 

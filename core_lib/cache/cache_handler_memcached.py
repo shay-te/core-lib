@@ -2,10 +2,10 @@ import datetime
 import json
 
 from memcache import Client
-from core_lib.cache.cache_client import CacheClient
+from core_lib.cache.cache_handler import CacheHandler
 
 
-class CacheClientMemcached(CacheClient):
+class CacheHandlerMemcached(CacheHandler):
 
     def __init__(self, memcached_client: Client):
         assert isinstance(memcached_client, Client)

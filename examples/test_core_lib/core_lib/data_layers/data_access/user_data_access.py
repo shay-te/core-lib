@@ -3,9 +3,9 @@ import logging
 from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.validation import valid_email
+from core_lib.helpers.validation import is_email
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.rule_validator.rule_validator_decorator import ParameterRuleValidator
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
@@ -18,7 +18,7 @@ user_rule_validators = [
     ValueRuleValidator(User.first_name.key, str, nullable=False),
     ValueRuleValidator(User.middle_name.key, str),
     ValueRuleValidator(User.last_name.key, str),
-    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: valid_email(value)),  # Email included in prohibited_keys, .
+    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),  # Email included in prohibited_keys, .
     ValueRuleValidator(User.birthday.key, datetime.date),
     ValueRuleValidator(User.gender.key,
                        User.Gender,
@@ -31,7 +31,7 @@ user_rule_validator = RuleValidator(user_rule_validators)
 
 class UserDataAccess(DataAccess):
 
-    def __init__(self, db: DBDataSessionFactory):
+    def __init__(self, db: SqlAlchemyDataHandlerFactory):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)
 

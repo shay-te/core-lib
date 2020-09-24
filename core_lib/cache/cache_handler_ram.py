@@ -1,9 +1,9 @@
 import datetime
 
-from core_lib.cache.cache_client import CacheClient
+from core_lib.cache.cache_handler import CacheHandler
 
 
-class CacheClientRam(CacheClient):
+class CacheHandlerRam(CacheHandler):
 
     def __init__(self):
         self.cached_function_responses = {}

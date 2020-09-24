@@ -1,7 +1,7 @@
-from core_lib.data_layers.data.session.data_session import DataSession
+from core_lib.data_layers.data.handler.data_handler import DataHandler
 
 
-class ObjectDataSession(DataSession):
+class ObjectDataHandler(DataHandler):
 
     def __init__(self, obj, close_callback):
         self.obj = obj
