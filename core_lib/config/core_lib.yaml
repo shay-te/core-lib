@@ -21,9 +21,13 @@ core_lib:
       create_db: false
       session:
         pool_recycle: 3600
-        pool_pre_ping: False
+        pool_pre_ping: false
       url:
         protocol: 'sqlite'
+
+    solr:
+      always_commit: true
+      url: ~
 
   alembic:
     version_table: alembic_version

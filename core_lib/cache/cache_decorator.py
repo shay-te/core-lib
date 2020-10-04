@@ -1,19 +1,27 @@
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from functools import wraps
 from typing import Union
 
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.func_utils import build_value_by_func_parameters
-from core_lib.helpers.timedelta_utils import parse
+import parsedatetime
 
 logger = logging.getLogger(__name__)
+parse_datetime_calendar = parsedatetime.Calendar()
+
+
+def _parse_datetime(expire: str):
+    expire_datetime, result = parse_datetime_calendar.parseDT(expire)
+    if result == 0:
+        raise ValueError('Unable to parse time expression `{}`'.format(expire))
+    return datetime.utcnow() - expire_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class Cache(object):
 
     # key: The key used to store the value with, when no key specified the function.__qualname__ is used
-    # expire: period of time when the value is expired, string will be parse with `timedelta_utils.parse`
+    # expire: period of time when the value is expired, string will be parse `parsedatetime` and then now-parsed_result
     # invalidate : remove the value from the cache using the key
     # cache_client_name: what name to use to get the correct `CacheHandler`
     def __init__(self,
@@ -30,7 +38,7 @@ class Cache(object):
 
         # validate expire BEFORE USE, in a reason to promote errors to startup time
         if self.expire and isinstance(self.expire, str):
-            parse(expire)  # Will raise an error on wrong expression
+            _parse_datetime(expire)  # Will raise an error on wrong expression
 
     def __call__(self, func, *args, **kwargs):
 
@@ -54,7 +62,7 @@ class Cache(object):
                 if result:
                     expire = self.expire
                     if expire and isinstance(expire, str):
-                        expire = parse(expire)
+                        expire = _parse_datetime(expire)
                     cache_client.to_cache(key, result, expire)
                 return result
 

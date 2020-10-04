@@ -26,10 +26,10 @@ class CRUDDataAccess(DataAccess):
         if self._rule_validator:
             self.rule_validator.validate_dict(data)
         with self._db.get() as session:
-            challenge = self._db_entity()
+            entity = self._db_entity()
             for key, value in data.items():
-                if key != 'id' and hasattr(challenge, key):
-                    setattr(challenge, key, value)
+                if key != 'id' and hasattr(entity, key):
+                    setattr(entity, key, value)
 
-            session.add(challenge)
-        return challenge
+            session.add(entity)
+        return entity

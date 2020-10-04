@@ -26,14 +26,17 @@ core_lib:
         port: 5432
         file: ${env:postgres_db}
     memcached:
-      host: localhost
-      port: 11211
+      url:
+        host: localhost
+        port: 11211
     solr:
-      protocol: http
-      host: localhost
-      port: 8983
-      path: solr
-      file: ${env:solr_core_name}
+      always_commit: true
+      url:
+        protocol: http
+        host: localhost
+        port: 8983
+        path: solr
+        file: ${env:solr_core_name}
 
 docker-compose:
 version: '2'

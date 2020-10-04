@@ -1,7 +1,10 @@
+import logging
 from typing import List
 
 from core_lib.observer.observer_listener import ObserverListener
 
+
+logger = logging.getLogger(__name__)
 
 class Observer(object):
 
@@ -21,7 +24,11 @@ class Observer(object):
 
     def notify(self, key: str, value) -> None:
         for observer in self._listener:
-            observer.update(key, value)
+            try:
+                observer.update(key, value)
+            except Exception as ex:
+                logger.error('error while Observer.notify on key: `{}`'.format(key))
+                raise ex
 
     def _validate(self, listener: ObserverListener):
         assert listener, 'ObserverListener cannot be None'

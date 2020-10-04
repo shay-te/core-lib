@@ -9,14 +9,12 @@ class InstanceUnderStack(object):
         self.stack_start_index = stack_start_index
 
     def get_stack_path(self) -> str:
-        stack = inspect.stack()
+        stack = inspect.stack(0)
         lst = []
         for stack_frame in stack[self.stack_start_index:]:
-            line = stack_frame.code_context[0] if stack_frame.code_context else '!NO_CODE_CONTEXT!'
-            # line = line.replace(' ', '').split('(')[0]
-            line = line.strip().split('(')[0]
-            lst.insert(0, '{}:{}'.format(line, id(stack_frame.frame)))
+            lst.insert(0, str(id(stack_frame.frame)))
         stack_path = '<-#->'.join(lst)
+
         return 'thread:{},path:{}'.format(threading.get_native_id(), stack_path)
 
     def store(self, obj):

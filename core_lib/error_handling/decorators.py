@@ -19,7 +19,7 @@ class NotFoundErrorHandler(object):
         def _wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
             if not result:
-                logger.warning("Empty result when calling `{}`.".format(func.__qualname__))
+                logger.debug("NotFoundErrorHandler for function `{}`.".format(func.__qualname__))
                 message = None
                 if self.message:
                     message = build_value_by_func_parameters(self.message, func, *args, **kwargs)

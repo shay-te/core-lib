@@ -4,6 +4,8 @@ python-dateutil
 PyJWT
 argh
 pytimeparse
+parsedatetime
+psutil
 
 # Connectors
 sqlalchemy

@@ -16,7 +16,7 @@ class CacheHandlerMemcached(CacheHandler):
         return json.loads(value) if value else None
 
     def to_cache(self, key: str, value, expire: datetime.timedelta):
-        if isinstance(value, (dict, list)):
+        if isinstance(value, (dict, list, int, str)):
             self.memcached_client.set(key, json.dumps(value), time=expire.total_seconds() if expire else 0)
         else:
             raise ValueError('result must be of type `dict` or `list`')
