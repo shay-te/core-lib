@@ -71,7 +71,7 @@ class Cache(object):
     when a parameter is optional and empty `_` is used. 
 * `expire` Period of time when the value is expired.
 * `invalidate` Remove the value from the cache using the key.
-* `cache_client_name` The name to use to get the correct `CacheHandler`.
+* `cache_client_name` The name to pay to get the correct `CacheHandler`.
 
 
 ### Cache Initialization

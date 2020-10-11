@@ -6,6 +6,7 @@ from core_lib.observer.observer_listener import ObserverListener
 
 logger = logging.getLogger(__name__)
 
+
 class Observer(object):
 
     def __init__(self, listener: ObserverListener = None, listener_type: object = None):

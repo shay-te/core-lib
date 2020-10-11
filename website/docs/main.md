@@ -22,7 +22,7 @@ This is the reason why `Core-Lib` gives only simple utilities and recommendation
 follow the rules if you wish
 
 ## Pros
-* Easy to use
+* Easy to pay
 * Use dependencies directly (no third party delegation of third party libraries)
 * Leverage Onion Architecture for fast expansion.
 * Simple mechanisms   

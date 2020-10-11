@@ -50,3 +50,4 @@ class SqlAlchemyDataHandlerFactory(DataHandlerFactory):
                                echo=config.log_queries)
         engine.connect()
         return engine
+
