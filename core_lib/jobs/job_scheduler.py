@@ -28,6 +28,7 @@ class JobScheduler(object):
     def _schedule(self, initial_delay: str, frequency: str, job: Job):
         self._lock.acquire()
         timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency})
+        timer.daemon = True
         self._job_to_timer[job] = timer
         timer.start()
         self._lock.release()

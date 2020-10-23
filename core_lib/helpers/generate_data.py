@@ -3,8 +3,15 @@ import random
 from datetime import datetime, timedelta
 
 
-def generate_random_string(length: int = 10):
-    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+def generate_random_string(length: int = 10, upper: bool = False, digits: bool = False, special: bool = False):
+    source = string.ascii_lowercase
+    if upper:
+        source = source + string.ascii_uppercase
+    if digits:
+        source = source + string.digits
+    if special:
+        source = source + string.punctuation
+    return ''.join(random.choice(source) for _ in range(length))
 
 
 def generate_email(domain: str = 'domain.com'):

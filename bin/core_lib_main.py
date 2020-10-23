@@ -3,15 +3,41 @@ import os
 import string
 import argh
 
+from core_lib.helpers.command_line import input_yes_no, input_options, input_options_list, input_string, \
+    _to_safe_file_name, input_file_name
+from core_lib.helpers.validation import is_int
+
 core_lib_file_name = '.core_lib'
 
 
-def _name_to_safe(inputFilename: str):
-    safechars = string.ascii_letters + "_"
-    try:
-        return ''.join(filter(lambda c: c in safechars, inputFilename.replace('-', '_')))
-    except:
-        return None
+def _to_test_simple(core_lib_name, core_lib_class_name):
+    return """import os
+import unittest
+from hydra.experimental import initialize, compose
+from {core_lib_name}.{core_lib_name} import {core_lib_class_name}
+#import pymysql
+
+
+#pymysql.install_as_MySQLdb()
+data_dir = os.path.join(os.path.dirname(__file__), 'data')
+config_dir = os.path.join(data_dir, 'config')
+seed_dir = os.path.join(data_dir, 'seed')
+initialize(config_dir=config_dir, strict=True)
+
+interest_core_lib = {core_lib_class_name}(compose('config.yaml'))
+
+
+class Test{core_lib_class_name}(unittest.TestCase):
+
+    def test_1(self):
+        pass
+""".format(core_lib_name=core_lib_name, core_lib_class_name=core_lib_class_name)
+
+
+def _get_file_contant(file_path: str):
+    with open(file_path, 'r') as file:
+        return file.read()
+
 
 
 def _new_file(file_path, content: str = ''):
@@ -22,32 +48,19 @@ def _new_file(file_path, content: str = ''):
 
 def _new_dir(dir_path, init_content: str = ''):
     os.mkdir(dir_path)
-    _new_file(os.path.join(dir_path, '__init__.py'))
+    _new_file(os.path.join(dir_path, '__init__.py'), init_content)
 
 
 def _to_camel_case(snake_str):
     return ''.join(x.title() for x in snake_str.split('_'))
 
 
-def _to_core_lib_class(core_lib_name):
-    return """from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
-from omegaconf import DictConfig
-from core_lib.core_lib import CoreLib
-
-
-class {}(CoreLib):
-
-    def __init__(self, conf: DictConfig):
-        self.config = conf      
-
-""".format(_to_camel_case(core_lib_name))
 
 
 def _to_core_lib_class_db():
     return """
-        db_data_session = SqlAlchemyDataHandlerFactory(self._config.core_lib.data.sqlalchemy)
+        db_data_session = SqlAlchemyDataHandlerFactory(self.config.core_lib.data.sqlalchemy)
 """
-
 
 
 def _to_entity_impl(table_name):
@@ -67,21 +80,37 @@ class {}(Base):
 
 
 def _to_core_lib_search_path(core_lib_name):
-    canel_case_name = _to_camel_case(core_lib_name)
+    camel_case_name = _to_camel_case(core_lib_name)
     return """from hydra.plugins import SearchPathPlugin
 from hydra._internal.config_search_path import ConfigSearchPath
 
 
-class {}SearchPathPlugin(SearchPathPlugin):
+class {camel_case_name}SearchPathPlugin(SearchPathPlugin):
     def manipulate_search_path(self, search_path):
         assert isinstance(search_path, ConfigSearchPath)
-        search_path.append("{}", "pkg://{}/config")
-""".format(canel_case_name, core_lib_name, core_lib_name)
+        search_path.append("{core_lib_name}", "pkg://{core_lib_name}/config")
+""".format(camel_case_name=camel_case_name, core_lib_name=core_lib_name)
 
 
-def _to_core_lib_override_config(core_lib_name):
+def _to_core_lib_override_config(core_lib_name: str, core_lib_name_simple: str):
     return """core_lib:
-""".format(core_lib_name)
+  data:
+    sqlalchemy:
+      session:
+        pool_recycle: 3600
+        pool_pre_ping: false
+
+      url:
+        protocol: sqlite
+#        file: {core_lib_name}.db
+
+      log_queries: false
+      create_db: true
+  alembic: 
+    version_table: {core_lib_name_simple}_alembic_version
+
+""".format(core_lib_name=core_lib_name, core_lib_name_simple=core_lib_name_simple)
+
 
 def _to_script_mako():
     return """\"\"\"${message}
@@ -111,30 +140,86 @@ def downgrade():
 """
 
 
+def _to_test_config(core_lib_config_file, core_lib_test_config_file):
+    return """defaults:
+  - core_lib
+  - {core_lib_config_file}
+  - {core_lib_test_config_file}
+""".format(core_lib_config_file=core_lib_config_file, core_lib_test_config_file=core_lib_test_config_file)
+
+
+template_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core_lib_generator')
+
 current_dir = os.getcwd()
 
 
+def _copy_template(template_target_path: str, target_file: str, params: dict):
+    file_content_raw = _get_file_contant(template_target_path)
+    file_content = file_content_raw.format(**params)
+    _new_file(target_file, file_content)
+
+
+def _deep_copy_template(template_file_relative_path: str, start_dir: str, template_name: str, params: dict):
+    template_target_path = os.path.abspath(os.path.join(template_path, template_file_relative_path))
+    if not os.path.isfile(template_target_path):
+        raise ValueError('`{}` template must lead to an existing file'.format(template_file_relative_path))
+
+    folders = os.path.split(template_file_relative_path)
+    target_dir = start_dir
+    for folder in folders[:-1]:
+        target_dir = os.path.join(target_dir, folder)
+        if not os.path.isdir(target_dir):
+            _new_dir(target_dir)
+
+    _copy_template(template_target_path, os.path.join(target_dir, template_name), params)
+
+
 def _create_core_lib(core_lib_name):
+    core_lib_name_camel = _to_camel_case(core_lib_name)
     core_lib_dir = os.path.join(current_dir, core_lib_name)
 
-    _new_dir(core_lib_dir)
-    core_lib_file_content = '{}{}'.format(_to_core_lib_class(core_lib_name), _to_core_lib_class_db())
-    _new_file(os.path.join(core_lib_dir, '{}.py'.format(core_lib_name)), core_lib_file_content)
+    simple_end_index = core_lib_name.find('_core_lib')
+    simple_end_index = simple_end_index if simple_end_index != -1 else core_lib_name.find('core_lib')
 
+    core_lib_name_simple = core_lib_name if simple_end_index == -1 else core_lib_name[:simple_end_index]
+    core_lib_name_simple_camel = _to_camel_case(core_lib_name_simple)
+
+    # readme
+    _new_file(os.path.join(current_dir, 'README.md'), _get_file_contant(os.path.join(template_path, 'README.md')).format(core_lib_name=core_lib_name_camel))
+
+    # git ignore
+    _new_file(os.path.join(current_dir, '.gitignore'), _get_file_contant(os.path.join(template_path, '.gitignore')))
+
+    # core lib ddir
+    _new_dir(core_lib_dir)
+    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib.py'))), os.path.join(core_lib_dir, '{}.py'.format(core_lib_name)), {'core_lib_name_camel': core_lib_name_camel})
 
     # config
     config_dir = os.path.join(core_lib_dir, 'config')
     _new_dir(config_dir)
-    _new_file(os.path.join(config_dir, '{}.yaml'.format(core_lib_name)), _to_core_lib_override_config(core_lib_name))
+    _new_file(os.path.join(config_dir, '{}.yaml'.format(core_lib_name)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
 
     # hydra_plugins search path
+    hydra_plugin_init_content = '__path__ = __import__("pkgutil").extend_path(__path__, __name__)'
     hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins')
-    _new_dir(hydra_plugin_dir, '__path__ = __import__("pkgutil").extend_path(__path__, __name__)')
-    _new_file(os.path.join(hydra_plugin_dir, '{}_searchpath.py'.format(core_lib_name)), _to_core_lib_search_path(core_lib_name))
+    _new_dir(hydra_plugin_dir, hydra_plugin_init_content)
+    core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)
+    _new_dir(core_lib_hydra_plugin_dir, hydra_plugin_init_content)
+    _new_file(os.path.join(core_lib_hydra_plugin_dir, '{}_searchpath.py'.format(core_lib_name)), _to_core_lib_search_path(core_lib_name))
 
     # tests
-    tests_dir = os.path.join(current_dir, 'tests')
-    _new_dir(tests_dir)
+    test_dir = os.path.join(current_dir, 'tests')
+    _new_dir(test_dir)
+    test_data_dir = os.path.join(test_dir, 'data')
+    _new_dir(test_data_dir)
+    test_config_dir = os.path.join(test_data_dir, 'config')
+    _new_dir(test_config_dir)
+    test_config_file = 'test_{}'.format(core_lib_name)
+    _new_file(os.path.join(test_config_dir, '{}.yaml'.format(test_config_file)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
+    _new_file(os.path.join(test_config_dir, 'config.yaml'), _to_test_config(core_lib_name, test_config_file))
+
+    _new_file(os.path.join(test_dir, 'test_{}.py'.format(core_lib_name)), _to_test_simple(core_lib_name, core_lib_name_camel))
+
 
     # data_layers
     data_layers = os.path.join(core_lib_dir, 'data_layers')
@@ -161,7 +246,7 @@ def _validate_new_core_lib(core_lib_name):
     if not core_lib_name:
         raise ValueError('core_lib_name not supplied')
 
-    safe_file_name = _name_to_safe(core_lib_name)
+    safe_file_name = _to_safe_file_name(core_lib_name)
     if not safe_file_name:
         raise ValueError('`{}` is not a python safe name'.format(core_lib_name))
 
@@ -177,8 +262,17 @@ def new(core_lib_name):
     _create_core_lib(_validate_new_core_lib(core_lib_name))
 
 
+def generate(core_lib):
+    generate_name = input_file_name('select name')
+    options = ['service, data access, entity', 'data access, entity', 'service', 'data access', 'entity']
+    what = input_options_list('What would you like to generate', options)
+    is_crud = input_yes_no('CRUD  support?', False)
+    is_soft = input_yes_no('Soft delete')
+
+    _deep_copy_template(os.path.join('data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib), '{}.py'.format(generate_name), {})
+
 parser = argh.ArghParser()
-parser.add_commands([new])
+parser.add_commands([new, generate])
 
 if __name__ == '__main__':
     parser.dispatch()

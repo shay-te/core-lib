@@ -1,0 +1,17 @@
+# IDEA
+.idea/
+**/.DS_Store
+**/*.db
+**/*.db-journal
+
+# PYTHON
+/venv
+**/*.pyc
+**/*.pyo
+**/__pycache__/*
+__pycache__/
+
+# BUILD
+/build
+dist/
+.eggs

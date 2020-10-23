@@ -16,6 +16,9 @@ class EventsDataAccess(DataAccess, CoreLibListener):
         self.core_lib_ready_data_access_called = True
         # raise ValueError("Error on core lib ready data access event")
 
+    def on_core_lib_destroy(self):
+        pass
+
 
 class EventsService(Service, CoreLibListener):
 
@@ -26,6 +29,9 @@ class EventsService(Service, CoreLibListener):
     def on_core_lib_ready(self):
         self.core_lib_ready_service_called = True
         # raise ValueError("Error on core lib ready service event")
+
+    def on_core_lib_destroy(self):
+        pass
 
 
 class EventsCoreLib(CoreLib, CoreLibListener):
@@ -54,6 +60,9 @@ class EventsCoreLib(CoreLib, CoreLibListener):
     def on_core_lib_ready(self):
         self.core_lib_ready_called = True
         # raise ValueError("Error on core lib ready event")
+
+    def on_core_lib_destroy(self):
+        pass
 
 
 class OtherObserverListener(ObserverListener):

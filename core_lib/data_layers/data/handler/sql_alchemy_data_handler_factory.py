@@ -17,7 +17,7 @@ class SqlAlchemyDataHandlerFactory(DataHandlerFactory):
         if config.create_db:
             Base.metadata.create_all(self._engine)
 
-    def get(self, use_parent_instance=False, *args, **kwargs):
+    def get(self, use_parent_instance=False, *args, **kwargs) -> SqlAlchemyDataHandler:
         if use_parent_instance:
             db_session = self.instance_under_path.get()
             if db_session:

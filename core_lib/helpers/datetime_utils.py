@@ -74,3 +74,8 @@ def year_beginning(hours: int = 0, minutes: int = 0):
 def midnight():
     return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.datetime.now()
 
+
+def week_beginning():
+    today = datetime.utcnow()
+    return (today - timedelta(days=today.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+

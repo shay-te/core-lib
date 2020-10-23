@@ -15,5 +15,5 @@ class Neo4jDataHandlerFactory(DataHandlerFactory):
                                                             config.credentials.password),
                                             encrypted=False)
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> Neo4jDataHandler:
         return Neo4jDataHandler(self._neo4j_driver.session())

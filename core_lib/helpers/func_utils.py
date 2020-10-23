@@ -34,10 +34,10 @@ class UnseenFormatter(Formatter):
                 return args[key]
             if isinstance(key, str) and key in kwargs:
                 return kwargs[key]
-            return '!M!'
+            return '!M{}M!'.format(key)
         except BaseException as ex:
             logger.warning('Error while building key. `{}`'.format(key), exc_info=True)
-            return '!E!'
+            return '!E{}E!'.format(key)
 
 
 _formatter = UnseenFormatter()

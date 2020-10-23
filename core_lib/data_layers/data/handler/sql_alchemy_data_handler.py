@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 from core_lib.data_layers.data.handler.data_handler import DataHandler
 
@@ -15,7 +15,7 @@ class SqlAlchemyDataHandler(DataHandler):
         self.on_exit = on_exit
         self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
 
-    def __enter__(self):
+    def __enter__(self) -> Session:
         return self.session
 
     def __exit__(self, exec_type, exec_value, traceback):
