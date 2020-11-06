@@ -14,12 +14,14 @@ class CRUDSoftDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
+        assert id
         with self._db.get() as session:
             return session.query(self._db_entity)\
                 .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)\
                 .first()
 
     def delete(self, id: int):
+        assert id
         with self._db.get() as session:
             session.query(self._db_entity).filter(self._db_entity.id == id).update({'deleted_at': datetime.utcnow()})
 

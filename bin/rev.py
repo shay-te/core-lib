@@ -7,7 +7,7 @@ import sys
 # sys.path.append(os.path.join(parent_dir, 'core_lib'))
 # sys.path.append(parent_dir)
 # print(sys.path)
-
+from pathlib import Path
 
 from hydra.experimental import compose, initialize
 from core_lib.alembic.alembic import Alembic
@@ -58,7 +58,11 @@ options = {
 
 
 if __name__ == '__main__':
-    initialize(config_dir=os.path.join(os.getcwd(), 'config'), strict=True)
+    path_cwd = os.getcwd()
+    path_folder = os.path.dirname(os.path.abspath(__file__))
+    path_rel = os.path.relpath(path_cwd, path_folder)
+
+    initialize(config_path=os.path.join(path_rel, 'config'))
     cfg = compose('app_config.yaml')
     alembic = Alembic(os.path.join(os.getcwd(), cfg.core_lib_module), cfg)
     logging.getLogger('alembic').setLevel(logging.INFO)

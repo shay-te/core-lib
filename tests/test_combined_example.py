@@ -37,7 +37,7 @@ load_dotenv(dotenv_path=env_path)
 #
 config_directory = os.path.join(combined_core_lib_path, 'config')
 config_file = 'config.yaml'
-initialize(config_dir=config_directory, strict=True)
+initialize(config_dir=config_directory)
 config = compose(config_file)
 
 

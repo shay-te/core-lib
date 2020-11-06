@@ -18,10 +18,10 @@ class MyJob(Job):
 ```
 
 The local variable `self.core_lib` will be automatically populated by `CoreLib` when running using configuration (see below).    
-In case you want to create the job manually. pass the `CoreLib` instance using the job function `set_core_lib`, Or using the constructor.
+In case you want to create the job manually. pass the `CoreLib` instance using the job function `set_data_handler`, Or using the constructor.
 
 Example: 
-`my_job.set_core_lib(my_core_lib)` 
+`my_job.set_data_handler(my_core_lib)` 
 
 
 # JobScheduler class

@@ -30,6 +30,12 @@ We will decide upfront of some rules:
    To make our layers independent and portable
 3. Keep code/classes/variable/constants where they need to be (WEB container code only in the web layer, DB queries in the DataAccess etc....)   
 
+
+shay rules to keep code clean. 
+1. when you have to add logic to extrnal service. wrap it with your own service. 
+2. when there is logic that not related to the critteria of the query. put it in the service
+
+
 ## Data Layer:
 <table><tr>
         <td><b>Input</b></td>

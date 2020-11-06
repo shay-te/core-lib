@@ -22,7 +22,7 @@ from {core_lib_name}.{core_lib_name} import {core_lib_class_name}
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 config_dir = os.path.join(data_dir, 'config')
 seed_dir = os.path.join(data_dir, 'seed')
-initialize(config_dir=config_dir, strict=True)
+initialize(config_dir=config_dir)
 
 interest_core_lib = {core_lib_class_name}(compose('config.yaml'))
 
@@ -81,19 +81,20 @@ class {}(Base):
 
 def _to_core_lib_search_path(core_lib_name):
     camel_case_name = _to_camel_case(core_lib_name)
-    return """from hydra.plugins import SearchPathPlugin
-from hydra._internal.config_search_path import ConfigSearchPath
+    return """from hydra.plugins.search_path_plugin import SearchPathPlugin
+from hydra.core.config_search_path import ConfigSearchPath
 
 
 class {camel_case_name}SearchPathPlugin(SearchPathPlugin):
-    def manipulate_search_path(self, search_path):
+    def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
         assert isinstance(search_path, ConfigSearchPath)
         search_path.append("{core_lib_name}", "pkg://{core_lib_name}/config")
 """.format(camel_case_name=camel_case_name, core_lib_name=core_lib_name)
 
 
 def _to_core_lib_override_config(core_lib_name: str, core_lib_name_simple: str):
-    return """core_lib:
+    return """# @package _global_
+core_lib:
   data:
     sqlalchemy:
       session:
@@ -200,7 +201,7 @@ def _create_core_lib(core_lib_name):
     _new_file(os.path.join(config_dir, '{}.yaml'.format(core_lib_name)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
 
     # hydra_plugins search path
-    hydra_plugin_init_content = '__path__ = __import__("pkgutil").extend_path(__path__, __name__)'
+    hydra_plugin_init_content = ''
     hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins')
     _new_dir(hydra_plugin_dir, hydra_plugin_init_content)
     core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)

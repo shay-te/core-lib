@@ -19,6 +19,41 @@ _friday_weekday = 4
 _saturday_weekday = 5
 
 
+#
+# HOUR
+#
+def hour_begin(minutes: int = 0):
+    return datetime.utcnow().replace(minute=minutes, second=0, microsecond=0)
+
+
+def hour_end(minutes: int = 0):
+    return hour_begin(minutes=minutes) + timedelta(hours=1)
+
+
+#
+# DAY
+#
+def day_begin(hours: int = 0, minutes: int = 0):
+    today = datetime.utcnow().date()
+    return datetime(year=today.year, month=today.month, day=today.day, hour=hours, minute=minutes, second=0, microsecond=0)
+
+
+def day_end(hours: int = 0, minutes: int = 0):
+    return day_begin(hours=hours, minutes=minutes) + timedelta(days=1)
+
+
+def tomorrow(hours: int = 0, minutes: int = 0):
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1, hours=hours, minutes=minutes)
+
+
+def yesterday(hours: int = 0, minutes: int = 0):
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1) + timedelta(hours=hours, minutes=minutes)
+
+
+def midnight(hours: int = 0, minutes: int = 0):
+    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0) - datetime.datetime.now()
+
+
 def sunday(hours: int = 0, minutes: int = 0):
     return _next_weekday(_sunday_weekday, hours, minutes)
 
@@ -47,35 +82,37 @@ def saturday(hours: int = 0, minutes: int = 0):
     return _next_weekday(_saturday_weekday, hours, minutes)
 
 
-def tomorrow(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1, hours=hours, minutes=minutes)
+#
+# WEEK
+#
+def week_begin(hours: int = 0, minutes: int = 0):
+    today = datetime.utcnow()
+    return (today - timedelta(days=today.weekday())).replace(hour=hours, minute=minutes, second=0, microsecond=0)
 
 
-def yesterday(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1) + timedelta(hours=hours, minutes=minutes)
+def week_end(hours: int = 0, minutes: int = 0):
+    return week_begin(hours=hours, minutes=minutes) + timedelta(days=7)
 
 
-def month_next(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1) + relativedelta(months=1, hours=hours, minutes=minutes)
-
-
-def month_beginning(hours: int = 0, minutes: int = 0):
+#
+# MONTH
+#
+def month_begin(hours: int = 0, minutes: int = 0):
     return datetime.utcnow().replace(day=1, hour=hours, minute=minutes, second=0, microsecond=0)
 
 
-def year_next(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(day=1, month=1, hour=hours, minute=minutes, second=0, microsecond=0) + relativedelta(years=1)
+def month_end(hours: int = 0, minutes: int = 0):
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1) + relativedelta(months=1, hours=hours, minutes=minutes)
 
 
-def year_beginning(hours: int = 0, minutes: int = 0):
+#
+# YEAR
+#
+def year_begin(hours: int = 0, minutes: int = 0):
     return datetime.utcnow().replace(day=1, month=1, hour=hours, minute=minutes, second=0, microsecond=0)
 
 
-def midnight():
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.datetime.now()
+def year_end(hours: int = 0, minutes: int = 0):
+    return year_begin(hours=hours, minutes=minutes) + relativedelta(years=1)
 
-
-def week_beginning():
-    today = datetime.utcnow()
-    return (today - timedelta(days=today.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
 

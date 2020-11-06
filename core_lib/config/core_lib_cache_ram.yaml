@@ -1,0 +1,3 @@
+core_lib:
+  cache:
+    ram: null

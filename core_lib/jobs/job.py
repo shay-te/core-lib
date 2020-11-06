@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 
 class Job(ABC):
 
-    def __init__(self):
-        self.core_lib = None
+    @abstractmethod
+    def initialized(self, data_handler):
+        pass
 
-    def set_core_lib(self, core_lib):
-        self.core_lib = core_lib
+    def set_data_handler(self, data_handler):
+        self.initialized(data_handler)
 
     @abstractmethod
     def run(self):

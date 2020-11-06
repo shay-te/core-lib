@@ -62,7 +62,7 @@ class RuleValidator(object):
                 if is_strict_mode:
                     raise PermissionError("no `ValueRuleValidator` found for key: `{}`".format(key))
                 if not is_strict_output:
-                    result_dict[key] = result_dict[key] = value
+                    result_dict[key] = value
 
         return result_dict
 
@@ -75,12 +75,16 @@ class RuleValidator(object):
         if rule.custom_converter:
             parsed_value = rule.custom_converter(value)
 
+        # `number` to `str`
+        elif value and rule.value_type is str and type(value) in [int, float]:
+            parsed_value = str(value)
+
         # `str` to `int`
         elif value and rule.value_type is int and type(value) is str:
             if value.isdigit():
                 parsed_value = int(value)
             else:
-                raise PermissionError("Invalid update key:`{}` illegal type `{}`".format(key, type(value)))
+                raise PermissionError(f"Invalid update key:`{key}` expected `int`, got `{type(value)}`")
         # `str` to `datetime`
         elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
             try:

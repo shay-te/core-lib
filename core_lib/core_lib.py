@@ -1,6 +1,5 @@
 import logging
 
-from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from core_lib.cache.cache_factory import CacheFactory
@@ -25,17 +24,13 @@ class CoreLib(object):
         self._core_lib_started = False
         self._observer = Observer(listener_type=CoreLibListener)
 
-    def load_jobs(self, config: DictConfig):
-        if 'jobs' not in config.core_lib:
-            logger.info('No CoreLib jobs `{}`'.format(self.__class__.__qualname__))
-            return
-
+    def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
         logger.info('Loading CoreLib jobs `{}`'.format(self.__class__.__qualname__))
 
-        for job, job_config in from_config_list(config.core_lib.jobs,
+        for job_name, job, job_config in from_config_dict(config,
                                                              Job,
                                                              class_config_path='handler',
-                                                             class_config_path_error=True):
+                                                             raise_class_config_path_error=True):
             if not job_config.initial_delay:
                 raise ValueError('job invalid initial_delay config  `{}`'.format(job_config.initial_delay))
 
@@ -43,7 +38,9 @@ class CoreLib(object):
             if job_config.initial_delay in ['boot', 'startup']:
                 initial_delay = '0s'
 
-            job.set_core_lib(self)
+            if job_name in job_to_data_handler:
+                job.set_data_handler(job_to_data_handler.get(job_name))
+
             if job_config.frequency:
                 CoreLib.scheduler.schedule(initial_delay, job_config.frequency, job)
             else:

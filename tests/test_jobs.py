@@ -9,6 +9,9 @@ class TestJob(Job):
     def __init__(self):
         self.called = 0
 
+    def initialized(self, data_handler):
+        pass
+
     def run(self):
         self.called = self.called + 1
 
