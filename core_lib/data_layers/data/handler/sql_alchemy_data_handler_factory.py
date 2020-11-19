@@ -1,14 +1,14 @@
 from omegaconf import DictConfig
 
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerFactory
+from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerRegistry
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler import SqlAlchemyDataHandler
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
 from sqlalchemy import create_engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-class SqlAlchemyDataHandlerFactory(DataHandlerFactory):
+class SqlAlchemyDataHandlerFactory(DataHandlerRegistry):
 
     def __init__(self, config: DictConfig):
         self.instance_under_path = InstanceUnderStack(stack_start_index=4)

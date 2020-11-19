@@ -1,13 +1,17 @@
+import os
+
 import core_lib
 
 import setuptools
 from pip._internal.network.session import PipSession
 from pip._internal.req import parse_requirements
 
-install_reqs = parse_requirements('requirements.txt', session=PipSession)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+install_reqs = parse_requirements(os.path.join(dir_path, 'requirements.txt'), session=PipSession)
 
-with open("README.md", "r") as fh:
+with open(os.path.join(dir_path, "README.md"), "r") as fh:
    long_description = fh.read()
+
 
 setuptools.setup(
    name='core-lib',

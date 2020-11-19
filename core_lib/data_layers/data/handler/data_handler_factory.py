@@ -1,5 +1,5 @@
-from core_lib.factory.factory import Factory
+from core_lib.factory.registry import Registry
 
 
-class DataHandlerFactory(Factory):
+class DataHandlerRegistry(Registry):
     pass

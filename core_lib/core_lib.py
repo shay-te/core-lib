@@ -2,22 +2,22 @@ import logging
 
 from omegaconf import DictConfig
 
-from core_lib.cache.cache_factory import CacheFactory
+from core_lib.cache.cache_factory import CacheRegistry
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
 from core_lib.helpers.config_instances import from_config_dict, from_config_list
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
 from core_lib.observer.observer import Observer
-from core_lib.observer.observer_factory import ObserverFactory
+from core_lib.observer.observer_factory import ObserverRegistry
 
 logger = logging.getLogger(__name__)
 
 
 class CoreLib(object):
 
-    cache_factory = CacheFactory()
-    observer_factory = ObserverFactory()
+    cache_registry = CacheRegistry()
+    observer_registry = ObserverRegistry()
     scheduler = JobScheduler()
 
     def __init__(self):

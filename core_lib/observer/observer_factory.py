@@ -1,8 +1,8 @@
-from core_lib.factory.default_factory import DefaultFactory
+from core_lib.factory.default_factory import DefaultRegistry
 from core_lib.observer.observer import Observer
 
 
-class ObserverFactory(DefaultFactory):
+class ObserverRegistry(DefaultRegistry):
 
     def __init__(self):
-        DefaultFactory.__init__(self, Observer)
+        DefaultRegistry.__init__(self, Observer)

@@ -8,11 +8,12 @@ class CacheHandlerRam(CacheHandler):
     def __init__(self):
         self.cached_function_responses = {}
 
-    def from_cache(self, key):
+    def get(self, key):
         data = self.cached_function_responses.get(key)
         if data:
             if data['expire']:
-                if datetime.datetime.now() - data['set_time'] < data['expire']:
+                set_time_diff = datetime.datetime.utcnow() - data['set_time']
+                if set_time_diff < data['expire']:
                     return data['data']
                 else:
                     del self.cached_function_responses[key]
@@ -20,9 +21,9 @@ class CacheHandlerRam(CacheHandler):
                 return data['data']
         return None
 
-    def to_cache(self, key: str, value, expire: datetime.timedelta):
-        self.cached_function_responses[key] = {'data': value, 'set_time': datetime.datetime.now(), 'expire': expire}
+    def set(self, key: str, value, expire: datetime.timedelta):
+        self.cached_function_responses[key] = {'data': value, 'set_time': datetime.datetime.utcnow(), 'expire': expire}
 
-    def invalidate_cache(self, key: str):
+    def delete(self, key: str):
         if key in self.cached_function_responses:
             del self.cached_function_responses[key]

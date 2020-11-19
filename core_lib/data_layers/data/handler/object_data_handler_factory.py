@@ -1,8 +1,8 @@
-from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerFactory
+from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerRegistry
 from core_lib.data_layers.data.handler.object_data_handler import ObjectDataHandler
 
 
-class ObjectDataHandlerFactory(DataHandlerFactory):
+class ObjectDataHandlerFactory(DataHandlerRegistry):
 
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self.obj = obj

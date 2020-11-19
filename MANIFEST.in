@@ -2,6 +2,9 @@ include requirements.txt
 include LICENSE
 include README.md
 
+# Include configuration
+include core_lib/config/*.yaml
+
 recursive-exclude examples *
 recursive-exclude scripts *
 

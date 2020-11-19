@@ -44,7 +44,7 @@ class Cache(object):
 
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            cache_handler = CoreLib.cache_factory.get(self.handler_name)
+            cache_handler = CoreLib.cache_registry.get(self.handler_name)
             key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length]
 
             if self.invalidate:
@@ -53,17 +53,17 @@ class Cache(object):
                 # Reasons:
                 # 1. make cached item available during the invalidate function rum
                 # 2. On exception don't invalidate
-                cache_handler.invalidate_cache(key)
+                cache_handler.delete(key)
                 return result
             else:
-                result = cache_handler.from_cache(key)
+                result = cache_handler.get(key)
                 if not result:
                     result = func(*args, **kwargs)
                 if result:
                     expire = self.expire
                     if expire and isinstance(expire, str):
                         expire = _parse_datetime(expire)
-                    cache_handler.to_cache(key, result, expire)
+                    cache_handler.set(key, result, expire)
                 return result
 
         return __wrapper

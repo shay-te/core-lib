@@ -1,14 +1,14 @@
 ---
 id: factory
-title: Factory
-sidebar_label: Factory
+title: Registry
+sidebar_label: Registry
 ---
 
-Factory base class 
+Registry base class 
 
 
 
-DefaultFactory 
+DefaultRegistry 
 
 register 
 get the default first if no name provided. 
@@ -16,8 +16,8 @@ get the default first if no name provided.
 
 
 
-used in DataHandlerFactory
+used in DataHandlerRegistry
 
-cache  CacheFactory
+cache  CacheRegistry
 
 events  

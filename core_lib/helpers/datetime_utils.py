@@ -51,7 +51,7 @@ def yesterday(hours: int = 0, minutes: int = 0):
 
 
 def midnight(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0) - datetime.datetime.now()
+    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0) - datetime.datetime.utcnow()
 
 
 def sunday(hours: int = 0, minutes: int = 0):

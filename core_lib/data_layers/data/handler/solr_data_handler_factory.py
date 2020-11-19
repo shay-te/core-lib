@@ -2,11 +2,11 @@ from omegaconf import DictConfig
 from pysolr import Solr
 
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerFactory
+from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerRegistry
 from core_lib.data_layers.data.handler.solr_data_handler import SolrDataHandler
 
 
-class SolrDataHandlerFactory(DataHandlerFactory):
+class SolrDataHandlerFactory(DataHandlerRegistry):
 
     def __init__(self, config: DictConfig):
         self._config = config

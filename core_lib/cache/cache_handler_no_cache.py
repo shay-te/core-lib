@@ -8,11 +8,11 @@ class CacheHandlerNoCache(CacheHandler):
     def __init__(self):
         self.cached_function_responses = {}
 
-    def from_cache(self, key):
+    def get(self, key):
         return None
 
-    def to_cache(self, key: str, value, expire: datetime.timedelta):
+    def set(self, key: str, value, expire: datetime.timedelta):
         pass
 
-    def invalidate_cache(self, key: str):
+    def delete(self, key: str):
         pass

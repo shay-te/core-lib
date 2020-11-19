@@ -15,7 +15,7 @@ class TestCache(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        CoreLib.cache_factory.register(cache_client_name, CacheHandlerRam())
+        CoreLib.cache_registry.register(cache_client_name, CacheHandlerRam())
 
     def test_cache_client_register(self):
         self.assertRaises(ValueError, self.not_exists_cache_client_name)

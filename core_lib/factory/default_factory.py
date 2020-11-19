@@ -1,7 +1,7 @@
-from core_lib.factory.factory import Factory
+from core_lib.factory.registry import Registry
 
 
-class DefaultFactory(Factory):
+class DefaultRegistry(Registry):
 
     def __init__(self, object_type: object, error_on_no_result: bool = False):
         if not object_type:

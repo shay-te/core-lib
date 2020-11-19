@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 
 from core_lib.cache.cache_decorator import Cache
 from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached
-from core_lib.cache.cache_factory import CacheFactory
+from core_lib.cache.cache_factory import CacheRegistry
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
@@ -29,7 +29,7 @@ class TestCoreLib(CoreLib):
         JWTTokenHandler.init(self.config.app.secret)
 
         cache_client_memcached = CacheHandlerMemcached(Client([build_url(**self.config.memcached)]))
-        cache_factory = CacheFactory()
+        cache_factory = CacheRegistry()
         cache_factory.register("memcached", cache_client_memcached)
         Cache.set_factory(cache_factory)
 

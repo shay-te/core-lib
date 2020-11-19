@@ -25,7 +25,7 @@ class UserObserverListener(ObserverListener):
 
 ```python
 from core_lib.core_lib import CoreLib
-from core_lib.observer.observer_factory import ObserverFactory
+from core_lib.observer.observer_factory import ObserverRegistry
 from core_lib.observer.observer import Observer
 from core_lib.observer.observer_decorator import Observe
 
@@ -36,7 +36,7 @@ class MyCoreLib(CoreLib):
 
         main_observer = Observer()
         main_observer.attach(UserObserverListener())
-        observer_factory = ObserverFactory()
+        observer_factory = ObserverRegistry()
         observer_factory.register("main", main_observer)
         Observe.set_factory(observer_factory)
 ```
@@ -65,7 +65,7 @@ class UserDataAccess(DataAccess):
 
 `value_param_name` event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as `dict` (type: `str`, default: `None`)
   
-`observer_name` when multiple observers register to the `ObserverFactory`. (type: `str`, default: `None`)
+`observer_name` when multiple observers register to the `ObserverRegistry`. (type: `str`, default: `None`)
  
 `notify_before` when to send the event before the func call or after (type: `bool`, default: `False`)
 

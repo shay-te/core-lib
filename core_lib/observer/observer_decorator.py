@@ -27,7 +27,7 @@ class Observe(object):
             else:
                 value = get_func_parameters_as_dict(func, *args, **kwargs)
 
-            observer = CoreLib.observer_factory.get(self.observer_name)
+            observer = CoreLib.observer_registry.get(self.observer_name)
             if self.notify_before:
                 observer.notify(self.event_key, value)
 

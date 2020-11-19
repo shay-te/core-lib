@@ -88,7 +88,7 @@ from hydra.core.config_search_path import ConfigSearchPath
 class {camel_case_name}SearchPathPlugin(SearchPathPlugin):
     def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
         assert isinstance(search_path, ConfigSearchPath)
-        search_path.append("{core_lib_name}", "pkg://{core_lib_name}/config")
+        search_path.append("{core_lib_name}", "pkg://{core_lib_name}.config")
 """.format(camel_case_name=camel_case_name, core_lib_name=core_lib_name)
 
 

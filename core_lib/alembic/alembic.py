@@ -4,7 +4,7 @@ import pymysql
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from sqlalchemy import create_engine
 
 from core_lib.data_layers.data.data_helpers import build_url
@@ -17,9 +17,11 @@ class Alembic(object):
 
     def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
         self.config = core_lib_config.core_lib.alembic
+        OmegaConf.set_struct(self.config, False)
         self.alembic_cfg = Config()
 
-        self.config['sqlalchemy.url'] = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
+        server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
+        self.config['sqlalchemy.url'] = server_url
 
         self.__engine = create_engine(self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries)
 
