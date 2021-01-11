@@ -1,36 +1,44 @@
 import os
 
+import setuptools
+
 import core_lib
 
-import setuptools
+from setuptools import find_namespace_packages, setup
 from pip._internal.network.session import PipSession
 from pip._internal.req import parse_requirements
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 install_reqs = parse_requirements(os.path.join(dir_path, 'requirements.txt'), session=PipSession)
 
-with open(os.path.join(dir_path, "README.md"), "r") as fh:
+packages1 = setuptools.find_packages()
+packages2 = find_namespace_packages(include=["hydra_plugins.*"])
+packages = list(set(packages1 + packages2))
+
+with open("README.md", "r") as fh:
    long_description = fh.read()
 
-
-setuptools.setup(
-   name='core-lib',
-   version=core_lib.__version__,
-   description='basic onion architecture libraray utils',
-   long_description=long_description,
-   long_description_content_type="text/markdown",
-   url="https://github.com/shay-te/core-lib",
-   setup_requires=['wheel'],
-   author='Shay Tessler',
-   author_email='shay.te@gmail.com',
-   packages=setuptools.find_packages(),
-   include_package_data=True,
-   install_requires=[str(ir.requirement) for ir in install_reqs],
-   license="MIT",
-   classifiers=[
-      "Programming Language :: Python :: 3",
-      'License :: OSI Approved :: MIT License',
-      "Operating System :: OS Independent",
-   ],
-   python_requires='>=3.7'
-)
+   setup(
+      name='core-lib',
+      version=core_lib.__version__,
+      author='Shay Tessler',
+      author_email='shay.te@gmail.com',
+      description='basic onion architecture library utils',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
+      url="https://github.com/shay-te/core-lib",
+      packages=packages,
+      license="MIT",
+      classifiers=[
+         'License :: OSI Approved :: MIT License',
+         "Programming Language :: Python :: 3",
+         "Operating System :: OS Independent",
+         "Development Status :: 3 - Alpha",
+         "Topic :: Software Development :: Libraries",
+         "Topic :: Software Development :: Libraries :: Python Modules"
+      ],
+      install_requires=[str(ir.requirement) for ir in install_reqs],
+      include_package_data=True,
+      python_requires='>=3.7',
+      scripts=['bin/core_lib']
+   )

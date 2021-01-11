@@ -1,6 +1,6 @@
 from sqlalchemy import func
 from sqlalchemy.types import UserDefinedType
-
+from geoalchemy2.shape import to_shape
 
 class Point(UserDefinedType):
 
@@ -14,6 +14,14 @@ class Point(UserDefinedType):
         return func.ST_AsText(col, type_=self)
 
     @staticmethod
+    def from_point_wkb(point):
+        shape = to_shape(point)
+        return {
+            'latitude': shape.y,
+            'longitude': shape.x
+        }
+
+    @staticmethod
     def from_point_str(point_str: str):
         location_arr = point_str.strip('POINT()').replace(' ', ',').split(',')
         return {
@@ -22,7 +30,7 @@ class Point(UserDefinedType):
         }
 
     @staticmethod
-    def to_point_str(latitude: float, longitude: float, latitude_first: bool = True):
+    def to_point_str(longitude: float, latitude: float, latitude_first: bool = False):
         if latitude_first:
             return 'POINT({} {})'.format(latitude, longitude)
         else:

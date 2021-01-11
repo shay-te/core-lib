@@ -1,0 +1,9 @@
+defaults:
+  - core_lib
+  #- my_core_lib
+
+core_lib_module: core_lib
+
+hydra:
+  run:
+    dir: .
