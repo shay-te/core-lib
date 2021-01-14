@@ -4,11 +4,11 @@ from sqlalchemy import create_engine
 
 from core_lib.cache.cache_decorator import Cache
 from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached
-from core_lib.cache.cache_factory import CacheRegistry
+from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.session.jwt_token_handler import JWTTokenHandler
 from examples.test_core_lib.core_lib.data_layers.data_access.slow_large_data_data_access import SlowLargeDataDataAccess
 from examples.test_core_lib.core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
@@ -36,7 +36,7 @@ class TestCoreLib(CoreLib):
         self.__engine = create_engine(build_url(**self.config.db), echo=self.config.db.log_queries)
         self.__engine.connect()
 
-        db_data_session = SqlAlchemyDataHandlerFactory(self.__engine)
+        db_data_session = SqlAlchemyDataHandlerRegistry(self.__engine)
 
         class Test(object):
             def __init__(self):

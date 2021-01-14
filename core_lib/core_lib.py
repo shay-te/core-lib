@@ -2,7 +2,7 @@ import logging
 
 from omegaconf import DictConfig
 
-from core_lib.cache.cache_factory import CacheRegistry
+from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
 from core_lib.helpers.config_instances import from_config_dict, from_config_list

@@ -1,5 +1,5 @@
-from core_lib.factory.default_factory import DefaultRegistry
 from core_lib.observer.observer import Observer
+from core_lib.registry.default_registry import DefaultRegistry
 
 
 class ObserverRegistry(DefaultRegistry):

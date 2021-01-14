@@ -1,4 +1,4 @@
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from omegaconf import DictConfig
 from core_lib.core_lib import CoreLib
 

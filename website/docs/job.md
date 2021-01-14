@@ -56,7 +56,7 @@ core_lib:
         params:
           some_param: some value
 
-    - initial_delay: reboot
+    - initial_delay: startup
       frequency: None
       handler:
         class: some_package.SomeJob

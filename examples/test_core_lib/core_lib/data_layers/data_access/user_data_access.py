@@ -3,7 +3,7 @@ import logging
 from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_factory import SqlAlchemyDataHandlerFactory
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.validation import is_email
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
@@ -31,7 +31,7 @@ user_rule_validator = RuleValidator(user_rule_validators)
 
 class UserDataAccess(DataAccess):
 
-    def __init__(self, db: SqlAlchemyDataHandlerFactory):
+    def __init__(self, db: SqlAlchemyDataHandlerRegistry):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)
 

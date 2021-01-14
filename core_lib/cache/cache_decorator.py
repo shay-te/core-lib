@@ -45,6 +45,8 @@ class Cache(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             cache_handler = CoreLib.cache_registry.get(self.handler_name)
+            if not cache_handler:
+                raise ValueError("'{}' by name `{}` was not found in factory".format(self._object_type.__name__, name))
             key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length]
 
             if self.invalidate:

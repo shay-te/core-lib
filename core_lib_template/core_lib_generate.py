@@ -3,6 +3,7 @@ import os
 
 import core_lib_template
 from core_lib.helpers.command_line import input_yes_no, input_options_list, _to_safe_file_name, input_file_name
+from core_lib.helpers.string import snake_to_camel
 
 core_lib_file_name = '.core_lib'
 
@@ -45,13 +46,9 @@ def _new_dir(dir_path, init_content: str = ''):
     _new_file(os.path.join(dir_path, '../bin/__init__.py'), init_content)
 
 
-def _to_camel_case(snake_str):
-    return ''.join(x.title() for x in snake_str.split('_'))
-
-
 def _to_core_lib_class_db():
     return """
-        db_data_session = SqlAlchemyDataHandlerFactory(self.config.core_lib.data.sqlalchemy)
+        db_data_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.data.sqlalchemy)
 """
 
 
@@ -68,11 +65,11 @@ class {}(Base):
     id = Column(Integer, primary_key=True, nullable=False)
 
 
-""".format(table_name, _to_camel_case(table_name))
+""".format(table_name, snake_to_camel(table_name))
 
 
 def _to_core_lib_search_path(core_lib_name):
-    camel_case_name = _to_camel_case(core_lib_name)
+    camel_case_name = snake_to_camel(core_lib_name)
     return """from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.core.config_search_path import ConfigSearchPath
 
@@ -166,14 +163,14 @@ def _deep_copy_template(template_file_relative_path: str, start_dir: str, templa
 
 
 def _create_core_lib(core_lib_name):
-    core_lib_name_camel = _to_camel_case(core_lib_name)
+    core_lib_name_camel = snake_to_camel(core_lib_name)
     core_lib_dir = os.path.join(current_dir, core_lib_name)
 
     simple_end_index = core_lib_name.find('_core_lib')
     simple_end_index = simple_end_index if simple_end_index != -1 else core_lib_name.find('core_lib')
 
     core_lib_name_simple = core_lib_name if simple_end_index == -1 else core_lib_name[:simple_end_index]
-    core_lib_name_simple_camel = _to_camel_case(core_lib_name_simple)
+    core_lib_name_simple_camel = snake_to_camel(core_lib_name_simple)
 
     # readme
     _new_file(os.path.join(current_dir, 'README.md'), _get_file_contant(os.path.join(template_path, 'README.md')).format(core_lib_name=core_lib_name_camel))

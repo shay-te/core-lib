@@ -2,11 +2,11 @@ from omegaconf import DictConfig
 from neo4j import GraphDatabase, basic_auth
 
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.handler.data_handler_factory import DataHandlerRegistry
+from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
 from core_lib.data_layers.data.handler.neo4j_data_handler import Neo4jDataHandler
 
 
-class Neo4jDataHandlerFactory(DataHandlerRegistry):
+class Neo4jDataHandlerRegistry(DataHandlerRegistry):
 
     def __init__(self, config: DictConfig):
         self._config = config
