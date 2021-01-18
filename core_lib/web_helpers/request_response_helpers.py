@@ -10,6 +10,10 @@ from core_lib.web_helpers.flask.response_generator import generate_response_flas
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 
+def response_status(status: int = HTTPStatus.OK.value):
+    return response_json({}, status)
+
+
 def response_ok(status: int = HTTPStatus.OK.value):
     return response_message('ok', status)
 

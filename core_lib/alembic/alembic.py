@@ -27,7 +27,7 @@ class Alembic(object):
 
         self.script_location = None
         if self.config.script_location:
-            if not os.path.isdir(self.config.script_location) is not os.path.isabs(self.config.script_location):
+            if os.path.isdir(self.config.script_location) and not os.path.isabs(self.config.script_location):
                 self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
