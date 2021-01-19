@@ -27,3 +27,6 @@ class CacheHandlerRam(CacheHandler):
     def delete(self, key: str):
         if key in self.cached_function_responses:
             del self.cached_function_responses[key]
+
+    def flush_all(self):
+        self.cached_function_responses = {}

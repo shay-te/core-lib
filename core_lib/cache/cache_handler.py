@@ -20,3 +20,8 @@ class CacheHandler(ABC):
     def delete(self, key: str):
         pass
 
+    # Empty the cache
+    def flush_all(self):
+        pass
+
+

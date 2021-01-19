@@ -26,9 +26,8 @@ class Alembic(object):
         self.__engine = create_engine(self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries)
 
         self.script_location = None
-        if self.config.script_location:
-            if os.path.isdir(self.config.script_location) and not os.path.isabs(self.config.script_location):
-                self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
+        if self.config.script_location and not os.path.isabs(self.config.script_location):
+            self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
             raise ValueError("config.alembic.script_location dose not exists `{}`".format(self.script_location))

@@ -23,3 +23,6 @@ class CacheHandlerMemcached(CacheHandler):
 
     def delete(self, key: str):
         self.memcached_client.delete(key)
+
+    def flush_all(self):
+        self.memcached_client.flush_all()
