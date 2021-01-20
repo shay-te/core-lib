@@ -18,10 +18,10 @@ __pycache__/
 /tests/test_data/
 
 # BUILD
-core_lib.egg-info/
+*.egg-info
+*.eggs
 build/
 dist/
-.eggs
 
 # WEBSIRE
 /website/yarn.lock

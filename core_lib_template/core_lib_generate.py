@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import os
+import logging
 
 import core_lib_template
 from core_lib.helpers.command_line import input_yes_no, input_options_list, _to_safe_file_name, input_file_name
 from core_lib.helpers.string import snake_to_camel
 
-core_lib_file_name = '.core_lib'
+logger = logging.getLogger(__name__)
+
+core_lib_file_name = 'core_lib_config.yaml'
 
 
 def _to_test_simple(core_lib_name, core_lib_class_name):
@@ -36,14 +39,20 @@ def _get_file_contant(file_path: str):
 
 
 def _new_file(file_path, content: str = ''):
-    with open(file_path, "w") as f:
-        f.write(content)
-        f.close()
+    if os.path.isfile(file_path) and os.path.exists(file_path):
+        logger.info(f'File already exists {file_path}, Skiping')
+    else:
+        with open(file_path, "w") as f:
+            f.write(content)
+            f.close()
 
 
 def _new_dir(dir_path, init_content: str = ''):
-    os.mkdir(dir_path)
-    _new_file(os.path.join(dir_path, '../bin/__init__.py'), init_content)
+    if os.path.isdir(dir_path) and os.path.exists(dir_path):
+        logger.info(f'Directory already exists {dir_path}, Skiping')
+    else:
+        os.mkdir(dir_path)
+        _new_file(os.path.join(dir_path, '__init__.py'), init_content)
 
 
 def _to_core_lib_class_db():
@@ -130,6 +139,12 @@ def downgrade():
 """
 
 
+def _to_core_lib_config(core_lib_config_file, core_lib_test_config_file):
+    return """defaults:
+  - core_lib
+  - {core_lib_config_file}
+""".format(core_lib_config_file=core_lib_config_file)
+
 def _to_test_config(core_lib_config_file, core_lib_test_config_file):
     return """defaults:
   - core_lib
@@ -192,6 +207,7 @@ def _create_core_lib(core_lib_name):
     hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins')
     _new_dir(hydra_plugin_dir, hydra_plugin_init_content)
     core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)
+
     _new_dir(core_lib_hydra_plugin_dir, hydra_plugin_init_content)
     _new_file(os.path.join(core_lib_hydra_plugin_dir, '{}_searchpath.py'.format(core_lib_name)), _to_core_lib_search_path(core_lib_name))
 
@@ -200,7 +216,7 @@ def _create_core_lib(core_lib_name):
     _new_dir(test_dir)
     test_data_dir = os.path.join(test_dir, 'data')
     _new_dir(test_data_dir)
-    test_config_dir = os.path.join(test_data_dir, 'config')
+    test_config_dir = os.path.join(test_dir, 'config')
     _new_dir(test_config_dir)
     test_config_file = 'test_{}'.format(core_lib_name)
     _new_file(os.path.join(test_config_dir, '{}.yaml'.format(test_config_file)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
@@ -224,7 +240,8 @@ def _create_core_lib(core_lib_name):
     _new_dir(os.path.join(data_layers, 'service'))
 
     # core_lib file
-    _new_file(os.path.join(current_dir, core_lib_file_name))
+
+    _new_file(os.path.join(current_dir, core_lib_file_name), _to_core_lib_config(core_lib_name, test_config_file))
 
 
 def _validate_new_core_lib(core_lib_name):
