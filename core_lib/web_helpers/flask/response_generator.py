@@ -1,6 +1,6 @@
 from flask import Flask
 import json
-from core_lib.web_helpers.constants_media_type import MediaType
+from core_lib.helpers.constants import MediaType
 
 
 def generate_response_flask(data, status):

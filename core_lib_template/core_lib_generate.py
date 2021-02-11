@@ -226,7 +226,7 @@ def _create_core_lib(core_lib_name):
 
 
     # data_layers
-    data_layers = os.path.join(core_lib_dir, 'data_layers')
+    data_layers = os.path.join(core_lib_dir, 'core_lib_template/data_layers')
     _new_dir(data_layers)
     _new_dir(os.path.join(data_layers, 'data'))
     _new_dir(os.path.join(data_layers, 'data', 'db'))
@@ -274,4 +274,4 @@ class CoreLibGenerate(object):
         is_crud = input_yes_no('CRUD  support?', False)
         is_soft = input_yes_no('Soft delete')
 
-        _deep_copy_template(os.path.join('data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib_name), '{}.py'.format(generate_name), {})
+        _deep_copy_template(os.path.join('core_lib_template/data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib_name), '{}.py'.format(generate_name), {})

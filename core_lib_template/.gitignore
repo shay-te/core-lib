@@ -11,7 +11,20 @@
 **/__pycache__/*
 __pycache__/
 
+
+# TESTS
+/examples/**/outputs/
+/tests/data_output
+/tests/test_data/
+
 # BUILD
-/build
+*.egg-info
+*.eggs
+build/
 dist/
-.eggs
+
+# APP
+.hydra/
+.env
+*.log
+
