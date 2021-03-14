@@ -22,6 +22,12 @@ class DefaultRegistry(Registry):
             self.default_name = name
         self.name_to_object[name] = object
 
+    def unregister(self, name: str):
+        if name in self.name_to_object:
+            del self.name_to_object[name]
+            if self.default_name == name:
+                self.default_name = None
+
     def get(self, name: str = None, *args, **kwargs):
         result = self.name_to_object.get(name or self.default_name)
         if not result and len(self.name_to_object) > 0:

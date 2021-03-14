@@ -226,7 +226,7 @@ def _create_core_lib(core_lib_name):
 
 
     # data_layers
-    data_layers = os.path.join(core_lib_dir, 'core_lib_template/data_layers')
+    data_layers = os.path.join(core_lib_dir, 'data_layers')
     _new_dir(data_layers)
     _new_dir(os.path.join(data_layers, 'data'))
     _new_dir(os.path.join(data_layers, 'data', 'db'))
@@ -245,11 +245,11 @@ def _create_core_lib(core_lib_name):
 
 
 def _validate_new_core_lib(core_lib_name):
-    if os.path.isfile(os.path.join(current_dir, core_lib_file_name)):
-        raise ValueError('core_lib already exists in folder')
-
     if not core_lib_name:
         raise ValueError('core_lib_name not supplied')
+
+    if os.path.isfile(os.path.join(current_dir, core_lib_name)):
+        raise ValueError(f'core_lib `{core_lib_name}` already exists in folder `{current_dir}`')
 
     safe_file_name = _to_safe_file_name(core_lib_name)
     if not safe_file_name:
