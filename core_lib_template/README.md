@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/core-lib)](https://pypi.org/project/bigpipe-response/)
+[![PyPI](https://img.shields.io/pypi/v/core-lib)](https://pypi.org/project/core-lib/)
 ![PyPI - License](https://img.shields.io/pypi/l/core-lib)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/core-lib)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/core-lib.svg)](https://pypistats.org/packages/core-lib)

@@ -1,2 +1,2 @@
 # Version of the core_lib
-__version__ = "0.0.08"
+__version__ = "0.0.0.9"
