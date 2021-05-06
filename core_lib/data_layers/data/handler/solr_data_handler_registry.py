@@ -13,5 +13,9 @@ class SolrDataHandlerRegistry(DataHandlerRegistry):
         solr_address = build_url(**config.url)
         self._solr_client = Solr(solr_address, always_commit=config.always_commit)
 
+    @property
+    def client(self):
+        return self._solr_client
+
     def get(self, *args, **kwargs) -> SolrDataHandler:
         return SolrDataHandler(self._solr_client)

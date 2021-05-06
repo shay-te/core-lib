@@ -47,12 +47,13 @@ def _new_file(file_path, content: str = ''):
             f.close()
 
 
-def _new_dir(dir_path, init_content: str = ''):
+def _new_dir(dir_path, init_content: str = '', add_init: bool = True):
     if os.path.isdir(dir_path) and os.path.exists(dir_path):
         logger.info(f'Directory already exists {dir_path}, Skiping')
     else:
         os.mkdir(dir_path)
-        _new_file(os.path.join(dir_path, '__init__.py'), init_content)
+        if add_init:
+            _new_file(os.path.join(dir_path, '__init__.py'), init_content)
 
 
 def _to_core_lib_class_db():
@@ -205,7 +206,7 @@ def _create_core_lib(core_lib_name):
     # hydra_plugins search path
     hydra_plugin_init_content = ''
     hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins')
-    _new_dir(hydra_plugin_dir, hydra_plugin_init_content)
+    _new_dir(hydra_plugin_dir, hydra_plugin_init_content, False)
     core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)
 
     _new_dir(core_lib_hydra_plugin_dir, hydra_plugin_init_content)

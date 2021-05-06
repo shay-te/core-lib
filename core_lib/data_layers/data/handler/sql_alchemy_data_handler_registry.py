@@ -14,8 +14,18 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         self.instance_under_path = InstanceUnderStack(stack_start_index=4)
         self.session_to_count = {}
         self._engine = self._create_engine(config)
+        self._connection = self._engine.connect()
+
         if config.create_db:
             Base.metadata.create_all(self._engine)
+
+    @property
+    def engine(self):
+        return self._engine
+
+    @property
+    def connection(self):
+        return self._connection
 
     def get(self, use_parent_instance=False, *args, **kwargs) -> SqlAlchemyDataHandler:
         if use_parent_instance:
@@ -48,6 +58,5 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         engine = create_engine(build_url(**config.url),
                                pool_recycle=config.session.pool_recycle,
                                echo=config.log_queries)
-        engine.connect()
         return engine
 
