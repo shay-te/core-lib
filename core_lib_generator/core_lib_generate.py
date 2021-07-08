@@ -2,7 +2,7 @@
 import os
 import logging
 
-import core_lib_template
+from core_lib_generator import template_core_lib
 from core_lib.helpers.command_line import input_yes_no, input_options_list, _to_safe_file_name, input_file_name
 from core_lib.helpers.string import snake_to_camel
 
@@ -53,7 +53,7 @@ def _new_dir(dir_path, init_content: str = '', add_init: bool = True):
     else:
         os.mkdir(dir_path)
         if add_init:
-            _new_file(os.path.join(dir_path, '__init__.py'), init_content)
+            _new_file(os.path.join(dir_path, 'template_core_lib/__init__.py'), init_content)
 
 
 def _to_core_lib_class_db():
@@ -153,7 +153,7 @@ def _to_test_config(core_lib_config_file, core_lib_test_config_file):
   - {core_lib_test_config_file}
 """.format(core_lib_config_file=core_lib_config_file, core_lib_test_config_file=core_lib_test_config_file)
 
-template_path = os.path.dirname(core_lib_template.__file__)
+template_path = os.path.dirname(template_core_lib.__file__)
 current_dir = os.getcwd()
 
 
@@ -189,14 +189,16 @@ def _create_core_lib(core_lib_name):
     core_lib_name_simple_camel = snake_to_camel(core_lib_name_simple)
 
     # readme
-    _new_file(os.path.join(current_dir, 'README.md'), _get_file_contant(os.path.join(template_path, 'README.md')).format(core_lib_name=core_lib_name_camel))
+    _new_file(os.path.join(current_dir, 'template_core_lib/README.md'), _get_file_contant(os.path.join(template_path,
+                                                                                                       'template_core_lib/README.md')).format(core_lib_name=core_lib_name_camel))
 
     # git ignore
-    _new_file(os.path.join(current_dir, '.gitignore'), _get_file_contant(os.path.join(template_path, '.gitignore')))
+    _new_file(os.path.join(current_dir, 'template_core_lib/.gitignore'), _get_file_contant(os.path.join(template_path,
+                                                                                                        'template_core_lib/.gitignore')))
 
     # core lib ddir
     _new_dir(core_lib_dir)
-    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib.py'))), os.path.join(core_lib_dir, '{}.py'.format(core_lib_name)), {'core_lib_name_camel': core_lib_name_camel})
+    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib/template_core_lib.py'))), os.path.join(core_lib_dir, '{}.py'.format(core_lib_name)), {'core_lib_name_camel': core_lib_name_camel})
 
     # config
     config_dir = os.path.join(core_lib_dir, 'config')
@@ -275,4 +277,4 @@ class CoreLibGenerate(object):
         is_crud = input_yes_no('CRUD  support?', False)
         is_soft = input_yes_no('Soft delete')
 
-        _deep_copy_template(os.path.join('core_lib_template/data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib_name), '{}.py'.format(generate_name), {})
+        _deep_copy_template(os.path.join('template_core_lib/template_core_lib/data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib_name), '{}.py'.format(generate_name), {})

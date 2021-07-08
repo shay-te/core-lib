@@ -25,10 +25,12 @@ class CRUD(ABC):
     def create(self, data: dict):
         assert data
         if self._rule_validator:
-            self._rule_validator.validate_dict(data, strict_mode=False)
+            updated_data = self._rule_validator.validate_dict(data, strict_mode=False)
+        else:
+            updated_data = data
         with self._db.get() as session:
             entity = self._db_entity()
-            for key, value in data.items():
+            for key, value in updated_data.items():
                 if key != 'id' and hasattr(entity, key):
                     setattr(entity, key, value)
 

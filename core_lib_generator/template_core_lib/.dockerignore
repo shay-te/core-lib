@@ -2,7 +2,6 @@
 *.egg-info
 /dist
 /build
-/mount_docker_data
 __pycache__
 
 *.env

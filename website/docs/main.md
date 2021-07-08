@@ -5,6 +5,8 @@ sidebar_label: Getting started
 ---
 
 # What is Core-Lib
+Write Code in the way your brain thinks. fast processing, ..
+is this true that the brain thinks binary?????? yes or no ????? related to behavioral economices? 
 
 `CoreLib` provides basic/simple/loose tools, utilities and classes for building a WEB Application as a Library using the Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs)
 `CoreLib` is a plugin and plug-able to other `CoreLib's`   

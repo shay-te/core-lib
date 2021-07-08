@@ -4,10 +4,10 @@ import logging
 import os
 from core_lib.alembic.alembic import Alembic
 from hydra.experimental import compose, initialize_config_dir
-from core_lib_template.core_lib_generate import CoreLibGenerate
 
 
 from core_lib.helpers.validation import is_int
+from core_lib_generator.core_lib_generate import CoreLibGenerate
 
 logger = logging.getLogger(__name__)
 

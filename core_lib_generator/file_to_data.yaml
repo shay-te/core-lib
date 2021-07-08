@@ -1,0 +1,15 @@
+
+template_core_lib:
+  setup.py:
+    - full_name:
+        question: What is you full name
+        type: str
+    - email:
+        quistion: Email address
+        type: email
+    - description:
+        question:  Description
+        type: str
+
+  core_lib_config:
+    - core_lib

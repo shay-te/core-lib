@@ -21,12 +21,12 @@ with open('README.md', 'r') as fh:
    setup(
       name='core-lib',
       version=core_lib.__version__,
-      author='Your name',
-      author_email='your@email.com',
-      description='Your project description',
+      author='template_full_name',
+      author_email='template_email',
+      description='termplate_description',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      url='https://github.com/shay-te/core-lib',
+      url='template_url',
       packages=packages,
       license='MIT',
       classifiers=[

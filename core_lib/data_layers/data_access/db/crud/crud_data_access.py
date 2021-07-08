@@ -19,4 +19,4 @@ class CRUDDataAccess(DataAccess, CRUD):
     def delete(self, id: int):
         assert id
         with self._db.get() as session:
-            session.query(self._db_entity).filter(self._db_entity.id == id).delete()
+            return session.query(self._db_entity).filter(self._db_entity.id == id).delete()

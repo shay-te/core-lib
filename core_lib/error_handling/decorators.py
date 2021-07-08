@@ -20,10 +20,8 @@ class NotFoundErrorHandler(object):
             result = func(*args, **kwargs)
             if not result:
                 logger.debug("NotFoundErrorHandler for function `{}`.".format(func.__qualname__))
-                message = None
-                if self.message:
-                    message = build_value_by_func_parameters(self.message, func, *args, **kwargs)
-                raise StatusCodeException(HTTPStatus.NOT_FOUND.value, message)
+                exception_message = build_value_by_func_parameters(self.message, func, *args, **kwargs) if self.message else None
+                raise StatusCodeException(HTTPStatus.NOT_FOUND.value, exception_message)
             return result
 
         return _wrapper

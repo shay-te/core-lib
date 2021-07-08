@@ -23,5 +23,5 @@ class CRUDSoftDataAccess(DataAccess, CRUD):
     def delete(self, id: int):
         assert id
         with self._db.get() as session:
-            session.query(self._db_entity).filter(self._db_entity.id == id).update({'deleted_at': datetime.utcnow()})
+            return session.query(self._db_entity).filter(self._db_entity.id == id).update({'deleted_at': datetime.utcnow()})
 
