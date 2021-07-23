@@ -12,19 +12,19 @@ core_lib:
   data:
     db:
       - protocol: mysql
-        username: ${env:MYSQL_USER}
-        password: ${env:MYSQL_PASSWORD}
+        username: ${oc.env:MYSQL_USER}
+        password: ${oc.env:MYSQL_PASSWORD}
         address: localhost
         port: 3306
-        file: ${env:MYSQL_DB}
+        file: ${oc.env:MYSQL_DB}
       - protocol: sqlite
-        file: ${env:sqlite_db}
-      - protocol: postgres
-        username: ${env:postgres_user}
-        password: ${env:postgres_password}
+        file: ${oc.env:sqlite_db}
+      - protocol: postgresql
+        username: ${oc.env:postgres_user}
+        password: ${oc.env:postgres_password}
         address: localhost
         port: 5432
-        file: ${env:postgres_db}
+        file: ${oc.env:postgres_db}
     memcached:
       url:
         host: localhost
@@ -36,7 +36,7 @@ core_lib:
         host: localhost
         port: 8983
         path: solr
-        file: ${env:solr_core_name}
+        file: ${oc.env:solr_core_name}
 
 docker-compose:
 version: '2'

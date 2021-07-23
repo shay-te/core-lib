@@ -3,11 +3,11 @@ core_lib:
     secret: 000000000000000000101010110
   db:
     protocol: mysql
-    username: ${env:MYSQL_USER}
-    password: ${env:MYSQL_ROOT_PASSWORD}
+    username: ${oc.env:MYSQL_USER}
+    password: ${oc.env:MYSQL_ROOT_PASSWORD}
     host: 127.0.0.1
     port: 3306
-    file: ${env:MYSQL_DB}
+    file: ${oc.env:MYSQL_DB}
 
     log_queries: true
     create_db: true

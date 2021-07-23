@@ -1,13 +1,14 @@
+import collections
 import datetime
 import enum
 from collections import Iterable
 from functools import wraps
 from typing import Callable, Awaitable
-
+from collections import abc
 from sqlalchemy import inspect
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-
+from sqlalchemy.engine.row import Row
 
 def __convert_value(value):
     if isinstance(value, enum.Enum):
@@ -26,6 +27,13 @@ def __name_tuple_to_dict(obj):
 
 def __tuple_to_dict(obj):
     return [__convert_value(item) for item in obj]
+
+
+def __dict_to_dict(collect):
+    result = {}
+    for key, value in dict(collect).items():
+        result[key] = __convert_value(value)
+    return result
 
 
 def __base_to_dict(obj, found=None):
@@ -63,19 +71,25 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
             results.append(result_to_dict(entity, properties_as_dict=properties_as_dict, callback=callback))
         return results
 
-    # Do the actual conversion
-    if isinstance(return_val, Base):
-        results = __base_to_dict(return_val)
-        # get also fields that was loaded onto the model
-        for key, value in return_val.__dict__.items():
-            if key not in results and key != '_sa_instance_state':
-                results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+    elif isinstance(return_val, dict) and return_val:
+        results = __dict_to_dict(return_val)
 
     elif isinstance(return_val, tuple):
         if hasattr(return_val, '_fields') and len(return_val._fields) > 0:
             results = __name_tuple_to_dict(return_val)
         else:
             results = __tuple_to_dict(return_val)
+
+    # Do the actual conversion
+    elif isinstance(return_val, Base):
+        results = __base_to_dict(return_val)
+        # get also fields that was loaded onto the model
+        for key, value in return_val.__dict__.items():
+            if key not in results and key != '_sa_instance_state':
+                results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+
+    elif isinstance(return_val, Row):
+        results = __dict_to_dict(return_val)
     else:
         results = return_val
 

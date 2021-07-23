@@ -10,11 +10,11 @@ core_lib:
 
   db:
     protocol: mysql
-    username: ${env:MYSQL_USER}
-    password: ${env:MYSQL_ROOT_PASSWORD}
+    username: ${oc.env:MYSQL_USER}
+    password: ${oc.env:MYSQL_ROOT_PASSWORD}
     host: 127.0.0.1
     port: 3306
-    file: ${env:MYSQL_DB}
+    file: ${oc.env:MYSQL_DB}
     log_queries: False
     create_db: true
 
@@ -31,16 +31,16 @@ core_lib:
     port: 11211
 
   s3:
-    aws_region: ${env:s3_aws_region}
-    aws_access_key_id: ${env:s3_aws_access_key_id}
-    aws_secret_access_key: ${env:s3_aws_secret_access_key}
-    aws_s3_bocket: ${env:s3_aws_s3_bucket}
-    basic_auth_user: ${env:s3_basic_auth_user}
-    basic_auth_pass: ${env:s3_basic_auth_pass}
-    access_log: ${env:s3_access_log}
-    aws_session_token: ${env:s3_aws_session_token}
-    aws_max_pool_connections: ${env:s3_aws_max_pool_connections}
-    proxy: ${env:s3_proxy}
+    aws_region: ${oc.env:s3_aws_region}
+    aws_access_key_id: ${oc.env:s3_aws_access_key_id}
+    aws_secret_access_key: ${oc.env:s3_aws_secret_access_key}
+    aws_s3_bocket: ${oc.env:s3_aws_s3_bucket}
+    basic_auth_user: ${oc.env:s3_basic_auth_user}
+    basic_auth_pass: ${oc.env:s3_basic_auth_pass}
+    access_log: ${oc.env:s3_access_log}
+    aws_session_token: ${oc.env:s3_aws_session_token}
+    aws_max_pool_connections: ${oc.env:s3_aws_max_pool_connections}
+    proxy: ${oc.env:s3_proxy}
 
   solr:
     protocol: http

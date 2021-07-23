@@ -18,15 +18,12 @@ class JWTTokenHandler(TokenHandler):
 
     def encode(self, message: dict):
         if 'exp' not in message and self._expiration_time:
-            message['exp'] = self._expiration()
-        return jwt.encode(message, self._secret, algorithm=self._algorithm).decode("utf-8")
+            message['exp'] = (datetime.utcnow() + self._expiration_time).timestamp()
+        return jwt.encode(message, self._secret, algorithm=self._algorithm)
 
     def decode(self, encoded):
         try:
-            return jwt.decode(encoded, self._secret, algorithms=[self._algorithm], exp=self._expiration(), verify=self._verify)
+            return jwt.decode(encoded, self._secret, algorithms=[self._algorithm], verify=self._verify)
         except BaseException as e:
             self._logger.error(e)
             raise e
-
-    def _expiration(self):
-        return (datetime.today() - self._expiration_time).timestamp()

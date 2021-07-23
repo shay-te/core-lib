@@ -13,7 +13,7 @@ core_lib:
 
     memcached:
       url:
-        host: ${env:MEMCACHED_HOST}
+        host: ${oc.env:MEMCACHED_HOST}
         port: 11211
 
   data:
