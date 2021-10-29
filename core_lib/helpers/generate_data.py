@@ -27,4 +27,5 @@ def generate_datetime(from_date: datetime = None, to_date: datetime = None):
     first_timestamp = int(from_date.timestamp())
     second_timestamp = int(to_date.timestamp())
     random_timestamp = random.randint(first_timestamp, second_timestamp)
-    return datetime.fromtimestamp(random_timestamp)
+    datetime_from_ms = datetime.fromtimestamp(random_timestamp)
+    return datetime(year=datetime_from_ms.year, month=datetime_from_ms.month, day=datetime_from_ms.day)

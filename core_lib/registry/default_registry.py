@@ -33,3 +33,6 @@ class DefaultRegistry(Registry):
         if not result and len(self.name_to_object) > 0:
             result = list(self.name_to_object.values())[0]
         return result
+
+    def registered(self):
+        return list(self.name_to_object.keys())

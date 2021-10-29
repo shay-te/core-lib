@@ -1,20 +1,21 @@
-import collections
 import datetime
 import enum
 from collections import Iterable
 from functools import wraps
 from typing import Callable, Awaitable
-from collections import abc
 from sqlalchemy import inspect
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from sqlalchemy.engine.row import Row
 
+
 def __convert_value(value):
     if isinstance(value, enum.Enum):
         return value.value
-    if isinstance(value, (datetime.date, datetime.datetime)):
-        return value.isoformat()
+    if isinstance(value, datetime.datetime):
+        return value.timestamp()
+    if isinstance(value, datetime.date):
+        return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
     return value
 
 

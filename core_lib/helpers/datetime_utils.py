@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 
@@ -116,3 +116,14 @@ def year_end(hours: int = 0, minutes: int = 0):
     return year_begin(hours=hours, minutes=minutes) + relativedelta(years=1)
 
 
+#
+# UTILS
+#
+
+def age(born: date):
+    today = date.today()
+    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+
+def timestamp_to_ms(timestamp):
+    return int(timestamp * 1000)

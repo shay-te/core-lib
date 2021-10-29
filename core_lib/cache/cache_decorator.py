@@ -2,19 +2,25 @@ import logging
 from datetime import timedelta, datetime
 from functools import wraps
 from typing import Union
+import parsedatetime
 
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.func_utils import build_value_by_func_parameters
-import parsedatetime
+
 
 logger = logging.getLogger(__name__)
 parse_datetime_calendar = parsedatetime.Calendar()
 
 
-def _parse_datetime(expire: str):
-    expire_datetime, result = parse_datetime_calendar.parseDT(expire)
+def parse(d_time: str):
+    result_datetime, result = parse_datetime_calendar.parseDT(d_time)
     if result == 0:
-        raise ValueError('Unable to parse time expression `{}`'.format(expire))
+        raise ValueError('Unable to parse time expression `{}`'.format(d_time))
+    return result_datetime
+
+
+def _parse_datetime(expire: str):
+    expire_datetime = parse(expire)
     return datetime.utcnow() - expire_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
 
 

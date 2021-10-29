@@ -21,7 +21,7 @@ class TestJobs(unittest.TestCase):
     def test_job_decorator(self):
         j = TestJob()
         j.run()
-        self.assertEquals(j.called, 1)
+        self.assertEqual(j.called, 1)
 
     def test_schedule_invalid(self):
         s = JobScheduler()
@@ -41,7 +41,7 @@ class TestJobs(unittest.TestCase):
         j = TestJob()
         s.schedule_once('1s', j)
         sleep(2)
-        self.assertEquals(j.called, 1)
+        self.assertEqual(j.called, 1)
 
         s.schedule('1s', '1s', j)
         sleep(5)

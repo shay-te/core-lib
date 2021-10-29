@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
-from core_lib.helpers.config_instances import from_config_dict, from_config_list
+from core_lib.helpers.config_instances import from_config_dict
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
 from core_lib.observer.observer import Observer

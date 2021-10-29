@@ -10,3 +10,6 @@ Check the [website](https://core-lib.netlify.com/) for more information
 
 ## License
 Core-Lib in licenced under [MIT](https://github.com/shacoshe/core-lib/blob/master/LICENSE)
+
+# Running tests
+`python -m unittest`
