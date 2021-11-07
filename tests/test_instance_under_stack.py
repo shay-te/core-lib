@@ -2,7 +2,7 @@ import unittest
 
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
 
-instance_under_stack = InstanceUnderStack(stack_start_index=3)
+instance_under_stack = InstanceUnderStack(stack_start_index=7)
 
 
 def func_5():

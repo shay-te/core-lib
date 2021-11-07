@@ -26,17 +26,12 @@ class TestCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         self.config = conf
 
-        JWTTokenHandler.init(self.config.app.secret)
+        # JWTTokenHandler.init(self.config.app.secret)
 
         cache_client_memcached = CacheHandlerMemcached(Client([build_url(**self.config.memcached)]))
-        cache_factory = CacheRegistry()
-        cache_factory.register("memcached", cache_client_memcached)
-        Cache.set_factory(cache_factory)
+        CoreLib.cache_registry.register("memcached", cache_client_memcached)
 
-        self.__engine = create_engine(build_url(**self.config.db), echo=self.config.db.log_queries)
-        self.__engine.connect()
-
-        db_data_session = SqlAlchemyDataHandlerRegistry(self.__engine)
+        db_data_session = SqlAlchemyDataHandlerRegistry(self.config.db)
 
         class Test(object):
             def __init__(self):
@@ -47,5 +42,3 @@ class TestCoreLib(CoreLib):
         self.user = UserService(UserDataAccess(db_data_session))
         self.large_data = SlowLargeDataService(SlowLargeDataDataAccess())
 
-        if self.config.db.create_db:
-            Base.metadata.create_all(self.__engine)

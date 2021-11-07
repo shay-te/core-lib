@@ -4,9 +4,11 @@ from datetime import date
 from http import HTTPStatus
 from time import sleep
 
+import hydra
 from dotenv import load_dotenv
+from hydra.core.utils import configure_log
 from hydra.experimental import initialize, compose
-from hydra.plugins.common.utils import configure_log
+
 
 from core_lib.helpers.generate_data import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
@@ -37,8 +39,8 @@ load_dotenv(dotenv_path=env_path)
 #
 config_directory = os.path.join(combined_core_lib_path, 'config')
 config_file = 'config.yaml'
-initialize(config_dir=config_directory)
-config = compose(config_file)
+hydra.initialize(config_path='../examples/combined_core_lib/config')
+config = hydra.compose(config_file)
 
 
 solr_core = "demo"
@@ -96,7 +98,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_data["password"], user_create["password"])
         self.assertEqual(user_data["nick_name"], user_create["nick_name"])
         self.assertEqual(user_data["first_name"], user_create["first_name"])
-        self.assertEqual(user_data["birthday"].isoformat(), user_create["birthday"])
+        self.assertEqual(user_data["birthday"], date.fromtimestamp(user_create["birthday"]))
         self.assertEqual(user_data["gender"], user_create["gender"])
 
         # Get
@@ -132,7 +134,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_get["password"], update_password)
         self.assertEqual(user_get["nick_name"], update_nick_name)
         self.assertEqual(user_get["first_name"], update_first_name)
-        self.assertEqual(user_get["birthday"], update_birthday.isoformat())
+        self.assertEqual(date.fromtimestamp(user_get["birthday"]), update_birthday)
         self.assertEqual(user_get["gender"], update_gender)
 
         # Rules preventing to update birthday so say the rules
@@ -148,28 +150,3 @@ class TestCombinedExample(unittest.TestCase):
             "gender": User.Gender.MALE
         }
         self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
-
-    def test_04_demo_solr_sync(self):
-        for _ in range(15):
-            demo_data = {
-                "demo_info_1": generate_random_string(),
-                "demo_info_2": generate_random_string(),
-                "demo_info_3": generate_random_string(),
-                "demo_info_4": generate_random_string(),
-                "demo_info_5": generate_random_string(),
-                "demo_info_6": generate_random_string(),
-            }
-            demo_created = core_lib.demo.info.create(demo_data)
-            self.assertNotEqual(demo_created, None)
-            for i in range(1, 7):
-                key = "demo_info_{}".format(i)
-                self.assertEqual(demo_created[key], demo_data[key])
-
-        solr_client = SolrClient("http://127.0.0.1:8983")
-        result = solr_client.data_import_full(solr_core)
-        self.assertEqual(result.status_code, HTTPStatus.OK)
-
-    def test_05_demo_solr_search(self):
-        search_result = core_lib.demo.search.search("a")
-        self.assertNotEqual(search_result, None)
-        self.assertGreater(len(search_result.docs), 0)

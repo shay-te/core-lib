@@ -18,10 +18,7 @@ class DemoCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         self.config = conf
 
-        self.__engine = create_engine(build_url(**self.config.db), echo=self.config.db.log_queries)
-        self.__engine.connect()
-
-        db_data_session = SqlAlchemyDataHandlerRegistry(self.__engine)
+        db_data_session = SqlAlchemyDataHandlerRegistry(self.config.db)
         solr_data_session = ObjectDataHandlerRegistry(pysolr.Solr(build_url(**self.config.solr), always_commit=True))
 
         self.info = DemoService(DemoDataAccess(db_data_session))

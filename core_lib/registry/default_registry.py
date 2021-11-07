@@ -30,7 +30,7 @@ class DefaultRegistry(Registry):
 
     def get(self, name: str = None, *args, **kwargs):
         result = self.name_to_object.get(name or self.default_name)
-        if not result and len(self.name_to_object) > 0:
+        if not name and not result and len(self.name_to_object) > 0:
             result = list(self.name_to_object.values())[0]
         return result
 

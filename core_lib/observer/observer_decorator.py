@@ -28,12 +28,12 @@ class Observe(object):
                 value = get_func_parameters_as_dict(func, *args, **kwargs)
 
             observer = CoreLib.observer_registry.get(self.observer_name)
-            if self.notify_before:
+            if observer and self.notify_before:
                 observer.notify(self.event_key, value)
 
             result = func(*args, **kwargs)
 
-            if not self.notify_before:
+            if observer and not self.notify_before:
                 observer.notify(self.event_key, value)
             return result
 

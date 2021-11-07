@@ -16,7 +16,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         self._engine = self._create_engine(config)
         self._connection = self._engine.connect()
 
-        if config.create_db:
+        if config.get('create_db'):
             Base.metadata.create_all(self._engine)
 
     @property

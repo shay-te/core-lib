@@ -1,6 +1,7 @@
 import unittest
 from contextlib import suppress
 
+from omegaconf import OmegaConf
 from sqlalchemy import create_engine, Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
@@ -21,10 +22,18 @@ class TestDBRuleValidator(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.engine = create_engine("sqlite://", echo=True)
-        cls.engine.connect()
-        Base.metadata.create_all(cls.engine)
-        cls.db_data_session = SqlAlchemyDataHandlerRegistry(cls.engine)
+        conf = {
+            'create_db': True,
+            'log_queries': False,
+            'session': {
+                'pool_recycle': 3600,
+                'pool_pre_ping': False
+            },
+            'url': {
+                'protocol': 'sqlite'
+            }
+        }
+        cls.db_data_session = SqlAlchemyDataHandlerRegistry(OmegaConf.create(conf))
 
     def test_query(self):
         with self.__class__.db_data_session.get() as session:
