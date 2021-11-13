@@ -9,7 +9,7 @@ from core_lib.helpers.config_instances import from_config_dict
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
 from core_lib.observer.observer import Observer
-from core_lib.observer.observer_factory import ObserverRegistry
+from core_lib.observer.observer_registry import ObserverRegistry
 
 logger = logging.getLogger(__name__)
 
