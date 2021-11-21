@@ -1,17 +1,15 @@
 import os
 
-import setuptools
-
 import core_lib
 
-from setuptools import find_namespace_packages, setup
+from setuptools import find_namespace_packages, setup, find_packages
 from pip._internal.network.session import PipSession
 from pip._internal.req import parse_requirements
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 install_reqs = parse_requirements(os.path.join(dir_path, 'requirements.txt'), session=PipSession)
 
-packages1 = setuptools.find_packages()
+packages1 = find_packages()
 packages2 = find_namespace_packages(include=['hydra_plugins.*'])
 packages = list(set(packages1 + packages2))
 
