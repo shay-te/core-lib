@@ -22,12 +22,12 @@ class Point(UserDefinedType):
         }
 
     @staticmethod
-    def from_point_str(point_str: str):
+    def from_point_str(point_str: str, latitude_first: bool = False):
         location_arr = point_str.strip('POINT()').replace(' ', ',').split(',')
-        return {
-            'latitude': float(location_arr[0]),
-            'longitude': float(location_arr[1])
-        }
+        if latitude_first:
+            return {'latitude': float(location_arr[0]), 'longitude': float(location_arr[1])}
+        else:
+            return {'longitude': float(location_arr[0]), 'latitude': float(location_arr[1])}
 
     @staticmethod
     def to_point_str(longitude: float, latitude: float, latitude_first: bool = False):
