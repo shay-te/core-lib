@@ -53,7 +53,7 @@ class Cache(object):
             cache_handler = CoreLib.cache_registry.get(self.handler_name)
             if not cache_handler:
                 raise ValueError("CacheHandler by name `{}` was not found in `CoreLib.cache_registry`".format(self.handler_name))
-            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length]
+            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length].replace(' ', '_')
 
             if self.invalidate:
                 result = func(*args, **kwargs)
