@@ -3,10 +3,14 @@ import enum
 from collections import Iterable
 from functools import wraps
 from typing import Callable, Awaitable
+
+from geoalchemy2 import WKBElement
 from sqlalchemy import inspect
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from sqlalchemy.engine.row import Row
+
+from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 
 
 def __convert_value(value):
@@ -16,6 +20,8 @@ def __convert_value(value):
         return value.timestamp()
     if isinstance(value, datetime.date):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
+    if isinstance(value, WKBElement):
+        return Point.from_point_wkb(value)
     return value
 
 

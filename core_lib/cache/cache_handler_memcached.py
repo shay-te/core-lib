@@ -19,7 +19,7 @@ class CacheHandlerMemcached(CacheHandler):
         if isinstance(value, (dict, list, int, str)):
             self.memcached_client.set(key, json.dumps(value), time=expire.total_seconds() if expire else 0)
         else:
-            raise ValueError('result must be of type `dict` or `list`')
+            raise ValueError(f'result must be of type `dict` or `list`. got `{type(value)}`')
 
     def delete(self, key: str):
         self.memcached_client.delete(key)

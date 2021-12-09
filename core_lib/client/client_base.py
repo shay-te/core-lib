@@ -16,16 +16,16 @@ class ClientBase(object):
         self.timeout = timeout
 
     def _get(self, path: str, *args, **kwargs):
-        return self.session.get(self.__build_url(path), timeout=self.timeout, *args, **self.process_kwargs(**kwargs))
+        return self.session.get(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
 
     def _put(self, path: str, *args, **kwargs):
-        return self.session.put(self.__build_url(path), timeout=self.timeout, *args, **self.process_kwargs(**kwargs))
+        return self.session.put(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
 
     def _post(self, path: str, *args, **kwargs):
-        return self.session.post(self.__build_url(path), timeout=self.timeout, *args, **self.process_kwargs(**kwargs))
+        return self.session.post(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
 
     def _delete(self, path: str, *args, **kwargs):
-        return self.session.delete(self.__build_url(path), timeout=self.timeout, *args, **self.process_kwargs(**kwargs))
+        return self.session.delete(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
 
     def __build_url(self, path):
         return "{}/{}".format(self.base_url.rstrip("/"), path.lstrip("/"))
@@ -36,4 +36,6 @@ class ClientBase(object):
                 kwargs['headers'] = {**kwargs['headers'], **self.headers}
             else:
                 kwargs['headers'] = self.headers
+
+        kwargs['timeout'] = kwargs.get('timeout', self.timeout)
         return kwargs

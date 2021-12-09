@@ -2,6 +2,7 @@ from sqlalchemy import func
 from sqlalchemy.types import UserDefinedType
 from geoalchemy2.shape import to_shape
 
+
 class Point(UserDefinedType):
 
     def get_col_spec(self):
