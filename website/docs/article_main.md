@@ -5,50 +5,43 @@ sidebar_label: The Why
 ---
 
 # Why
+The reason for creating core-lib came from the belive that the "work it self" is an important factor to considre when selecting a "Back-end Framework" for your next application.
 
-Data Flow is a subject I am fascinated about.    
-Since it have a direct effect on how our product scale over time.
+core-lib is just architactire with some tool
 
-an efficient data flows is important, for the application code And also for how a development environment perform.
+
 the effiency of day to day work take a big role on how fast the organizations move.
 
-imagine a scenario.
-two startup that have similar value for in the market place, similar budget, same technologies, same market, same country, same taxes, same salery prices, same 24 hours a day
-one will do well then the other for many reasons and factors. 
+effect on the product scale over time.?
 
-single important factor is how fast you are moving compering to the other. 
-how much time you have to make mistakes, evolve and try new things.
+better clear code 
 
-     
-The data flows describes our code and classes. 
-And Growth of code in the long run it's something that we need to consider at the beginning of a project.     
+short learning curve
 
+don;t add complexty over time 
+no spagety code 
+simple code (complexty cost more money over time)
+
+uses the Onion Architecture to release dependencies, complexity. 
 Risk management: ......
 
-In a rapid moving world where everything become more small and more portable. 
-making our code a library opens up more options to deploy our products after many types of interfaces. 
 
-First i will describe the reason WHY keeping a tight relationship with a WEB Framework can be problematic when trying to choose the correct Data Flow when planned to run long.   
+- can be adopted anywhere
+  library
 
-Second I will share how we can embrace the Onion Architecture to release dependencies, complexity. 
-And create an easy data structure to work with.    
-Encapsulated in a library that can be adopted anywhere .
+# why not you just use a WEB framework?
 
-# The Poplar 
+1. core-lib is an intependent library 
+2. no third party dependency. 
+   write your bussines logic inside your classes.
+3. can be used as simple library or after a WEB interface. 
+4. Same architacure and code style for multiple libraries. 
+5. base classes are just empty classes.  
 
-WEB framework are a good choice to make. They are offering many advantages like:     
-rapid code writing, top picked dependencies and capabilities for our disposal, All of our expertise in a single place and more.
-
-For me it's the question. Are we choosing a WEB Framework by it's Data Flow Or our decisions effected by  other advantages ?
-
-To many advantages there are a couple of disadvantages:
-
-1. Our product Data Flow is DICTATED by a third party REST Interface.
-2. Our product is highly dependent on a third party library that we have no control of.
-3. Sometimes We dependent on a Single wrapper that delegate many third party libraries.  
 
 ## Who Is This For
 
-Every One who wants more control over their products.     
+Every One who want single architacure and simple implemntation framework  
+
  
 
