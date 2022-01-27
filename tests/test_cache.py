@@ -38,12 +38,12 @@ class TestCache(unittest.TestCase):
         param = "some_val"
         self.assertEqual(self.get_cache_with_param(param), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_with_param(param), 200)
+        self.assertEqual(self.get_cache_with_param(param), 100)
         sleep(2.3)
         self.assertEqual(self.get_cache_with_param(param), 200)
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_with_param("other_param"), 100)
-        self.assertEqual(self.get_cache_with_param(param), 100)
+        self.assertEqual(self.get_cache_with_param(param), 200)
         sleep(2.3)
         self.clear_cache_with_param(param)
         self.assertEqual(self.get_cache_with_param(param), 100)

@@ -70,7 +70,9 @@ class Cache(object):
                     if result:
                         expire = self.expire
                         if expire and isinstance(expire, str):
-                            expire = _parse_datetime(expire)                        
+                            expire = _parse_datetime(expire)
+                        cache_handler.set(key, result, expire)
+                        
                 return result
 
         return __wrapper
