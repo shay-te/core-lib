@@ -10,7 +10,7 @@ braking down the data flow into layers with an agreement up front on a set of ru
 
 ####  “Complexity is the enemy of execution”. Tony Robbins
 
-To make our application more resilient is to make it more simple to pay.   
+To make our application more resilient is to make it more simple to use.   
 by simply handling fewer responsibilities. 
 Simply means less complexity in our code.
 
@@ -23,18 +23,12 @@ To make sure that the responsibilities of each layer are done only by the design
 We will decide upfront of some rules:
 
 
-[!POINT] When writing any type of `data-layer` try to put on the hat of one that will pay your data-layer APIs.  
+[!POINT] When writing any type of `data-layer` try to put on the hat of one that will use your data-layer APIs.  
 
 1. Data layer will get data internally only from layers beside or below it.    
 2. Each layer will be agnostic and will handle error/create custom exceptions/logging/etc.. internally   
    To make our layers independent and portable
 3. Keep code/classes/variable/constants where they need to be (WEB container code only in the web layer, DB queries in the DataAccess etc....)   
-
-
-shay rules to keep code clean. 
-1. when you have to add logic to extrnal service. wrap it with your own service. 
-2. when there is logic that not related to the critteria of the query. put it in the service
-
 
 ## Data Layer:
 <table><tr>
