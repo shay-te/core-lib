@@ -22,14 +22,13 @@ class TestCache(unittest.TestCase):
 
     def test_cash(self):
         TestCache.test_value = 100
-
         self.assertEqual(self.get_cache(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache(), 100)
+        self.assertEqual(self.get_cache(), 200)
         sleep(2.3)
         self.assertEqual(self.get_cache(), 200)
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache(), 200)
+        self.assertEqual(self.get_cache(), 100)
         self.clear_cache()
         self.assertEqual(self.get_cache(), 100)
 
@@ -39,12 +38,12 @@ class TestCache(unittest.TestCase):
         param = "some_val"
         self.assertEqual(self.get_cache_with_param(param), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_with_param(param), 100)
+        self.assertEqual(self.get_cache_with_param(param), 200)
         sleep(2.3)
         self.assertEqual(self.get_cache_with_param(param), 200)
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_with_param("other_param"), 100)
-        self.assertEqual(self.get_cache_with_param(param), 200)
+        self.assertEqual(self.get_cache_with_param(param), 100)
         sleep(2.3)
         self.clear_cache_with_param(param)
         self.assertEqual(self.get_cache_with_param(param), 100)
@@ -55,12 +54,12 @@ class TestCache(unittest.TestCase):
         param = "some_val"
         self.assertEqual(self.get_cache_with_param_optional(param), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_with_param_optional(param), 100)
+        self.assertEqual(self.get_cache_with_param_optional(param), 200)
         sleep(2.3)
         self.assertEqual(self.get_cache_with_param_optional(param), 200)
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_with_param_optional("other_param"), 100)
-        self.assertEqual(self.get_cache_with_param_optional(param), 200)
+        self.assertEqual(self.get_cache_with_param_optional(param), 100)
         sleep(2.3)
         self.clear_cache_with_param_optional(param)
         self.assertEqual(self.get_cache_with_param_optional(param), 100)
@@ -89,6 +88,15 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_only_param_optional(10, 20, 30, 40), 200)
         TestCache.test_value = 300
         self.assertEqual(self.get_cache_only_param_optional(param_4=40), 300)
+
+    def test_cache_with_updated_value(self):
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_with_updated_value(), 100)
+        TestCache.test_value = 200
+        sleep(3)
+        self.assertEqual(self.get_cache_with_updated_value(), 200)
+        sleep(3)
+        self.assertEqual(self.get_cache_with_updated_value(), 200)
 
 
     # Cache without params
@@ -127,3 +135,7 @@ class TestCache(unittest.TestCase):
     def get_cache_only_param_optional(self, param_1=None, param_2=None, param_3=None, param_4=None):
         return TestCache.test_value
 
+    # Cache with updated values
+    @Cache(key="test_cache_1", expire=timedelta(seconds=4))
+    def get_cache_with_updated_value(self):
+        return TestCache.test_value

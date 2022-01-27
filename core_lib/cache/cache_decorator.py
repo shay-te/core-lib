@@ -67,11 +67,10 @@ class Cache(object):
                 result = cache_handler.get(key)
                 if not result:
                     result = func(*args, **kwargs)
-                if result:
-                    expire = self.expire
-                    if expire and isinstance(expire, str):
-                        expire = _parse_datetime(expire)
-                    cache_handler.set(key, result, expire)
+                    if result:
+                        expire = self.expire
+                        if expire and isinstance(expire, str):
+                            expire = _parse_datetime(expire)                        
                 return result
 
         return __wrapper
