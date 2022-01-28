@@ -1,0 +1,30 @@
+# IDEA
+.idea/
+**/.DS_Store
+**/*.db
+**/*.db-journal
+
+# PYTHON
+/venv
+**/*.pyc
+**/*.pyo
+**/__pycache__/*
+__pycache__/
+
+
+# TESTS
+/examples/**/outputs/
+/tests/data_output
+/tests/test_data/
+
+# BUILD
+*.egg-info
+*.eggs
+build/
+dist/
+
+# APP
+.hydra/
+.env
+*.log
+

@@ -1,0 +1,48 @@
+#defaults:
+#  - test_core_lib_config
+#  - demo_core_lib_config
+#  - objects_core_lib_config
+
+core_lib:
+
+  app:
+    secret: 000000000000000000101010110
+
+  db:
+    log_queries: false
+    create_db: true
+    session:
+      pool_recycle: 3600
+      pool_pre_ping: false
+    url:
+      protocol: sqlite
+
+  mongo:
+    protocol: mongodb
+    username: test
+    password: test
+    host: localhost
+    port: 27017
+    file: test
+
+  memcached:
+    host: localhost
+    port: 11211
+
+  s3:
+    aws_region: ${oc.env:s3_aws_region}
+    aws_access_key_id: ${oc.env:s3_aws_access_key_id}
+    aws_secret_access_key: ${oc.env:s3_aws_secret_access_key}
+    aws_s3_bocket: ${oc.env:s3_aws_s3_bucket}
+    basic_auth_user: ${oc.env:s3_basic_auth_user}
+    basic_auth_pass: ${oc.env:s3_basic_auth_pass}
+    access_log: ${oc.env:s3_access_log}
+    aws_session_token: ${oc.env:s3_aws_session_token}
+    aws_max_pool_connections: ${oc.env:s3_aws_max_pool_connections}
+    proxy: ${oc.env:s3_proxy}
+
+  solr:
+    protocol: http
+    host: localhost
+    port: 8983
+    file: solr/demo

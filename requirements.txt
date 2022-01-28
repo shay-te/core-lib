@@ -1,0 +1,28 @@
+#Core lib
+hydra-core
+python-dateutil
+PyJWT
+argh
+pytimeparse
+parsedatetime
+
+# Connectors
+sqlalchemy
+alembic
+pymysql
+psycopg2-binary
+pysolr
+pymongo
+python-memcached
+cryptography
+boto3
+geoalchemy2
+shapely
+
+# web
+django
+flask
+
+
+# Test
+python-dotenv

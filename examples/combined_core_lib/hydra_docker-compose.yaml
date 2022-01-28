@@ -1,0 +1,12 @@
+defaults:
+  - test_core_lib_compose
+  - demo_core_lib_compose
+  - objects_core_lib_compose
+
+services:
+  combined_core_lib:
+    build: .
+    depends_on:
+      - db
+
+target_config_file: docker-compose.yaml

@@ -1,0 +1,6 @@
+core_lib:
+  solr:
+    protocol: http
+    host: localhost
+    port: 8983
+    file: solr/demo

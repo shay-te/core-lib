@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  s3:
+    image: pottava/s3-proxy
+    ports:
+      - 8080:80
+    environment:
+      - AWS_REGION=${s3_aws_region}
+      - AWS_ACCESS_KEY_ID=${s3_aws_access_key_id}
+      - AWS_SECRET_ACCESS_KEY=${s3_aws_secret_access_key}
+      - AWS_S3_BUCKET=${s3_aws_s3_bucket}
+      - BASIC_AUTH_USER=${s3_basic_auth_user}
+      - BASIC_AUTH_PASS=${s3_basic_auth_pass}
+      - ACCESS_LOG=${s3_access_log}
+      - AWS_SESSION_TOKEN=${s3_aws_session_token}
+    container_name: proxy
