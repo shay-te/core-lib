@@ -22,7 +22,6 @@ class TestCache(unittest.TestCase):
 
     def test_cash(self):
         TestCache.test_value = 100
-
         self.assertEqual(self.get_cache(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache(), 100)
@@ -89,6 +88,17 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_only_param_optional(10, 20, 30, 40), 200)
         TestCache.test_value = 300
         self.assertEqual(self.get_cache_only_param_optional(param_4=40), 300)
+
+    def test_cache_is_expiring(self):
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache(), 100)
+        TestCache.test_value = 200
+        sleep(1)
+        self.assertEqual(self.get_cache(), 100)
+        sleep(1)
+        self.assertEqual(self.get_cache(), 200)
+        self.clear_cache()
+
 
 
     # Cache without params

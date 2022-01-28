@@ -16,6 +16,8 @@ pymongo
 python-memcached
 cryptography
 boto3
+geoalchemy2
+shapely
 
 # web
 django
