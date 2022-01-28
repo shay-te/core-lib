@@ -18,10 +18,8 @@ import pymysql
 #
 # Docker
 #
-from core_lib.client.solr_client import SolrClient
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
-pymysql.install_as_MySQLdb()
 configure_log(None, True)
 
 current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
