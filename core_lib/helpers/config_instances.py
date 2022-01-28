@@ -24,7 +24,7 @@ def _load(settings: dict, instance_base_class: object = None, class_config_path:
         if class_settings:
             class_settings_params = {}
             for p_key, p_value in (params or {}).items():
-                if p_key is not '_target_' and p_key in class_settings:
+                if p_key != '_target_' and p_key in class_settings:
                     class_settings_params[p_key] = p_value
             instance = instantiate(class_settings, **class_settings_params)
             if instance_base_class and not isinstance(instance, instance_base_class):
