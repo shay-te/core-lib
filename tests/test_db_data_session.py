@@ -8,6 +8,7 @@ from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 
 # path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
+from tests.test_data.test_utils import connect_to_mem_db
 
 
 class Test(Base):
@@ -22,18 +23,7 @@ class TestDBRuleValidator(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        conf = {
-            'create_db': True,
-            'log_queries': False,
-            'session': {
-                'pool_recycle': 3600,
-                'pool_pre_ping': False
-            },
-            'url': {
-                'protocol': 'sqlite'
-            }
-        }
-        cls.db_data_session = SqlAlchemyDataHandlerRegistry(OmegaConf.create(conf))
+        cls.db_data_session = connect_to_mem_db()
 
     def test_query(self):
         with self.__class__.db_data_session.get() as session:
