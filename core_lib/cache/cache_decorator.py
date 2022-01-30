@@ -24,6 +24,13 @@ def _parse_datetime(expire: str):
     return datetime.utcnow() - expire_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+def _get_expire(expire):
+    # validate expire BEFORE USE, in a reason to promote errors to startup time
+    if expire and isinstance(expire, str):
+        return _parse_datetime(expire)  # Will raise an error on wrong expression
+    return expire
+
+
 class Cache(object):
 
     # key: The key used to store the value with, when no key specified the function.__qualname__ is used
@@ -38,13 +45,9 @@ class Cache(object):
                  handler: str = None):
         self.key = key
         self.max_key_length = max_key_length
-        self.expire = expire
         self.invalidate = invalidate
         self.handler_name = handler
-
-        # validate expire BEFORE USE, in a reason to promote errors to startup time
-        if self.expire and isinstance(self.expire, str):
-            _parse_datetime(expire)  # Will raise an error on wrong expression
+        self.expire = _get_expire(expire)
 
     def __call__(self, func, *args, **kwargs):
 
@@ -68,10 +71,7 @@ class Cache(object):
                 if not result:
                     result = func(*args, **kwargs)
                     if result:
-                        expire = self.expire
-                        if expire and isinstance(expire, str):
-                            expire = _parse_datetime(expire)
-                        cache_handler.set(key, result, expire)
+                        cache_handler.set(key, result, _get_expire(self.expire))
                         
                 return result
 
