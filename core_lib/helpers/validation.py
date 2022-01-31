@@ -7,8 +7,16 @@ from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 # primitives
 #
 def is_bool(st):
-    st = str.lower(st)
-    return st == "true" or st == "false"
+    if isinstance(st, str):
+        st = str.lower(st)
+        if st == "true" or st == "false":
+            return True
+        else:
+            return False
+    elif isinstance(st, bool):
+        return True
+    else:
+        return False
 
 
 def is_float(st):
@@ -37,4 +45,4 @@ def is_email(email: str) -> bool:
 
 
 def is_int_enum(int_value: int, enum: IntEnum) -> bool:
-    return 0 <= int_value.value <= len(enum)
+    return isinstance(int_value, enum)

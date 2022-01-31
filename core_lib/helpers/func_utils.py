@@ -1,5 +1,6 @@
 import inspect
 import logging
+from contextlib import suppress
 from string import Formatter
 
 logger = logging.getLogger(__name__)
@@ -8,7 +9,9 @@ logger = logging.getLogger(__name__)
 def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
     parameters = inspect.signature(func).parameters
     if parameter_name not in parameters:
-        raise ValueError("parameter named: `{}`. dose not exists in the decorated function. `{}` ".format(parameter_name, func.__name__))
+        raise ValueError(
+            "parameter named: `{}`. dose not exists in the decorated function. `{}` ".format(parameter_name,
+                                                                                             func.__name__))
 
     return list(parameters).index(parameter_name)
 
@@ -58,3 +61,23 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs):
         new_key = func.__qualname__
 
     return new_key
+
+
+def get_calling_module(stack_depth):
+    calling_module = None
+    stack = inspect.stack()
+    frame = stack[stack_depth]
+
+    with suppress(Exception):
+        calling_module = frame[0].f_globals[frame[3]].__module__
+    if not calling_module:
+        with suppress(Exception):
+            calling_module = frame[0].f_locals["self"].__module__
+            return calling_module
+    if not calling_module:
+        with suppress(Exception):
+            calling_module = frame[0].f_locals['__module__']
+            return calling_module
+    if not calling_module:
+        calling_module = __name__
+        return calling_module
