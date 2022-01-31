@@ -3,7 +3,7 @@ from datetime import datetime
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.error_handling.decorators import NotFoundErrorHandler
+from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 

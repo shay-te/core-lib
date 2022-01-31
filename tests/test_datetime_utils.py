@@ -9,7 +9,7 @@ from core_lib.helpers.datetime_utils import year_begin, year_end, month_begin, m
 
 class TestDBRuleValidator(unittest.TestCase):
 
-    def next_weekday(self, d, weekday):
+    def _next_weekday(self, d, weekday):
         days_ahead = weekday - d.weekday()
         if days_ahead <= 0:  # Target day already happened this week
             days_ahead += 7
@@ -78,32 +78,32 @@ class TestDBRuleValidator(unittest.TestCase):
 
     def test_sunday(self):
         self.assertNotEqual(sunday(), None)
-        self.assertEqual(sunday(), self.next_weekday(today(), 6))
+        self.assertEqual(sunday(), self._next_weekday(today(), 6))
 
     def test_monday(self):
         self.assertNotEqual(monday(), None)
-        self.assertEqual(monday(), self.next_weekday(today(), 0))
+        self.assertEqual(monday(), self._next_weekday(today(), 0))
 
     def test_tuesday(self):
         self.assertNotEqual(tuesday(), None)
-        self.assertEqual(tuesday(), self.next_weekday(today(), 1))
+        self.assertEqual(tuesday(), self._next_weekday(today(), 1))
 
     def test_wednesday(self):
         self.assertNotEqual(wednesday(), None)
-        self.assertEqual(wednesday(), self.next_weekday(today(), 2))
+        self.assertEqual(wednesday(), self._next_weekday(today(), 2))
 
     def test_thursday(self):
         self.assertNotEqual(thursday(), None)
-        self.assertEqual(thursday(), self.next_weekday(today(), 3))
+        self.assertEqual(thursday(), self._next_weekday(today(), 3))
 
     def test_friday(self):
         self.assertNotEqual(friday(), None)
-        self.assertEqual(friday(), self.next_weekday(today(), 4))
+        self.assertEqual(friday(), self._next_weekday(today(), 4))
 
 
     def test_saturday(self):
         self.assertNotEqual(saturday(), None)
-        self.assertEqual(saturday(), self.next_weekday(today(), 5))
+        self.assertEqual(saturday(), self._next_weekday(today(), 5))
 
     def test_midnight(self):
         self.assertNotEqual(midnight(), None)
