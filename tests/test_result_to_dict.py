@@ -9,7 +9,6 @@ from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-# Create Enum
 from tests.test_data.test_utils import connect_to_mem_db
 
 
@@ -19,7 +18,6 @@ class MyEnum(enum.Enum):
     three = 3
 
 
-# Create Table
 class Data(Base):
     __tablename__ = 'data'
 
