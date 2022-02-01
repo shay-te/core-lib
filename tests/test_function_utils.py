@@ -34,7 +34,7 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertNotEqual(key6, None)
         self.assertEqual(key6, 'xyz_None_None')
 
-    def test_func_param_to_dict(self):
+    def test_param_dict_func(self):
         def boo(param_1, param_2):
             return 1
 
@@ -58,29 +58,27 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict4['param_1'], None)
         self.assertEqual(dict4['param_2'], None)
 
-    def test_func_param_index_by_name(self):
+    def test_param_index_func(self):
+
         def boo(param_1, param_2, param_3):
             return 1
 
-        def foo(test_param):
-            return 1
-
         index1 = get_func_parameter_index_by_name(boo, "param_1")
-        self.assertNotEqual(index1, None)
         self.assertEqual(index1, 0)
 
         index2 = get_func_parameter_index_by_name(boo, "param_2")
-        self.assertNotEqual(index2, None)
         self.assertEqual(index2, 1)
 
         index3 = get_func_parameter_index_by_name(boo, "param_3")
-        self.assertNotEqual(index3, None)
         self.assertEqual(index3, 2)
 
-        index4 = get_func_parameter_index_by_name(foo, "test_param")
-        self.assertNotEqual(index4, None)
-        self.assertEqual(index4, 0)
+        with self.assertRaises(Exception):
+            get_func_parameter_index_by_name(boo)
+
+        with self.assertRaises(Exception):
+            get_func_parameter_index_by_name(boo, "param_4")
 
     def test_get_calling_module(self):
         self.assertNotEqual(get_calling_module(stack_depth=1), None)
         self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
+

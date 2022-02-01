@@ -8,7 +8,6 @@ from geoalchemy2 import WKTElement
 from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-
 from tests.test_data.test_utils import connect_to_mem_db
 
 
@@ -46,6 +45,11 @@ class TestResultToDict(unittest.TestCase):
     def test_tuples(self):
         tpl = self.get_tuples()
         self.assertTrue(isinstance(tpl, tuple))
+        self.assertEqual(len(tpl), 3)
+        self.assertTrue(tpl, (("fruit", "apple"), ("fruit", "banana"), ("fruit", "cherry")))
+        self.assertEqual(tpl[0], ("fruit", "apple"))
+        self.assertEqual(tpl[1], ("fruit", "banana"))
+        self.assertEqual(tpl[2], ("fruit", "cherry"))
         for t in tpl:
             self.assertTrue(isinstance(t, tuple))
 
@@ -63,32 +67,32 @@ class TestResultToDict(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['date'], datetime.datetime(year=dat.year, month=dat.month, day=dat.day).timestamp())
         self.assertEqual(result[0]['datetime'], dattime.timestamp())
+        self.assertEqual(result[0]['point'], WKTElement('POINT(5 45)'))
 
     def test_base_db_entity(self):
+        dattime = datetime.datetime.utcnow()
         with self.__class__.db_data_session.get() as session:
             data = Data()
             data.data_name = "test_name"
             data.data_text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum "
             data.data_json = {"key1": "value1", "key2": "value2"}
-            data.data_datetime = datetime.datetime.utcnow()
+            data.data_datetime = dattime
             data.data_enum = MyEnum.one
             session.add(data)
-            session.commit()
-            session.flush()
-            session.close()
 
         with self.__class__.db_data_session.get() as session:
             all_data = session.query(Data).all()
-            dt_res_to_dic = self.get_from_db(all_data)
-            self.assertNotEqual(dt_res_to_dic, None)
-            self.assertTrue(isinstance(dt_res_to_dic, list))
-            self.assertEqual(len(dt_res_to_dic), 1)
-            self.assertEqual(dt_res_to_dic[0]['id'], 1)
-            self.assertEqual(dt_res_to_dic[0]['data_enum'], 1)
-            self.assertEqual(dt_res_to_dic[0]['data_name'], "test_name")
-            self.assertEqual(dt_res_to_dic[0]['data_text'], "Lorem Ipsum is simply dummy text of the printing and "
-                                                            "typesetting industry. Lorem Ipsum ")
-            self.assertEqual(dt_res_to_dic[0]['data_json'], {"key1": "value1", "key2": "value2"})
+            converted_data = self.get_from_db(all_data)
+            self.assertNotEqual(converted_data, None)
+            self.assertTrue(isinstance(converted_data, list))
+            self.assertEqual(len(converted_data), 1)
+            self.assertEqual(converted_data[0]['id'], 1)
+            self.assertEqual(converted_data[0]['data_enum'], 1)
+            self.assertEqual(converted_data[0]['data_datetime'], dattime.timestamp())
+            self.assertEqual(converted_data[0]['data_name'], "test_name")
+            self.assertEqual(converted_data[0]['data_text'], "Lorem Ipsum is simply dummy text of the printing and "
+                                                             "typesetting industry. Lorem Ipsum ")
+            self.assertEqual(converted_data[0]['data_json'], {"key1": "value1", "key2": "value2"})
 
     @ResultToDict()
     def get_lists(self):
