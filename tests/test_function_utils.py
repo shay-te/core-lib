@@ -58,6 +58,28 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict4['param_1'], None)
         self.assertEqual(dict4['param_2'], None)
 
+        dict5 = get_func_parameters_as_dict(boo, None, None, None)
+        self.assertNotEqual(dict5, None)
+        self.assertEqual(dict5['param_1'], None)
+        self.assertEqual(dict5['param_2'], None)
+        self.assertEqual(len(dict5), 2)
+
+        dict6 = get_func_parameters_as_dict(boo, *[1, 2, 3], **{})
+        self.assertNotEqual(dict6, None)
+        self.assertEqual(dict6['param_1'], 1)
+        self.assertEqual(dict6['param_2'], 2)
+        self.assertEqual(len(dict6), 2)
+
+        dict7 = get_func_parameters_as_dict(boo, *[1, 2], **{'param_2': 22})
+        self.assertNotEqual(dict7, None)
+        self.assertEqual(dict7['param_1'], 1)
+        self.assertEqual(dict7['param_2'], 2)
+        self.assertEqual(len(dict7), 2)
+
+        dict8 = get_func_parameters_as_dict(boo)
+        self.assertNotEqual(dict8, None)
+        self.assertEqual(len(dict8), 0)
+
     def test_param_index_func(self):
 
         def boo(param_1, param_2, param_3):
