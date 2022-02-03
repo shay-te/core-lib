@@ -72,6 +72,3 @@ def get_calling_module(stack_depth: int = 1):
             return frame[0].f_locals['__module__']
     return __qualname__
 
-
-def reset_datetime(date: datetime):
-    return date.replace(hour=0, minute=0, second=0, microsecond=0)
