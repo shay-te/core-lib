@@ -7,6 +7,7 @@ from dateutil.utils import today
 from core_lib.helpers.datetime_utils import year_begin, year_end, month_begin, month_end, week_begin, week_end, \
     day_begin, day_end, tomorrow, yesterday, midnight, sunday, monday, tuesday, wednesday, thursday, friday, saturday, \
     hour_begin, hour_end
+from core_lib.helpers.func_utils import reset_datetime
 
 
 def _next_weekday(date: datetime, weekday: int):
@@ -50,90 +51,62 @@ class TestDBRuleValidator(unittest.TestCase):
 
     def test_year(self):
         self.assertNotEqual(year_begin(), None)
-        self.assertEqual(year_begin(),
-                         datetime.utcnow().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
+        self.assertEqual(year_begin(), datetime.utcnow().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
         self.assertNotEqual(year_end(), None)
-        self.assertEqual(year_end(),
-                         datetime.utcnow().replace(year=datetime.utcnow().year + 1, month=1, day=1, hour=0, minute=0,
-                                                   second=0, microsecond=0))
+        self.assertEqual(year_end(), datetime.utcnow().replace(year=datetime.utcnow().year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
 
     def test_month(self):
         self.assertNotEqual(month_begin(), None)
-        self.assertEqual(month_begin(), datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+        self.assertEqual(month_begin(), reset_datetime(datetime.utcnow().replace(day=1)))
         self.assertNotEqual(month_end(), None)
-        self.assertEqual(month_end(), (today().replace(day=1) + timedelta(days=32)).replace(day=1))
+        cl_month_end = month_end()
+        self.assertEqual(cl_month_end, reset_datetime((today().replace(day=1) + timedelta(days=32)).replace(day=1)))
 
     def test_week(self):
         self.assertNotEqual(week_begin(), None)
-        self.assertEqual(week_begin(), today() - timedelta(days=datetime.today().weekday()))
+        self.assertEqual(week_begin(), reset_datetime(today() - timedelta(days=datetime.today().weekday())))
         self.assertNotEqual(week_end(), None)
-        self.assertEqual(week_end(), (today() - timedelta(days=datetime.today().weekday())) + timedelta(days=7))
+        self.assertEqual(week_end(), reset_datetime((today() - timedelta(days=datetime.today().weekday())) + timedelta(days=7)))
 
     def test_day(self):
         self.assertNotEqual(day_begin(), None)
-        self.assertEqual(day_begin(), today())
-        self.assertEqual(day_begin().minute, 0)
-        self.assertEqual(day_begin().hour, 0)
+        self.assertEqual(day_begin(), reset_datetime(today()))
         self.assertNotEqual(day_end(), None)
-        self.assertEqual(day_end(), tomorrow())
-        self.assertEqual(day_end().minute, 0)
-        self.assertEqual(day_end().hour, 0)
+        self.assertEqual(day_end(), reset_datetime(tomorrow()))
 
     def test_hour(self):
         self.assertNotEqual(hour_begin(), None)
-        self.assertEqual(hour_begin(), datetime.utcnow().replace(minute=0, second=0, microsecond=0))
+        self.assertEqual(hour_begin(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour))
         self.assertNotEqual(hour_end(), None)
-        self.assertEqual(hour_end(),
-                         datetime.utcnow().replace(hour=datetime.utcnow().hour + 1, minute=0, second=0, microsecond=0))
+        self.assertEqual(hour_end(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour + 1))
 
     def test_sunday(self):
         self.assertNotEqual(sunday(), None)
-        self.assertEqual(sunday(), _next_weekday(today(), 6))
-        self.assertEqual(sunday().second, 0)
-        self.assertEqual(sunday().minute, 0)
-        self.assertEqual(sunday().hour, 0)
+        self.assertEqual(sunday(), reset_datetime(_next_weekday(today(), 6)))
 
     def test_monday(self):
         self.assertNotEqual(monday(), None)
-        self.assertEqual(monday(), _next_weekday(today(), 0))
-        self.assertEqual(monday().second, 0)
-        self.assertEqual(monday().minute, 0)
-        self.assertEqual(monday().hour, 0)
+        self.assertEqual(monday(), reset_datetime(_next_weekday(today(), 0)))
 
     def test_tuesday(self):
         self.assertNotEqual(tuesday(), None)
-        self.assertEqual(tuesday(), _next_weekday(today(), 1))
-        self.assertEqual(tuesday().second, 0)
-        self.assertEqual(tuesday().minute, 0)
-        self.assertEqual(tuesday().hour, 0)
+        self.assertEqual(tuesday(), reset_datetime(_next_weekday(today(), 1)))
 
     def test_wednesday(self):
         self.assertNotEqual(wednesday(), None)
-        self.assertEqual(wednesday(), _next_weekday(today(), 2))
-        self.assertEqual(wednesday().second, 0)
-        self.assertEqual(wednesday().minute, 0)
-        self.assertEqual(wednesday().hour, 0)
+        self.assertEqual(wednesday(), reset_datetime(_next_weekday(today(), 2)))
 
     def test_thursday(self):
         self.assertNotEqual(thursday(), None)
-        self.assertEqual(thursday(), _next_weekday(today(), 3))
-        self.assertEqual(thursday().second, 0)
-        self.assertEqual(thursday().minute, 0)
-        self.assertEqual(thursday().hour, 0)
+        self.assertEqual(thursday(), reset_datetime(_next_weekday(today(), 3)))
 
     def test_friday(self):
         self.assertNotEqual(friday(), None)
-        self.assertEqual(friday(), _next_weekday(today(), 4))
-        self.assertEqual(friday().second, 0)
-        self.assertEqual(friday().minute, 0)
-        self.assertEqual(friday().hour, 0)
+        self.assertEqual(friday(), reset_datetime(_next_weekday(today(), 4)))
 
     def test_saturday(self):
         self.assertNotEqual(saturday(), None)
-        self.assertEqual(saturday(), _next_weekday(today(), 5))
-        self.assertEqual(saturday().second, 0)
-        self.assertEqual(saturday().minute, 0)
-        self.assertEqual(saturday().hour, 0)
+        self.assertEqual(saturday(), reset_datetime(_next_weekday(today(), 5)))
 
     def test_midnight(self):
         self.assertNotEqual(midnight(), None)

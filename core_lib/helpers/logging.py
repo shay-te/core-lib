@@ -15,7 +15,6 @@ class Logging(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             message = build_value_by_func_parameters(self.message, func, *args, **kwargs)
-            logging.basicConfig(level=self.level)
             logging.getLogger(self.calling_module).log(self.level, '{}.{}'.format(self.message, ''.join(message)))
             return func(*args, **kwargs)
 

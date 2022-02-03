@@ -9,21 +9,18 @@ from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 def is_bool(st):
     if isinstance(st, str):
         st = str.lower(st)
-        if st == "true" or st == "false":
-            return True
-        else:
-            return False
-    elif isinstance(st, bool):
-        return True
+        return True if st == "true" or st == "false" else False
     else:
-        return False
+        return True if isinstance(st, bool) else False
 
 
 def is_float(st):
+    if st is None:
+        return False
     try:
         float(st)
         return True
-    except ValueError:
+    except Exception:
         return False
 
 
@@ -33,7 +30,7 @@ def is_int(s):
     try:
         int(s)
         return True
-    except ValueError:
+    except Exception:
         return False
 
 
@@ -41,8 +38,14 @@ def is_int(s):
 # complex
 #
 def is_email(email: str) -> bool:
-    return bool(re.search(r"^[\w\.\+\-]+\@[\w.]+\.[a-z]{2,3}$", email))
+    regex = r'\b[\w\D]+@[\w.-]+\.[A-Z|a-z]{2,}\b'
+    if email is None:
+        return False
+    return True if re.fullmatch(regex, email) else False
+    # return bool(re.search(r"^[\w\.\+\-]+\@[\w.]+\.[a-z]{2,3}$", email))
 
 
 def is_int_enum(int_value: int, enum: IntEnum) -> bool:
-    return isinstance(int_value, enum)
+    return isinstance(int_value, enum) and int_value in enum
+
+
