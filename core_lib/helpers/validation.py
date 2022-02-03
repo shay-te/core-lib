@@ -1,4 +1,5 @@
 import re
+from contextlib import suppress
 
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 
@@ -38,14 +39,16 @@ def is_int(s):
 # complex
 #
 def is_email(email: str) -> bool:
-    regex = r'\b[\w\D]+@[\w.-]+\.[A-Z|a-z]{2,}\b'
+    regex = r'\b[\w\D][^<>\[\]]+@[\w.-]+\.[A-Z|a-z]{2,}\b'
     if email is None:
         return False
     return True if re.fullmatch(regex, email) else False
-    # return bool(re.search(r"^[\w\.\+\-]+\@[\w.]+\.[a-z]{2,3}$", email))
 
 
 def is_int_enum(int_value: int, enum: IntEnum) -> bool:
-    return isinstance(int_value, enum) and int_value in enum
+    with suppress(Exception):
+        enum(int_value)
+        return True
+    return False
 
 

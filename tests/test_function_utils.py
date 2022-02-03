@@ -36,38 +36,38 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(key6, 'xyz_None_None')
 
     def test_param_dict_func(self):
-        def returns_1(param_1, param_2, param_3=11, param_4=22):
+        def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):
             return 1
 
-        dict1 = get_func_parameters_as_dict(returns_1, 1, 2 **{"param_3", "param_4"})
+        dict1 = get_func_parameters_as_dict(get_func_params_test_func, *[1, 2], **{"param_3": 11, "param_4": 22})
         self.assertNotEqual(dict1, None)
         self.assertEqual(dict1['param_1'], 1)
         self.assertEqual(dict1['param_2'], 2)
         self.assertEqual(dict1['param_3'], 11)
         self.assertEqual(dict1['param_4'], 22)
 
-        dict2 = get_func_parameters_as_dict(returns_1, *[1, 2, 11, 22], **{})
+        dict2 = get_func_parameters_as_dict(get_func_params_test_func, *[1, 2, 11, 22], **{})
         self.assertNotEqual(dict2, None)
         self.assertEqual(dict2['param_1'], 1)
         self.assertEqual(dict2['param_2'], 2)
         self.assertEqual(dict2['param_3'], 11)
         self.assertEqual(dict2['param_4'], 22)
 
-        dict3 = get_func_parameters_as_dict(returns_1, *[11, 22])
+        dict3 = get_func_parameters_as_dict(get_func_params_test_func, *[11, 22])
         self.assertNotEqual(dict3, None)
         self.assertEqual(dict3['param_1'], 11)
         self.assertEqual(dict3['param_2'], 22)
         self.assertEqual(dict3['param_3'], 11)
         self.assertEqual(dict3['param_4'], 22)
 
-        dict4 = get_func_parameters_as_dict(returns_1, None, None)
+        dict4 = get_func_parameters_as_dict(get_func_params_test_func, None, None)
         self.assertNotEqual(dict4, None)
         self.assertEqual(dict4['param_1'], None)
         self.assertEqual(dict4['param_2'], None)
         self.assertEqual(dict4['param_3'], 11)
         self.assertEqual(dict4['param_4'], 22)
 
-        dict5 = get_func_parameters_as_dict(returns_1, None, None, None)
+        dict5 = get_func_parameters_as_dict(get_func_params_test_func, None, None, None)
         self.assertNotEqual(dict5, None)
         self.assertEqual(dict5['param_1'], None)
         self.assertEqual(dict5['param_2'], None)
@@ -75,7 +75,7 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict5['param_4'], 22)
         self.assertEqual(len(dict5), 4)
 
-        dict6 = get_func_parameters_as_dict(returns_1, *[1, 2, 3], **{})
+        dict6 = get_func_parameters_as_dict(get_func_params_test_func, *[1, 2, 3], **{})
         self.assertNotEqual(dict6, None)
         self.assertEqual(dict6['param_1'], 1)
         self.assertEqual(dict6['param_2'], 2)
@@ -83,7 +83,7 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict6['param_4'], 22)
         self.assertEqual(len(dict6), 4)
 
-        dict7 = get_func_parameters_as_dict(returns_1, *[1, 2], **{'param_3': 22})
+        dict7 = get_func_parameters_as_dict(get_func_params_test_func, *[1, 2], **{'param_3': 22})
         self.assertNotEqual(dict7, None)
         self.assertEqual(dict7['param_1'], 1)
         self.assertEqual(dict7['param_2'], 2)
@@ -91,9 +91,13 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict7['param_4'], 22)
         self.assertEqual(len(dict7), 4)
 
-        dict8 = get_func_parameters_as_dict(returns_1)
+        dict8 = get_func_parameters_as_dict(get_func_params_test_func)
         self.assertNotEqual(dict8, None)
-        self.assertEqual(len(dict8), 0)
+        self.assertEqual(len(dict8), 4)
+        self.assertEqual(dict8['param_1'], 'param_1')
+        self.assertEqual(dict8['param_2'], 'param_2')
+        self.assertEqual(dict8['param_3'], 11)
+        self.assertEqual(dict8['param_4'], 22)
 
     def test_param_index_func(self):
         def returns_1(param_1, param_2, param_3, param_4=11, param_5=22):
@@ -122,7 +126,7 @@ class TestFunctionUtils(unittest.TestCase):
 
     def test_get_calling_module(self):
         self.assertNotEqual(get_calling_module(stack_depth=1), None)
-        self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
+        self.assertEqual(get_calling_module(stack_depth=1), "tests.test_function_utils")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()

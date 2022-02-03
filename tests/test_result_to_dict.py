@@ -1,6 +1,5 @@
 import enum
-import re
-import time
+import os.path
 import unittest
 import datetime
 
@@ -12,6 +11,7 @@ from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 from tests.test_data.test_utils import connect_to_mem_db
 
+
 class MyEnum(enum.Enum):
     one = 1
     two = 2
@@ -19,6 +19,7 @@ class MyEnum(enum.Enum):
 
 
 class Data(Base):
+
     __tablename__ = 'data'
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -117,7 +118,7 @@ class TestResultToDict(unittest.TestCase):
         data_float = 14.0987
         data_bool = True
         data_unicode = chr(57344)
-        with open('./test_data/koala.jpeg', 'rb') as file:
+        with open(os.path.join(os.path.dirname(__file__), 'test_data/koala.jpeg'), 'rb') as file:
             data_blob = file.read()
         with self.__class__.db_data_session.get() as session:
             data = Data()

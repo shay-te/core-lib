@@ -41,7 +41,7 @@ class TestObserverWithDecorator(unittest.TestCase):
         self.assertEqual("", UserObserverListener.last_value['var'])
         self.notify_observer(None)
         self.assertEqual(UserObserverListener.last_value['var'], None)
-        # self.assertEqual("default_param", UserObserverListener.last_value['var'])
+        self.assertEqual("default_param", UserObserverListener.last_value['param'])
 
     def test_observer_number(self):
         self.notify_observer(14)
