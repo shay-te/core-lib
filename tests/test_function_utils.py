@@ -7,6 +7,7 @@ from core_lib.helpers.func_utils import build_value_by_func_parameters, get_func
 class TestFunctionUtils(unittest.TestCase):
 
     def test_cache_generates_key(self):
+
         def boo(param_1, param_2):
             return 1
 
@@ -33,6 +34,21 @@ class TestFunctionUtils(unittest.TestCase):
         key6 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', boo, None, None)
         self.assertNotEqual(key6, None)
         self.assertEqual(key6, 'xyz_None_None')
+
+        key7 = build_value_by_func_parameters('', boo, None, None)
+        self.assertNotEqual(key7, None)
+        self.assertEqual(key7, boo.__qualname__)
+        self.assertEqual(key7, "TestFunctionUtils.test_cache_generates_key.<locals>.boo")
+
+        key8 = build_value_by_func_parameters('', boo, *[], **{'param_2': 'pp2'})
+        self.assertNotEqual(key8, None)
+        self.assertEqual(key8, boo.__qualname__)
+        self.assertEqual(key8, "TestFunctionUtils.test_cache_generates_key.<locals>.boo")
+
+        key9 = build_value_by_func_parameters('', boo, 1, 2)
+        self.assertNotEqual(key9, None)
+        self.assertEqual(key9, boo.__qualname__)
+        self.assertEqual(key9, "TestFunctionUtils.test_cache_generates_key.<locals>.boo")
 
     def test_param_dict_func(self):
         def boo(param_1, param_2):

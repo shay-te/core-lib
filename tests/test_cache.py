@@ -10,12 +10,14 @@ cache_client_name = "xyz"
 
 
 class TestCache(unittest.TestCase):
-
     test_value = 100
 
     @classmethod
     def setUpClass(cls):
         CoreLib.cache_registry.register(cache_client_name, CacheHandlerRam())
+
+    def setUp(self):
+        self.clear_cache()
 
     def test_cache_client_register(self):
         self.assertRaises(ValueError, self.not_exists_cache_client_name)
@@ -50,7 +52,6 @@ class TestCache(unittest.TestCase):
 
     def test_cash_with_param_optional(self):
         TestCache.test_value = 100
-
         param = "some_val"
         self.assertEqual(self.get_cache_with_param_optional(param), 100)
         TestCache.test_value = 200
@@ -80,6 +81,7 @@ class TestCache(unittest.TestCase):
 
         TestCache.test_value = 800
         self.assertEqual(self.get_cache_with_param_optional(param, 4, 5, "__2"), 800)
+        self.clear_cache_with_param_optional(param)
 
     def test_cash_only_param_optional(self):
         TestCache.test_value = 100
@@ -90,6 +92,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_only_param_optional(param_4=40), 300)
 
     def test_cache_is_expiring(self):
+        self.clear_cache()
         TestCache.test_value = 100
         self.assertEqual(self.get_cache(), 100)
         TestCache.test_value = 200
@@ -97,14 +100,28 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache(), 100)
         sleep(1)
         self.assertEqual(self.get_cache(), 200)
+
+    def test_set_cache_with_func(self):
         self.clear_cache()
-
-
+        self.set_cache(100)
+        self.assertEqual(self.get_cache(), 100)
+        self.set_cache(200)
+        self.assertEqual(self.get_cache(), 100)
+        sleep(2.3)
+        self.assertEqual(self.get_cache(), 100)
+        self.set_cache(100)
+        self.assertEqual(self.get_cache(), 200)
+        self.clear_cache()
+        self.assertEqual(self.get_cache(), 100)
 
     # Cache without params
     @Cache(key="test_cache_1", expire=timedelta(seconds=2))
     def get_cache(self):
         return TestCache.test_value
+
+    @Cache(key="test_cache_1", expire=timedelta(seconds=2), invalidate=True)
+    def set_cache(self, val):
+        TestCache.test_value = val
 
     @Cache(key="test_cache_1", invalidate=True)
     def clear_cache(self):
@@ -136,4 +153,3 @@ class TestCache(unittest.TestCase):
     @Cache(key="test_cache_param_{param_1}{param_2}{param_3}{param_4}", expire=timedelta(seconds=2))
     def get_cache_only_param_optional(self, param_1=None, param_2=None, param_3=None, param_4=None):
         return TestCache.test_value
-

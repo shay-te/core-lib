@@ -63,12 +63,14 @@ class TestCombinedExample(unittest.TestCase):
 
         # Get and Set
         core_lib.test.large_data.set_data(data_1)
+        print(core_lib.test.large_data.get_data())
         self.assertEqual(core_lib.test.large_data.get_data(), data_1)
+        core_lib.test.large_data.set_data(data_2)
+        print(core_lib.test.large_data.get_data())
 
         # Set local, get from cache
-        core_lib.test.large_data.set_data_local(data_2)
+        core_lib.test.large_data.set_data(data_2)
         self.assertEqual(core_lib.test.large_data.get_data(), data_1)
-        self.assertNotEqual(core_lib.test.large_data.get_data(), data_2)
 
         # Wait cache expires and get data_2
         sleep(6)
