@@ -33,7 +33,7 @@ def __name_tuple_to_dict(obj):
 
 
 def __tuple_to_dict(obj):
-    return [__convert_value(item) for item in obj]
+    return tuple(__convert_value(item) for item in obj)
 
 
 def __dict_to_dict(collect):
