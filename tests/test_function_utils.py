@@ -126,7 +126,7 @@ class TestFunctionUtils(unittest.TestCase):
 
     def test_get_calling_module(self):
         self.assertNotEqual(get_calling_module(stack_depth=1), None)
-        self.assertEqual(get_calling_module(stack_depth=1), "tests.test_function_utils")
+        self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()

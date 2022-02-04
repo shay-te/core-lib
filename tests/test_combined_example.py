@@ -1,53 +1,35 @@
 import os
 import unittest
 from datetime import date
-from http import HTTPStatus
 from time import sleep
 
 import hydra
 from dotenv import load_dotenv
 from hydra.core.utils import configure_log
-from hydra.experimental import initialize, compose
+from pathlib import Path
 
 
 from core_lib.helpers.generate_data import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
-import pymysql
-
-#
-# Docker
-#
-from core_lib.client.solr_client import SolrClient
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
-pymysql.install_as_MySQLdb()
 configure_log(None, True)
 
 current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 test_output_path = os.path.normpath(os.path.join(current_path, 'test_output'))
 example_path = os.path.normpath(os.path.join(current_path, '../', 'examples'))
 combined_core_lib_path = os.path.join(example_path, 'combined_core_lib')
-
-from pathlib import Path
 env_path = Path(os.path.join(current_path, 'test_data', 'load_env.env'))
 load_dotenv(dotenv_path=env_path)
 
-
-#
-# Config
-#
 config_directory = os.path.join(combined_core_lib_path, 'config')
 config_file = 'config.yaml'
 hydra.initialize(config_path='../examples/combined_core_lib/config')
 config = hydra.compose(config_file)
 
-
 solr_core = "demo"
 
-#
-# Start
-#
 core_lib = CombineCoreLib(config.core_lib)
 
 

@@ -66,11 +66,11 @@ def get_calling_module(stack_depth: int = 1):
         calling_module = frame[0].f_globals[frame[3]].__module__
     if not calling_module:
         with suppress(Exception):
-            return frame[0].f_locals["self"].__module__
+            calling_module = frame[0].f_locals["self"].__module__
     if not calling_module:
         with suppress(Exception):
-            return frame[0].f_locals['__module__']
-    return __qualname__
+            calling_module = frame[0].f_locals['__module__']
+    return calling_module
 
 
 def reset_datetime(date: datetime):
