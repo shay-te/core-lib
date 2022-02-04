@@ -18,6 +18,8 @@ class Logging(object):
             if self.log_parameters:
                 params_list = []
                 params = get_func_parameters_as_dict(func, *args, **kwargs)
+                if params['self']:
+                    del(params['self'])
                 for key in params:
                     params_list.append("{"+str(key)+"}")
                 key_string = "_".join(params_list)

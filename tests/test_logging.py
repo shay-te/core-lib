@@ -1,22 +1,7 @@
 import datetime
 import unittest
-import logging
 
 from core_lib.helpers.logging import Logging
-
-
-class LogStream(object):
-    def __init__(self):
-        self.logs = ''
-
-    def write(self, str):
-        self.logs += str
-
-    def flush(self):
-        pass
-
-    def __str__(self):
-        return self.logs
 
 
 class TestLogging(unittest.TestCase):
@@ -26,7 +11,15 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_params(string)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_hello"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.hello"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_params(None)
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.None"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_params("")
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test."])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message(string)
@@ -34,7 +27,7 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_params(string)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.self_hello"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.hello"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_classname(string)
@@ -50,7 +43,11 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_params(obj)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_params({})
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.{}"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message(obj)
@@ -58,7 +55,7 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_params(obj)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.self_{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_classname(obj)
@@ -69,7 +66,11 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_params(tpl)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.('fruit', 'apple')"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_params(())
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.()"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message(tpl)
@@ -77,7 +78,7 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_params(tpl)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.self_('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.('fruit', 'apple')"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_classname(tpl)
@@ -88,7 +89,11 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_params(lst)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_['fruit', 'apple']"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.['fruit', 'apple']"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_params([])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.[]"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message(lst)
@@ -96,7 +101,7 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_params(lst)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.self_['fruit', 'apple']"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.['fruit', 'apple']"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_classname(lst)
@@ -108,11 +113,19 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_multi_params(param_1="hello world", param_2=lst, param_3=tpl)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_hello world_['fruit', 'apple']_('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_multi_params(param_1="", param_2=[], param_3=())
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test._[]_()"])
+
+        with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
+            self.logging_message_multi_params()
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test._[]_()"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_message_multi_params("hello world",lst,  tpl)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.self_hello world_['fruit', 'apple']_('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_multi_params_message(param_1="hello world", param_2=lst, param_3=tpl)
@@ -120,7 +133,7 @@ class TestLogging(unittest.TestCase):
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_multi_params(param_1="hello world", param_2=lst, param_3=tpl)
-        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.self_hello world_['fruit', 'apple']_('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:core_lib.helpers.logging:.hello world_['fruit', 'apple']_('fruit', 'apple')"])
 
         with self.assertLogs('core_lib.helpers.logging', level='DEBUG') as cm:
             self.logging_multi_params_classname(param_1="hello world", param_2=lst, param_3=tpl)
@@ -143,17 +156,17 @@ class TestLogging(unittest.TestCase):
         return param
 
     @Logging(message="log_for_test", log_parameters=True)
-    def logging_message_multi_params(self, param_1: str, param_2: list, param_3: tuple):
+    def logging_message_multi_params(self,  param_1: str = "", param_2: list = [], param_3: tuple = ()):
         return "logged"
 
     @Logging(message="log_for_test")
-    def logging_multi_params_message(self, param_1: str, param_2: list, param_3: tuple):
+    def logging_multi_params_message(self,  param_1: str = "", param_2: list = [], param_3: tuple = ()):
         return "logged"
 
     @Logging(log_parameters=True)
-    def logging_multi_params(self, param_1: str, param_2: list, param_3: tuple):
+    def logging_multi_params(self,  param_1: str = "", param_2: list = [], param_3: tuple = ()):
         return "logged"
 
     @Logging()
-    def logging_multi_params_classname(self, param_1: str, param_2: list, param_3: tuple):
+    def logging_multi_params_classname(self, param_1: str = "", param_2: list = [], param_3: tuple = ()):
         return "logged"
