@@ -2,6 +2,8 @@ import enum
 import unittest
 import datetime
 
+from geoalchemy2 import WKTElement
+
 from core_lib.core_lib import CoreLib
 from core_lib.observer.observer import Observer
 from core_lib.observer.observer_listener import ObserverListener
@@ -25,7 +27,6 @@ class UserObserverListener(ObserverListener):
         UserObserverListener.last_value = value
 
 
-# with CoreLib Decorator
 class TestObserverWithDecorator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -33,49 +34,89 @@ class TestObserverWithDecorator(unittest.TestCase):
         CoreLib.observer_registry.register("main", main_observer)
 
     def test_observer_string(self):
-        self.set_observer("observe")
-        self.assertEqual("observe", UserObserverListener.last_value['var'])
-        self.set_observer("hello world")
-        self.assertEqual("hello world", UserObserverListener.last_value['var'])
+        string = "hello world"
+        self.notify_observer(string)
+        self.assertEqual(string, UserObserverListener.last_value['var'])
+        self.notify_observer("")
+        self.assertEqual("", UserObserverListener.last_value['var'])
+        self.notify_observer(None)
+        self.assertEqual(UserObserverListener.last_value['var'], None)
+        self.assertEqual("default_param", UserObserverListener.last_value['param'])
 
-    def test_observer_float(self):
-        self.set_observer(14)
+    def test_observer_number(self):
+        self.notify_observer(14)
         self.assertEqual(UserObserverListener.last_value['var'], 14)
-        self.set_observer(14.0987)
+        self.notify_observer(14.0987)
         self.assertEqual(UserObserverListener.last_value['var'], 14.0987)
 
     def test_observer_bool(self):
-        self.set_observer(True)
+        self.notify_observer(True)
         self.assertEqual(UserObserverListener.last_value['var'], True)
-        self.set_observer(False)
+        self.notify_observer(False)
         self.assertEqual(UserObserverListener.last_value['var'], False)
 
+    def test_observer_tuple(self):
+        tpl = (("fruit", "apple"), ("fruit", "banana"), ("fruit", "cherry"))
+        self.notify_observer(tpl)
+        self.assertTupleEqual(UserObserverListener.last_value['var'], tpl)
+        self.assertTupleEqual(UserObserverListener.last_value['var'][0], tpl[0])
+        self.assertTupleEqual(UserObserverListener.last_value['var'][1], tpl[1])
+        self.assertTupleEqual(UserObserverListener.last_value['var'][2], tpl[2])
+
+        empty_tpl = ()
+        self.notify_observer(empty_tpl)
+        self.assertTupleEqual(UserObserverListener.last_value['var'], empty_tpl)
+
+    def test_observer_list(self):
+        lst = [["fruit", "apple"], ["fruit", "banana"], ["fruit", "cherry"]]
+        self.notify_observer(lst)
+        self.assertListEqual(UserObserverListener.last_value['var'], lst)
+        self.assertListEqual(UserObserverListener.last_value['var'][0], lst[0])
+        self.assertListEqual(UserObserverListener.last_value['var'][1], lst[1])
+        self.assertListEqual(UserObserverListener.last_value['var'][2], lst[2])
+
+        empty_lst = []
+        self.notify_observer(empty_lst)
+        self.assertListEqual(UserObserverListener.last_value['var'], empty_lst)
+
     def test_observer_enum(self):
-        self.set_observer(MyEnum.one)
+        self.notify_observer(MyEnum.one)
         self.assertEqual(UserObserverListener.last_value['var'], MyEnum.one)
-        self.set_observer(MyEnum.two)
+        self.notify_observer(MyEnum.two)
         self.assertEqual(UserObserverListener.last_value['var'], MyEnum.two)
-        self.set_observer(MyEnum.three)
+        self.notify_observer(MyEnum.three)
         self.assertEqual(UserObserverListener.last_value['var'], MyEnum.three)
 
     def test_observer_object(self):
         dat = datetime.date(2022, 1, 1)
+        dattime = datetime.datetime(2022, 1, 1)
+        tpl = ("fruit", "apple")
+        lst = ["fruit", "apple"]
+        point = WKTElement('POINT(5 45)')
         dct = {
             'date': dat,
-            'tuple': ("fruit", "apple"),
-            'list': ["fruit", "apple"]
+            'datetime': dattime,
+            'tuple': tpl,
+            'list': lst,
+            'point': point,
         }
-        self.set_observer(dct)
+        self.notify_observer(dct)
+        self.assertDictEqual(dct, UserObserverListener.last_value['var'])
         self.assertEqual(dat, UserObserverListener.last_value['var']['date'])
-        self.assertEqual(("fruit", "apple"), UserObserverListener.last_value['var']['tuple'])
-        self.assertEqual(["fruit", "apple"], UserObserverListener.last_value['var']['list'])
+        self.assertEqual(dattime, UserObserverListener.last_value['var']['datetime'])
+        self.assertTupleEqual(tpl, UserObserverListener.last_value['var']['tuple'])
+        self.assertListEqual(lst, UserObserverListener.last_value['var']['list'])
+        self.assertEqual(point, UserObserverListener.last_value['var']['point'])
+
+        empty_dct = {}
+        self.notify_observer(empty_dct)
+        self.assertDictEqual(empty_dct, UserObserverListener.last_value['var'])
 
     @Observe(event_key=UserObserverListener.EVENT, notify_before=False, observer_name="main")
-    def set_observer(self, var):
+    def notify_observer(self, var, param="default_param"):
         return var
 
 
-# with observer registry
 class TestObserverWithRegistry(unittest.TestCase):
     main_observer = Observer(UserObserverListener())
 
@@ -85,12 +126,17 @@ class TestObserverWithRegistry(unittest.TestCase):
         observer_factory.register("main", TestObserverWithRegistry.main_observer)
 
     def test_observer_string(self):
-        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, "observe")
-        self.assertEqual("observe", UserObserverListener.last_value)
-        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, "hello world")
-        self.assertEqual("hello world", UserObserverListener.last_value)
+        string = "hello world"
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, "")
+        self.assertEqual("", UserObserverListener.last_value)
 
-    def test_observer_float(self):
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, string)
+        self.assertEqual(string, UserObserverListener.last_value)
+
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, None)
+        self.assertEqual(None, UserObserverListener.last_value)
+
+    def test_observer_number(self):
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, 14)
         self.assertEqual(UserObserverListener.last_value, 14)
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, 14.0987)
@@ -102,6 +148,31 @@ class TestObserverWithRegistry(unittest.TestCase):
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, False)
         self.assertEqual(UserObserverListener.last_value, False)
 
+    def test_observer_tuple(self):
+        tpl = (("fruit", "apple"), ("fruit", "banana"), ("fruit", "cherry"))
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, tpl)
+        self.assertTupleEqual(UserObserverListener.last_value, tpl)
+        self.assertTupleEqual(UserObserverListener.last_value[0], tpl[0])
+        self.assertTupleEqual(UserObserverListener.last_value[1], tpl[1])
+        self.assertTupleEqual(UserObserverListener.last_value[2], tpl[2])
+
+        empty_tpl = ()
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, empty_tpl)
+        self.assertTupleEqual(UserObserverListener.last_value, empty_tpl)
+
+    def test_observer_list(self):
+        lst = [["fruit", "apple"], ["fruit", "banana"], ["fruit", "cherry"]]
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, lst)
+        self.assertListEqual(UserObserverListener.last_value, lst)
+        self.assertListEqual(UserObserverListener.last_value[0], lst[0])
+        self.assertListEqual(UserObserverListener.last_value[1], lst[1])
+        self.assertListEqual(UserObserverListener.last_value[2], lst[2])
+
+        empty_lst = []
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, empty_lst)
+        self.assertListEqual(UserObserverListener.last_value, empty_lst)
+
+
     def test_observer_enum(self):
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, MyEnum.one)
         self.assertEqual(UserObserverListener.last_value, MyEnum.one)
@@ -112,12 +183,25 @@ class TestObserverWithRegistry(unittest.TestCase):
 
     def test_observer_object(self):
         dat = datetime.date(2022, 1, 1)
+        dattime = datetime.datetime(2022, 1, 1)
+        tpl = ("fruit", "apple")
+        lst = ["fruit", "apple"]
+        point = WKTElement('POINT(5 45)')
         dct = {
             'date': dat,
-            'tuple': ("fruit", "apple"),
-            'list': ["fruit", "apple"],
+            'datetime': dattime,
+            'tuple': tpl,
+            'list': lst,
+            'point': point,
         }
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, dct)
+        self.assertDictEqual(dct, UserObserverListener.last_value)
         self.assertEqual(dat, UserObserverListener.last_value['date'])
-        self.assertEqual(("fruit", "apple"), UserObserverListener.last_value['tuple'])
-        self.assertEqual(["fruit", "apple"], UserObserverListener.last_value['list'])
+        self.assertEqual(dattime, UserObserverListener.last_value['datetime'])
+        self.assertTupleEqual(tpl, UserObserverListener.last_value['tuple'])
+        self.assertListEqual(lst, UserObserverListener.last_value['list'])
+        self.assertEqual(point, UserObserverListener.last_value['point'])
+
+        empty_dct = {}
+        TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, empty_dct)
+        self.assertDictEqual(empty_dct, UserObserverListener.last_value)
