@@ -9,7 +9,7 @@ Core-Lib error handlers contain decorator and function which can raise Exception
 
 
 ### NotFoundErrorHandler Decorator
-Using the `NotFoundErrorHandler` decorator for raising a `StatusCodeException` which will raise an exception when a desired value is not being returned ar passed to a function.
+Using the `NotFoundErrorHandler` decorator for raising a `StatusCodeException` which will raise an exception when the desired value is not being returned or passed to a function.
 
 ```python
 class NotFoundErrorHandler(object):

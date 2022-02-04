@@ -57,7 +57,7 @@ def get_foo(self, param):
 Will format what ever data the function is returning.
 
 ## result_to_dict() Function
-Will do the same thing as the decorator but now can be used as a callable function instead of using the decorator.
+Will perform the same task as the decorator but now can be used as a callable function instead of using the decorator.
 
 
  
@@ -67,6 +67,6 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 
 result = result_to_dict(data)
 ```
-Will format what ever data the function is returning.
+Will format whatever data the function is returning.
 
 > **Note:** `@ResultToDict` decorator is also calling `result_to_dict()` to format the values

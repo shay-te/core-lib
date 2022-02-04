@@ -5,7 +5,7 @@ sidebar_label: Validation Helpers
 ---
 
 ## Validation Helpers
-Here we have functions to validate different type of data and strings. Functions will return `boolean` values based on the validation.
+Here we have functions to validate the different datatypes and strings. Functions will return `boolean` values based on the validation.
 
 ### Functions and Usage
 
