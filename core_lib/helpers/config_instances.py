@@ -1,32 +1,27 @@
-from hydra.core.config_store import ConfigStore
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig
 
 
-def from_config_dict(conf: DictConfig, instance_base_class: object = None, class_config_path: str = None, raise_class_config_path_error: bool = False, params: dict = None):
+def instantiate_config_group_generator_dict(conf: DictConfig, instance_base_class: object = None, class_config_base_path: str = None, raise_class_config_base_path_error: bool = False, params: dict = {}):
     assert conf
     for name, settings in conf.items():
-        instance, settings = _load(settings, instance_base_class, class_config_path, raise_class_config_path_error, params)
+        instance, settings = _instantiate_config(settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params)
         yield name, instance, settings
 
 
-def from_config_list(conf: ListConfig, instance_base_class: object = None, class_config_path: str = None, raise_class_config_path_error: bool = False, params: dict = None):
+def instantiate_config_group_generator_list(conf: ListConfig, instance_base_class: object = None, class_config_base_path: str = None, raise_class_config_base_path_error: bool = False, params: dict = {}):
     assert conf
     for settings in conf:
-        instance, settings = _load(settings, instance_base_class, class_config_path, raise_class_config_path_error, params)
+        instance, settings = _instantiate_config(settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params)
         yield instance, settings
 
 
-def _load(settings: dict, instance_base_class: object = None, class_config_path: str = None, raise_class_config_path_error: bool = False, params: dict = None):
+def _instantiate_config(settings: dict, instance_base_class: object = None, class_config_base_path: str = None, raise_class_config_base_path_error: bool = False, params: dict = {}):
     try:
-        class_settings = _class_settings(settings, class_config_path, raise_class_config_path_error)
+        class_settings = _class_settings(settings, class_config_base_path, raise_class_config_base_path_error, params)
         instance = None
         if class_settings:
-            class_settings_params = {}
-            for p_key, p_value in (params or {}).items():
-                if p_key != '_target_' and p_key in class_settings:
-                    class_settings_params[p_key] = p_value
-            instance = instantiate(class_settings, **class_settings_params)
+            instance = instantiate(class_settings)
             if instance_base_class and not isinstance(instance, instance_base_class):
                 raise ValueError(f"object from config must be a baseclass of : `{instance_base_class.__class__.__qualname__}`. got `{instance.__class__.__qualname__}` ")
         return instance, settings
@@ -34,16 +29,24 @@ def _load(settings: dict, instance_base_class: object = None, class_config_path:
         raise ValueError('unable to instantiate with config: `{}`'.format(settings)) from ex
 
 
-def _class_settings(settings: dict, class_config_path: str, raise_class_config_path_error: bool = False):
-    class_settings = settings
-    if class_config_path:
-        for path in class_config_path.split('.'):
-            class_settings = class_settings.get(path) if path in class_settings else None
-            if not class_settings:
-                if raise_class_config_path_error:
-                    raise ValueError('class config path dose no exists')
-                else:
-                    class_settings = None
-    return class_settings
+def instantiate_config(settings: dict, instance_base_class: object = None, class_config_base_path: str = None, raise_class_config_base_path_error: bool = False, params: dict = {}):
+    return _instantiate_config(settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params)[0]
 
 
+def _class_settings(settings: dict, class_config_base_path: str, raise_class_config_base_path_error: bool = False, params_override: dict = {}):
+    class_settings = _get_config_under_path(settings, class_config_base_path, raise_class_config_base_path_error)
+    return {**class_settings, **params_override}
+
+
+def _get_config_under_path(data: dict, path: str, raise_class_config_base_path_error: bool = False):
+    data_at_path = data
+    path_list = path.split('.') if path else []
+    for path_item in path_list:
+        data_at_path = data.get(path) if path_item in data else None
+        if not data_at_path:
+            if raise_class_config_base_path_error:
+                raise ValueError('class config path dose no exists')
+            else:
+                data_at_path = None
+                break
+    return data_at_path
