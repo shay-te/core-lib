@@ -20,8 +20,7 @@ def parse(d_time: str):
 
 
 def _parse_datetime(expire: str):
-    expire_datetime = parse(expire)
-    return datetime.utcnow() - expire_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+    return parse(expire) - datetime.utcnow()
 
 
 def _get_expire(expire):
