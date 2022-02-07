@@ -5,45 +5,25 @@ sidebar_label: Error Handlers
 ---
 
 ## Error Handlers
-Core-Lib error handlers contain decorator and function which can raise Exceptions for various scenarios.
+`Core-Lib` error handlers contain decorator and function which can raise exceptions for various scenarios.
 
 
 ### NotFoundErrorHandler Decorator
-Using the `NotFoundErrorHandler` decorator for raising a `StatusCodeException` which will raise an exception when the desired value is not being returned or passed to a function.
-
-```python
-class NotFoundErrorHandler(object):
-
-    def __init__(self, message: str = None):
-        self.message = message
-
-    def __call__(self, func, *args, **kwargs):
-
-        @wraps(func)
-        def _wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-            if not result:
-                logger.debug("NotFoundErrorHandler for function `{}`.".format(func.__qualname__))
-                exception_message = build_value_by_func_parameters(self.message, func, *args, **kwargs) if self.message else None
-                raise StatusCodeException(HTTPStatus.NOT_FOUND.value, exception_message)
-            return result
-
-        return _wrapper
-```
+`NotFoundErrorHandler` decorator will raise `StatusCodeException` when the decorated function is not returning anything.
 
 #### Usage
  ```python
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 @NotFoundErrorHandler()
-def foo(param):
-    return param
+def raise_expection():
+    pass
 
-foo() # will raise a StatusCodeException for parameter NOT_FOUND
+raise_expection() # will raise a StatusCodeException for parameter NOT_FOUND
 ```
 
 ### StatusCodeAssert Function
-`StatusCodeAssert` will check if an assertion passes and if not, then will throw an `AssertionError`
+Using `StatusCodeAssert` along with the `with` statement will capture any `AssertionError` and raise `StatusCodeException` with the status and message relevant to the application needs.
 
 #### Usage
  ```python

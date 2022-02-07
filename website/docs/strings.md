@@ -16,9 +16,8 @@ In string helpers we have functions that will convert different naming conventio
 ```python
 from core_lib.helpers.string import snake_to_camel, camel_to_snake
 
-def foo(param_1, param_2):
-    pass
-
-result = snake_to_camel("this_is_snake_to_camel") # will return "ThisIsSnakeToCamel"
-result = camel_to_snake("ThisIsCamelToSnake") # will return "this_is_camel_to_snake"
+camel_case = snake_to_camel("this_is_snake_to_camel")
+print(camel_case) # "ThisIsSnakeToCamel"
+snake_case = camel_to_snake("ThisIsCamelToSnake")
+print(snake_case) # "this_is_camel_to_snake"
 ```

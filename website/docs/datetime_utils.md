@@ -5,37 +5,39 @@ sidebar_label: Datetime Utilities
 ---
 
 ## Datetime Utility Functions
-Core-Lib has various datetime utility functions that returns `datetime` values in the `UTC` time.
+`Core-Lib` has various datetime utility functions that return `datetime` values in `UTC`. These functions will also set the returned value's `hour`, `minute`, `second` and `microsecond` to `0` where ever necessary.
 
 ### Functions
-- `year_begin`
-- `year_end`
-- `month_begin`
-- `month_end`
-- `week_begin`
-- `week_end`
-- `day_begin`
-- `day_end`
-- `tomorrow`
-- `yesterday`
-- `midnight`
-- `sunday`
-- `monday`
-- `tuesday`
-- `wednesday`
-- `thursday`
-- `friday`
-- `saturday`
-- `hour_begin`
-- `hour_end`
+- `year_begin` returns the first day of the year.
+- `year_end` returns date when current year will end.
+- `month_begin` returns the first day of the current month.
+- `month_end` returns day for current month-end.
+- `week_begin` returns the day for the beginning of the week.
+  >Note: The starting day of the week will be considered as Monday.
+- `week_end` returns the day for the ending of the week.
+- `day_begin` returns the `datetime` for the beginning of the day.
+- `day_end` returns the `datetime` for the ending of the day
+- `tomorrow` returns tomorrow's day.
+- `yesterday` returns yesterday's day.
+- `midnight` returns the midnight for today.
+- `sunday` returns the next Sunday's date.
+- `monday` returns the next Monday's date.
+- `tuesday` returns the next Tuesday's date.
+- `wednesday` returns the next Wednesday's date.
+- `thursday` returns the next Thursday's date.
+- `friday` returns the next Friday's date.
+- `saturday` returns the next Saturday's date.
+- `hour_begin` returns the time for the beginning of current hour.
+- `hour_end` returns the time for the ending of current hour.
 
-All the functions will return the values in `datetime` format. Functions for individual days will return the next coming
+>Functions for individual days will return the next coming
 day of the week or next week for e.g., `friday` will return `datetime` of the friday occurring in this week or if not, 
 then the next week.
 
 ### Usage
 ```python
-    from core_lib.helpers.datetime_utils import year_begin 
+from core_lib.helpers.datetime_utils import year_begin 
     
-    result = year_begin() # will return "2022-01-01 00:00:00"
+beginning_of_the_year = year_begin() 
+print(beginning_of_the_year) # will print "2022-01-01 00:00:00"
 ```

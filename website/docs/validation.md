@@ -14,9 +14,9 @@ Here we have functions to validate the different datatypes and strings. Function
 ```python
 from core_lib.helpers.validation import is_bool
 
-result = is_bool(True) # will return True
-result = is_bool("true") # will return True
-result = is_bool("string") # will return False
+print(is_bool(True)) # True
+print(is_bool("true")) # True
+print(is_bool("string")) # False
 ```
 
 - `is_float` will validate if the passed argument is type `float` or not. 
@@ -24,8 +24,8 @@ result = is_bool("string") # will return False
 ```python
 from core_lib.helpers.validation import is_float
 
-result = is_float(14.456) # will return True
-result = is_float("string") # will return False
+print(is_float(14.456)) # True
+print(is_float("string")) # False
 ```
 
 - `is_int` will validate if the passed argument is type `int` or not. 
@@ -33,8 +33,8 @@ result = is_float("string") # will return False
 ```python
 from core_lib.helpers.validation import is_int
 
-result = is_int(14) # will return True
-result = is_int("string") # will return False
+print(is_int(14)) # True
+print(is_int("string")) # False
 ```
 
 - `is_email` will validate if the passed string is a valid `email` or not. 
@@ -42,8 +42,8 @@ result = is_int("string") # will return False
 ```python
 from core_lib.helpers.validation import is_email
 
-result = is_email('example.firstname-lastname@email.com') # will return True
-result = is_email("<asd>>@strange.com") # will return False
+print(is_email('example.firstname-lastname@email.com')) # True
+print(is_email("<asd>>@strange.com")) # False
 ```
 
 - `is_int_enum` will validate if the passed value is present in the `enum`. 
@@ -57,6 +57,6 @@ class MyEnum(enum.Enum):
     two = 2
     three = 3
 
-result = is_int_enum(MyEnum.one.value, MyEnum) # will return True
-result = is_int_enum(11, MyEnum) # will return False
+print(is_int_enum(MyEnum.one.value, MyEnum)) # True
+print(is_int_enum(11, MyEnum)) # False
 ```
