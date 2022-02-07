@@ -39,19 +39,6 @@ class TestCache(unittest.TestCase):
         self.clear_cache()
         self.assertEqual(self.get_cache(), 100)
 
-    def test_cash(self):
-        self.clear_cache()
-        TestCache.test_value = 100
-        self.assertEqual(self.get_cache(), 100)
-        TestCache.test_value = 200
-        self.assertEqual(self.get_cache(), 100)
-        sleep(2.3)
-        self.assertEqual(self.get_cache(), 200)
-        TestCache.test_value = 100
-        self.assertEqual(self.get_cache(), 200)
-        self.clear_cache()
-        self.assertEqual(self.get_cache(), 100)
-
     def test_cash_with_param(self):
         TestCache.test_value = 100
 
