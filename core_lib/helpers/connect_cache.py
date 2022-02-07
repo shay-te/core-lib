@@ -31,4 +31,4 @@ def connect_cache_ram():
 
 
 def connect_cache_memcached(config):
-    return CacheHandlerMemcached(Client([build_url(**config.url)]))
+    return CacheHandlerMemcached(build_url(**config.url))
