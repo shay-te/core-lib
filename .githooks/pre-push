@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+echo "run-test-hooks executing..."
+cmd = "python3 -m unittest discover -v"
+$cmd
+exit
