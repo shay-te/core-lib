@@ -8,6 +8,7 @@ from subprocess import Popen
 from time import sleep
 from functools import partial
 
+
 class SubprocessExecute(object):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)

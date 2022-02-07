@@ -27,4 +27,3 @@ cs = ConfigStore.instance()
 cs.store(name="ram_cache", node=RamCacheConfig)
 cs.store(name="no_cache", node=NoCacheConfig)
 cs.store(name="memcached_cache", node=MemcachedCacheConfig)
-

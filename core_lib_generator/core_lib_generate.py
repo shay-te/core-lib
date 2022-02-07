@@ -3,7 +3,7 @@ import os
 import logging
 
 from core_lib_generator import template_core_lib
-from core_lib.helpers.command_line import input_yes_no, input_options_list, _to_safe_file_name, input_file_name
+from core_lib.helpers.command_line import _to_safe_file_name, input_file_name
 from core_lib.helpers.string import snake_to_camel
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ core_lib_file_name = 'core_lib_config.yaml'
 
 
 def _to_test_simple(core_lib_name, core_lib_class_name):
-    return """import os
+    return f'''import os
 import unittest
 from hydra.experimental import initialize, compose
 from {core_lib_name}.{core_lib_name} import {core_lib_class_name}
@@ -30,7 +30,7 @@ class Test{core_lib_class_name}(unittest.TestCase):
 
     def test_1(self):
         pass
-""".format(core_lib_name=core_lib_name, core_lib_class_name=core_lib_class_name)
+'''
 
 
 def _get_file_contant(file_path: str):
@@ -57,30 +57,30 @@ def _new_dir(dir_path, init_content: str = '', add_init: bool = True):
 
 
 def _to_core_lib_class_db():
-    return """
+    return '''
         db_data_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.data.sqlalchemy)
-"""
+'''
 
 
 def _to_entity_impl(table_name):
-    return """from sqlalchemy import Column, Integer, VARCHAR
+    return f'''from sqlalchemy import Column, Integer, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-class {}(Base):
+class {table_name}(Base):
 
-    __tablename__ = '{}'
+    __tablename__ = '{snake_to_camel(table_name)}'
 
     id = Column(Integer, primary_key=True, nullable=False)
 
 
-""".format(table_name, snake_to_camel(table_name))
+'''
 
 
 def _to_core_lib_search_path(core_lib_name):
     camel_case_name = snake_to_camel(core_lib_name)
-    return """from hydra.plugins.search_path_plugin import SearchPathPlugin
+    return f'''from hydra.plugins.search_path_plugin import SearchPathPlugin
 from hydra.core.config_search_path import ConfigSearchPath
 
 
@@ -88,11 +88,11 @@ class {camel_case_name}SearchPathPlugin(SearchPathPlugin):
     def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
         assert isinstance(search_path, ConfigSearchPath)
         search_path.append("{core_lib_name}", "pkg://{core_lib_name}.config")
-""".format(camel_case_name=camel_case_name, core_lib_name=core_lib_name)
+'''
 
 
 def _to_core_lib_override_config(core_lib_name: str, core_lib_name_simple: str):
-    return """# @package _global_
+    return f'''# @package _global_
 core_lib:
   data:
     sqlalchemy:
@@ -102,14 +102,12 @@ core_lib:
 
       url:
         protocol: sqlite
-#        file: {core_lib_name}.db
-
+        file: {core_lib_name}.db
       log_queries: false
       create_db: true
-  alembic: 
+    alembic:
     version_table: {core_lib_name_simple}_alembic_version
-
-""".format(core_lib_name=core_lib_name, core_lib_name_simple=core_lib_name_simple)
+'''
 
 
 def _to_script_mako():
@@ -141,17 +139,19 @@ def downgrade():
 
 
 def _to_core_lib_config(core_lib_config_file, core_lib_test_config_file):
-    return """defaults:
+    return f'''defaults:
   - core_lib
   - {core_lib_config_file}
-""".format(core_lib_config_file=core_lib_config_file)
+'''
+
 
 def _to_test_config(core_lib_config_file, core_lib_test_config_file):
-    return """defaults:
+    return f'''defaults:
   - core_lib
   - {core_lib_config_file}
   - {core_lib_test_config_file}
-""".format(core_lib_config_file=core_lib_config_file, core_lib_test_config_file=core_lib_test_config_file)
+'''
+
 
 template_path = os.path.dirname(template_core_lib.__file__)
 current_dir = os.getcwd()
@@ -166,7 +166,7 @@ def _copy_template(template_target_path: str, target_file: str, params: dict):
 def _deep_copy_template(template_file_relative_path: str, start_dir: str, template_name: str, params: dict):
     template_target_path = os.path.abspath(os.path.join(template_path, template_file_relative_path))
     if not os.path.isfile(template_target_path):
-        raise ValueError('`{}` template must lead to an existing file'.format(template_file_relative_path))
+        raise ValueError(f'`{template_file_relative_path}` template must lead to an existing file')
 
     folders = os.path.split(template_file_relative_path)
     target_dir = start_dir
@@ -186,24 +186,28 @@ def _create_core_lib(core_lib_name):
     simple_end_index = simple_end_index if simple_end_index != -1 else core_lib_name.find('core_lib')
 
     core_lib_name_simple = core_lib_name if simple_end_index == -1 else core_lib_name[:simple_end_index]
-    core_lib_name_simple_camel = snake_to_camel(core_lib_name_simple)
+    # core_lib_name_simple_camel = snake_to_camel(core_lib_name_simple)
 
     # readme
-    _new_file(os.path.join(current_dir, 'template_core_lib/README.md'), _get_file_contant(os.path.join(template_path,
-                                                                                                       'template_core_lib/README.md')).format(core_lib_name=core_lib_name_camel))
+    _new_file(os.path.join(current_dir, 'template_core_lib/README.md'),
+              _get_file_contant(os.path.join(template_path, 'template_core_lib/README.md')).
+              format(core_lib_name=core_lib_name_camel))
 
     # git ignore
-    _new_file(os.path.join(current_dir, 'template_core_lib/.gitignore'), _get_file_contant(os.path.join(template_path,
-                                                                                                        'template_core_lib/.gitignore')))
+    _new_file(os.path.join(current_dir, 'template_core_lib/.gitignore'),
+              _get_file_contant(os.path.join(template_path, 'template_core_lib/.gitignore')))
 
     # core lib ddir
     _new_dir(core_lib_dir)
-    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib/template_core_lib.py'))), os.path.join(core_lib_dir, '{}.py'.format(core_lib_name)), {'core_lib_name_camel': core_lib_name_camel})
+    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib/template_core_lib.py'))),
+                   os.path.join(core_lib_dir, f'{core_lib_name}.py'),
+                   {'core_lib_name_camel': core_lib_name_camel})
 
     # config
     config_dir = os.path.join(core_lib_dir, 'config')
     _new_dir(config_dir)
-    _new_file(os.path.join(config_dir, '{}.yaml'.format(core_lib_name)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
+    _new_file(os.path.join(config_dir, f'{core_lib_name}.yaml'),
+              _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
 
     # hydra_plugins search path
     hydra_plugin_init_content = ''
@@ -212,7 +216,8 @@ def _create_core_lib(core_lib_name):
     core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)
 
     _new_dir(core_lib_hydra_plugin_dir, hydra_plugin_init_content)
-    _new_file(os.path.join(core_lib_hydra_plugin_dir, '{}_searchpath.py'.format(core_lib_name)), _to_core_lib_search_path(core_lib_name))
+    _new_file(os.path.join(core_lib_hydra_plugin_dir, f'{core_lib_name}_searchpath.py'),
+              _to_core_lib_search_path(core_lib_name))
 
     # tests
     test_dir = os.path.join(current_dir, 'tests')
@@ -221,12 +226,13 @@ def _create_core_lib(core_lib_name):
     _new_dir(test_data_dir)
     test_config_dir = os.path.join(test_dir, 'config')
     _new_dir(test_config_dir)
-    test_config_file = 'test_{}'.format(core_lib_name)
-    _new_file(os.path.join(test_config_dir, '{}.yaml'.format(test_config_file)), _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
+    test_config_file = f'test_{core_lib_name}'
+    _new_file(os.path.join(test_config_dir, f'{test_config_file}.yaml'),
+              _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
     _new_file(os.path.join(test_config_dir, 'config.yaml'), _to_test_config(core_lib_name, test_config_file))
 
-    _new_file(os.path.join(test_dir, 'test_{}.py'.format(core_lib_name)), _to_test_simple(core_lib_name, core_lib_name_camel))
-
+    _new_file(os.path.join(test_dir, f'test_{core_lib_name}.py'),
+              _to_test_simple(core_lib_name, core_lib_name_camel))
 
     # data_layers
     data_layers = os.path.join(core_lib_dir, 'data_layers')
@@ -256,13 +262,13 @@ def _validate_new_core_lib(core_lib_name):
 
     safe_file_name = _to_safe_file_name(core_lib_name)
     if not safe_file_name:
-        raise ValueError('`{}` is not a python safe name'.format(core_lib_name))
+        raise ValueError(f'`{core_lib_name}` is not a python safe name')
 
     safe_file_name = safe_file_name.strip().lower()
     if not safe_file_name.endswith('core_lib'):
         if not safe_file_name.endswith('_'):
-            safe_file_name = '{}_'.format(safe_file_name)
-        safe_file_name = '{}core_lib'.format(safe_file_name)
+            safe_file_name = f'{safe_file_name}_'
+        safe_file_name = f'{safe_file_name}core_lib'
     return safe_file_name
 
 
@@ -272,9 +278,11 @@ class CoreLibGenerate(object):
 
     def generate(self, core_lib_name):
         generate_name = input_file_name('select name')
-        options = ['service, data access, entity', 'data access, entity', 'service', 'data access', 'entity']
-        what = input_options_list('What would you like to generate', options)
-        is_crud = input_yes_no('CRUD  support?', False)
-        is_soft = input_yes_no('Soft delete')
+        # options = ['service, data access, entity', 'data access, entity', 'service', 'data access', 'entity']
+        # what = input_options_list('What would you like to generate', options)
+        # is_crud = input_yes_no('CRUD  support?', False)
+        # is_soft = input_yes_no('Soft delete')
 
-        _deep_copy_template(os.path.join('template_core_lib/template_core_lib/data_layers', 'data_access', 'template_data_access.py'), os.path.join(current_dir, core_lib_name), '{}.py'.format(generate_name), {})
+        _deep_copy_template(os.path.join('template_core_lib/template_core_lib/data_layers', 'data_access',
+                                         'template_data_access.py'),
+                            os.path.join(current_dir, core_lib_name), f'{generate_name}.py', {})

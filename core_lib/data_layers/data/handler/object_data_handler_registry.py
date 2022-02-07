@@ -18,4 +18,3 @@ class ObjectDataHandlerRegistry(DataHandlerRegistry):
         if self.new_session_callback:
             obj = self.new_session_callback(self._obj)
         return ObjectDataHandler(obj, self.close_session_callback)
-

@@ -23,5 +23,3 @@ class CacheHandler(ABC):
     # Empty the cache
     def flush_all(self):
         pass
-
-

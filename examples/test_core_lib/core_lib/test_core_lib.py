@@ -31,4 +31,3 @@ class TestCoreLib(CoreLib):
         self.test = Test()
         self.user = UserService(UserDataAccess(db_data_session))
         self.large_data = SlowLargeDataService(SlowLargeDataDataAccess())
-

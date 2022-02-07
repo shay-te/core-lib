@@ -58,7 +58,8 @@ class TestValidations(unittest.TestCase):
         self.assertEqual(is_email("example+firstname+lastname@email.com"), True)
         self.assertEqual(is_email("example.first.middle.lastname@email.com"), True)
         self.assertEqual(is_email("0987654321@example.com"), True)
-        self.assertEqual(is_email("ljksfdghjskfdhgjklsdfhgjks0987654321@asdfasdfasdfasdfasfasdfaexample.casdfadsfasdfgasdfasdom"), True)
+        self.assertEqual(is_email("ljksfdghjskfdhgjklsdfhgjks0987654321@asdfasdfasdfasdfasfasdfaexample."
+                                  "casdfadsfasdfgasdfasdom"), True)
         self.assertEqual(is_email('"email"@example.com'), False)
         self.assertEqual(is_email(None), False)
         self.assertEqual(is_email(""), False)

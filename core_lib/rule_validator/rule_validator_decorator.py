@@ -33,7 +33,9 @@ class ParameterRuleValidator(object):
             parameter_index = get_func_parameter_index_by_name(func, self.parameter_name)
             update_dict = args[parameter_index]
             if not isinstance(update_dict, dict):
-                raise ValueError("`ParameterRuleValidator`. function `{}`, parameter `{}`. apply only when updating the database with `dict` parameters ".format(func.__name__, self.parameter_name))
+                raise ValueError(f'`ParameterRuleValidator`. function `{func.__name__}`, '
+                                 f'parameter `{self.parameter_name}`.'
+                                 f'Apply only when updating the database with `dict` parameters ')
 
             updated_dict = self.rule_validator.validate_dict(update_dict,
                                                              strict_mode=self.strict_mode,

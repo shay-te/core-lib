@@ -1,4 +1,3 @@
-import datetime
 import unittest
 from datetime import datetime, timedelta
 
@@ -51,9 +50,11 @@ class TestDBRuleValidator(unittest.TestCase):
 
     def test_year(self):
         self.assertNotEqual(year_begin(), None)
-        self.assertEqual(year_begin(), datetime.utcnow().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
+        self.assertEqual(year_begin(), datetime.utcnow().replace(month=1, day=1, hour=0, minute=0, second=0,
+                                                                 microsecond=0))
         self.assertNotEqual(year_end(), None)
-        self.assertEqual(year_end(), datetime.utcnow().replace(year=datetime.utcnow().year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0))
+        self.assertEqual(year_end(), datetime.utcnow().replace(year=datetime.utcnow().year + 1, month=1, day=1, hour=0,
+                                                               minute=0, second=0, microsecond=0))
 
     def test_month(self):
         self.assertNotEqual(month_begin(), None)
@@ -66,7 +67,8 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertNotEqual(week_begin(), None)
         self.assertEqual(week_begin(), reset_datetime(today() - timedelta(days=datetime.today().weekday())))
         self.assertNotEqual(week_end(), None)
-        self.assertEqual(week_end(), reset_datetime((today() - timedelta(days=datetime.today().weekday())) + timedelta(days=7)))
+        self.assertEqual(week_end(), reset_datetime((today() - timedelta(days=datetime.today().weekday())) +
+                                                    timedelta(days=7)))
 
     def test_day(self):
         self.assertNotEqual(day_begin(), None)

@@ -18,12 +18,14 @@ user_rule_validators = [
     ValueRuleValidator(User.first_name.key, str, nullable=False),
     ValueRuleValidator(User.middle_name.key, str),
     ValueRuleValidator(User.last_name.key, str),
-    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),  # Email included in prohibited_keys, .
+    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),
+    # Email included in prohibited_keys, .
     ValueRuleValidator(User.birthday.key, datetime.date),
     ValueRuleValidator(User.gender.key,
                        User.Gender,
                        custom_converter=lambda value: User.Gender(value),  # Convert int to enum
-                       custom_validator=lambda value: 0 <= value.value <= len(User.Gender))  # Working with enum after conversion.
+                       custom_validator=lambda value: 0 <= value.value <= len(User.Gender))
+    # Working with enum after conversion.
 ]
 
 user_rule_validator = RuleValidator(user_rule_validators)
@@ -67,5 +69,4 @@ class UserDataAccess(DataAccess):
             if user:
                 return user
             else:
-                raise StatusCodeException(HTTPStatus.NOT_FOUND, 'User not found by id [{}]'.format(user_id))
-
+                raise StatusCodeException(HTTPStatus.NOT_FOUND, f'User not found by id [{user_id}]')
