@@ -24,22 +24,21 @@ In this layer we will define all entities, migration, connectors, mapping, this 
 import enum
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-from core_lib.data_layers.data.db.sqlalchemy.mixins.time_stamp_mixin import TimeStampMixin
+from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from sqlalchemy import Column, Integer, VARCHAR
 
 
-class User(TimeStampMixin, Base):
-
+class User(SoftDeleteMixin, Base):
     __tablename__ = 'user'
 
     class Gender(enum.Enum):
         FEMALE = enum.auto()
-        MALE  = enum.auto()
+        MALE = enum.auto()
 
-    id           = Column(Integer, primary_key=True, nullable=False)
-    email        = Column(VARCHAR(length=255), nullable=False)
-    gender       = Column('gender', IntEnum(Gender))
-	...
+    id = Column(Integer, primary_key=True, nullable=False)
+    email = Column(VARCHAR(length=255), nullable=False)
+    gender = Column('gender', IntEnum(Gender))
+    ...
 ```
 
 Migration example with alembic how to load the application configuration please.
