@@ -3,8 +3,9 @@ repos:
     hooks:
     -   id: unittest
         name: unittest
-        entry: python3 -m unittest discover
+        entry: python3 -m unittest discover -v
         language: python
-        'types': [python]
+        types: [python]
+        additional_dependencies: [sqlalchemy, geoalchemy2, pytimeparse, omegaconf, hydra, parsedatetime]
         pass_filenames: false
         stages: [push]
