@@ -8,4 +8,4 @@ repos:
         types: [python]
         additional_dependencies: [sqlalchemy, geoalchemy2, pytimeparse, omegaconf, hydra, parsedatetime]
         pass_filenames: false
-        stages: [push]
+        stages: [push] #can be commented to test pre-commit
