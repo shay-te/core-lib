@@ -2,7 +2,7 @@
     hooks:
     -   id: unittest
         name: unittest
-        entry: python -m unittest discover -v
+        entry: python3 -m unittest discover -v
         language: python
         'types': [ python ]
         pass_filenames: false
