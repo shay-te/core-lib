@@ -38,7 +38,8 @@ print(formatted_parameters) # key_1_param_2_hello
 ```
 > **Note:** Will return the name of the placeholder if the parameter's value is missing.
 
-<br/><br/>
+
+
 - `get_func_parameters_as_dict` extracts a function's parameters to `dict`, where key of the dictionary will be the parameter's name and value will be the value of the parameter.
 
 ```python
@@ -65,7 +66,8 @@ print(extracted_dict)# {'param_1':'1', 'param_2':'hello', 'param_3':'world'}
 ```
 > **Note:** Will return the value as the name of the parameter itself if the parameter's value is missing.
 
-<br/><br/>
+
+
 - `get_func_parameter_index_by_name` takes in a single parameter and function name and will return the parameter's index
 
 ```python
@@ -91,7 +93,8 @@ print(function_to_get_param_index) # 1
 ```
 > **Note:** Will raise an exception if the parameter passed is not valid
 
-<br/><br/>
+
+
 - `get_calling_module` will return the class and function names from wherever the function is being called.
     
     #### Usage
@@ -101,7 +104,8 @@ from core_lib.helpers.func_utils import get_calling_module
 result = get_calling_module(stack_depth=1)
 ```
 
-<br/><br/>
+
+
 - `reset_datetime` will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
     
     #### Usage

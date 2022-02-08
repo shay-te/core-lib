@@ -11,10 +11,10 @@ sidebar_label: Datetime Utilities
 - `year_begin` returns the first day of the year.
 - `year_end` returns date when current year will end.
 - `month_begin` returns the first day of the current month.
-- `month_end` returns day for current month-end.
-- `week_begin` returns the day for the beginning of the week.
+- `month_end` returns the last day of the month.
+- `week_begin` returns the first day of the week.
   >Note: The starting day of the week will be considered as Monday.
-- `week_end` returns the day for the ending of the week.
+  - `week_end` returns the last day of the week.
 - `day_begin` returns the `datetime` for the beginning of the day.
 - `day_end` returns the `datetime` for the ending of the day
 - `tomorrow` returns tomorrow's day.

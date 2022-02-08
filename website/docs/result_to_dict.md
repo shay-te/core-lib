@@ -14,7 +14,7 @@ Datatypes supported:
  - ENUM
  - Integer
  - Test
- - JSON
+ - JSON will be converted to `dict`
  - BLOB/Binary
  - Boolean
  - Unicode
@@ -23,19 +23,25 @@ Datatypes supported:
  - List
  - Dictionary
  - Set
- - Date
- - Datetime
- - Objects
- - Base
- > **Note:** Will convert `Date` and `Datetime` to timestamp.
+ - Date will be converted to `timestamp`
+ - Datetime will be converted to `timestamp`
+ - Objects will be converted to `dict`
+ - Base will be converted to `dict`
 
  
 ### Usage
 
 ```python
 import datetime
+import enum
+from geoalchemy2 import WKTElement
 from core_lib.data_transform.result_to_dict import result_to_dict
 
+class MyEnum(enum.Enum):
+    one = 1
+    two = 2
+    three = 3
+    
 # Tuples/List
 data = [("fruit", "apple"), ("fruit", "banana"), ("fruit", "cherry")]
 formatted_data = result_to_dict(data)
@@ -51,7 +57,14 @@ data = {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': datetime.
 formatted_data = result_to_dict(data)
 print(formatted_data)  # {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': '{timestamp of the datetime}'}
 
+#Enum, POINT
+point = WKTElement('POINT(5 45)')
+data = {'enum': MyEnum.one, 'point': point}
+formatted_data = result_to_dict(data)
+print(formatted_data) # {'enum': 1, 'point': point_value}
+
 ```
+>Similarly, we can pass data from database i.e., `Base` object and convert it to `dict`
 
 ## ResultToDict Decorator
 
