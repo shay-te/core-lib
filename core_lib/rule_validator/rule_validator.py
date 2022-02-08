@@ -71,7 +71,7 @@ class RuleValidator(object):
         parsed_value = value
 
         if not rule.nullable and value is None:
-            raise PermissionError(f'Cant update key:{key} column value cannot be null '
+            raise PermissionError(f'Can\'t update key:{key} column value cannot be null '
                                   f'(`ValueRuleValidator.nullable` is set to `True`)')
 
         if rule.custom_converter:

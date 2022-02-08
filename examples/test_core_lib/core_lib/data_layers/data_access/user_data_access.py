@@ -18,14 +18,14 @@ user_rule_validators = [
     ValueRuleValidator(User.first_name.key, str, nullable=False),
     ValueRuleValidator(User.middle_name.key, str),
     ValueRuleValidator(User.last_name.key, str),
+    # Email included in prohibited_keys.
     ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),
-    # Email included in prohibited_keys, .
     ValueRuleValidator(User.birthday.key, datetime.date),
+    # Working with enum after conversion.
     ValueRuleValidator(User.gender.key,
                        User.Gender,
                        custom_converter=lambda value: User.Gender(value),  # Convert int to enum
                        custom_validator=lambda value: 0 <= value.value <= len(User.Gender))
-    # Working with enum after conversion.
 ]
 
 user_rule_validator = RuleValidator(user_rule_validators)
