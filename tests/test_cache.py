@@ -1,5 +1,6 @@
 import unittest
 from datetime import timedelta, datetime
+from dateutil.relativedelta import relativedelta
 from time import sleep
 from freezegun import freeze_time
 
@@ -11,9 +12,7 @@ cache_client_name = "xyz"
 
 
 class TestCache(unittest.TestCase):
-
     test_value = 100
-    cache_duration = "2 seconds"
 
     @classmethod
     def setUpClass(cls):
@@ -107,68 +106,96 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache(), 200)
 
     def test_cache_using_string(self):
-        self.clear_cache()
-        TestCache.cache_duration = "2 seconds"
+        # Seconds
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_seconds(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        with freeze_time(datetime.today().replace(minute=datetime.now().minute + 1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+        self.assertEqual(self.get_cache_expire_string_seconds(), 100)
+        with freeze_time(datetime.now() + timedelta(seconds=1)):
+            self.assertEqual(self.get_cache_expire_string_seconds(), 100)
+        with freeze_time(datetime.now() + timedelta(seconds=2)):
+            self.assertEqual(self.get_cache_expire_string_seconds(), 200)
+        self.clear_cache_expire_string_seconds()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_seconds(), 100)
 
-        self.clear_cache()
-        TestCache.cache_duration = "60 seconds"
+        # Minute
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_minute(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        with freeze_time(datetime.today().replace(minute=datetime.now().minute + 1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+        self.assertEqual(self.get_cache_expire_string_minute(), 100)
+        with freeze_time(datetime.now() + timedelta(seconds=59)):
+            self.assertEqual(self.get_cache_expire_string_minute(), 100)
+        with freeze_time(datetime.now() + timedelta(minutes=1)):
+            self.assertEqual(self.get_cache_expire_string_minute(), 200)
+        self.clear_cache_expire_string_minute()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_minute(), 100)
 
-        self.clear_cache()
-        TestCache.cache_duration = "1 minute"
+        # Hour
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_hour(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        with freeze_time(datetime.today().replace(minute=datetime.now().minute + 1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+        self.assertEqual(self.get_cache_expire_string_hour(), 100)
+        with freeze_time(datetime.now() + timedelta(minutes=59)):
+            self.assertEqual(self.get_cache_expire_string_hour(), 100)
+        with freeze_time(datetime.now() + timedelta(hours=1)):
+            self.assertEqual(self.get_cache_expire_string_hour(), 200)
+        self.clear_cache_expire_string_hour()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_hour(), 100)
 
-        self.clear_cache()
-        TestCache.cache_duration = "1 day"
+        # Day
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_day(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        with freeze_time(datetime.today() + timedelta(days=1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+        self.assertEqual(self.get_cache_expire_string_day(), 100)
+        with freeze_time(datetime.now() + timedelta(hours=23)):
+            self.assertEqual(self.get_cache_expire_string_day(), 100)
+        with freeze_time(datetime.now() + timedelta(days=1)):
+            self.assertEqual(self.get_cache_expire_string_day(), 200)
+        self.clear_cache_expire_string_day()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_day(), 100)
 
-        self.clear_cache()
-        TestCache.cache_duration = "1 week"
+        # Week
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_week(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_week(), 100)
+        with freeze_time(datetime.today() + timedelta(days=6)):
+            self.assertEqual(self.get_cache_expire_string_week(), 100)
         with freeze_time(datetime.today() + timedelta(days=7)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
-
-        self.clear_cache()
-        TestCache.cache_duration = "1 month"
+            self.assertEqual(self.get_cache_expire_string_week(), 200)
+        self.clear_cache_expire_string_week()
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
-        with freeze_time(datetime.today().replace(month=datetime.now().month + 1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+        self.assertEqual(self.get_cache_expire_string_week(), 100)
 
-        self.clear_cache()
-        TestCache.cache_duration = "1 year"
+        # Month
         TestCache.test_value = 100
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_month(), 100)
         TestCache.test_value = 200
-        self.assertEqual(self.get_cache_expire_string(), 100)
+        self.assertEqual(self.get_cache_expire_string_month(), 100)
+        with freeze_time(datetime.today() + timedelta(days=7)):
+            self.assertEqual(self.get_cache_expire_string_month(), 100)
+        with freeze_time(datetime.today() + relativedelta(months=1)):
+            self.assertEqual(self.get_cache_expire_string_month(), 200)
+        self.clear_cache_expire_string_month()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_month(), 100)
+
+        # Year
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_year(), 100)
+        TestCache.test_value = 200
+        self.assertEqual(self.get_cache_expire_string_year(), 100)
+        with freeze_time(datetime.today() + relativedelta(months=11, days=20)):
+            self.assertEqual(self.get_cache_expire_string_year(), 100)
         with freeze_time(datetime.today().replace(year=datetime.now().year + 1)):
-            self.assertEqual(self.get_cache_expire_string(), 200)
+            self.assertEqual(self.get_cache_expire_string_year(), 200)
+        self.clear_cache_expire_string_year()
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_expire_string_year(), 100)
 
     @Cache(key="test_cache_1", expire=timedelta(seconds=2))
     def get_cache(self):
@@ -202,6 +229,58 @@ class TestCache(unittest.TestCase):
     def get_cache_only_param_optional(self, param_1=None, param_2=None, param_3=None, param_4=None):
         return TestCache.test_value
 
-    @Cache(key="test_cache_1", expire=str(cache_duration))
-    def get_cache_expire_string(self):
+    @Cache(key="test_cache_expire_string_seconds", expire="2 seconds")
+    def get_cache_expire_string_seconds(self):
         return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_seconds", invalidate=True)
+    def clear_cache_expire_string_seconds(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_minute", expire="1 minute")
+    def get_cache_expire_string_minute(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_minute", invalidate=True)
+    def clear_cache_expire_string_minute(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_hour", expire="1 hour")
+    def get_cache_expire_string_hour(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_hour", invalidate=True)
+    def clear_cache_expire_string_hour(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_day", expire="1 day")
+    def get_cache_expire_string_day(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_day", invalidate=True)
+    def clear_cache_expire_string_day(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_week", expire="1 week")
+    def get_cache_expire_string_week(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_week", invalidate=True)
+    def clear_cache_expire_string_week(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_month", expire="1 month")
+    def get_cache_expire_string_month(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_month", invalidate=True)
+    def clear_cache_expire_string_month(self):
+        pass
+
+    @Cache(key="test_cache_expire_string_year", expire="1 year")
+    def get_cache_expire_string_year(self):
+        return TestCache.test_value
+
+    @Cache(key="test_cache_expire_string_year", invalidate=True)
+    def clear_cache_expire_string_year(self):
+        pass
