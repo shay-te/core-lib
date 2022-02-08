@@ -5,6 +5,7 @@ PyJWT
 argh
 pytimeparse
 parsedatetime
+pre-commit
 
 # Connectors
 sqlalchemy
