@@ -111,10 +111,8 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_seconds(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache_expire_string_seconds(), 100)
-        with freeze_time(datetime.now() + timedelta(seconds=1)):
-            self.assertEqual(self.get_cache_expire_string_seconds(), 100)
-        with freeze_time(datetime.now() + timedelta(seconds=2)):
-            self.assertEqual(self.get_cache_expire_string_seconds(), 200)
+        sleep(2.2)
+        self.assertEqual(self.get_cache_expire_string_seconds(), 200)
         self.clear_cache_expire_string_seconds()
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_expire_string_seconds(), 100)
@@ -124,9 +122,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_minute(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache_expire_string_minute(), 100)
-        with freeze_time(datetime.now() + timedelta(seconds=59)):
+        with freeze_time(datetime.utcnow() + timedelta(seconds=59)):
             self.assertEqual(self.get_cache_expire_string_minute(), 100)
-        with freeze_time(datetime.now() + timedelta(minutes=1)):
+        with freeze_time(datetime.utcnow() + timedelta(minutes=1)):
             self.assertEqual(self.get_cache_expire_string_minute(), 200)
         self.clear_cache_expire_string_minute()
         TestCache.test_value = 100
@@ -137,9 +135,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_hour(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache_expire_string_hour(), 100)
-        with freeze_time(datetime.now() + timedelta(minutes=59)):
+        with freeze_time(datetime.utcnow() + timedelta(minutes=59)):
             self.assertEqual(self.get_cache_expire_string_hour(), 100)
-        with freeze_time(datetime.now() + timedelta(hours=1)):
+        with freeze_time(datetime.utcnow() + timedelta(hours=1)):
             self.assertEqual(self.get_cache_expire_string_hour(), 200)
         self.clear_cache_expire_string_hour()
         TestCache.test_value = 100
@@ -150,9 +148,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_day(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache_expire_string_day(), 100)
-        with freeze_time(datetime.now() + timedelta(hours=23)):
+        with freeze_time(datetime.utcnow() + timedelta(hours=23)):
             self.assertEqual(self.get_cache_expire_string_day(), 100)
-        with freeze_time(datetime.now() + timedelta(days=1)):
+        with freeze_time(datetime.utcnow() + timedelta(days=1)):
             self.assertEqual(self.get_cache_expire_string_day(), 200)
         self.clear_cache_expire_string_day()
         TestCache.test_value = 100
@@ -176,7 +174,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_month(), 100)
         TestCache.test_value = 200
         self.assertEqual(self.get_cache_expire_string_month(), 100)
-        with freeze_time(datetime.today() + timedelta(days=7)):
+        with freeze_time(datetime.today() + timedelta(days=20)):
             self.assertEqual(self.get_cache_expire_string_month(), 100)
         with freeze_time(datetime.today() + relativedelta(months=1)):
             self.assertEqual(self.get_cache_expire_string_month(), 200)
@@ -191,7 +189,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_expire_string_year(), 100)
         with freeze_time(datetime.today() + relativedelta(months=11, days=20)):
             self.assertEqual(self.get_cache_expire_string_year(), 100)
-        with freeze_time(datetime.today().replace(year=datetime.now().year + 1)):
+        with freeze_time(datetime.today().replace(year=datetime.utcnow().year + 1)):
             self.assertEqual(self.get_cache_expire_string_year(), 200)
         self.clear_cache_expire_string_year()
         TestCache.test_value = 100
@@ -229,7 +227,7 @@ class TestCache(unittest.TestCase):
     def get_cache_only_param_optional(self, param_1=None, param_2=None, param_3=None, param_4=None):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_seconds", expire="2 seconds")
+    @Cache(key="test_cache_expire_string_seconds", expire="2 second")
     def get_cache_expire_string_seconds(self):
         return TestCache.test_value
 
