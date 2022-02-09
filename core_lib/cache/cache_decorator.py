@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from functools import wraps
 from typing import Union
 import parsedatetime
@@ -15,8 +15,9 @@ parse_datetime_calendar = parsedatetime.Calendar()
 def parse(d_time: str):
     result_datetime, result = parse_datetime_calendar.parseDT(d_time)
     if result == 0:
-        raise ValueError(f'Unable to parse time expression `{d_time}`')
-    return result_datetime
+        raise ValueError('Unable to parse time expression `{}`'.format(d_time))
+    result_utc_datetime = datetime.fromtimestamp(result_datetime.timestamp(), tz=timezone.utc).replace(tzinfo=None)
+    return result_utc_datetime
 
 
 def _parse_datetime(expire: str):
