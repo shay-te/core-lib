@@ -76,7 +76,7 @@ class TestResultToDict(unittest.TestCase):
         lst = ["fruit", "apple"]
         point = WKTElement('POINT(5 45)')
         set_value = {"fruit", "apple"}
-        obj = {"fruit": "apple", "fruit": "orange"}
+        obj = {"fruit1": "apple", "fruit2": "orange"}
         lst_object = [{
             'date': dat,
             'datetime': dattime,
@@ -143,7 +143,9 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['id'], 1)
             self.assertEqual(converted_data[0]['data_enum'], 1)
             self.assertEqual(converted_data[0]['data_datetime'], data_datetime.timestamp())
-            self.assertEqual(converted_data[0]['data_date'], datetime.datetime(year=data_date.year, month=data_date.month, day=data_date.day).timestamp())
+            self.assertEqual(converted_data[0]['data_date'], datetime.datetime(year=data_date.year,
+                                                                               month=data_date.month,
+                                                                               day=data_date.day).timestamp())
             self.assertEqual(converted_data[0]['data_name'], data_name)
             self.assertEqual(converted_data[0]['data_text'], data_text)
             self.assertEqual(converted_data[0]['data_json'], data_json)

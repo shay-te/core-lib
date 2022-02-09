@@ -67,6 +67,8 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
 #
 # HELPERS
 #
+
+
 def request_body_dict(request):
     if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
         return json.loads(request.body.decode('utf-8'))

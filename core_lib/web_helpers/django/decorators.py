@@ -18,8 +18,9 @@ class RequireLogin(object):
             if not response:
                 try:
                     return func(request, *args, **kwargs)
-                except Exception as e:
-                    logger.error('error while loading target page for controller entry name {}'.format(func.__name__), exc_info=True)
+                except Exception:
+                    logger.error(f'error while loading target page for controller entry name `{func.__name__}`',
+                                 exc_info=True)
             return response
 
         return __wrapper

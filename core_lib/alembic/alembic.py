@@ -23,14 +23,15 @@ class Alembic(object):
         server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
         self.config['sqlalchemy.url'] = server_url
 
-        self.__engine = create_engine(self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries)
+        self.__engine = create_engine(self.config['sqlalchemy.url'],
+                                      echo=core_lib_config.core_lib.data.sqlalchemy.log_queries)
 
         self.script_location = None
         if self.config.script_location and not os.path.isabs(self.config.script_location):
             self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
-            raise ValueError("config.alembic.script_location dose not exists `{}`".format(self.script_location))
+            raise ValueError(f'config.alembic.script_location dose not exists `{self.script_location}`')
 
         if not self.config.version_file_name:
             raise ValueError("config.alembic.version_file_name cannot be None")
@@ -61,7 +62,8 @@ class Alembic(object):
             with EnvironmentContext(self.alembic_cfg,
                                     script,
                                     fn=callback) as context:
-                context.configure(version_table=self.config.version_table, connection=connection, render_as_batch=self.config.render_as_batch)
+                context.configure(version_table=self.config.version_table, connection=connection,
+                                  render_as_batch=self.config.render_as_batch)
                 with context.begin_transaction():
                     context.run_migrations()
 

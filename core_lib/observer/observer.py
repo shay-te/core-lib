@@ -28,10 +28,11 @@ class Observer(object):
             try:
                 observer.update(key, value)
             except Exception as ex:
-                logger.error('error while Observer.notify on key: `{}`'.format(key))
+                logger.error(f'error while Observer.notify on key: `{key}`')
                 raise ex
 
     def _validate(self, listener: ObserverListener):
         assert listener, 'ObserverListener cannot be None'
         if self._listener_type:
-            assert isinstance(listener, self._listener_type), 'ObserverListener must be of type `{}`'.format(self._listener_type)
+            assert isinstance(listener, self._listener_type), \
+                f'ObserverListener must be of type `{self._listener_type}`'

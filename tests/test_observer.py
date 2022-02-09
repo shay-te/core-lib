@@ -172,7 +172,6 @@ class TestObserverWithRegistry(unittest.TestCase):
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, empty_lst)
         self.assertListEqual(UserObserverListener.last_value, empty_lst)
 
-
     def test_observer_enum(self):
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, MyEnum.one)
         self.assertEqual(UserObserverListener.last_value, MyEnum.one)
