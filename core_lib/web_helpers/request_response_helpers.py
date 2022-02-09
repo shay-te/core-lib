@@ -45,9 +45,9 @@ def generate_response(data, status, media_type: MediaType, headers: dict = {}):
         data = b''
     elif media_type == MediaType.APPLICATION_JSON:
         data = json.dumps(data)
-    if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
+    if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO.value:
         return generate_response_django(data, status, media_type, headers)
-    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK.value:
         return generate_response_flask(data, status, media_type, headers)
 
 
@@ -70,7 +70,7 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
 
 
 def request_body_dict(request):
-    if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
+    if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO.value:
         return json.loads(request.body.decode('utf-8'))
-    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK.value:
         return request.json
