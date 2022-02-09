@@ -47,5 +47,3 @@ class TestJobs(unittest.TestCase):
         sleep(5)
         s.stop(j)
         self.assertGreater(j.called, 2)
-
-

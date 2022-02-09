@@ -2,7 +2,7 @@ import hashlib
 
 
 def download_file_handle(request, file_handle):
-    with request as r: # NOTE the stream=True parameter below
+    with request as r:  # NOTE the stream=True parameter below
         r.raise_for_status()
         for chunk in r.iter_content(chunk_size=8192):
             if chunk:  # filter out keep-alive new chunks

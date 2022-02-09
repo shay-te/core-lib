@@ -13,4 +13,3 @@ class TestUserSession(unittest.TestCase):
 
     def test_x(self):
         pass
-

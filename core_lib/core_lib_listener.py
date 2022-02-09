@@ -1,5 +1,5 @@
 import enum
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from core_lib.observer.observer_listener import ObserverListener
 

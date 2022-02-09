@@ -11,7 +11,7 @@ def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
     parameters = inspect.signature(func).parameters
     if parameter_name not in parameters:
         raise ValueError(
-            f'parameter named: {parameter_name}. dose not exists in the decorated function. {func.__name__}')
+            f'parameter named: `{parameter_name}`. dose not exists in the decorated function. `{func.__name__}`')
 
     return list(parameters).index(parameter_name)
 
@@ -25,8 +25,8 @@ class UnseenFormatter(Formatter):
             if isinstance(key, str) and key in kwargs:
                 return kwargs[key]
             return '!M{}M!'.format(key)
-        except BaseException as ex:
-            logger.warning('Error while building key. `{}`'.format(key), exc_info=True)
+        except BaseException:
+            logger.warning(f'Error while building key. `{key}`', exc_info=True)
             return '!E{}E!'.format(key)
 
 
