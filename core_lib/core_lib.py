@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class CoreLib(object):
-
     cache_registry = CacheRegistry()
     observer_registry = ObserverRegistry()
     scheduler = JobScheduler()
@@ -25,14 +24,13 @@ class CoreLib(object):
         self._observer = Observer(listener_type=CoreLibListener)
 
     def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
-        logger.info('Loading CoreLib jobs `{}`'.format(self.__class__.__qualname__))
+        logger.info(f'Loading CoreLib jobs `{self.__class__.__qualname__}`')
 
-        for job_name, job, job_config in instantiate_config_group_generator_dict(config,
-                                                                                 Job,
-                                                                                 class_config_base_path='handler',
-                                                                                 raise_class_config_base_path_error=True):
+        for job_name, job, job_config in \
+                instantiate_config_group_generator_dict(config, Job, class_config_base_path='handler',
+                                                        raise_class_config_base_path_error=True):
             if not job_config.initial_delay:
-                raise ValueError('job invalid initial_delay config  `{}`'.format(job_config.initial_delay))
+                raise ValueError(f'job invalid initial_delay config  `{job_config.initial_delay}`')
 
             initial_delay = job_config.initial_delay
             if job_config.initial_delay in ['boot', 'startup']:
@@ -47,9 +45,11 @@ class CoreLib(object):
                 CoreLib.scheduler.schedule_once(initial_delay, job)
 
             if isinstance(job, CoreLibListener):
-                logger.debug('job `{}`, is instance of `{}`, attach as core_lib listener'.format(job.__class__.__qualname__, CoreLibListener.__qualname__))
+                logger.debug(f'job `{job.__class__.__qualname__}`, is instance of `{CoreLibListener.__qualname__}`, '
+                             f'attach as core_lib listener')
                 self.attach_listener(job)
-            logger.info('job `{}` started with params. initial_delay:`{}`, frequency:`{}`'.format(job.__class__.__qualname__, job_config.initial_delay, job_config.frequency))
+            logger.info(f'job `{job.__class__.__qualname__}` started with params. '
+                        f'initial_delay:`{job_config.initial_delay}`, frequency:`{job_config.frequency}`')
 
     def attach_listener(self, core_lib_listener: CoreLibListener):
         self._observer.attach(core_lib_listener)

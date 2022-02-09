@@ -7,7 +7,7 @@ def _to_safe_file_name(inputFilename: str):
     safechars = string.ascii_letters + "_"
     try:
         return ''.join(filter(lambda c: c in safechars, inputFilename.replace('-', '_')))
-    except:
+    except TypeError:
         return None
 
 

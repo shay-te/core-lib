@@ -65,8 +65,8 @@ def __base_to_dict(obj, found=None):
                         result[name] = result_arr
                     else:
                         result[name] = __base_to_dict(related_obj, found)
-            except:
-                pass # Do nothing here unable to load relationship
+            except (ValueError, Exception):
+                pass  # Do nothing here unable to load relationship
 
     return result
 
@@ -119,9 +119,9 @@ class ResultToDict(object):
         self.callback = callback
 
     def __call__(self, func, *args, **kwargs):
-
         @wraps(func)
         def __wrapper(*args, **kwargs):
             return_val = func(*args, **kwargs)
             return result_to_dict(return_val, properties_as_dict=True, callback=self.callback)
+
         return __wrapper

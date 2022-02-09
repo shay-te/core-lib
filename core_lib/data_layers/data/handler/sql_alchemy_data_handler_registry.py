@@ -59,4 +59,3 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
                                pool_recycle=config.session.pool_recycle,
                                echo=config.log_queries)
         return engine
-

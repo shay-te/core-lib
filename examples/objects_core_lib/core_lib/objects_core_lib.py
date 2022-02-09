@@ -19,4 +19,3 @@ class ObjectsCoreLib(CoreLib):
 
         object_data_session_factory = ObjectDataHandlerRegistry(boto3_client)
         self.object = ObjectsService(ObjectsDataAccess(object_data_session_factory))
-
