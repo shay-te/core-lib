@@ -9,24 +9,38 @@ For e.g., will return tuple as a tuple, dict as a dict
 
 Datatypes supported:
 
- - Point (Geographical point)
+SQLAlchemy
  - Varchar
  - ENUM
  - Integer
- - Test
- - JSON will be converted to `dict`
+ - Float
+ - Text
+ - JSON ( converted to `dict` )
  - BLOB/Binary
  - Boolean
  - Unicode
+ - Date ( converted to `timestamp` )
+ - Datetime ( converted to `timestamp` )
+
+Python
+ - Point (Geographical point)
  - Float
  - Tuple
  - List
  - Dictionary
  - Set
- - Date will be converted to `timestamp`
- - Datetime will be converted to `timestamp`
- - Objects will be converted to `dict`
- - Base will be converted to `dict`
+ - BLOB/Binary
+ - ENUM
+ - Integer
+ - String
+ - BLOB/Binary
+ - Boolean
+ - Unicode
+ - Date ( converted to `timestamp` )
+ - Datetime ( converted to `timestamp` )
+ - Objects ( converted to `dict` )
+ - Base ( converted to `dict` )
+
 
  
 ### Usage
@@ -62,6 +76,13 @@ point = WKTElement('POINT(5 45)')
 data = {'enum': MyEnum.one, 'point': point}
 formatted_data = result_to_dict(data)
 print(formatted_data) # {'enum': 1, 'point': point_value}
+
+#Base/Database object
+# query to select data from your DB
+base_object = session.query(Data).all()
+
+formatted_data = result_to_dict(base_object)
+print(formatted_data) # {'id': 1, 'name': 'your_name', 'created_at':'11234322.6789', ...and other columns from your DB}
 
 ```
 >Similarly, we can pass data from database i.e., `Base` object and convert it to `dict`

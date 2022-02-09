@@ -55,7 +55,8 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
 ```python
 from core_lib.helpers.func_utils import get_func_parameters_as_dict
 
-def function_to_extract(param_1: int, param_2: str, param_3 = "hello"): # A function that will take in 2 parameters one is type integer and other is string
+# A function that will take in 2 parameters one is type integer and other is string
+def function_to_extract(param_1: int, param_2: str, param_3 = "hello"):
     pass
 
 extracted_dict = get_func_parameters_as_dict(function_to_extract) 

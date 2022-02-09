@@ -30,9 +30,6 @@ sidebar_label: Datetime Utilities
 - `hour_begin` returns the time for the beginning of current hour.
 - `hour_end` returns the time for the ending of current hour.
 
->Functions for individual days will return the next coming
-day of the week or next week for e.g., `friday` will return `datetime` of the friday occurring in this week or if not, 
-then the next week.
 
 ### Usage
 ```python
