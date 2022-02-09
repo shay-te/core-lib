@@ -50,5 +50,3 @@ def is_int_enum(int_value: int, enum: IntEnum) -> bool:
         enum(int_value)
         return True
     return False
-
-

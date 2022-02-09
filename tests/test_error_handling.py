@@ -4,7 +4,6 @@ from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 from core_lib.error_handling.status_code_assert import StatusCodeAssert
 from core_lib.error_handling.status_code_exception import StatusCodeException
 
-
 str_value = 'str_value'
 tuple_value = ("fruit", "apple")
 
@@ -26,7 +25,7 @@ class TestErrorHandling(unittest.TestCase):
     def test_status_code_assert(self):
         with self.assertRaises(StatusCodeException):
             with StatusCodeAssert(status_code=500, message="some error occurred"):
-                assert True == False
+                assert True is False
 
     @NotFoundErrorHandler()
     def get_string(self):

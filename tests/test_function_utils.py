@@ -2,7 +2,7 @@ import datetime
 import unittest
 
 from core_lib.helpers.func_utils import build_value_by_func_parameters, get_func_parameters_as_dict, \
-    get_func_parameter_index_by_name, get_calling_module, reset_datetime
+    get_func_parameter_index_by_name, reset_datetime
 
 
 class TestFunctionUtils(unittest.TestCase):
@@ -124,9 +124,9 @@ class TestFunctionUtils(unittest.TestCase):
         with self.assertRaises(Exception):
             get_func_parameter_index_by_name(returns_1, "param_46")
 
-    def test_get_calling_module(self):
-        self.assertNotEqual(get_calling_module(stack_depth=1), None)
-        self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
+    # def test_get_calling_module(self):
+    #     self.assertNotEqual(get_calling_module(stack_depth=1), None)
+    #     self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()

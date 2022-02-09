@@ -11,9 +11,9 @@ class Neo4jDataHandlerRegistry(DataHandlerRegistry):
     def __init__(self, config: DictConfig):
         self._config = config
         self._neo4j_driver = GraphDatabase.driver(build_url(**config.url),
-                                            auth=basic_auth(config.credentials.username,
-                                                            config.credentials.password),
-                                            encrypted=False)
+                                                  auth=basic_auth(config.credentials.username,
+                                                                  config.credentials.password),
+                                                  encrypted=False)
 
     @property
     def driver(self):

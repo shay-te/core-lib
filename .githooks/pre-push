@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+echo "run-test-hooks executing..."
+test="python3 -m unittest discover -v"
+flake8="flake8"
+$test
+$flake8
+exit

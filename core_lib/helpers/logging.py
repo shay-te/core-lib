@@ -19,4 +19,3 @@ class Logging(object):
             return func(*args, **kwargs)
 
         return __wrapper
-    
