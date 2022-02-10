@@ -6,85 +6,127 @@ sidebar_label: Default Registry
 ## Default Registry
 `Core-Lib` provides a `DefaultRegistry` where users can register different types of datatypes and values corresponding to those datatypes.
 
+The `DefaultRegistry` constructor:
+```python
+class DefaultRegistry(Registry):
+
+    def __init__(self, object_type: object):
+        ...
+```
+`object_type`: Datatype of the object that is to be stored in the registry.
+
+#### Usage
+
+```python
+from core_lib.registry.default_registry import DefaultRegistry
+
+# Registry that will only accept type string 
+registry_factory = DefaultRegistry(str) 
+```
+
+
 
 Functions provided by the `DefaultRegistry` are as follows:
 
-- `register()`: Register's the name and value into the registry.
+- `register()`: Register's the key and value into the registry.
 ````python
-def register(self, name: str, object, is_default: bool = False):
-    assert name and object
-    if not isinstance(object, self._object_type):
-        raise ValueError("register object is not of type \"{}\"".format(self._object_type))
-
-    if name in self.name_to_object:
-        raise ValueError("cache by name \"{}\" already registerd for type \"{}\"".format(name, object.__class__))
-
-    if is_default:
-        self.default_name = name
-    self.name_to_object[name] = object
+def register(self, key: str, object, is_default: bool = False):
+    ...
 ````
-`name` is type `str`, sets the name of the registry entry passed to the function.
+`key` is type `str`, sets the key of the registry entry passed to the function.
 
 `object` is the actual data to be passed to the function to store in registry.
 
 `is_default` is type `bool`, for multiple entries in a same registry `is_default` can be used to set the default value to be
-returned by the `get` function.
+returned by the `get` function when calling it without parameters.
+
+#### Usage
+```python
+from core_lib.registry.default_registry import DefaultRegistry
+
+user_name = 'Jon Doe'
+registry_factory = DefaultRegistry(str) 
+registry_factory.register('user_name', user_name)
+```
 
 
 
 - `unregister()`: Unregisters/removes an entry present in the registry.
 ```python
-def unregister(self, name: str):
-    if name in self.name_to_object:
-        del self.name_to_object[name]
-        if self.default_name == name:
-            self.default_name = None
+def unregister(self, key: str):
+    ...
 ```
-`name` is type `str`, is the name of the entry to be unregistered from the registry.
->If `name` is not specified when executing `unregister()`, the default value will be unregistered from the registry.
+`key` is type `str`, is the key of the entry to be unregistered from the registry.
+>If `key` is not specified when executing `unregister()`, the default value will be unregistered from the registry.
+
+#### Usage
+```python
+from core_lib.registry.default_registry import DefaultRegistry
+
+.
+.
+.
+registry_factory.unregister('user_name')
+```
 
 
 
-- `get()`: Returns an entry from the registry with the specified name.
+- `get()`: Returns an entry from the registry with the specified key.
 
 ```python
-def get(self, name: str = None, *args, **kwargs):
-    result = self.name_to_object.get(name or self.default_name)
-    if not name and not result and len(self.name_to_object) > 0:
-        result = list(self.name_to_object.values())[0]
-    return result
+def get(self, key: str = None, *args, **kwargs):
+    ...
 ```
 
-`name` is type `str`, is the name of the registry entry to be returned.
+`key` is type `str`, is the key of the registry entry to be returned.
 >If `get()` is used without any parameters, it will return the default value supplied by the user, or the 
 >first entry in the registry if the default value also isn't provided.
 
+#### Usage
+```python
+from core_lib.registry.default_registry import DefaultRegistry
+
+.
+.
+.
+registry_factory.get('user_name')
+```
 
 
 - `registered()`: Returns all the registered entities in the registry in the type `list`.
 
 ```python
 def registered(self):
-    return list(self.name_to_object.keys())
+    return list(self.key_to_object.keys())
 ```
 
-### Usage
+#### Usage
+```python
+from core_lib.registry.default_registry import DefaultRegistry
+
+.
+.
+.
+registry_factory.registered()
+```
+
+### Example of DefaultRegistry
 ```python
 from core_lib.registry.default_registry import DefaultRegistry
 
 # Single Entry
-string = 'hello world'
+user_name = 'Jon Doe'
 # initialize and provide data type to the registry
 registry_factory = DefaultRegistry(str) 
-registry_factory.register('string', string)
+registry_factory.register('user_name', user_name)
 
-data_from_registry = registry_factory.get('string')
-print(data_from_registry)  # "hello world"
+data_from_registry = registry_factory.get('user_name')
+print(data_from_registry)  # "Jon Doe"
 
 # Unregister 'string' from registry
-registry_factory.unregister('string')
+registry_factory.unregister('user_name')
 
-data_from_registry = registry_factory.get('string')
+data_from_registry = registry_factory.get('user_name')
 print(data_from_registry)  # None
 
 # Multiple Entries
