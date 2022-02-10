@@ -114,49 +114,57 @@ registry_factory.registered()
 ```python
 from core_lib.registry.default_registry import DefaultRegistry
 
+class Customer(object):
+    ...
+        
+        
+class CustomerRegistry(DefaultRegistry):
+
+    def __init__(self):
+        DefaultRegistry.__init__(self, Customer)
+        
 # Single Entry
-user_name = 'Jon Doe'
-# initialize and provide data type to the registry
-registry_factory = DefaultRegistry(str) 
-registry_factory.register('user_name', user_name)
+customer =  Customer()
+# initialize the registry
+customer_registry = CustomerRegistry()
+customer_registry.register('customer_a', customer)
 
-data_from_registry = registry_factory.get('user_name')
-print(data_from_registry)  # "Jon Doe"
+# Get Customer data
+customer_data = customer_registry.get('customer_a') 
+print(customer_data) # customer_a data 
 
-# Unregister 'string' from registry
-registry_factory.unregister('user_name')
+# Unregister 'customer_a' from registry
+customer_registry.unregister('customer_a')
 
-data_from_registry = registry_factory.get('user_name')
-print(data_from_registry)  # None
+customer_data = customer_registry.get('customer_a') 
+print(customer_data) # customer_a data # None 
+
 
 # Multiple Entries
-registry_factory = DefaultRegistry(str) 
+customer_a =  Customer()
+customer_b =  Customer()
+customer_registry = CustomerRegistry()
+customer_registry.register('customer_a', customer_a)
+customer_registry.register('customer_b', customer_b, is_default=True)
 
-string_1 = 'this is normal entry'
-registry_factory.register('string_1', string_1)
+customer_data = customer_registry.get() 
+print(customer_data) # customer_b data
 
-string_2 = 'this is default entry'
-# set this entry as default
-registry_factory.register('string_2', string_2, is_default=True)
+customer_data = customer_registry.get('customer_a') 
+print(customer_data) # customer_a data
 
-data_from_registry = registry_factory.get()
-print(data_from_registry)  # "this is default entry"
+registered_list = customer_registry.registered() 
+print(registered_list) # ['customer_a', 'customer_b']
 
-data_from_registry = registry_factory.get('string_1')
-print(data_from_registry)  # "this is normal entry"
+# Unregister customer_a from registry
+customer_registry.unregister('customer_a')
 
-registered_list = registry_factory.registered()
-print(registered_list)  # ['string_1', 'string_2']
-
-# Unregister string_1 from registry
-registry_factory.unregister('string_1')
-
-registered_list = registry_factory.registered()
-print(registered_list)  # ['string_2']
+registered_list = customer_registry.registered() 
+print(registered_list) # ['customer_b']
 
 # Unregister everything from registry
-registry_factory.unregister()
+customer_registry.unregister()
 
-registered_list = registry_factory.registered()
-print(registered_list)  # None
+registered_list = customer_registry.registered() 
+print(registered_list) # None
 ```
