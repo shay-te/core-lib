@@ -10,6 +10,7 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 settings.configure()
 settings.DEFAULT_CHARSET = 'utf-8'
 
+
 class TestWebHelpers(unittest.TestCase):
 
     def test_web_utils_flask(self):
@@ -90,7 +91,6 @@ class TestWebHelpers(unittest.TestCase):
         self.assertEqual(resp_json_data['error'], 'file not found')
 
     def test_web_utils_django(self):
-
         web_util = WebHelpersUtils()
 
         web_util.init(web_util.ServerType.DJANGO)
