@@ -4,7 +4,7 @@ from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler import SqlAlchemyDataHandler
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
@@ -20,11 +20,11 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
             Base.metadata.create_all(self._engine)
 
     @property
-    def engine(self) -> create_engine:
+    def engine(self) -> engine:
         return self._engine
 
     @property
-    def connection(self) -> create_engine:
+    def connection(self):
         return self._connection
 
     def get(self, use_parent_instance=False, *args, **kwargs) -> SqlAlchemyDataHandler:

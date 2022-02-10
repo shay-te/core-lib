@@ -2,6 +2,9 @@
 import argparse
 import logging
 import os
+
+from omegaconf import DictConfig
+
 from core_lib.alembic.alembic import Alembic
 from hydra.experimental import compose, initialize_config_dir
 
@@ -61,7 +64,7 @@ def get_rev_options() -> list:
     return choices
 
 
-def load_config() -> compose:
+def load_config() -> DictConfig:
     # path_cwd = os.getcwd()
     # path_folder = os.path.dirname(os.path.abspath(__file__))
     # path_rel = os.path.relpath(path_cwd, path_folder)

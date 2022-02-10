@@ -24,7 +24,7 @@ def _parse_datetime(expire: str) -> timedelta:
     return parse(expire) - datetime.utcnow()
 
 
-def _get_expire(expire) -> Union[timedelta, str]:
+def _get_expire(expire) -> timedelta:
     # validate expire BEFORE USE, in a reason to promote errors to startup time
     if expire and isinstance(expire, str):
         return _parse_datetime(expire)  # Will raise an error on wrong expression

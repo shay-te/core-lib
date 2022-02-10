@@ -8,7 +8,7 @@ class CacheHandlerNoCache(CacheHandler):
     def __init__(self):
         self.cached_function_responses = {}
 
-    def get(self, key) -> None:
+    def get(self, key):
         return None
 
     def set(self, key: str, value, expire: datetime.timedelta):

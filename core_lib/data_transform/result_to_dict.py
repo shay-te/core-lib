@@ -71,8 +71,7 @@ def __base_to_dict(obj, found=None) -> dict:
     return result
 
 
-def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None) -> \
-        Union[list[dict], Awaitable[dict], dict, tuple]:
+def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
     if isinstance(return_val, list) and return_val:
         results = []
         for entity in return_val:

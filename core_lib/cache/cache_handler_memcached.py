@@ -10,7 +10,7 @@ class CacheHandlerMemcached(CacheHandler):
     def __init__(self, url: str):
         self.memcached_client = Client([url])
 
-    def get(self, key) -> dict:
+    def get(self, key):
         value = self.memcached_client.get(key)
         return json.loads(value) if value else None
 
