@@ -30,20 +30,12 @@ class TestSoftDelete(unittest.TestCase):
         data_name_2 = "test_name_2"
         data_name_3 = "test_name_3"
         with self.__class__.db_data_session.get() as session:
-            data = Data()
-            data.name = data_name_1
-            session.add(data)
-
-        with self.__class__.db_data_session.get() as session:
-            data = Data()
-            data.name = data_name_2
-            session.add(data)
-
-        with self.__class__.db_data_session.get() as session:
-            data = Data()
-            data.name = data_name_3
-            session.add(data)
-
+            objects = [
+                Data(name=data_name_1),
+                Data(name=data_name_2),
+                Data(name=data_name_3)
+            ]
+            session.bulk_save_objects(objects)
         with self.__class__.db_data_session.get() as session:
             dattime = datetime.utcnow()
             all_data = session.query(Data).all()

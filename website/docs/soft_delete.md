@@ -38,7 +38,9 @@ class SoftDeleteMixin(object):
 
 
 ### SoftDeleteTokenMixin
-`SoftDeleteTokenMixin` creates the following column in a table. Which can be used for Indexing if the user wants.
+`SoftDeleteTokenMixin` creates the following column in a table. Which can be used for Indexing, If the user wants the 
+`deleted_at` column to be indexed, it's best to use `delete_token` because indexing on a `DateTime` column is slow.
+>**Note:** If the user does not want indexing on `deleted_at`, this class can be skipped and the `delete_token` column will not be created. 
 - `delete_token`:
   - type: `Integer`
   - default: `None`
