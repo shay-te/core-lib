@@ -23,7 +23,7 @@ SQLAlchemy
  - Datetime ( converted to `timestamp` )
 
 Python
- - Point (Geographical point)
+ - WKBElement / WKTElement (Geographical point) ( converted to Point )
  - Float
  - Tuple
  - List
