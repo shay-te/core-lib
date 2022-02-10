@@ -29,17 +29,15 @@ Python
  - List
  - Dictionary
  - Set
- - BLOB/Binary
+ - Binary
  - ENUM
  - Integer
  - String
- - BLOB/Binary
  - Boolean
  - Unicode
  - Date ( converted to `timestamp` )
  - Datetime ( converted to `timestamp` )
  - Objects ( converted to `dict` )
- - Base ( converted to `dict` )
 
 
  
@@ -98,13 +96,7 @@ class ResultToDict(object):
         self.callback = callback
 
     def __call__(self, func, *args, **kwargs):
-
-        @wraps(func)
-        def __wrapper(*args, **kwargs):
-            return_val = func(*args, **kwargs)
-            return result_to_dict(return_val, properties_as_dict=True, callback=self.callback)
-        return __wrapper
-
+        ...
 ```
 `func`: the decorated function that's returning the data.
 
