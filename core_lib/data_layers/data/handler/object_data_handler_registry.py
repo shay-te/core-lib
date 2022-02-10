@@ -13,7 +13,7 @@ class ObjectDataHandlerRegistry(DataHandlerRegistry):
     def object(self):
         return self._obj
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> ObjectDataHandler:
         obj = self._obj
         if self.new_session_callback:
             obj = self.new_session_callback(self._obj)

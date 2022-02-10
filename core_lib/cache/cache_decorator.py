@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta, datetime, timezone
 from functools import wraps
-from typing import Union
+from typing import Union, Any
 import parsedatetime
 
 from core_lib.core_lib import CoreLib
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 parse_datetime_calendar = parsedatetime.Calendar()
 
 
-def parse(d_time: str):
+def parse(d_time: str) -> datetime:
     result_datetime, result = parse_datetime_calendar.parseDT(d_time)
     if result == 0:
         raise ValueError('Unable to parse time expression `{}`'.format(d_time))
@@ -20,11 +20,11 @@ def parse(d_time: str):
     return result_utc_datetime
 
 
-def _parse_datetime(expire: str):
+def _parse_datetime(expire: str) -> timedelta:
     return parse(expire) - datetime.utcnow()
 
 
-def _get_expire(expire):
+def _get_expire(expire) -> Union[timedelta, str]:
     # validate expire BEFORE USE, in a reason to promote errors to startup time
     if expire and isinstance(expire, str):
         return _parse_datetime(expire)  # Will raise an error on wrong expression

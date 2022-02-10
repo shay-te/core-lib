@@ -20,11 +20,11 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
             Base.metadata.create_all(self._engine)
 
     @property
-    def engine(self):
+    def engine(self) -> create_engine:
         return self._engine
 
     @property
-    def connection(self):
+    def connection(self) -> create_engine:
         return self._connection
 
     def get(self, use_parent_instance=False, *args, **kwargs) -> SqlAlchemyDataHandler:
@@ -54,7 +54,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         else:
             db_session.close()
 
-    def _create_engine(self, config):
+    def _create_engine(self, config) -> create_engine:
         engine = create_engine(build_url(**config.url),
                                pool_recycle=config.session.pool_recycle,
                                echo=config.log_queries)

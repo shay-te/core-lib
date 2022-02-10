@@ -12,7 +12,7 @@ from core_lib_generator.core_lib_generate import CoreLibGenerate
 logger = logging.getLogger(__name__)
 
 
-def list_to_string(lst: list):
+def list_to_string(lst: list) -> str:
     name = ''
     for n in lst:
         name = name + n + ' '
@@ -51,7 +51,7 @@ def on_revision(value):
         alembic.create_migration(name)
 
 
-def get_rev_options():
+def get_rev_options() -> list:
     choices = ['head', 'base', 'new']
     for i in range(-10, 11):
         if i != 0:
@@ -61,7 +61,7 @@ def get_rev_options():
     return choices
 
 
-def load_config():
+def load_config() -> compose:
     # path_cwd = os.getcwd()
     # path_folder = os.path.dirname(os.path.abspath(__file__))
     # path_rel = os.path.relpath(path_cwd, path_folder)

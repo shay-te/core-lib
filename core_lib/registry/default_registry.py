@@ -34,5 +34,5 @@ class DefaultRegistry(Registry):
             result = list(self.name_to_object.values())[0]
         return result
 
-    def registered(self):
+    def registered(self) -> list:
         return list(self.name_to_object.keys())

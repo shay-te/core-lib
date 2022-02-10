@@ -16,7 +16,7 @@ class Neo4jDataHandlerRegistry(DataHandlerRegistry):
                                                   encrypted=False)
 
     @property
-    def driver(self):
+    def driver(self) -> GraphDatabase:
         return self._neo4j_driver
 
     def get(self, *args, **kwargs) -> Neo4jDataHandler:
