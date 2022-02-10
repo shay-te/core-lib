@@ -7,6 +7,8 @@ from django.conf import settings
 from core_lib.web_helpers.request_response_helpers import response_status, response_ok, response_message, response_json
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
+settings.configure()
+settings.DEFAULT_CHARSET = 'utf-8'
 
 class TestWebHelpers(unittest.TestCase):
 
@@ -87,11 +89,7 @@ class TestWebHelpers(unittest.TestCase):
         self.assertIsInstance(resp_json_data, dict)
         self.assertEqual(resp_json_data['error'], 'file not found')
 
-
-
     def test_web_utils_django(self):
-        settings.configure()
-        settings.DEFAULT_CHARSET = 'utf-8'
 
         web_util = WebHelpersUtils()
 
