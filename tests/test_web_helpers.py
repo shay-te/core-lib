@@ -1,8 +1,5 @@
 import json
 import unittest
-from http import HTTPStatus
-
-from flask import jsonify
 
 from core_lib.web_helpers.request_response_helpers import response_status, response_ok, response_message
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
@@ -85,6 +82,3 @@ class TestWebHelpers(unittest.TestCase):
 
         resp_ok = response_ok()
         self.assertEqual(resp_ok.status_code, 200)
-        resp_data = json.loads(resp_ok.data.decode('utf-8'))
-        self.assertIsInstance(resp_data, dict)
-        self.assertEqual(resp_data['message'], 'ok')
