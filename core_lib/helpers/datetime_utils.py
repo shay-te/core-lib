@@ -44,12 +44,16 @@ def day_end(hours: int = 0, minutes: int = 0):
 
 
 def tomorrow(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)\
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) \
            + timedelta(days=1, hours=hours, minutes=minutes)
 
 
+def today():
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def yesterday(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)\
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) \
            - timedelta(days=1) + timedelta(hours=hours, minutes=minutes)
 
 
@@ -105,7 +109,7 @@ def month_begin(hours: int = 0, minutes: int = 0):
 
 
 def month_end(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1)\
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1) \
            + relativedelta(months=1, hours=hours, minutes=minutes)
 
 

@@ -1,11 +1,9 @@
 import unittest
 from datetime import datetime, timedelta
 
-from dateutil.utils import today
-
 from core_lib.helpers.datetime_utils import year_begin, year_end, month_begin, month_end, week_begin, week_end, \
-    day_begin, day_end, tomorrow, yesterday, midnight, sunday, monday, tuesday, wednesday, thursday, friday, saturday, \
-    hour_begin, hour_end
+    day_begin, day_end, tomorrow, today, yesterday, midnight, sunday, monday, tuesday, wednesday, thursday, friday, \
+    saturday, hour_begin, hour_end
 from core_lib.helpers.func_utils import reset_datetime
 
 

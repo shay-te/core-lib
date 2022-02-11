@@ -14,10 +14,11 @@ sidebar_label: Datetime Utilities
 - `month_end` returns the last day of the month.
 - `week_begin` returns the first day of the week.
   >Note: The starting day of the week will be considered as Monday.
-  - `week_end` returns the last day of the week.
+- `week_end` returns the last day of the week.
 - `day_begin` returns the `datetime` for the beginning of the day.
 - `day_end` returns the `datetime` for the ending of the day
 - `tomorrow` returns tomorrow's day.
+- `today` returns today's day.
 - `yesterday` returns yesterday's day.
 - `midnight` returns the midnight for today.
 - `sunday` returns the next Sunday's date.
