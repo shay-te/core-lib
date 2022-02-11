@@ -1,4 +1,5 @@
 import enum
+import json
 import os.path
 import unittest
 import datetime
@@ -19,7 +20,6 @@ class MyEnum(enum.Enum):
 
 
 class Data(Base):
-
     __tablename__ = 'data'
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -33,6 +33,14 @@ class Data(Base):
     data_bool = Column(Boolean, nullable=False, default="")
     data_unicode = Column(Unicode, nullable=False, default="")
     data_enum = Column(Enum(MyEnum))
+
+
+def get_object(result):
+    info = result.get('object')
+    if info and isinstance(info, str):
+        dict_value = json.loads(info)
+        return dict_value
+    raise ValueError("Must be string")
 
 
 class TestResultToDict(unittest.TestCase):
@@ -153,6 +161,16 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['data_float'], data_float)
             self.assertEqual(converted_data[0]['data_bool'], data_bool)
             self.assertEqual(converted_data[0]['data_unicode'], data_unicode)
+
+    def test_callback(self):
+        json_value = {"userId": 1, "id": 1, "title": "Some Title", "object": '{"value": "JSON in Python", '
+                                                                             '"number": 123}'}
+        data = result_to_dict(json_value, callback=get_object)
+        self.assertNotEqual(data, None)
+        self.assertIsInstance(data, dict)
+        self.assertDictEqual(data, {"value": "JSON in Python", "number": 123})
+        self.assertEqual(data['value'], "JSON in Python")
+        self.assertEqual(data['number'], 123)
 
     @ResultToDict()
     def get_from_params(self, param):
