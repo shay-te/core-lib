@@ -3,8 +3,11 @@ import unittest
 from http import HTTPStatus
 
 from django.conf import settings
+from django.http import HttpRequest
+from flask import request
 
-from core_lib.web_helpers.request_response_helpers import response_status, response_ok, response_message, response_json
+from core_lib.web_helpers.request_response_helpers import response_status, response_ok, response_message, response_json, \
+    request_body_dict
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 settings.configure()
@@ -90,6 +93,19 @@ class TestWebHelpers(unittest.TestCase):
         self.assertIsInstance(resp_json_data, dict)
         self.assertEqual(resp_json_data['error'], 'file not found')
 
+        # Request to Dict
+        request_object = request
+        print(request)
+        request_object.json = b'{"userId": 1, "id": 1, "title": "Some Title", "completed":"false"}'
+
+        req_json = request_body_dict(request_object)
+        self.assertIsInstance(req_json, dict)
+        self.assertDictEqual(req_json, {"userId": 1, "id": 1, "title": "Some Title", "completed": "false"})
+        self.assertEqual(req_json['userId'], 1)
+        self.assertEqual(req_json['id'], 1)
+        self.assertEqual(req_json['title'], 'Some Title')
+        self.assertEqual(req_json['completed'], 'false')
+
     def test_web_utils_django(self):
         web_util = WebHelpersUtils()
 
@@ -156,3 +172,15 @@ class TestWebHelpers(unittest.TestCase):
         resp_json_data = json.loads(resp_json.content.decode('utf-8'))
         self.assertIsInstance(resp_json_data, dict)
         self.assertEqual(resp_json_data['error'], 'file not found')
+
+        # Request to Dict
+        request_object = HttpRequest
+        request_object.body = b'{"userId": 1, "id": 1, "title": "Some Title", "completed":"false"}'
+
+        req_json = request_body_dict(request_object)
+        self.assertIsInstance(req_json, dict)
+        self.assertDictEqual(req_json, {"userId": 1, "id": 1, "title": "Some Title", "completed": "false"})
+        self.assertEqual(req_json['userId'], 1)
+        self.assertEqual(req_json['id'], 1)
+        self.assertEqual(req_json['title'], 'Some Title')
+        self.assertEqual(req_json['completed'], 'false')
