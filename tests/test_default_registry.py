@@ -7,6 +7,16 @@ from geoalchemy2 import WKTElement
 from core_lib.registry.default_registry import DefaultRegistry
 
 
+class Customer(object):
+    pass
+
+
+class CustomerRegistry(DefaultRegistry):
+
+    def __init__(self):
+        DefaultRegistry.__init__(self, Customer)
+
+
 class MyEnum(enum.Enum):
     one = 1
     two = 2
@@ -17,139 +27,139 @@ class TestDefaultRegistry(unittest.TestCase):
 
     def test_default_registry_string(self):
         string = 'hello world'
-        registry_factory = DefaultRegistry(str)
-        registry_factory.register('string', string)
+        str_registry = DefaultRegistry(str)
+        str_registry.register('string', string)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('string', 10)
+            str_registry.register('string', 10)
         with self.assertRaises(AssertionError):
-            registry_factory.register('string', None)
+            str_registry.register('string', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('string', '')
+            str_registry.register('string', '')
 
-        self.assertEqual(registry_factory.get('string'), string)
-        self.assertEqual(registry_factory.get(), string)
+        self.assertEqual(str_registry.get('string'), string)
+        self.assertEqual(str_registry.get(), string)
 
-        self.assertEqual(registry_factory.registered()[0], 'string')
-        self.assertListEqual(registry_factory.registered(), ['string'])
+        self.assertEqual(str_registry.registered()[0], 'string')
+        self.assertListEqual(str_registry.registered(), ['string'])
 
-        registry_factory.unregister('string')
-        self.assertEqual(registry_factory.get('string'), None)
+        str_registry.unregister('string')
+        self.assertEqual(str_registry.get('string'), None)
 
     def test_default_registry_int(self):
         integer = 145
-        registry_factory = DefaultRegistry(int)
-        registry_factory.register('integer', integer)
+        int_registry = DefaultRegistry(int)
+        int_registry.register('integer', integer)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('integer', 'Hello')
+            int_registry.register('integer', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('integer', 12.01147)
+            int_registry.register('integer', 12.01147)
         with self.assertRaises(AssertionError):
-            registry_factory.register('integer', None)
+            int_registry.register('integer', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('integer', {})
+            int_registry.register('integer', {})
 
-        self.assertEqual(registry_factory.get('integer'), integer)
-        self.assertEqual(registry_factory.get(), integer)
+        self.assertEqual(int_registry.get('integer'), integer)
+        self.assertEqual(int_registry.get(), integer)
 
-        self.assertEqual(registry_factory.registered()[0], 'integer')
-        self.assertListEqual(registry_factory.registered(), ['integer'])
+        self.assertEqual(int_registry.registered()[0], 'integer')
+        self.assertListEqual(int_registry.registered(), ['integer'])
 
-        registry_factory.unregister('integer')
-        self.assertEqual(registry_factory.get('integer'), None)
+        int_registry.unregister('integer')
+        self.assertEqual(int_registry.get('integer'), None)
 
     def test_default_registry_float(self):
         flt = 145.67
-        registry_factory = DefaultRegistry(float)
-        registry_factory.register('float', flt)
+        float_registry = DefaultRegistry(float)
+        float_registry.register('float', flt)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('float', 'Hello')
+            float_registry.register('float', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('float', 12)
+            float_registry.register('float', 12)
         with self.assertRaises(AssertionError):
-            registry_factory.register('float', None)
+            float_registry.register('float', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('float', {})
+            float_registry.register('float', {})
 
-        self.assertEqual(registry_factory.get('float'), flt)
-        self.assertEqual(registry_factory.get(), flt)
+        self.assertEqual(float_registry.get('float'), flt)
+        self.assertEqual(float_registry.get(), flt)
 
-        self.assertEqual(registry_factory.registered()[0], 'float')
-        self.assertListEqual(registry_factory.registered(), ['float'])
+        self.assertEqual(float_registry.registered()[0], 'float')
+        self.assertListEqual(float_registry.registered(), ['float'])
 
-        registry_factory.unregister('float')
-        self.assertEqual(registry_factory.get('float'), None)
+        float_registry.unregister('float')
+        self.assertEqual(float_registry.get('float'), None)
 
     def test_default_registry_bool(self):
         boolean = True
-        registry_factory = DefaultRegistry(bool)
-        registry_factory.register('boolean', boolean)
+        bool_registry = DefaultRegistry(bool)
+        bool_registry.register('boolean', boolean)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('boolean', 'Hello')
+            bool_registry.register('boolean', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('boolean', 12)
+            bool_registry.register('boolean', 12)
         with self.assertRaises(AssertionError):
-            registry_factory.register('boolean', None)
+            bool_registry.register('boolean', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('boolean', {})
+            bool_registry.register('boolean', {})
 
-        self.assertEqual(registry_factory.get('boolean'), boolean)
-        self.assertEqual(registry_factory.get(), boolean)
+        self.assertEqual(bool_registry.get('boolean'), boolean)
+        self.assertEqual(bool_registry.get(), boolean)
 
-        self.assertEqual(registry_factory.registered()[0], 'boolean')
-        self.assertListEqual(registry_factory.registered(), ['boolean'])
+        self.assertEqual(bool_registry.registered()[0], 'boolean')
+        self.assertListEqual(bool_registry.registered(), ['boolean'])
 
-        registry_factory.unregister('boolean')
-        self.assertEqual(registry_factory.get('boolean'), None)
+        bool_registry.unregister('boolean')
+        self.assertEqual(bool_registry.get('boolean'), None)
 
     def test_default_registry_list(self):
         lst = [['fruit', 'apple'], ['fruit', 'banana'], ['fruit', 'cherry']]
-        registry_factory = DefaultRegistry(list)
-        registry_factory.register('list', lst)
+        list_registry = DefaultRegistry(list)
+        list_registry.register('list', lst)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('list', 'Hello')
+            list_registry.register('list', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('list', 12)
+            list_registry.register('list', 12)
         with self.assertRaises(AssertionError):
-            registry_factory.register('list', None)
+            list_registry.register('list', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('list', {})
+            list_registry.register('list', {})
 
-        self.assertListEqual(registry_factory.get('list'), lst)
-        self.assertListEqual(registry_factory.get(), lst)
+        self.assertListEqual(list_registry.get('list'), lst)
+        self.assertListEqual(list_registry.get(), lst)
 
-        self.assertEqual(registry_factory.registered()[0], 'list')
-        self.assertListEqual(registry_factory.registered(), ['list'])
+        self.assertEqual(list_registry.registered()[0], 'list')
+        self.assertListEqual(list_registry.registered(), ['list'])
 
-        registry_factory.unregister('list')
-        self.assertEqual(registry_factory.get('list'), None)
+        list_registry.unregister('list')
+        self.assertEqual(list_registry.get('list'), None)
 
     def test_default_registry_tuple(self):
         tpl = (('fruit', 'apple'), ('fruit', 'banana'), ('fruit', 'cherry'))
-        registry_factory = DefaultRegistry(tuple)
-        registry_factory.register('tuple', tpl)
+        tuple_registry = DefaultRegistry(tuple)
+        tuple_registry.register('tuple', tpl)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('tuple', 'Hello')
+            tuple_registry.register('tuple', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('tuple', 12)
+            tuple_registry.register('tuple', 12)
         with self.assertRaises(AssertionError):
-            registry_factory.register('tuple', None)
+            tuple_registry.register('tuple', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('tuple', {})
+            tuple_registry.register('tuple', {})
 
-        self.assertTupleEqual(registry_factory.get('tuple'), tpl)
-        self.assertTupleEqual(registry_factory.get(), tpl)
+        self.assertTupleEqual(tuple_registry.get('tuple'), tpl)
+        self.assertTupleEqual(tuple_registry.get(), tpl)
 
-        self.assertEqual(registry_factory.registered()[0], 'tuple')
-        self.assertListEqual(registry_factory.registered(), ['tuple'])
+        self.assertEqual(tuple_registry.registered()[0], 'tuple')
+        self.assertListEqual(tuple_registry.registered(), ['tuple'])
 
-        registry_factory.unregister('tuple')
-        self.assertEqual(registry_factory.get('tuple'), None)
+        tuple_registry.unregister('tuple')
+        self.assertEqual(tuple_registry.get('tuple'), None)
 
     def test_default_registry_dict(self):
         dat = date(2022, 1, 1)
@@ -165,90 +175,119 @@ class TestDefaultRegistry(unittest.TestCase):
             'point': point,
             'enum': MyEnum.one.value
         }
-        registry_factory = DefaultRegistry(dict)
-        registry_factory.register('dict', dct)
+        dict_registry = DefaultRegistry(dict)
+        dict_registry.register('dict', dct)
 
         with self.assertRaises(ValueError):
-            registry_factory.register('dict', 'Hello')
+            dict_registry.register('dict', 'Hello')
         with self.assertRaises(ValueError):
-            registry_factory.register('dict', 12)
+            dict_registry.register('dict', 12)
         with self.assertRaises(AssertionError):
-            registry_factory.register('dict', None)
+            dict_registry.register('dict', None)
         with self.assertRaises(AssertionError):
-            registry_factory.register('dict', ())
+            dict_registry.register('dict', ())
 
-        self.assertDictEqual(registry_factory.get('dict'), dct)
-        self.assertDictEqual(registry_factory.get(), dct)
-        self.assertEqual(registry_factory.get('dict')['date'], dat)
-        self.assertEqual(registry_factory.get('dict')['datetime'], dattime)
-        self.assertEqual(registry_factory.get('dict')['tuple'], tpl)
-        self.assertEqual(registry_factory.get('dict')['list'], lst)
-        self.assertEqual(registry_factory.get('dict')['point'], point)
-        self.assertEqual(registry_factory.get('dict')['enum'], 1)
+        self.assertDictEqual(dict_registry.get('dict'), dct)
+        self.assertDictEqual(dict_registry.get(), dct)
+        self.assertEqual(dict_registry.get('dict')['date'], dat)
+        self.assertEqual(dict_registry.get('dict')['datetime'], dattime)
+        self.assertEqual(dict_registry.get('dict')['tuple'], tpl)
+        self.assertEqual(dict_registry.get('dict')['list'], lst)
+        self.assertEqual(dict_registry.get('dict')['point'], point)
+        self.assertEqual(dict_registry.get('dict')['enum'], 1)
 
-        self.assertEqual(registry_factory.registered()[0], 'dict')
-        self.assertListEqual(registry_factory.registered(), ['dict'])
+        self.assertEqual(dict_registry.registered()[0], 'dict')
+        self.assertListEqual(dict_registry.registered(), ['dict'])
 
-        registry_factory.unregister('dict')
-        self.assertEqual(registry_factory.get('dict'), None)
+        dict_registry.unregister('dict')
+        self.assertEqual(dict_registry.get('dict'), None)
 
     def test_default_registry_multiple_default(self):
-        registry_factory = DefaultRegistry(str)
+        multiple_registry = DefaultRegistry(str)
 
         string_1 = 'hello world 1'
-        registry_factory.register('string_1', string_1)
+        multiple_registry.register('string_1', string_1)
 
         string_2 = 'hello world 2'
-        registry_factory.register('string_2', string_2, is_default=True)
+        multiple_registry.register('string_2', string_2, is_default=True)
 
         string_3 = 'hello world 3'
-        registry_factory.register('string_3', string_3)
+        multiple_registry.register('string_3', string_3)
 
-        self.assertEqual(registry_factory.get('string_1'), string_1)
-        self.assertEqual(registry_factory.get('string_2'), string_2)
-        self.assertEqual(registry_factory.get('string_3'), string_3)
+        self.assertEqual(multiple_registry.get('string_1'), string_1)
+        self.assertEqual(multiple_registry.get('string_2'), string_2)
+        self.assertEqual(multiple_registry.get('string_3'), string_3)
 
-        self.assertEqual(registry_factory.get(), string_2)
-        self.assertNotEqual(registry_factory.get(), string_1)
-        self.assertNotEqual(registry_factory.get(), string_3)
+        self.assertEqual(multiple_registry.get(), string_2)
+        self.assertNotEqual(multiple_registry.get(), string_1)
+        self.assertNotEqual(multiple_registry.get(), string_3)
 
-        self.assertEqual(registry_factory.registered()[0], 'string_1')
-        self.assertEqual(registry_factory.registered()[1], 'string_2')
-        self.assertEqual(registry_factory.registered()[2], 'string_3')
+        self.assertEqual(multiple_registry.registered()[0], 'string_1')
+        self.assertEqual(multiple_registry.registered()[1], 'string_2')
+        self.assertEqual(multiple_registry.registered()[2], 'string_3')
 
-        self.assertListEqual(registry_factory.registered(), ['string_1', 'string_2', 'string_3'])
+        self.assertListEqual(multiple_registry.registered(), ['string_1', 'string_2', 'string_3'])
 
-        registry_factory.unregister('string_2')
-        self.assertEqual(registry_factory.get(), string_1)
+        multiple_registry.unregister('string_2')
+        self.assertEqual(multiple_registry.get(), string_1)
 
     def test_default_registry_multiple_objects_default(self):
-        registry_factory = DefaultRegistry(dict)
+        multiple_registry = DefaultRegistry(dict)
 
         dict_1 = {'number': 'one'}
-        registry_factory.register('dict_1', dict_1)
+        multiple_registry.register('dict_1', dict_1)
 
         dict_2 = {'number': 'two'}
-        registry_factory.register('dict_2', dict_2, is_default=True)
+        multiple_registry.register('dict_2', dict_2, is_default=True)
 
         dict_3 = {'number': 'three'}
-        registry_factory.register('dict_3', dict_3)
+        multiple_registry.register('dict_3', dict_3)
 
-        self.assertDictEqual(registry_factory.get('dict_1'), dict_1)
-        self.assertEqual(registry_factory.get('dict_1')['number'], 'one')
-        self.assertDictEqual(registry_factory.get('dict_2'), dict_2)
-        self.assertEqual(registry_factory.get('dict_2')['number'], 'two')
-        self.assertDictEqual(registry_factory.get('dict_3'), dict_3)
-        self.assertEqual(registry_factory.get('dict_3')['number'], 'three')
+        self.assertDictEqual(multiple_registry.get('dict_1'), dict_1)
+        self.assertEqual(multiple_registry.get('dict_1')['number'], 'one')
+        self.assertDictEqual(multiple_registry.get('dict_2'), dict_2)
+        self.assertEqual(multiple_registry.get('dict_2')['number'], 'two')
+        self.assertDictEqual(multiple_registry.get('dict_3'), dict_3)
+        self.assertEqual(multiple_registry.get('dict_3')['number'], 'three')
 
-        self.assertDictEqual(registry_factory.get(), dict_2)
-        self.assertNotEqual(registry_factory.get(), dict_1)
-        self.assertNotEqual(registry_factory.get(), dict_3)
+        self.assertDictEqual(multiple_registry.get(), dict_2)
+        self.assertNotEqual(multiple_registry.get(), dict_1)
+        self.assertNotEqual(multiple_registry.get(), dict_3)
 
-        self.assertEqual(registry_factory.registered()[0], 'dict_1')
-        self.assertEqual(registry_factory.registered()[1], 'dict_2')
-        self.assertEqual(registry_factory.registered()[2], 'dict_3')
+        self.assertEqual(multiple_registry.registered()[0], 'dict_1')
+        self.assertEqual(multiple_registry.registered()[1], 'dict_2')
+        self.assertEqual(multiple_registry.registered()[2], 'dict_3')
 
-        self.assertListEqual(registry_factory.registered(), ['dict_1', 'dict_2', 'dict_3'])
+        self.assertListEqual(multiple_registry.registered(), ['dict_1', 'dict_2', 'dict_3'])
 
-        registry_factory.unregister('dict_2')
-        self.assertEqual(registry_factory.get(), dict_1)
+        multiple_registry.unregister('dict_2')
+        self.assertEqual(multiple_registry.get(), dict_1)
+
+    def test_complex_data(self):
+        customer_registry = CustomerRegistry()
+
+        customer_a = Customer()
+        customer_registry.register('customer_a', customer_a)
+
+        customer_b = Customer()
+        customer_registry.register('customer_b', customer_b, is_default=True)
+
+        customer_c = Customer()
+        customer_registry.register('customer_c', customer_c)
+
+        self.assertEquals(customer_registry.get('customer_a'), customer_a)
+        self.assertEquals(customer_registry.get('customer_b'), customer_b)
+        self.assertEquals(customer_registry.get('customer_c'), customer_c)
+
+        self.assertEquals(customer_registry.get(), customer_b)
+        self.assertNotEqual(customer_registry.get(), customer_a)
+        self.assertNotEqual(customer_registry.get(), customer_c)
+
+        self.assertEqual(customer_registry.registered()[0], 'customer_a')
+        self.assertEqual(customer_registry.registered()[1], 'customer_b')
+        self.assertEqual(customer_registry.registered()[2], 'customer_c')
+
+        self.assertListEqual(customer_registry.registered(), ['customer_a', 'customer_b', 'customer_c'])
+
+        customer_registry.unregister('customer_b')
+        self.assertEqual(customer_registry.get(), customer_a)

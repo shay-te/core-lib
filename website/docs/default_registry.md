@@ -20,8 +20,14 @@ class DefaultRegistry(Registry):
 ```python
 from core_lib.registry.default_registry import DefaultRegistry
 
-# Registry that will only accept type string 
-registry_factory = DefaultRegistry(str) 
+class Customer(object):
+    ...
+        
+        
+class CustomerRegistry(DefaultRegistry):
+
+    def __init__(self):
+        DefaultRegistry.__init__(self, Customer)
 ```
 
 
@@ -33,7 +39,7 @@ Functions provided by the `DefaultRegistry` are as follows:
 def register(self, key: str, object, is_default: bool = False):
     ...
 ````
-`key` is type `str`, sets the key of the registry entry passed to the function.
+`key` is type `str`, sets the key of the registry entry passed to the function, registering the same key again will raise an `ValueError`.
 
 `object` is the actual data to be passed to the function to store in registry.
 
@@ -57,8 +63,8 @@ def unregister(self, key: str):
     ...
 ```
 `key` is type `str`, is the key of the entry to be unregistered from the registry.
->If `key` is not specified when executing `unregister()`, the default value will be unregistered from the registry.
-
+>The first item in the registry becomes default when we unregister a default `key`.
+> 
 #### Usage
 ```python
 from core_lib.registry.default_registry import DefaultRegistry
@@ -80,7 +86,11 @@ def get(self, key: str = None, *args, **kwargs):
 
 `key` is type `str`, is the key of the registry entry to be returned.
 >If `get()` is used without any parameters, it will return the default value supplied by the user, or the 
->first entry in the registry if the default value also isn't provided.
+>first entry in the registry if the default value also isn't provided. 
+
+>If the registry is empty or the `get()` is called with a `key` that does not exist in the registry it will return
+> `None`
+
 
 #### Usage
 ```python
@@ -97,7 +107,6 @@ registry_factory.get('user_name')
 
 ```python
 def registered(self):
-    return list(self.key_to_object.keys())
 ```
 
 #### Usage
