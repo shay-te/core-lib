@@ -126,7 +126,7 @@ def year_end(hours: int = 0, minutes: int = 0) -> datetime:
 # UTILS
 #
 
-def age(born: date) -> Union[int, bool]:
+def age(born: date) -> int:
     today = date.today()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 

@@ -8,7 +8,7 @@ class CacheHandlerRam(CacheHandler):
     def __init__(self):
         self.cached_function_responses = {}
 
-    def get(self, key) -> None:
+    def get(self, key):
         data = self.cached_function_responses.get(key)
         if data:
             if data['expire']:
