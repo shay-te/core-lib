@@ -22,7 +22,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'CoreLib',
-      items: ['main', 'data_layers', 'project_structure', 'basic_classes', 'rules_validator', 'session_manager', 'job', 'factory', 'observer', 'cache', 'helpers', 'web', 'instance_under_stack'],
+      items: ['main', 'data_layers', 'project_structure', 'basic_classes', 'rules_validator', 'session_manager', 'job', 'factory', 'observer', 'cache', 'helpers', 'web', 'instance_under_stack', 'datetime_utils', 'error_handler', 'function_utils', 'result_to_dict', 'strings', 'validation', 'soft_delete'],
     },
     {
       type: 'category',
