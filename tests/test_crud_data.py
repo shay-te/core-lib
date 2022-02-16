@@ -2,8 +2,10 @@ import unittest
 
 from sqlalchemy import Column, Integer, VARCHAR
 
-from core_lib.data_layers.data_access.data_access import DataAccess
+from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
+from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
+from core_lib.rule_validator.rule_validator import RuleValidator
 from tests.test_data.test_utils import connect_to_mem_db
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
@@ -15,13 +17,15 @@ class Data(Base):
     name = Column(VARCHAR(length=255), nullable=False, default="")
 
 
-class TestCrud(unittest.TestCase, DataAccess):
+class CRUDInit(CRUD):
+    def __init__(self):
+        CRUD.__init__(self, Data, connect_to_mem_db(), RuleValidator)
 
-    crud = CRUD()
 
-    @classmethod
-    def setUpClass(cls):
-        cls.db_data_session = connect_to_mem_db()
+class TestCrud(unittest.TestCase):
 
     def test_create(self):
-        self.crud.create(data={id: 1})
+        crud = CRUDInit
+        crud.create({'name': 'test_name'})
+
+
