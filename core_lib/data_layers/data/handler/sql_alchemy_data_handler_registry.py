@@ -25,30 +25,11 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
     def connection(self):
         return self._connection
 
-    def get(self, use_parent_instance=False, *args, **kwargs) -> SqlAlchemyDataHandler:
-        if use_parent_instance:
-            db_session = object
-            if db_session:
-                db_session_count = self.session_to_count[db_session]
-                self.session_to_count[db_session] = db_session_count + 1
-            else:
-                db_session = SqlAlchemyDataHandler(self._engine, use_parent_instance, self._on_db_session_exit)
-                self.session_to_count[db_session] = 1
-            return db_session
-        else:
-            return SqlAlchemyDataHandler(self._engine, use_parent_instance, self._on_db_session_exit)
+    def get(self, *args, **kwargs) -> SqlAlchemyDataHandler:
+        return SqlAlchemyDataHandler(self._engine, self._on_db_session_exit)
 
     def _on_db_session_exit(self, db_session: SqlAlchemyDataHandler):
-        if db_session.use_parent_instance:
-            instance_count = self.session_to_count[db_session]
-            if instance_count is not None:
-                instance_count = instance_count - 1
-                self.session_to_count[db_session] = instance_count
-                if instance_count == 0:
-                    del self.session_to_count[db_session]
-                    db_session.close()
-        else:
-            db_session.close()
+        db_session.close()
 
     def _create_engine(self, config):
         engine = create_engine(build_url(**config.url),
