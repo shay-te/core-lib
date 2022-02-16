@@ -3,6 +3,5 @@ from core_lib.registry.default_registry import DefaultRegistry
 
 
 class CacheRegistry(DefaultRegistry):
-
     def __init__(self):
         DefaultRegistry.__init__(self, CacheHandler)

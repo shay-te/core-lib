@@ -9,7 +9,6 @@ tuple_value = ("fruit", "apple")
 
 
 class TestErrorHandling(unittest.TestCase):
-
     def test_error_handler_string(self):
         with self.assertRaises(StatusCodeException):
             self.get_nothing()

@@ -3,7 +3,6 @@ import threading
 
 
 class InstanceUnderStack(object):
-
     def __init__(self, stack_start_index: int = 4):
         self.object_to_instance_path = {}
         self.stack_start_index = stack_start_index
@@ -11,7 +10,7 @@ class InstanceUnderStack(object):
     def get_stack_path(self) -> str:
         stack = inspect.stack(0)
         lst = []
-        for stack_frame in stack[self.stack_start_index:]:
+        for stack_frame in stack[self.stack_start_index :]:
             lst.insert(0, str(id(stack_frame.frame)))
         stack_path = '<-#->'.join(lst)
 

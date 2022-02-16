@@ -4,7 +4,6 @@ from core_lib.session.token_handler import TokenHandler
 
 
 class UserSecurity(ABC):
-
     def __init__(self, cookie_name: str, token_handler: TokenHandler):
         assert cookie_name
         self.cookie_name = cookie_name

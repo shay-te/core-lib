@@ -13,7 +13,6 @@ from examples.demo_core_lib.core_lib.data_layers.service.demo_service import Dem
 
 
 class DemoCoreLib(CoreLib):
-
     def __init__(self, conf: DictConfig):
         self.config = conf
 

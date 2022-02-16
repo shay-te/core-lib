@@ -34,7 +34,6 @@ core_lib = CombineCoreLib(config.core_lib)
 
 
 class TestCombinedExample(unittest.TestCase):
-
     def test_01_group_services(self):
         self.assertEqual(core_lib.test.test.test_1.get_value(), 1)
         self.assertEqual(core_lib.test.test.test_2.get_value(), 2)
@@ -71,7 +70,7 @@ class TestCombinedExample(unittest.TestCase):
             "first_name": generate_random_string(),
             "email": generate_email(),
             "birthday": date.today(),
-            "gender": User.Gender.MALE.value
+            "gender": User.Gender.MALE.value,
         }
 
         user_create = core_lib.test.user.create(user_data)
@@ -100,14 +99,17 @@ class TestCombinedExample(unittest.TestCase):
         update_first_name = generate_random_string()
         update_birthday = date.today()
         update_gender = User.Gender.FEMALE.value
-        user_update_status = core_lib.test.user.update(user_create["id"], {
-            "username": update_username,
-            "password": update_password,
-            "nick_name": update_nick_name,
-            "first_name": update_first_name,
-            "birthday": update_birthday,
-            "gender": update_gender
-        })
+        user_update_status = core_lib.test.user.update(
+            user_create["id"],
+            {
+                "username": update_username,
+                "password": update_password,
+                "nick_name": update_nick_name,
+                "first_name": update_first_name,
+                "birthday": update_birthday,
+                "gender": update_gender,
+            },
+        )
         self.assertEqual(user_update_status, 1)
 
         user_get = core_lib.test.user.get(user_create["id"])
@@ -120,7 +122,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_get["gender"], update_gender)
 
         # Rules preventing to update birthday so say the rules
-        self.assertRaises(PermissionError, core_lib.test.user.update, user_create["id"], {"email":  generate_email()})
+        self.assertRaises(PermissionError, core_lib.test.user.update, user_create["id"], {"email": generate_email()})
 
         # Create
         user_data_invalie_email = {
@@ -129,6 +131,6 @@ class TestCombinedExample(unittest.TestCase):
             "nick_name": generate_random_string(),
             "first_name": generate_random_string(),
             "email": 'non valid email',
-            "gender": User.Gender.MALE
+            "gender": User.Gender.MALE,
         }
         self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)

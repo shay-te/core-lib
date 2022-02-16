@@ -3,7 +3,6 @@ from examples.test_core_lib.core_lib.data_layers.data_access.test2_data_access i
 
 
 class Test2Service(Service):
-
     def __init__(self, data_access: Test2DataAccess):
         self.data_access = data_access
 

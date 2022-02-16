@@ -20,7 +20,6 @@ class Data(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 
 
 class TestSoftDelete(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
@@ -30,11 +29,7 @@ class TestSoftDelete(unittest.TestCase):
         data_name_2 = "test_name_2"
         data_name_3 = "test_name_3"
         with self.__class__.db_data_session.get() as session:
-            objects = [
-                Data(name=data_name_1),
-                Data(name=data_name_2),
-                Data(name=data_name_3)
-            ]
+            objects = [Data(name=data_name_1), Data(name=data_name_2), Data(name=data_name_3)]
             session.bulk_save_objects(objects)
         with self.__class__.db_data_session.get() as session:
             dattime = datetime.utcnow()
@@ -44,20 +39,23 @@ class TestSoftDelete(unittest.TestCase):
             self.assertEqual(converted_data[0]['name'], data_name_1)
             self.assertEqual(converted_data[0]['delete_token'], None)
             self.assertEqual(converted_data[0]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 1).update({'deleted_at': dattime,
-                                                             'delete_token':  int(dattime.timestamp())})
+            session.query(Data).filter(Data.id == 1).update(
+                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+            )
 
             self.assertEqual(converted_data[1]['name'], data_name_2)
             self.assertEqual(converted_data[1]['delete_token'], None)
             self.assertEqual(converted_data[1]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 2).update({'deleted_at': dattime,
-                                                             'delete_token': int(dattime.timestamp())})
+            session.query(Data).filter(Data.id == 2).update(
+                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+            )
 
             self.assertEqual(converted_data[2]['name'], data_name_3)
             self.assertEqual(converted_data[2]['delete_token'], None)
             self.assertEqual(converted_data[2]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 3).update({'deleted_at': dattime,
-                                                             'delete_token': int(dattime.timestamp())})
+            session.query(Data).filter(Data.id == 3).update(
+                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+            )
 
             all_deleted_data = session.query(Data).all()
             convert_deleted_data = result_to_dict(all_deleted_data)

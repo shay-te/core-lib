@@ -114,7 +114,6 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
 
 class ResultToDict(object):
-
     def __init__(self, callback: Callable[[dict], Awaitable[dict]] = None):
         self.callback = callback
 

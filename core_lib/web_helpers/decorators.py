@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def handle_exceptions(func):
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
