@@ -46,7 +46,7 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
         elif param in parameters and parameters[param].default != inspect.Parameter.empty:
             result[param] = parameters[param].default
         else:
-            result[param] = param
+            result[param] = None
     return result
 
 

@@ -21,11 +21,11 @@ class TestFunctionUtils(unittest.TestCase):
 
         key3 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, *[11], **{})
         self.assertNotEqual(key3, None)
-        self.assertEqual(key3, 'xyz_11_param_2')
+        self.assertEqual(key3, 'xyz_11_None')
 
         key4 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, *[], **{'param_2': 'pp2'})
         self.assertNotEqual(key4, None)
-        self.assertEqual(key4, 'xyz_param_1_pp2')
+        self.assertEqual(key4, 'xyz_None_pp2')
 
         key5 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, 1, 2)
         self.assertNotEqual(key5, None)
@@ -94,8 +94,8 @@ class TestFunctionUtils(unittest.TestCase):
         dict8 = get_func_parameters_as_dict(get_func_params_test_func)
         self.assertNotEqual(dict8, None)
         self.assertEqual(len(dict8), 4)
-        self.assertEqual(dict8['param_1'], 'param_1')
-        self.assertEqual(dict8['param_2'], 'param_2')
+        self.assertEqual(dict8['param_1'], None)
+        self.assertEqual(dict8['param_2'], None)
         self.assertEqual(dict8['param_3'], 11)
         self.assertEqual(dict8['param_4'], 22)
 
