@@ -7,7 +7,7 @@ from string import Formatter
 logger = logging.getLogger(__name__)
 
 
-def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
+def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     parameters = inspect.signature(func).parameters
     if parameter_name not in parameters:
         raise ValueError(
@@ -20,14 +20,15 @@ class UnseenFormatter(Formatter):
 
     def get_value(self, key, args, kwargs):
         try:
+            empty = f'!E{key}E!'
             if isinstance(key, int) and key < len(args):
-                return args[key]
+                return args[key] or empty
             if isinstance(key, str) and key in kwargs:
-                return kwargs[key]
-            return '!M{}M!'.format(key)
+                return kwargs[key] or empty
+            return f'!M{key}M!'
         except BaseException:
             logger.warning(f'Error while building key. `{key}`', exc_info=True)
-            return '!E{}E!'.format(key)
+            return f'!E{key}E!'
 
 
 _formatter = UnseenFormatter()
