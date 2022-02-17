@@ -30,6 +30,8 @@ sidebar_label: Datetime Utilities
 - `saturday` returns the next Saturday's date.
 - `hour_begin` returns the time for the beginning of current hour.
 - `hour_end` returns the time for the ending of current hour.
+- `age` returns age in `int` for given `date`.
+- `timestamp_to_ms` returns `timestamp` converted to `milliseconds`.
 
 
 ### Usage
