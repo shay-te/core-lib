@@ -7,7 +7,7 @@ from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 
-class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
+class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
@@ -24,4 +24,4 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
         assert id
         with self._db.get() as session:
             return session.query(self._db_entity).filter(self._db_entity.id == id)\
-                .update({'deleted_at': datetime.utcnow()})
+                .update({'deleted_at': datetime.utcnow(), 'delete_token': int(datetime.utcnow().timestamp())})
