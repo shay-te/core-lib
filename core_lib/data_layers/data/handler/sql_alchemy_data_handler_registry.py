@@ -54,7 +54,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         else:
             db_session.close()
 
-    def _create_engine(self, config) -> create_engine:
+    def _create_engine(self, config) -> engine:
         engine = create_engine(build_url(**config.url),
                                pool_recycle=config.session.pool_recycle,
                                echo=config.log_queries)

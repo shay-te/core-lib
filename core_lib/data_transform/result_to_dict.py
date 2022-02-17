@@ -2,7 +2,7 @@ import datetime
 import enum
 from collections import Iterable
 from functools import wraps
-from typing import Callable, Awaitable, Union, List, Any
+from typing import Callable, Awaitable
 
 from geoalchemy2 import WKBElement
 from sqlalchemy import inspect

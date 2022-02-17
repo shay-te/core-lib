@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, date
-from typing import Union
 
 from dateutil.relativedelta import relativedelta
 
