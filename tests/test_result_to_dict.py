@@ -36,11 +36,11 @@ class Data(Base):
 
 
 def get_object(result):
-    info = result.get('object')
-    if info and isinstance(info, str):
-        dict_value = json.loads(info)
+    obj = result.get('object')
+    if obj and isinstance(obj, str):
+        dict_value = json.loads(obj)
         return dict_value
-    raise ValueError("Must be string")
+    raise ValueError("Object values must be a type string")
 
 
 class TestResultToDict(unittest.TestCase):
