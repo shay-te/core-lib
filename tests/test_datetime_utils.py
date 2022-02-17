@@ -1,9 +1,9 @@
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from core_lib.helpers.datetime_utils import year_begin, year_end, month_begin, month_end, week_begin, week_end, \
     day_begin, day_end, tomorrow, today, yesterday, midnight, sunday, monday, tuesday, wednesday, thursday, friday, \
-    saturday, hour_begin, hour_end
+    saturday, hour_begin, hour_end, age, timestamp_to_ms
 from core_lib.helpers.func_utils import reset_datetime
 
 
@@ -109,4 +109,19 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(saturday(), reset_datetime(_next_weekday(today(), 5)))
 
     def test_midnight(self):
-        self.assertNotEqual(midnight(), None)
+        self.assertEqual(midnight(), today())
+        self.assertEqual(midnight().minute, 0)
+        self.assertEqual(midnight().hour, 0)
+
+    def test_age(self):
+        dat = date(2020, 5, 1)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+        dat = date(2000, 1, 1)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+        dat = date(1990, 1, 30)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+
+    def test_timestamp_to_ms(self):
+        self.assertEqual(timestamp_to_ms(datetime.utcnow().timestamp()), int(datetime.utcnow().timestamp() * 1000))
+        dat = datetime(2020, 5, 1, 00, 12, 25)
+        self.assertEqual(timestamp_to_ms(dat.timestamp()), int(dat.timestamp() * 1000))

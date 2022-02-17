@@ -48,8 +48,8 @@ def tomorrow(hours: int = 0, minutes: int = 0):
            + timedelta(days=1, hours=hours, minutes=minutes)
 
 
-def today():
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+def today(hours: int = 0, minutes: int = 0):
+    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0)
 
 
 def yesterday(hours: int = 0, minutes: int = 0):
@@ -58,7 +58,7 @@ def yesterday(hours: int = 0, minutes: int = 0):
 
 
 def midnight(hours: int = 0, minutes: int = 0):
-    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0) - datetime.utcnow()
+    return today(hours, minutes)
 
 
 def sunday(hours: int = 0, minutes: int = 0):
