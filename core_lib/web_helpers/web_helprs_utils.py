@@ -14,7 +14,7 @@ class WebHelpersUtils(object):
         WebHelpersUtils.server_type = server_type
 
     @staticmethod
-    def get_server_type():
+    def get_server_type() -> ServerType:
         if not WebHelpersUtils.server_type:
             raise ValueError('WebHelpersUtils never initialized')
         return WebHelpersUtils.server_type

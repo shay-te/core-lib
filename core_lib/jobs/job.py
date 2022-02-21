@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class Job(ABC):
-
     @abstractmethod
     def initialized(self, data_handler):
         pass

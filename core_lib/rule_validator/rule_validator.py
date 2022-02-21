@@ -3,13 +3,7 @@ import dateutil.parser as datetime_parser
 
 
 class ValueRuleValidator(object):
-
-    def __init__(self,
-                 key: str,
-                 value_type,
-                 nullable: bool = True,
-                 custom_validator=None,
-                 custom_converter=None):
+    def __init__(self, key: str, value_type, nullable: bool = True, custom_validator=None, custom_converter=None):
         self.key = key
         self.value_type = value_type
         self.nullable = nullable
@@ -18,13 +12,14 @@ class ValueRuleValidator(object):
 
 
 class RuleValidator(object):
-
-    def __init__(self,
-                 value_rule_validators: list,
-                 strict_mode: bool = True,
-                 strict_output: bool = False,
-                 mandatory_keys: list = [],
-                 prohibited_keys: list = []):
+    def __init__(
+        self,
+        value_rule_validators: list,
+        strict_mode: bool = True,
+        strict_output: bool = False,
+        mandatory_keys: list = [],
+        prohibited_keys: list = [],
+    ):
         self.strict_mode = strict_mode
         self.strict_output = strict_output
         self.mandatory_keys = mandatory_keys
@@ -33,21 +28,25 @@ class RuleValidator(object):
         self.rules = {}
         for rule_validator in value_rule_validators:
             if not isinstance(rule_validator, ValueRuleValidator):
-                raise ValueError(f'RuleValidator.value_rule_validators can only be from type '
-                                 f'{ValueRuleValidator.__class__.__name__}')
+                raise ValueError(
+                    f'RuleValidator.value_rule_validators can only be from type '
+                    f'{ValueRuleValidator.__class__.__name__}'
+                )
             self.rules[rule_validator.key] = rule_validator
 
-    def validate_dict(self,
-                      update_dict: dict,
-                      strict_mode: bool = True,
-                      strict_output: bool = False,
-                      mandatory_keys: list = None,
-                      prohibited_keys: list = None):
+    def validate_dict(
+        self,
+        update_dict: dict,
+        strict_mode: bool = True,
+        strict_output: bool = False,
+        mandatory_keys: list = None,
+        prohibited_keys: list = None,
+    ) -> dict:
 
         is_strict_mode = strict_mode if strict_mode is not None else self.strict_mode
         is_strict_output = strict_output if strict_output is not None else self.strict_output
 
-        for mandatory_key in (mandatory_keys or self.mandatory_keys):
+        for mandatory_key in mandatory_keys or self.mandatory_keys:
             if mandatory_key not in update_dict:
                 raise PermissionError(f'mandatory_key: `{mandatory_key}`. is missing in update_value.')
 
@@ -71,8 +70,10 @@ class RuleValidator(object):
         parsed_value = value
 
         if not rule.nullable and value is None:
-            raise PermissionError(f'Can\'t update key:{key} column value cannot be null '
-                                  f'(`ValueRuleValidator.nullable` is set to `True`)')
+            raise PermissionError(
+                f'Can\'t update key:{key} column value cannot be null '
+                f'(`ValueRuleValidator.nullable` is set to `True`)'
+            )
 
         if rule.custom_converter:
             parsed_value = rule.custom_converter(value)
@@ -92,8 +93,10 @@ class RuleValidator(object):
             try:
                 parsed_value = datetime_parser.parse(value)
             except BaseException as ex:
-                raise PermissionError(f'Invalid update key:{key} illegal datetime formatted value {value}. '
-                                      f'only ISO format is accepted') from ex
+                raise PermissionError(
+                    f'Invalid update key:{key} illegal datetime formatted value {value}. '
+                    f'only ISO format is accepted'
+                ) from ex
 
         elif value and rule.value_type is not type(parsed_value):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}`')

@@ -3,7 +3,7 @@ import random
 from datetime import datetime, timedelta
 
 
-def generate_random_string(length: int = 10, upper: bool = False, digits: bool = False, special: bool = False):
+def generate_random_string(length: int = 10, upper: bool = False, digits: bool = False, special: bool = False) -> str:
     source = string.ascii_lowercase
     if upper:
         source = source + string.ascii_uppercase
@@ -14,11 +14,11 @@ def generate_random_string(length: int = 10, upper: bool = False, digits: bool =
     return ''.join(random.choice(source) for _ in range(length))
 
 
-def generate_email(domain: str = 'domain.com'):
+def generate_email(domain: str = 'domain.com') -> str:
     return '{}@{}'.format(generate_random_string(), domain)
 
 
-def generate_datetime(from_date: datetime = None, to_date: datetime = None):
+def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> datetime:
     today = datetime.today()
     if not from_date:
         from_date = today - timedelta(days=10)

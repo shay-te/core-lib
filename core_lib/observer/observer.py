@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class Observer(object):
-
     def __init__(self, listener: ObserverListener = None, listener_type: object = None):
         self._listener: List[ObserverListener] = []
         self._listener_type = listener_type
@@ -34,5 +33,6 @@ class Observer(object):
     def _validate(self, listener: ObserverListener):
         assert listener, 'ObserverListener cannot be None'
         if self._listener_type:
-            assert isinstance(listener, self._listener_type), \
-                f'ObserverListener must be of type `{self._listener_type}`'
+            assert isinstance(
+                listener, self._listener_type
+            ), f'ObserverListener must be of type `{self._listener_type}`'

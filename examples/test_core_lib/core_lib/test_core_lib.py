@@ -15,7 +15,6 @@ from examples.test_core_lib.core_lib.data_layers.service.user_service import Use
 
 
 class TestCoreLib(CoreLib):
-
     def __init__(self, conf: DictConfig):
         self.config = conf
 

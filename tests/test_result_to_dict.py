@@ -36,7 +36,6 @@ class Data(Base):
 
 
 class TestResultToDict(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
@@ -77,21 +76,17 @@ class TestResultToDict(unittest.TestCase):
         point = WKTElement('POINT(5 45)')
         set_value = {"fruit", "apple"}
         obj = {"fruit1": "apple", "fruit2": "orange"}
-        lst_object = [{
-            'date': dat,
-            'datetime': dattime,
-            'object': {
-                'object_1': {
-                    'object_2': {
-                        'tuple': tpl,
-                        'list': lst,
-                        'point': point,
-                        'set': set_value,
-                        'object': obj
+        lst_object = [
+            {
+                'date': dat,
+                'datetime': dattime,
+                'object': {
+                    'object_1': {
+                        'object_2': {'tuple': tpl, 'list': lst, 'point': point, 'set': set_value, 'object': obj}
                     }
-                }
+                },
             }
-        }]
+        ]
         result = result_to_dict(lst_object)
         self.assertNotEqual(result, None)
         self.assertTrue(isinstance(result, list))
@@ -143,9 +138,10 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['id'], 1)
             self.assertEqual(converted_data[0]['data_enum'], 1)
             self.assertEqual(converted_data[0]['data_datetime'], data_datetime.timestamp())
-            self.assertEqual(converted_data[0]['data_date'], datetime.datetime(year=data_date.year,
-                                                                               month=data_date.month,
-                                                                               day=data_date.day).timestamp())
+            self.assertEqual(
+                converted_data[0]['data_date'],
+                datetime.datetime(year=data_date.year, month=data_date.month, day=data_date.day).timestamp(),
+            )
             self.assertEqual(converted_data[0]['data_name'], data_name)
             self.assertEqual(converted_data[0]['data_text'], data_text)
             self.assertEqual(converted_data[0]['data_json'], data_json)

@@ -2,7 +2,6 @@ from core_lib.client.client_base import ClientBase
 
 
 class SolrClient(ClientBase):
-
     def __init__(self, target_url):
         ClientBase.__init__(self, target_url)
 
