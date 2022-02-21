@@ -7,7 +7,6 @@ from core_lib.session.token_handler import TokenHandler
 
 
 class JWTTokenHandler(TokenHandler):
-
     def __init__(self, secret, expiration_time: timedelta, verify: bool = False, algorithm: str = 'HS256'):
         assert secret and expiration_time
         self._secret = secret
@@ -16,7 +15,7 @@ class JWTTokenHandler(TokenHandler):
         self._algorithm = algorithm
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    def encode(self, message: dict):
+    def encode(self, message: dict) -> str:
         if 'exp' not in message and self._expiration_time:
             message['exp'] = (datetime.utcnow() + self._expiration_time).timestamp()
         return jwt.encode(message, self._secret, algorithm=self._algorithm)

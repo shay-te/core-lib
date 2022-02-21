@@ -7,14 +7,13 @@ from core_lib.data_layers.data.handler.solr_data_handler import SolrDataHandler
 
 
 class SolrDataHandlerRegistry(DataHandlerRegistry):
-
     def __init__(self, config: DictConfig):
         self._config = config
         solr_address = build_url(**config.url)
         self._solr_client = Solr(solr_address, always_commit=config.always_commit)
 
     @property
-    def client(self):
+    def client(self) -> Solr:
         return self._solr_client
 
     def get(self, *args, **kwargs) -> SolrDataHandler:

@@ -7,7 +7,6 @@ from core_lib.data_layers.data.handler.object_data_handler_registry import Objec
 
 
 class ObjectsDataAccess(DataAccess):
-
     def __init__(self, data_session_factory: ObjectDataHandlerRegistry):
         DataAccess.__init__(self, data_session_factory)
         self.logger = logging.getLogger(self.__class__.__name__)

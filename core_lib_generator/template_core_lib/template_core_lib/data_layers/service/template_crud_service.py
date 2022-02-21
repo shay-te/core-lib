@@ -4,7 +4,6 @@ from core_lib_generator.template_core_lib import TemplateCRUDDataAccess
 
 
 class TemplateCrudService(Service):
-
     def __init__(self, template_da: TemplateCRUDDataAccess):
         self._template_da = template_da
 

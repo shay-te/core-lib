@@ -9,13 +9,10 @@ from examples.objects_core_lib.core_lib.data_layers.service.objects_service impo
 
 
 class ObjectsCoreLib(CoreLib):
-
     def __init__(self, conf: DictConfig):
         self.config = conf
 
-        boto3_client = boto3.client('s3',
-                                    region_name=self.config.s3.aws_region,
-                                    config=Config())
+        boto3_client = boto3.client('s3', region_name=self.config.s3.aws_region, config=Config())
 
         object_data_session_factory = ObjectDataHandlerRegistry(boto3_client)
         self.object = ObjectsService(ObjectsDataAccess(object_data_session_factory))

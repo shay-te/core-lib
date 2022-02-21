@@ -13,13 +13,12 @@ demo_rule_validators = [
     ValueRuleValidator(DemoInfo.demo_info_3.key, str),
     ValueRuleValidator(DemoInfo.demo_info_4.key, str),
     ValueRuleValidator(DemoInfo.demo_info_5.key, str),
-    ValueRuleValidator(DemoInfo.demo_info_6.key, str)
+    ValueRuleValidator(DemoInfo.demo_info_6.key, str),
 ]
 demo_rule_validator = RuleValidator(demo_rule_validators)
 
 
 class DemoDataAccess(DataAccess):
-
     def __init__(self, db: SqlAlchemyDataHandlerRegistry):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)

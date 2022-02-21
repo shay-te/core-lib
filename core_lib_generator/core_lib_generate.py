@@ -189,25 +189,34 @@ def _create_core_lib(core_lib_name):
     # core_lib_name_simple_camel = snake_to_camel(core_lib_name_simple)
 
     # readme
-    _new_file(os.path.join(current_dir, 'template_core_lib/README.md'),
-              _get_file_contant(os.path.join(template_path, 'template_core_lib/README.md')).
-              format(core_lib_name=core_lib_name_camel))
+    _new_file(
+        os.path.join(current_dir, 'template_core_lib/README.md'),
+        _get_file_contant(os.path.join(template_path, 'template_core_lib/README.md')).format(
+            core_lib_name=core_lib_name_camel
+        ),
+    )
 
     # git ignore
-    _new_file(os.path.join(current_dir, 'template_core_lib/.gitignore'),
-              _get_file_contant(os.path.join(template_path, 'template_core_lib/.gitignore')))
+    _new_file(
+        os.path.join(current_dir, 'template_core_lib/.gitignore'),
+        _get_file_contant(os.path.join(template_path, 'template_core_lib/.gitignore')),
+    )
 
     # core lib ddir
     _new_dir(core_lib_dir)
-    _copy_template(os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib/template_core_lib.py'))),
-                   os.path.join(core_lib_dir, f'{core_lib_name}.py'),
-                   {'core_lib_name_camel': core_lib_name_camel})
+    _copy_template(
+        os.path.abspath(os.path.join(template_path, os.path.join('template_core_lib/template_core_lib.py'))),
+        os.path.join(core_lib_dir, f'{core_lib_name}.py'),
+        {'core_lib_name_camel': core_lib_name_camel},
+    )
 
     # config
     config_dir = os.path.join(core_lib_dir, 'config')
     _new_dir(config_dir)
-    _new_file(os.path.join(config_dir, f'{core_lib_name}.yaml'),
-              _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
+    _new_file(
+        os.path.join(config_dir, f'{core_lib_name}.yaml'),
+        _to_core_lib_override_config(core_lib_name, core_lib_name_simple),
+    )
 
     # hydra_plugins search path
     hydra_plugin_init_content = ''
@@ -216,8 +225,10 @@ def _create_core_lib(core_lib_name):
     core_lib_hydra_plugin_dir = os.path.join(current_dir, 'hydra_plugins', core_lib_name)
 
     _new_dir(core_lib_hydra_plugin_dir, hydra_plugin_init_content)
-    _new_file(os.path.join(core_lib_hydra_plugin_dir, f'{core_lib_name}_searchpath.py'),
-              _to_core_lib_search_path(core_lib_name))
+    _new_file(
+        os.path.join(core_lib_hydra_plugin_dir, f'{core_lib_name}_searchpath.py'),
+        _to_core_lib_search_path(core_lib_name),
+    )
 
     # tests
     test_dir = os.path.join(current_dir, 'tests')
@@ -227,12 +238,13 @@ def _create_core_lib(core_lib_name):
     test_config_dir = os.path.join(test_dir, 'config')
     _new_dir(test_config_dir)
     test_config_file = f'test_{core_lib_name}'
-    _new_file(os.path.join(test_config_dir, f'{test_config_file}.yaml'),
-              _to_core_lib_override_config(core_lib_name, core_lib_name_simple))
+    _new_file(
+        os.path.join(test_config_dir, f'{test_config_file}.yaml'),
+        _to_core_lib_override_config(core_lib_name, core_lib_name_simple),
+    )
     _new_file(os.path.join(test_config_dir, 'config.yaml'), _to_test_config(core_lib_name, test_config_file))
 
-    _new_file(os.path.join(test_dir, f'test_{core_lib_name}.py'),
-              _to_test_simple(core_lib_name, core_lib_name_camel))
+    _new_file(os.path.join(test_dir, f'test_{core_lib_name}.py'), _to_test_simple(core_lib_name, core_lib_name_camel))
 
     # data_layers
     data_layers = os.path.join(core_lib_dir, 'data_layers')
@@ -283,6 +295,9 @@ class CoreLibGenerate(object):
         # is_crud = input_yes_no('CRUD  support?', False)
         # is_soft = input_yes_no('Soft delete')
 
-        _deep_copy_template(os.path.join('template_core_lib/template_core_lib/data_layers', 'data_access',
-                                         'template_data_access.py'),
-                            os.path.join(current_dir, core_lib_name), f'{generate_name}.py', {})
+        _deep_copy_template(
+            os.path.join('template_core_lib/template_core_lib/data_layers', 'data_access', 'template_data_access.py'),
+            os.path.join(current_dir, core_lib_name),
+            f'{generate_name}.py',
+            {},
+        )

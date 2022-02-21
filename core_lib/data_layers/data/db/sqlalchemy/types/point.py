@@ -4,7 +4,6 @@ from geoalchemy2.shape import to_shape
 
 
 class Point(UserDefinedType):
-
     def get_col_spec(self):
         return "POINT"
 
@@ -17,10 +16,7 @@ class Point(UserDefinedType):
     @staticmethod
     def from_point_wkb(point):
         shape = to_shape(point)
-        return {
-            'latitude': shape.y,
-            'longitude': shape.x
-        }
+        return {'latitude': shape.y, 'longitude': shape.x}
 
     @staticmethod
     def from_point_str(point_str: str, latitude_first: bool = False):

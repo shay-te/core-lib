@@ -7,7 +7,7 @@ from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 #
 # primitives
 #
-def is_bool(st):
+def is_bool(st) -> bool:
     if isinstance(st, str):
         st = str.lower(st)
         return True if st == "true" or st == "false" else False
@@ -15,7 +15,7 @@ def is_bool(st):
         return True if isinstance(st, bool) else False
 
 
-def is_float(st):
+def is_float(st) -> bool:
     if st is None:
         return False
     try:
@@ -25,7 +25,7 @@ def is_float(st):
         return False
 
 
-def is_int(s):
+def is_int(s) -> bool:
     if s is None:
         return False
     try:
