@@ -5,14 +5,14 @@ sidebar_label: CRUD Handler
 ---
 
 ## CRUD
-In `Core-Lib`, we have classes that can handle CRUD  ( Create, Read, Update, Delete ) for us.
+`Core-Lib` provides `CRUD ( Create, Read, Update, Delete )` `DataAccess` classes as boilerplate code.
+
 They are as follows
 
 
 
 ### CRUD
-This class is used to initialize `CRUD` with database objects, rule validators and database handlers. It is the Base
-class for other classes responsible for CRUD
+This class is used to initialize `CRUD` with database objects, rule validators and database handlers. `CRUD` is an abstract base class for all types of `CRUDDataAccess` in `Core-Lib`.
 ```python
 class CRUD(ABC):
 
@@ -21,28 +21,28 @@ class CRUD(ABC):
         self._db = db
         self._rule_validator = rule_validator
 ```
-`db_entity` is the database class or object to be passed for initialization.
+`db_entity` the database class or object to be passed for initialization.
 
-`db` is the `SqlAlchemyDataHandlerRegistry` instance used to connect to the database.
+`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and passed.
+`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
 
 #### Functions provided by `CRUD`
 
-- `get()` is overridden by other CRUD classes for implementing the function as per their needs.
+- `get(id: int)` an abstract method to be implemented with `DataAccess` subclasses
 
 
-- `delete()` is overridden by other CRUD classes for implementing the function as per their needs.
+- `delete(id: int)` an abstract method to be implemented with `DataAccess` subclasses.
 
 
-- `create()` is used to add a new entry to the database, this function takes a `dict` with the data to be added to the database.
+- `create(data: dict)` is used to add a new entry into the database, this function takes a `dict` with the data to be added to the database.
 ```python
 def create(self, data: dict):
 ```
 `data` is type `dict`, key-values pair where key is the column name and value is the entry to be added to the column.
 
 
-- `update()` is used to update a column in database, This function takes a `dict` that contains the data to be updated 
+- `update(id: int, data: dict)` is used to update a column in database, This function takes a `dict` that contains the data to be updated 
 as well as the `id` of the column that needs to be updated.
 ```python
 def update(self, id: int, data: dict):
@@ -52,8 +52,7 @@ def update(self, id: int, data: dict):
 `data` is type `dict`, key-values pair where key is the column name and value is the entry to be updated.
 
 ### CRUDDataAccess
-This class is used to access data via `CRUD` and we have to extend this class to use `CRUD` in your application. This
-class is used to initialize `CRUD` and further used to access its functions.
+Extends the class `CRUD` and implements the `get()` and `delete()` methods
 
 ```python
 class CRUDDataAccess(DataAccess, CRUD):
@@ -61,22 +60,22 @@ class CRUDDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` is the database class or object to be passed for initialization.
+`db_entity` the database class or object to be passed for initialization.
 
-`db` is the `SqlAlchemyDataHandlerRegistry` instance used to connect to the database.
+`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and passed.
+`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
 
 #### Functions provided by `CRUDDataAccess`
 
-- `get()` overrides the function in `CRUD` class, used to get data from database for a given `id`.
+- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id`.
 ```python
 def get(self, id: int):
 ```
 `id` is the id of the column we want to query.
 
 
-- `delete()` overrides the function in `CRUD` class, deletes the data for the given `id`.
+- `delete(id: int)` overrides the function in `CRUD` class, deletes the data for the given `id`.
 ```python
 def delete(self, id: int):
 ```
@@ -92,16 +91,16 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
-class Data(Base):
-    __tablename__ = 'user_data'
+class Customer(Base):
+    __tablename__ = 'customer_data'
 
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
-    active = Column(Boolean, nullable=False, default="")
+    active = Column(Boolean, nullable=False)
 
 
-class CRUDInit(CRUDDataAccess):
+class CustomerCRUDDataAccess(CRUDDataAccess):
     allowed_update_types = [
         ValueRuleValidator('name', str),
         ValueRuleValidator('email', str),
@@ -111,28 +110,28 @@ class CRUDInit(CRUDDataAccess):
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, Data, db_handler, CRUDInit.rules_validator)
+        CRUD.__init__(self, Data, db_handler, CustomerCRUDDataAccess.rules_validator)
 
-crud = CRUDInit()
+customer = CustomerCRUDDataAccess()
 
-crud.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
+customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True}
 
-crud.update(1, {'email': 'jon@doe.com'})
+customer.update(1, {'email': 'jon@doe.com'})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True}
 
-crud.delete(1)
+customer.delete(1)
 
-data = crud.get(1) # will raise StatusCodeException Not found
+data = customer.get(1) # will raise StatusCodeException Not found
 ```
 
 
 ### CRUDSoftDeleteDataAccess
-This class is similar to `CRUDDataAccess` but is used to access and handle soft delete and soft deleted data.
+Similar to `CRUDDataAccess` but is used to access and handle soft delete.
 For this to work the database object class must extend `SoftDeleteMixin` to create the required columns for soft delete.
 
 ```python
@@ -141,22 +140,22 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` is the database class or object to be passed for initialization.
+`db_entity` the database class or object to be passed for initialization.
 
-`db` is the `SqlAlchemyDataHandlerRegistry` instance used to connect to the database.
+`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and passed.
+`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
-- `get()` overrides the function in `CRUD` class, used to get data from database for a given `id`.
+- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id`.
 ```python
 def get(self, id: int):
 ```
 `id` is the id of the column we want to query.
 
 
-- `delete()` overrides the function in `CRUD` class, soft deletes the data for the given `id`.
+- `delete(id: int)` overrides the function in `CRUD` class, soft deletes the data for the given `id`.
 ```python
 def delete(self, id: int):
 ```
@@ -173,16 +172,16 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
-class DataSoftDelete(Base, SoftDeleteMixin):
-    __tablename__ = 'user_data'
+class Customer(Base, SoftDeleteMixin):
+    __tablename__ = 'customer_data'
 
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
-    active = Column(Boolean, nullable=False, default="")
+    active = Column(Boolean, nullable=False)
 
 
-class CRUDSoftDeleteInit(CRUDSoftDeleteDataAccess):
+class CustomerCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
     allowed_update_types = [
         ValueRuleValidator('name', str),
         ValueRuleValidator('email', str),
@@ -192,22 +191,22 @@ class CRUDSoftDeleteInit(CRUDSoftDeleteDataAccess):
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDelete, db_handler, CRUDSoftDeleteInit.rules_validator)
-crud = CRUDSoftDeleteInit()
+        CRUD.__init__(self, DataSoftDelete, db_handler, CustomerCRUDSoftDeleteDataAccess.rules_validator)
+customer = CustomerCRUDSoftDeleteDataAccess()
 
-crud.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
+customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True, 'created_at': 'current_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None}
 
-crud.update(1, {'email': 'jon@doe.com'})
+customer.update(1, {'email': 'jon@doe.com'})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True, 'created_at': 'created_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None}
 
-crud.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp
+customer.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp
 
-data = crud.get(1) # will raise StatusCodeException Not found
+data = customer.get(1) # will raise StatusCodeException Not found
 ```
 
 
@@ -222,11 +221,11 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` is the database class or object to be passed for initialization.
+`db_entity` the database class or object to be passed for initialization.
 
-`db` is the `SqlAlchemyDataHandlerRegistry` instance used to connect to the database.
+`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and passed.
+`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
@@ -255,16 +254,16 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
-class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
-    __tablename__ = 'user_data'
+class Customer(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
+    __tablename__ = 'customer_data'
 
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
-    active = Column(Boolean, nullable=False, default="")
+    active = Column(Boolean, nullable=False)
 
 
-class CRUDSoftDeleteTokenInit(CRUDSoftDeleteWithTokenDataAccess):
+class CustomerCRUDSoftDeleteWithTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
     allowed_update_types = [
         ValueRuleValidator('name', str),
         ValueRuleValidator('email', str),
@@ -274,21 +273,21 @@ class CRUDSoftDeleteTokenInit(CRUDSoftDeleteWithTokenDataAccess):
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDeleteToken, db_handler, CRUDSoftDeleteTokenInit.rules_validator)
+        CRUD.__init__(self, DataSoftDeleteToken, db_handler, CustomerCRUDSoftDeleteWithTokenDataAccess.rules_validator)
 
-crud = CRUDSoftDeleteTokenInit()
+customer = CustomerCRUDSoftDeleteWithTokenDataAccess()
 
-crud.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
+customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True, 'created_at': 'current_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'delete_token': None}
 
-crud.update(1, {'email': 'jon@doe.com'})
+customer.update(1, {'email': 'jon@doe.com'})
 
-data = result_to_dict(crud.get(1))
+data = result_to_dict(customer.get(1))
 print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True, 'created_at': 'created_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'delete_token': None}
 
-crud.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp and will update the delete_token with timestamp in milliseconds
+customer.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp and will update the delete_token with timestamp in milliseconds
 
-data = crud.get(1) # will raise StatusCodeException Not found
+data = customer.get(1) # will raise StatusCodeException Not found
 ```

@@ -8,7 +8,6 @@ from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
-
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 
@@ -28,5 +27,5 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
             return (
                 session.query(self._db_entity)
                 .filter(self._db_entity.id == id)
-                .update({'deleted_at': datetime.utcnow()})
+                .update({self._db_entity.deleted_at: datetime.utcnow()})
             )
