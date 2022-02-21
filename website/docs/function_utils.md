@@ -34,7 +34,7 @@ formatted_parameters = build_value_by_func_parameters('key_{param_1}_{param_2}_{
 print(formatted_parameters) # key_1_2_hello world
 
 formatted_parameters = build_value_by_func_parameters('key_{param_1}_{param_2}_{param_3}', function_to_format, 1) 
-print(formatted_parameters) # key_1_None_hello
+print(formatted_parameters) # key_1_!Eparam_2E!_hello
 ```
 > **Note:** Will return `None` if the parameter's value is missing.
 
@@ -72,7 +72,7 @@ print(extracted_dict)# {'param_1':'1', 'param_2':'hello', 'param_3':'world'}
 - `get_func_parameter_index_by_name` takes in a single parameter and function name and will return the parameter's index
 
 ```python
-def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
+def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     ....
 ```
 `func`: the function to which the parameters belong.
