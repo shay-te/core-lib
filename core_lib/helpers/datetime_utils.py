@@ -36,8 +36,9 @@ def hour_end(minutes: int = 0) -> datetime:
 #
 def day_begin(hours: int = 0, minutes: int = 0) -> datetime:
     today = datetime.utcnow().date()
-    return datetime(year=today.year, month=today.month, day=today.day, hour=hours, minute=minutes, second=0,
-                    microsecond=0)
+    return datetime(
+        year=today.year, month=today.month, day=today.day, hour=hours, minute=minutes, second=0, microsecond=0
+    )
 
 
 def day_end(hours: int = 0, minutes: int = 0) -> datetime:
@@ -45,13 +46,17 @@ def day_end(hours: int = 0, minutes: int = 0) -> datetime:
 
 
 def tomorrow(hours: int = 0, minutes: int = 0) -> datetime:
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)\
-           + timedelta(days=1, hours=hours, minutes=minutes)
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
+        days=1, hours=hours, minutes=minutes
+    )
 
 
 def yesterday(hours: int = 0, minutes: int = 0) -> datetime:
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)\
-           - timedelta(days=1) + timedelta(hours=hours, minutes=minutes)
+    return (
+        datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        - timedelta(days=1)
+        + timedelta(hours=hours, minutes=minutes)
+    )
 
 
 def midnight(hours: int = 0, minutes: int = 0) -> timedelta:
@@ -106,8 +111,9 @@ def month_begin(hours: int = 0, minutes: int = 0) -> datetime:
 
 
 def month_end(hours: int = 0, minutes: int = 0) -> datetime:
-    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1)\
-           + relativedelta(months=1, hours=hours, minutes=minutes)
+    return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).replace(day=1) + relativedelta(
+        months=1, hours=hours, minutes=minutes
+    )
 
 
 #
@@ -124,6 +130,7 @@ def year_end(hours: int = 0, minutes: int = 0) -> datetime:
 #
 # UTILS
 #
+
 
 def age(born: date) -> int:
     today = date.today()

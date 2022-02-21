@@ -3,7 +3,6 @@ from requests import Response
 
 
 class ClientBase(object):
-
     def __init__(self, base_url):
         self.base_url = base_url
         self.session = requests.Session()

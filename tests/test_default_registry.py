@@ -12,7 +12,6 @@ class Customer(object):
 
 
 class CustomerRegistry(DefaultRegistry):
-
     def __init__(self):
         DefaultRegistry.__init__(self, Customer)
 
@@ -24,7 +23,6 @@ class MyEnum(enum.Enum):
 
 
 class TestDefaultRegistry(unittest.TestCase):
-
     def test_default_registry_string(self):
         string = 'hello world'
         str_registry = DefaultRegistry(str)
@@ -167,14 +165,7 @@ class TestDefaultRegistry(unittest.TestCase):
         tpl = ('fruit', 'apple')
         lst = ['fruit', 'apple']
         point = WKTElement('POINT(5 45)')
-        dct = {
-            'date': dat,
-            'datetime': dattime,
-            'tuple': tpl,
-            'list': lst,
-            'point': point,
-            'enum': MyEnum.one.value
-        }
+        dct = {'date': dat, 'datetime': dattime, 'tuple': tpl, 'list': lst, 'point': point, 'enum': MyEnum.one.value}
         dict_registry = DefaultRegistry(dict)
         dict_registry.register('dict', dct)
 

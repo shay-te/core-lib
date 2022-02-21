@@ -7,7 +7,6 @@ from core_lib.data_layers.data.handler.solr_data_handler import SolrDataHandler
 
 
 class SolrDataHandlerRegistry(DataHandlerRegistry):
-
     def __init__(self, config: DictConfig):
         self._config = config
         solr_address = build_url(**config.url)

@@ -8,7 +8,6 @@ from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
 class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
-
     def __init__(self, config: DictConfig):
         self.session_to_count = {}
         self._engine = self._create_engine(config)
@@ -32,7 +31,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         db_session.close()
 
     def _create_engine(self, config) -> engine:
-        engine = create_engine(build_url(**config.url),
-                               pool_recycle=config.session.pool_recycle,
-                               echo=config.log_queries)
+        engine = create_engine(
+            build_url(**config.url), pool_recycle=config.session.pool_recycle, echo=config.log_queries
+        )
         return engine

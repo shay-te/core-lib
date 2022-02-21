@@ -7,7 +7,6 @@ from core_lib.session.token_handler import TokenHandler
 
 
 class JWTTokenHandler(TokenHandler):
-
     def __init__(self, secret, expiration_time: timedelta, verify: bool = False, algorithm: str = 'HS256'):
         assert secret and expiration_time
         self._secret = secret

@@ -3,7 +3,6 @@ from core_lib.data_layers.data.handler.object_data_handler import ObjectDataHand
 
 
 class ObjectDataHandlerRegistry(DataHandlerRegistry):
-
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self._obj = obj
         self.new_session_callback = new_session_callback

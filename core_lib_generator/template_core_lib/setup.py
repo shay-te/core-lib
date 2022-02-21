@@ -35,10 +35,10 @@ with open('README.md', 'r') as fh:
             'Operating System :: OS Independent',
             'Development Status :: 3 - Alpha',
             'Topic :: Software Development :: Libraries',
-            'Topic :: Software Development :: Libraries :: Python Modules'
+            'Topic :: Software Development :: Libraries :: Python Modules',
         ],
         install_requires=[str(ir.requirement) for ir in install_reqs],
         include_package_data=True,
         python_requires='>=3.7',
-        scripts=['bin/core_lib']
+        scripts=['bin/core_lib'],
     )

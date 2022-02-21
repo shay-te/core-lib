@@ -37,12 +37,14 @@ class Cache(object):
     # expire: period of time when the value is expired, string will be parse `parsedatetime` and then now-parsed_result
     # invalidate : remove the value from the cache using the key
     # handler: what name to use to get the correct `CacheHandler`
-    def __init__(self,
-                 key: str = None,
-                 max_key_length: int = 250,
-                 expire: Union[timedelta, str] = None,
-                 invalidate: bool = False,
-                 handler: str = None):
+    def __init__(
+        self,
+        key: str = None,
+        max_key_length: int = 250,
+        expire: Union[timedelta, str] = None,
+        invalidate: bool = False,
+        handler: str = None,
+    ):
         self.key = key
         self.max_key_length = max_key_length
         self.invalidate = invalidate
@@ -50,14 +52,14 @@ class Cache(object):
         self.expire = _get_expire(expire)
 
     def __call__(self, func, *args, **kwargs):
-
         @wraps(func)
         def __wrapper(*args, **kwargs):
             cache_handler = CoreLib.cache_registry.get(self.handler_name)
             if not cache_handler:
                 raise ValueError(f'CacheHandler by name {self.handler_name} was not found in `CoreLib.cache_registry`')
-            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[:self.max_key_length]\
-                .replace(' ', '_')
+            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[: self.max_key_length].replace(
+                ' ', '_'
+            )
 
             if self.invalidate:
                 result = func(*args, **kwargs)

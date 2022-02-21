@@ -6,7 +6,6 @@ from core_lib.cache.cache_handler import CacheHandler
 
 
 class CacheHandlerMemcached(CacheHandler):
-
     def __init__(self, url: str):
         self.memcached_client = Client([url])
 

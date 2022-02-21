@@ -7,17 +7,17 @@ from string import Formatter
 logger = logging.getLogger(__name__)
 
 
-def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
+def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     parameters = inspect.signature(func).parameters
     if parameter_name not in parameters:
         raise ValueError(
-            f'parameter named: `{parameter_name}`. dose not exists in the decorated function. `{func.__name__}`')
+            f'parameter named: `{parameter_name}`. dose not exists in the decorated function. `{func.__name__}`'
+        )
 
     return list(parameters).index(parameter_name)
 
 
 class UnseenFormatter(Formatter):
-
     def get_value(self, key, args, kwargs):
         try:
             if isinstance(key, int) and key < len(args):

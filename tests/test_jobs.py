@@ -17,7 +17,6 @@ class TestJob(Job):
 
 
 class TestJobs(unittest.TestCase):
-
     def test_job_decorator(self):
         j = TestJob()
         j.run()

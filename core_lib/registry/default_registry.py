@@ -2,7 +2,6 @@ from core_lib.registry.registry import Registry
 
 
 class DefaultRegistry(Registry):
-
     def __init__(self, object_type: object):
         if not object_type:
             raise ValueError()

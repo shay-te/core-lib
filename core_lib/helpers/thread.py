@@ -4,7 +4,6 @@ from datetime import timedelta
 
 
 class LockGroup(object):
-
     def __init__(self, max_age: timedelta):
         self.lock_dict = {}
         self.lock = threading.Lock()
@@ -17,10 +16,7 @@ class LockGroup(object):
         with self.lock:
             current_time = int(round(time.time() * 1000))
             if param not in self.lock_dict:
-                self.lock_dict[param] = {
-                    'time': current_time,
-                    'lock': threading.Lock()
-                }
+                self.lock_dict[param] = {'time': current_time, 'lock': threading.Lock()}
             lock_item = self.lock_dict[param]
             lock_item['time'] = current_time
             return lock_item['lock']

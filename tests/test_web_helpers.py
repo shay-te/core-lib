@@ -12,7 +12,6 @@ settings.DEFAULT_CHARSET = 'utf-8'
 
 
 class TestWebHelpers(unittest.TestCase):
-
     def test_web_utils_flask(self):
         web_util = WebHelpersUtils()
 
