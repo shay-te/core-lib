@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, event
+from sqlalchemy import Column, DateTime
 
 
 class SoftDeleteMixin(object):

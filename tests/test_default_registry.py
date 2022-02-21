@@ -291,4 +291,3 @@ class TestDefaultRegistry(unittest.TestCase):
 
         customer_registry.unregister('customer_b')
         self.assertEqual(customer_registry.get(), customer_a)
-
