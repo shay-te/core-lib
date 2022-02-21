@@ -4,7 +4,7 @@ from core_lib.data_layers.data.data_helpers import build_url
 from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler import SqlAlchemyDataHandler
 from core_lib.helpers.instance_under_stack import InstanceUnderStack
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
@@ -20,7 +20,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
             Base.metadata.create_all(self._engine)
 
     @property
-    def engine(self):
+    def engine(self) -> engine:
         return self._engine
 
     @property
@@ -54,7 +54,7 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
         else:
             db_session.close()
 
-    def _create_engine(self, config):
+    def _create_engine(self, config) -> engine:
         engine = create_engine(build_url(**config.url),
                                pool_recycle=config.session.pool_recycle,
                                echo=config.log_queries)

@@ -1,6 +1,6 @@
 
 def build_url(protocol: str = None, username: str = None, password: str = None, host: str = None, port: str = None,
-              path: str = None, file: str = None, *args, **kwargs):
+              path: str = None, file: str = None, *args, **kwargs) -> str:
     result = []
     if protocol:
         result.append(protocol)
