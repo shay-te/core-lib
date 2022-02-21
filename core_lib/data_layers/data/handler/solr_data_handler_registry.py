@@ -13,7 +13,7 @@ class SolrDataHandlerRegistry(DataHandlerRegistry):
         self._solr_client = Solr(solr_address, always_commit=config.always_commit)
 
     @property
-    def client(self):
+    def client(self) -> Solr:
         return self._solr_client
 
     def get(self, *args, **kwargs) -> SolrDataHandler:

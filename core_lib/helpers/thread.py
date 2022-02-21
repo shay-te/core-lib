@@ -12,7 +12,7 @@ class LockGroup(object):
     # Returns a lock object, unique for each unique value of param.
     # The first call with a given value of param creates a new lock, subsequent
     # calls return the same lock.
-    def get_lock(self, param):
+    def get_lock(self, param) -> object:
         with self.lock:
             current_time = int(round(time.time() * 1000))
             if param not in self.lock_dict:

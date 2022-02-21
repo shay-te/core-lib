@@ -8,9 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class SqlAlchemyDataHandler(DataHandler):
-    def __init__(self, engine, use_parent_instance: bool, on_exit):
+    def __init__(self, engine, on_exit):
         self.engine = engine
-        self.use_parent_instance = use_parent_instance
         self.on_exit = on_exit
         self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
 

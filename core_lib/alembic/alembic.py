@@ -84,7 +84,7 @@ class Alembic(object):
         command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
         self._write_version(new_version)
 
-    def _read_version(self):
+    def _read_version(self) -> int:
         script = ScriptDirectory.from_config(self.alembic_cfg)
         count = 0
         for _ in script.walk_revisions():

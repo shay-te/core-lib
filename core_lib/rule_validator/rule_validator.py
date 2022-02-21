@@ -41,7 +41,7 @@ class RuleValidator(object):
         strict_output: bool = False,
         mandatory_keys: list = None,
         prohibited_keys: list = None,
-    ):
+    ) -> dict:
 
         is_strict_mode = strict_mode if strict_mode is not None else self.strict_mode
         is_strict_output = strict_output if strict_output is not None else self.strict_output

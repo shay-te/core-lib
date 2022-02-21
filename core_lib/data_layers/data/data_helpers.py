@@ -8,7 +8,7 @@ def build_url(
     file: str = None,
     *args,
     **kwargs,
-):
+) -> str:
     result = []
     if protocol:
         result.append(protocol)

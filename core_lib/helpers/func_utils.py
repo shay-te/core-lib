@@ -50,7 +50,7 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     return result
 
 
-def build_value_by_func_parameters(key: str, func, *args, **kwargs):
+def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> dict:
     if key:
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
@@ -58,7 +58,7 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs):
     return new_key
 
 
-def get_calling_module(stack_depth: int = 1):
+def get_calling_module(stack_depth: int = 1) -> str:
     stack = inspect.stack()
     frame = stack[stack_depth]
     calling_module = None
