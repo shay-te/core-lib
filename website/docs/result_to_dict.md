@@ -39,13 +39,13 @@ Python
  - Datetime ( converted to `timestamp` )
  - Objects ( converted to `dict` )
 
-
  
 ### Usage
 
 ```python
 import datetime
 import enum
+import json
 from geoalchemy2 import WKTElement
 from core_lib.data_transform.result_to_dict import result_to_dict
 
@@ -82,8 +82,22 @@ base_object = session.query(Data).all()
 formatted_data = result_to_dict(base_object)
 print(formatted_data) # {'id': 1, 'name': 'your_name', 'created_at':'11234322.6789', ...and other columns from your DB}
 
+# Callback function for result_to_dict()
+def convert_str_to_dict(result):
+    data = result.get('additional_data')
+    if data and isinstance(data, str):
+        result['additional_data'] = json.loads(data)
+    return result
+
+# Callback implementation
+data = {'name': 'Jon', 'email':'jon@mail.com', 'additional_data': '{"age": 42, "address": "Miami", "active": True}'}
+
+# Callback will call the function and convert the json string inside the dict to object
+formatted_data = result_to_dict(data, callback=convert_str_to_dict)
+print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data': {'age': 42, 'address': 'Miami', 'active': True}}
+
 ```
->Similarly, we can pass data from database i.e., `Base` object and convert it to `dict`
+>For `callback` the function has to be implemented by the user for handling different types of nested inside the given object.
 
 ## ResultToDict Decorator
 
