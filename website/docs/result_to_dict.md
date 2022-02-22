@@ -97,7 +97,7 @@ formatted_data = result_to_dict(data, callback=convert_str_to_dict)
 print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data': {'age': 42, 'address': 'Miami', 'active': True}}
 
 ```
->For `callback` the function has to be implemented by the user for handling different types of nested inside the given object.
+>For `callback` the function has to be implemented by the user for handling different types of data nested inside the given object.
 
 ## ResultToDict Decorator
 
