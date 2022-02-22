@@ -7,17 +7,17 @@ from string import Formatter
 logger = logging.getLogger(__name__)
 
 
-def get_func_parameter_index_by_name(func, parameter_name: str) -> str:
+def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     parameters = inspect.signature(func).parameters
     if parameter_name not in parameters:
         raise ValueError(
-            f'parameter named: `{parameter_name}`. dose not exists in the decorated function. `{func.__name__}`')
+            f'parameter named: `{parameter_name}`. dose not exists in the decorated function. `{func.__name__}`'
+        )
 
     return list(parameters).index(parameter_name)
 
 
 class UnseenFormatter(Formatter):
-
     def get_value(self, key, args, kwargs):
         try:
             if isinstance(key, int) and key < len(args):
@@ -50,7 +50,7 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     return result
 
 
-def build_value_by_func_parameters(key: str, func, *args, **kwargs):
+def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> dict:
     if key:
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
@@ -58,7 +58,7 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs):
     return new_key
 
 
-def get_calling_module(stack_depth: int = 1):
+def get_calling_module(stack_depth: int = 1) -> str:
     stack = inspect.stack()
     frame = stack[stack_depth]
     calling_module = None

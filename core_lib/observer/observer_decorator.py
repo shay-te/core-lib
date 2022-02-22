@@ -8,17 +8,15 @@ class Observe(object):
 
     _factory = None
 
-    def __init__(self, event_key: str,
-                 value_param_name: str = None,
-                 observer_name: str = None,
-                 notify_before: bool = False):
+    def __init__(
+        self, event_key: str, value_param_name: str = None, observer_name: str = None, notify_before: bool = False
+    ):
         self.event_key = event_key
         self.value_param_name = value_param_name
         self.observer_name = observer_name
         self.notify_before = notify_before
 
     def __call__(self, func, *args, **kwargs):
-
         @wraps(func)
         def __wrapper(*args, **kwargs):
             if self.value_param_name:

@@ -4,7 +4,6 @@ from core_lib.jobs.job import Job
 
 
 class JobScheduler(object):
-
     def __init__(self):
         self._lock = Lock()
         self._job_to_timer = {}

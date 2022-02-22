@@ -18,7 +18,6 @@ class Test(Base):
 
 
 class TestDBRuleValidator(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()

@@ -6,7 +6,6 @@ from core_lib.helpers.thread import LockGroup
 
 
 class TestThreadLockGroup(unittest.TestCase):
-
     def test_1(self):
         lock_group = LockGroup(timedelta(seconds=2))
         lock_group.get_lock(1)
