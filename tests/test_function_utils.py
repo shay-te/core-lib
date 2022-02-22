@@ -1,12 +1,15 @@
 import datetime
 import unittest
 
-from core_lib.helpers.func_utils import build_value_by_func_parameters, get_func_parameters_as_dict, \
-    get_func_parameter_index_by_name, reset_datetime
+from core_lib.helpers.func_utils import (
+    build_value_by_func_parameters,
+    get_func_parameters_as_dict,
+    get_func_parameter_index_by_name,
+    reset_datetime,
+)
 
 
 class TestFunctionUtils(unittest.TestCase):
-
     def test_cache_generates_key(self):
         def returns_1(param_1, param_2, param_3=11, param_4=22):
             return 1

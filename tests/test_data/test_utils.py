@@ -5,7 +5,6 @@ from core_lib.helpers.subprocess_execute import SubprocessExecute
 
 
 class DockerComposer(object):
-
     def up(self, compose_file):
         return SubprocessExecute().popen(['docker-compose', '-f', compose_file, 'up', '-d'], shell=False)
 
@@ -17,12 +16,7 @@ def connect_to_mem_db():
     conf = {
         'create_db': True,
         'log_queries': False,
-        'session': {
-            'pool_recycle': 3600,
-            'pool_pre_ping': False
-        },
-        'url': {
-            'protocol': 'sqlite'
-        }
+        'session': {'pool_recycle': 3600, 'pool_pre_ping': False},
+        'url': {'protocol': 'sqlite'},
     }
     return SqlAlchemyDataHandlerRegistry(OmegaConf.create(conf))

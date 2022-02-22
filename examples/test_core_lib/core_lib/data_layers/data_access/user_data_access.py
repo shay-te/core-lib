@@ -22,17 +22,18 @@ user_rule_validators = [
     ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),
     ValueRuleValidator(User.birthday.key, datetime.date),
     # Working with enum after conversion.
-    ValueRuleValidator(User.gender.key,
-                       User.Gender,
-                       custom_converter=lambda value: User.Gender(value),  # Convert int to enum
-                       custom_validator=lambda value: 0 <= value.value <= len(User.Gender))
+    ValueRuleValidator(
+        User.gender.key,
+        User.Gender,
+        custom_converter=lambda value: User.Gender(value),  # Convert int to enum
+        custom_validator=lambda value: 0 <= value.value <= len(User.Gender),
+    ),
 ]
 
 user_rule_validator = RuleValidator(user_rule_validators)
 
 
 class UserDataAccess(DataAccess):
-
     def __init__(self, db: SqlAlchemyDataHandlerRegistry):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)

@@ -3,7 +3,6 @@ from examples.demo_core_lib.core_lib.data_layers.data_access.demo_search_data_ac
 
 
 class DemoSearchService(Service):
-
     def __init__(self, search_data_access: DemoSearchDataAccess):
         self.search_data_access = search_data_access
 
