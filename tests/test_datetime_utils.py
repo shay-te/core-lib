@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime, timedelta, date
+from dateutil.utils import today as dateutils_today
 
 from core_lib.helpers.datetime_utils import (
     year_begin,
@@ -48,14 +49,14 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(cl_yesterday.year, dt_yesterday.year)
 
     def test_today(self):
-        dt_today = datetime.today()
+        dtu_today = dateutils_today()
         cl_today = today()
         self.assertNotEqual(cl_today, None)
         self.assertEqual(cl_today.minute, 0)
         self.assertEqual(cl_today.hour, 0)
-        self.assertEqual(cl_today.day, dt_today.day)
-        self.assertEqual(cl_today.month, dt_today.month)
-        self.assertEqual(cl_today.year, dt_today.year)
+        self.assertEqual(cl_today.day, dtu_today.day)
+        self.assertEqual(cl_today.month, dtu_today.month)
+        self.assertEqual(cl_today.year, dtu_today.year)
 
     def test_tomorrow(self):
         dt_tomorrow = datetime.today() + timedelta(days=1)
