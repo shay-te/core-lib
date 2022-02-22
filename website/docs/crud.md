@@ -21,11 +21,11 @@ class CRUD(ABC):
         self._db = db
         self._rule_validator = rule_validator
 ```
-`db_entity` the database class or object to be passed for initialization.
+`db_entity` the database entity used by this `DataAccesss`.
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUD`
 
@@ -42,7 +42,7 @@ def create(self, data: dict):
 `data` is type `dict`, key-values pair where key is the column name and value is the entry to be added to the column.
 
 
-- `update(id: int, data: dict)` is used to update a column in database, This function takes a `dict` that contains the data to be updated 
+- `update(id: int, data: dict)` used to update data in the database. This function takes a `dict` that contains the data to be updated 
 as well as the `id` of the column that needs to be updated.
 ```python
 def update(self, id: int, data: dict):
@@ -60,11 +60,11 @@ class CRUDDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database class or object to be passed for initialization.
+`db_entity` the database entity used by this `DataAccesss`.
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDDataAccess`
 
@@ -140,11 +140,11 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database class or object to be passed for initialization.
+`db_entity` the database entity used by this `DataAccesss`.
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
@@ -221,11 +221,11 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database class or object to be passed for initialization.
+`db_entity` the database entity used by this `DataAccesss`.
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` rules must be created with `RuleValidator` and used to validate data passed to the `create()` and `update()`.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
