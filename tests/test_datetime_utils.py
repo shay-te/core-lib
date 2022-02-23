@@ -1,7 +1,6 @@
 import unittest
-from datetime import datetime, timedelta
-
-from dateutil.utils import today
+from datetime import datetime, timedelta, date
+from dateutil.utils import today as dateutils_today
 
 from core_lib.helpers.datetime_utils import (
     year_begin,
@@ -13,6 +12,7 @@ from core_lib.helpers.datetime_utils import (
     day_begin,
     day_end,
     tomorrow,
+    today,
     yesterday,
     midnight,
     sunday,
@@ -24,6 +24,8 @@ from core_lib.helpers.datetime_utils import (
     saturday,
     hour_begin,
     hour_end,
+    age,
+    timestamp_to_ms,
 )
 from core_lib.helpers.func_utils import reset_datetime
 
@@ -47,14 +49,14 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(cl_yesterday.year, dt_yesterday.year)
 
     def test_today(self):
-        dt_today = datetime.today()
+        dtu_today = dateutils_today()
         cl_today = today()
         self.assertNotEqual(cl_today, None)
-        self.assertEqual(cl_today.minute, 0)
-        self.assertEqual(cl_today.hour, 0)
-        self.assertEqual(cl_today.day, dt_today.day)
-        self.assertEqual(cl_today.month, dt_today.month)
-        self.assertEqual(cl_today.year, dt_today.year)
+        self.assertEqual(cl_today.minute, dtu_today.minute)
+        self.assertEqual(cl_today.hour, dtu_today.hour)
+        self.assertEqual(cl_today.day, dtu_today.day)
+        self.assertEqual(cl_today.month, dtu_today.month)
+        self.assertEqual(cl_today.year, dtu_today.year)
 
     def test_tomorrow(self):
         dt_tomorrow = datetime.today() + timedelta(days=1)
@@ -135,4 +137,19 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(saturday(), reset_datetime(_next_weekday(today(), 5)))
 
     def test_midnight(self):
-        self.assertNotEqual(midnight(), None)
+        self.assertEqual(midnight(), today())
+        self.assertEqual(midnight().minute, 0)
+        self.assertEqual(midnight().hour, 0)
+
+    def test_age(self):
+        dat = date(2020, 5, 1)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+        dat = date(2000, 1, 1)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+        dat = date(1990, 1, 30)
+        self.assertEqual(age(dat), int((date.today() - dat).days / 365))
+
+    def test_timestamp_to_ms(self):
+        self.assertEqual(timestamp_to_ms(datetime.utcnow().timestamp()), int(datetime.utcnow().timestamp() * 1000))
+        dat = datetime(2020, 5, 1, 00, 12, 25)
+        self.assertEqual(timestamp_to_ms(dat.timestamp()), int(dat.timestamp() * 1000))
