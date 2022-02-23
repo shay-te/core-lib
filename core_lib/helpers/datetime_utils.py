@@ -45,6 +45,10 @@ def day_end(hours: int = 0, minutes: int = 0) -> datetime:
     return day_begin(hours=hours, minutes=minutes) + timedelta(days=1)
 
 
+def today(hours: int = 0, minutes: int = 0) -> datetime:
+    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0)
+
+
 def tomorrow(hours: int = 0, minutes: int = 0) -> datetime:
     return datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
         days=1, hours=hours, minutes=minutes
@@ -59,8 +63,8 @@ def yesterday(hours: int = 0, minutes: int = 0) -> datetime:
     )
 
 
-def midnight(hours: int = 0, minutes: int = 0) -> timedelta:
-    return datetime.utcnow().replace(hour=hours, minute=minutes, second=0, microsecond=0) - datetime.utcnow()
+def midnight(hours: int = 0, minutes: int = 0) -> datetime:
+    return today(hours, minutes)
 
 
 def sunday(hours: int = 0, minutes: int = 0) -> datetime:
