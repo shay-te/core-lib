@@ -13,6 +13,11 @@ cache_client_name = "xyz"
 
 class TestCache(unittest.TestCase):
     test_value = 100
+    test_dict = {}
+    test_tuple = ()
+    test_list = []
+    test_string = ""
+    test_set = set()
 
     @classmethod
     def setUpClass(cls):
@@ -195,6 +200,128 @@ class TestCache(unittest.TestCase):
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_expire_string_year(), 100)
 
+    def test_cache_empty(self):
+        # Dict
+        self.clear_cache_empty()
+        TestCache.test_dict = {}
+        self.assertDictEqual(self.get_cache_empty(TestCache.test_dict), {})
+        TestCache.test_dict = {'value': '100'}
+        self.assertDictEqual(self.get_cache_empty(TestCache.test_dict), {})
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertDictEqual(self.get_cache_empty(TestCache.test_dict), {'value': '100'})
+        TestCache.test_dict = {}
+        self.assertDictEqual(self.get_cache_empty(TestCache.test_dict), {'value': '100'})
+        with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+            self.assertDictEqual(self.get_cache_empty(TestCache.test_dict), {})
+
+        # Tuple
+        self.clear_cache_empty()
+        TestCache.test_tuple = ()
+        self.assertTupleEqual(self.get_cache_empty(TestCache.test_tuple), ())
+        TestCache.test_tuple = ('value', '100')
+        self.assertTupleEqual(self.get_cache_empty(TestCache.test_tuple), ())
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertTupleEqual(self.get_cache_empty(TestCache.test_tuple), ('value', '100'))
+        TestCache.test_tuple = ()
+        self.assertTupleEqual(self.get_cache_empty(TestCache.test_tuple), ('value', '100'))
+        with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+            self.assertTupleEqual(self.get_cache_empty(TestCache.test_tuple), ())
+
+        # List
+        self.clear_cache_empty()
+        TestCache.test_list = []
+        self.assertListEqual(self.get_cache_empty(TestCache.test_list), [])
+        TestCache.test_list = ['value', '100']
+        self.assertListEqual(self.get_cache_empty(TestCache.test_list), [])
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertListEqual(self.get_cache_empty(TestCache.test_list), ['value', '100'])
+        TestCache.test_list = []
+        self.assertListEqual(self.get_cache_empty(TestCache.test_list), ['value', '100'])
+        with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+            self.assertListEqual(self.get_cache_empty(TestCache.test_list), [])
+
+        # String
+        self.clear_cache_empty()
+        TestCache.test_string = ""
+        self.assertEqual(self.get_cache_empty(TestCache.test_string), "")
+        TestCache.test_string = "Hello World"
+        self.assertEqual(self.get_cache_empty(TestCache.test_string), "")
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertEqual(self.get_cache_empty(TestCache.test_string), "Hello World")
+        TestCache.test_string = ""
+        self.assertEqual(self.get_cache_empty(TestCache.test_string), "Hello World")
+        with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+            self.assertEqual(self.get_cache_empty(TestCache.test_string), "")
+
+        # Set
+        self.clear_cache_empty()
+        TestCache.test_set = set()
+        self.assertSetEqual(self.get_cache_empty(TestCache.test_set), set())
+        TestCache.test_set = {1.0, "Hello", (1, 2, 3)}
+        self.assertSetEqual(self.get_cache_empty(TestCache.test_set), set())
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertSetEqual(self.get_cache_empty(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
+        TestCache.test_set = set()
+        self.assertSetEqual(self.get_cache_empty(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
+        with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+            self.assertSetEqual(self.get_cache_empty(TestCache.test_set), set())
+
+    def test_cache_empty_false(self):
+        # Dict
+        self.clear_cache_empty_false()
+        TestCache.test_dict = {}
+        self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {})
+        TestCache.test_dict = {'value': '100'}
+        self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {'value': '100'})
+        TestCache.test_dict = {}
+        self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {'value': '100'})
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {})
+
+        # Tuple
+        self.clear_cache_empty_false()
+        TestCache.test_tuple = ()
+        self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ())
+        TestCache.test_tuple = ('value', '100')
+        self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ('value', '100'))
+        TestCache.test_tuple = ()
+        self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ('value', '100'))
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ())
+
+        # List
+        self.clear_cache_empty_false()
+        TestCache.test_list = []
+        self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), [])
+        TestCache.test_list = ['value', '100']
+        self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), ['value', '100'])
+        TestCache.test_list = []
+        self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), ['value', '100'])
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), [])
+
+        # String
+        self.clear_cache_empty_false()
+        TestCache.test_string = ""
+        self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "")
+        TestCache.test_string = "Hello World"
+        self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "Hello World")
+        TestCache.test_string = ""
+        self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "Hello World")
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "")
+
+        # Set
+        self.clear_cache_empty_false()
+        TestCache.test_set = set()
+        self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), set())
+        TestCache.test_set = {1.0, "Hello", (1, 2, 3)}
+        self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
+        TestCache.test_set = set()
+        self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
+        with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+            self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), set())
+
     @Cache(key="test_cache_1", expire=timedelta(seconds=2))
     def get_cache(self):
         return TestCache.test_value
@@ -281,4 +408,20 @@ class TestCache(unittest.TestCase):
 
     @Cache(key="test_cache_expire_string_year", invalidate=True)
     def clear_cache_expire_string_year(self):
+        pass
+
+    @Cache(key="test_cache_empty", expire=timedelta(seconds=2))
+    def get_cache_empty(self, param):
+        return param
+
+    @Cache(key="test_cache_empty", invalidate=True)
+    def clear_cache_empty(self):
+        pass
+
+    @Cache(key="test_cache_empty_false", cache_empty_result=False, expire=timedelta(seconds=2))
+    def get_cache_empty_false(self, param):
+        return param
+
+    @Cache(key="test_cache_empty_false", invalidate=True)
+    def clear_cache_empty_false(self):
         pass

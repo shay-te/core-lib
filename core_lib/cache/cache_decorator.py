@@ -43,6 +43,7 @@ class Cache(object):
         max_key_length: int = 250,
         expire: Union[timedelta, str] = None,
         invalidate: bool = False,
+        cache_empty_result: bool = True,
         handler: str = None,
     ):
         self.key = key
@@ -50,6 +51,7 @@ class Cache(object):
         self.invalidate = invalidate
         self.handler_name = handler
         self.expire = _get_expire(expire)
+        self.cache_empty_result = cache_empty_result
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
@@ -71,10 +73,13 @@ class Cache(object):
                 return result
             else:
                 result = cache_handler.get(key)
-                if not result:
+                if result is None:
                     result = func(*args, **kwargs)
-                    if result:
+                    if self.cache_empty_result and result is not None:
                         cache_handler.set(key, result, _get_expire(self.expire))
+                    else:
+                        if result:
+                            cache_handler.set(key, result, _get_expire(self.expire))
                 return result
 
         return __wrapper
