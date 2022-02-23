@@ -158,6 +158,8 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['data_unicode'], data_unicode)
 
     def test_callback(self):
+        dict_value = {"value": "JSON in Python", "number": 123}
+        str_dict_value = str(dict_value)
         json_value = {
             'userId': 1,
             'id': 1,
@@ -173,10 +175,11 @@ class TestResultToDict(unittest.TestCase):
         self.assertDictEqual(data['object'], {"value": "JSON in Python", "number": 123})
 
         json_value_nested = {
-            'userId': 1,
-            'id': 1,
-            'title': 'Some Title',
-            'object_1': {'object_2': {'object_3': {'object': '{"value": "JSON in Python", "number": 123}'}}},
+            "userId": 1,
+            "id": 1,
+            "title": "Some Title",
+            "object": "{\"value\": \"JSON in Python\", \"number\": 123}",
+            "object_1": {"object_2": {"object_3": {"object": "{\"value\": \"JSON in Python\", \"number\": 123}"}}},
         }
         data_nested = result_to_dict(json_value_nested, callback=convert_str_to_dict)
         self.assertNotEqual(data_nested, None)
@@ -187,6 +190,7 @@ class TestResultToDict(unittest.TestCase):
         self.assertDictEqual(
             data_nested['object_1']['object_2']['object_3']['object'], {"value": "JSON in Python", "number": 123}
         )
+        self.assertDictEqual(data_nested['object'], {"value": "JSON in Python", "number": 123})
 
     @ResultToDict()
     def get_from_params(self, param):
