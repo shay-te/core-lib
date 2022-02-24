@@ -39,7 +39,8 @@ def convert_str_to_dict(result):
     obj = result.get('object')
     if obj and isinstance(obj, str):
         result['object'] = json.loads(obj)
-    return result
+        return result
+    return None
 
 
 class TestResultToDict(unittest.TestCase):
@@ -158,8 +159,6 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['data_unicode'], data_unicode)
 
     def test_callback(self):
-        dict_value = {"value": "JSON in Python", "number": 123}
-        str_dict_value = str(dict_value)
         json_value = {
             'userId': 1,
             'id': 1,
@@ -167,7 +166,6 @@ class TestResultToDict(unittest.TestCase):
             'object': '{"value": "JSON in Python", "number": 123}',
         }
         data = result_to_dict(json_value, callback=convert_str_to_dict)
-        self.assertNotEqual(data, None)
         self.assertIsInstance(data, dict)
         self.assertEqual(data['userId'], 1)
         self.assertEqual(data['id'], 1)
@@ -182,7 +180,6 @@ class TestResultToDict(unittest.TestCase):
             "object_1": {"object_2": {"object_3": {"object": "{\"value\": \"JSON in Python\", \"number\": 123}"}}},
         }
         data_nested = result_to_dict(json_value_nested, callback=convert_str_to_dict)
-        self.assertNotEqual(data_nested, None)
         self.assertIsInstance(data_nested, dict)
         self.assertEqual(data_nested['userId'], 1)
         self.assertEqual(data_nested['id'], 1)
@@ -191,6 +188,16 @@ class TestResultToDict(unittest.TestCase):
             data_nested['object_1']['object_2']['object_3']['object'], {"value": "JSON in Python", "number": 123}
         )
         self.assertDictEqual(data_nested['object'], {"value": "JSON in Python", "number": 123})
+
+        json_value_without_str_obj = {
+            'userId': 1,
+            'id': 1,
+            'title': 'Some Title',
+        }
+        data = result_to_dict(json_value_without_str_obj, callback=convert_str_to_dict)
+        self.assertNotEqual(data, None)
+        self.assertDictEqual(data, json_value_without_str_obj)
+
 
     @ResultToDict()
     def get_from_params(self, param):
