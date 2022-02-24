@@ -1,31 +1,31 @@
 import logging
 from functools import wraps
 
-from core_lib.helpers.func_utils import build_value_by_func_parameters, get_calling_module
+from core_lib.helpers.func_utils import (
+    build_value_by_func_parameters,
+    generate_key_by_func_parameters,
+)
 
 
 class Logging(object):
-    def __init__(self, message: str = '', level: int = logging.INFO, stack_depth=1):
+    def __init__(self, message: str = '', level: int = logging.INFO, stack_depth=1, log_parameters: bool = False):
         self.message = message
         self.level = level
-        self.calling_module = get_calling_module(stack_depth)
+        self.log_parameters = log_parameters
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(*args, **kwargs):
+            formatted_params = ""
             if self.log_parameters:
-                params_list = []
-                params = get_func_parameters_as_dict(func, *args, **kwargs)
-                if params['self']:
-                    del(params['self'])
-                for key in params:
-                    params_list.append("{"+str(key)+"}")
-                key_string = "_".join(params_list)
-                message = build_value_by_func_parameters(key_string, func, *args, **kwargs)
-            else:
-                message = ""
+                formatted_params = build_value_by_func_parameters(
+                    generate_key_by_func_parameters(func, *args, **kwargs), func, *args, **kwargs
+                )
+
             logging.basicConfig(level=self.level)
-            logging.getLogger(func.__qualname__).log(self.level, '{}.{}'.format(self.message, ''.join(message)))
+            logging.getLogger(func.__qualname__).log(
+                self.level, f'{self.message}.{formatted_params}'
+            )
             return func(*args, **kwargs)
 
         return __wrapper

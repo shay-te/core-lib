@@ -59,6 +59,17 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> dict:
     return new_key
 
 
+def generate_key_by_func_parameters(func, *args, **kwargs) -> str:
+    params_list = []
+    params = get_func_parameters_as_dict(func, *args, **kwargs)
+    if 'self' in params:
+        del params['self']
+    for key in params:
+        params_list.append("{" + str(key) + "}")
+    key_string = "_".join(params_list)
+    return key_string
+
+
 def get_calling_module(stack_depth: int = 1) -> str:
     stack = inspect.stack()
     frame = stack[stack_depth]
