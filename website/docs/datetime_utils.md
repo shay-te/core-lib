@@ -14,10 +14,11 @@ sidebar_label: Datetime Utilities
 - `month_end` returns the last day of the month.
 - `week_begin` returns the first day of the week.
   >Note: The starting day of the week will be considered as Monday.
-  - `week_end` returns the last day of the week.
+- `week_end` returns the last day of the week.
 - `day_begin` returns the `datetime` for the beginning of the day.
 - `day_end` returns the `datetime` for the ending of the day
 - `tomorrow` returns tomorrow's day.
+- `today` returns today's day.
 - `yesterday` returns yesterday's day.
 - `midnight` returns the midnight for today.
 - `sunday` returns the next Sunday's date.
@@ -29,6 +30,8 @@ sidebar_label: Datetime Utilities
 - `saturday` returns the next Saturday's date.
 - `hour_begin` returns the time for the beginning of current hour.
 - `hour_end` returns the time for the ending of current hour.
+- `age` returns age in `int` for given `date`.
+- `timestamp_to_ms` returns `timestamp` converted to `milliseconds`.
 
 
 ### Usage
