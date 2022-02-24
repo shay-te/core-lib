@@ -29,18 +29,20 @@ class CoreLib(object):
         for job_name, job, job_config in instantiate_config_group_generator_dict(
             config, Job, class_config_base_path='handler', raise_class_config_base_path_error=True
         ):
-            if not job_config.initial_delay:
-                raise ValueError(f'job invalid initial_delay config  `{job_config.initial_delay}`')
+            initial_delay = job_config.get('initial_delay')
+            frequency = job_config.get('frequency')
 
-            initial_delay = job_config.initial_delay
-            if job_config.initial_delay in ['boot', 'startup']:
+            if not initial_delay:
+                raise ValueError(f'job invalid initial_delay config `{job_config.initial_delay}`')
+
+            if initial_delay in ['boot', 'startup']:
                 initial_delay = '0s'
 
             if job_name in job_to_data_handler:
                 job.set_data_handler(job_to_data_handler.get(job_name))
 
-            if job_config.frequency:
-                CoreLib.scheduler.schedule(initial_delay, job_config.frequency, job)
+            if frequency:
+                CoreLib.scheduler.schedule(initial_delay, frequency, job)
             else:
                 CoreLib.scheduler.schedule_once(initial_delay, job)
 
@@ -52,7 +54,7 @@ class CoreLib(object):
                 self.attach_listener(job)
             logger.info(
                 f'job `{job.__class__.__qualname__}` started with params. '
-                f'initial_delay:`{job_config.initial_delay}`, frequency:`{job_config.frequency}`'
+                f'initial_delay:`{initial_delay}`, frequency:`{frequency}`'
             )
 
     def attach_listener(self, core_lib_listener: CoreLibListener):
