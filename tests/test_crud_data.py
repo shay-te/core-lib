@@ -90,259 +90,82 @@ class TestCrud(unittest.TestCase):
         crud.create({'name': 'test_name', 'email': 'abc@def.com', 'active': True})
 
         data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
         self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': True})
 
         crud.update(1, {'active': False})
 
         data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
         self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': False})
 
         crud.delete(1)
-
         with self.assertRaises(StatusCodeException):
             crud.get(1)
 
     def test_crud_multiple(self):
-        dict_1 = {'name': 'Jon', 'email': 'jon@def.com', 'active': True}
-        dict_2 = {'name': 'Ron', 'email': 'ron@def.com', 'active': True}
-        dict_3 = {'name': 'Sam', 'email': 'sam@def.com', 'active': True}
-        dict_4 = {'name': 'Jinny', 'email': 'jinny@def.com', 'active': True}
-        dict_5 = {'name': 'Rosa', 'email': 'rosa@def.com', 'active': True}
-
-        crud = DataCRUDDataAccess()
-
-        crud.create(dict_1)
-        crud.create(dict_2)
-        crud.create(dict_3)
-        crud.create(dict_4)
-        crud.create(dict_5)
-
-        dict_1['id'] = 1
-        dict_2['id'] = 2
-        dict_3['id'] = 3
-        dict_4['id'] = 4
-        dict_5['id'] = 5
-
-        data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
-
-        data = result_to_dict(crud.get(2))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_2)
-
-        data = result_to_dict(crud.get(3))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_3)
-
-        data = result_to_dict(crud.get(4))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_4)
-
-        data = result_to_dict(crud.get(5))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_5)
-
-        crud.update(1, {'active': False})
-        dict_1['active'] = False
-
-        data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
-
-        crud.update(5, {'name': 'Rosita', 'email': 'rosita@def.com'})
-        dict_5['name'] = 'Rosita'
-        dict_5['email'] = 'rosita@def.com'
-
-        data = result_to_dict(crud.get(5))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_5)
-
-        crud.delete(2)
-        with self.assertRaises(StatusCodeException):
-            crud.get(2)
-
-        crud.delete(3)
-        with self.assertRaises(StatusCodeException):
-            crud.get(3)
-
-        crud.delete(4)
-        with self.assertRaises(StatusCodeException):
-            crud.get(4)
+        self._test_data_access(DataCRUDDataAccess(), False, False)
 
     def test_crud_soft_delete(self):
-        dict_1 = {'name': 'Jon', 'email': 'jon@def.com', 'active': True}
-        dict_2 = {'name': 'Ron', 'email': 'ron@def.com', 'active': True}
-        dict_3 = {'name': 'Sam', 'email': 'sam@def.com', 'active': True}
-        dict_4 = {'name': 'Jinny', 'email': 'jinny@def.com', 'active': True}
-        dict_5 = {'name': 'Rosa', 'email': 'rosa@def.com', 'active': True}
-
-        crud = DataCRUDSoftDeleteDataAccess()
-
-        crud.create(dict_1)
-        crud.create(dict_2)
-        crud.create(dict_3)
-        crud.create(dict_4)
-        crud.create(dict_5)
-
-        data = result_to_dict(crud.get(1))
-        dict_1.update({'id': 1, 'deleted_at': None, 'created_at': data['created_at'], 'updated_at': data['created_at']})
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
-
-        data = result_to_dict(crud.get(2))
-        dict_2.update({'id': 2, 'deleted_at': None, 'created_at': data['created_at'], 'updated_at': data['created_at']})
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_2)
-
-        data = result_to_dict(crud.get(3))
-        dict_3.update({'id': 3, 'deleted_at': None, 'created_at': data['created_at'], 'updated_at': data['created_at']})
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_3)
-
-        data = result_to_dict(crud.get(4))
-        dict_4.update({'id': 4, 'deleted_at': None, 'created_at': data['created_at'], 'updated_at': data['created_at']})
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_4)
-
-        data = result_to_dict(crud.get(5))
-        dict_5.update({'id': 5, 'deleted_at': None, 'created_at': data['created_at'], 'updated_at': data['created_at']})
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_5)
-
-        crud.update(5, {'name': 'Rosita', 'email': 'rosita@def.com'})
-
-        data = result_to_dict(crud.get(5))
-        self.assertNotEqual(data, None)
-        self.assertEqual(data['id'], 5)
-        self.assertEqual(data['name'], 'Rosita')
-        self.assertEqual(data['email'], 'rosita@def.com')
-        self.assertEqual(data['active'], True)
-        self.assertEqual(data['deleted_at'], None)
-        self.assertNotEqual(data['updated_at'], data['created_at'])
-
-        crud.delete(2)
-        with self.assertRaises(StatusCodeException):
-            crud.get(2)
-
-        crud.delete(3)
-        with self.assertRaises(StatusCodeException):
-            crud.get(3)
-
-        crud.delete(4)
-        with self.assertRaises(StatusCodeException):
-            crud.get(4)
-
-        data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
+        self._test_data_access(DataCRUDSoftDeleteDataAccess(), True, False)
 
     def test_crud_soft_delete_token(self):
+        self._test_data_access(DataCRUDSoftDeleteTokenDataAccess(), True, True)
+
+    def _compare_data(self, src_data, data_2, is_soft_delete: bool, is_token_delete: bool):
+        self.assertNotEqual(src_data, None)
+        self.assertNotEqual(data_2, None)
+        self.assertEqual(src_data['name'], data_2['name'])
+        self.assertEqual(src_data['email'], data_2['email'])
+        self.assertEqual(src_data['active'], data_2['active'])
+        len_append = 1  # + id
+        if is_soft_delete and is_token_delete:
+            len_append += 4
+            self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
+            self.assertEqual(data_2['deleted_at'], None)
+            self.assertEqual(data_2['delete_token'], None)
+        elif is_soft_delete:
+            self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
+            self.assertEqual(data_2['deleted_at'], None)
+            len_append += 3
+        elif is_token_delete:
+            self.assertEqual(data_2['delete_token'], None)
+            len_append += 1
+        self.assertEqual(len(src_data) + len_append, len(data_2))
+
+    def _test_data_access(self, crud_data_access: CRUD, is_soft_delete: bool, is_token_delete: bool):
         dict_1 = {'name': 'Jon', 'email': 'jon@def.com', 'active': True}
         dict_2 = {'name': 'Ron', 'email': 'ron@def.com', 'active': True}
         dict_3 = {'name': 'Sam', 'email': 'sam@def.com', 'active': True}
         dict_4 = {'name': 'Jinny', 'email': 'jinny@def.com', 'active': True}
         dict_5 = {'name': 'Rosa', 'email': 'rosa@def.com', 'active': True}
 
-        crud = DataCRUDSoftDeleteTokenDataAccess()
+        self.assertEqual(result_to_dict(crud_data_access.create(dict_1))['id'], 1)
+        self.assertEqual(result_to_dict(crud_data_access.create(dict_2))['id'], 2)
+        self.assertEqual(result_to_dict(crud_data_access.create(dict_3))['id'], 3)
+        self.assertEqual(result_to_dict(crud_data_access.create(dict_4))['id'], 4)
+        self.assertEqual(result_to_dict(crud_data_access.create(dict_5))['id'], 5)
 
-        crud.create(dict_1)
-        crud.create(dict_2)
-        crud.create(dict_3)
-        crud.create(dict_4)
-        crud.create(dict_5)
+        self._compare_data(dict_1, result_to_dict(crud_data_access.get(1)), is_soft_delete, is_token_delete)
+        self._compare_data(dict_2, result_to_dict(crud_data_access.get(2)), is_soft_delete, is_token_delete)
+        self._compare_data(dict_3, result_to_dict(crud_data_access.get(3)), is_soft_delete, is_token_delete)
+        self._compare_data(dict_4, result_to_dict(crud_data_access.get(4)), is_soft_delete, is_token_delete)
+        self._compare_data(dict_5, result_to_dict(crud_data_access.get(5)), is_soft_delete, is_token_delete)
 
-        data = result_to_dict(crud.get(1))
-        dict_1.update(
-            {
-                'id': 1,
-                'deleted_at': None,
-                'created_at': data['created_at'],
-                'updated_at': data['created_at'],
-                'delete_token': None,
-            }
-        )
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
+        crud_data_access.update(1, {'active': False})
+        self.assertEqual(result_to_dict(crud_data_access.get(1))['active'], False)
 
-        data = result_to_dict(crud.get(2))
-        dict_2.update(
-            {
-                'id': 2,
-                'deleted_at': None,
-                'created_at': data['created_at'],
-                'updated_at': data['created_at'],
-                'delete_token': None,
-            }
-        )
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_2)
+        crud_data_access.update(5, {'name': 'Rosita', 'email': 'rosita@def.com'})
+        data_5 = result_to_dict(crud_data_access.get(5))
+        self.assertEqual(data_5['name'], 'Rosita')
+        self.assertEqual(data_5['email'], 'rosita@def.com')
 
-        data = result_to_dict(crud.get(3))
-        dict_3.update(
-            {
-                'id': 3,
-                'deleted_at': None,
-                'created_at': data['created_at'],
-                'updated_at': data['created_at'],
-                'delete_token': None,
-            }
-        )
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_3)
-
-        data = result_to_dict(crud.get(4))
-        dict_4.update(
-            {
-                'id': 4,
-                'deleted_at': None,
-                'created_at': data['created_at'],
-                'updated_at': data['created_at'],
-                'delete_token': None,
-            }
-        )
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_4)
-
-        data = result_to_dict(crud.get(5))
-        dict_5.update(
-            {
-                'id': 5,
-                'deleted_at': None,
-                'created_at': data['created_at'],
-                'updated_at': data['created_at'],
-                'delete_token': None,
-            }
-        )
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_5)
-
-        crud.update(5, {'name': 'Rosita', 'email': 'rosita@def.com'})
-
-        data = result_to_dict(crud.get(5))
-        self.assertNotEqual(data, None)
-        self.assertEqual(data['id'], 5)
-        self.assertEqual(data['name'], 'Rosita')
-        self.assertEqual(data['email'], 'rosita@def.com')
-        self.assertEqual(data['active'], True)
-        self.assertEqual(data['deleted_at'], None)
-        self.assertEqual(data['delete_token'], None)
-        self.assertNotEqual(data['updated_at'], data['created_at'])
-
-        crud.delete(2)
+        crud_data_access.delete(2)
         with self.assertRaises(StatusCodeException):
-            crud.get(2)
+            crud_data_access.get(2)
 
-        crud.delete(3)
+        crud_data_access.delete(3)
         with self.assertRaises(StatusCodeException):
-            crud.get(3)
+            crud_data_access.get(3)
 
-        crud.delete(4)
+        crud_data_access.delete(4)
         with self.assertRaises(StatusCodeException):
-            crud.get(4)
-
-        data = result_to_dict(crud.get(1))
-        self.assertNotEqual(data, None)
-        self.assertDictEqual(data, dict_1)
+            crud_data_access.get(4)
