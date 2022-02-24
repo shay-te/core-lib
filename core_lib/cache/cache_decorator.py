@@ -43,8 +43,8 @@ class Cache(object):
         max_key_length: int = 250,
         expire: Union[timedelta, str] = None,
         invalidate: bool = False,
-        cache_empty_result: bool = True,
         handler: str = None,
+        cache_empty_result: bool = True,
     ):
         self.key = key
         self.max_key_length = max_key_length

@@ -277,6 +277,8 @@ class TestCache(unittest.TestCase):
         self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {'value': '100'})
         with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
             self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {})
+        TestCache.test_dict = {'value': '100'}
+        self.assertDictEqual(self.get_cache_empty_false(TestCache.test_dict), {'value': '100'})
 
         # Tuple
         self.clear_cache_empty_false()
@@ -288,6 +290,8 @@ class TestCache(unittest.TestCase):
         self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ('value', '100'))
         with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
             self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ())
+        TestCache.test_tuple = ('value', '100')
+        self.assertTupleEqual(self.get_cache_empty_false(TestCache.test_tuple), ('value', '100'))
 
         # List
         self.clear_cache_empty_false()
@@ -299,6 +303,8 @@ class TestCache(unittest.TestCase):
         self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), ['value', '100'])
         with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
             self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), [])
+        TestCache.test_list = ['value', '100']
+        self.assertListEqual(self.get_cache_empty_false(TestCache.test_list), ['value', '100'])
 
         # String
         self.clear_cache_empty_false()
@@ -310,6 +316,8 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "Hello World")
         with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
             self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "")
+        TestCache.test_string = "Hello World"
+        self.assertEqual(self.get_cache_empty_false(TestCache.test_string), "Hello World")
 
         # Set
         self.clear_cache_empty_false()
@@ -321,6 +329,8 @@ class TestCache(unittest.TestCase):
         self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
         with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
             self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), set())
+        TestCache.test_set = {1.0, "Hello", (1, 2, 3)}
+        self.assertSetEqual(self.get_cache_empty_false(TestCache.test_set), {1.0, "Hello", (1, 2, 3)})
 
     @Cache(key="test_cache_1", expire=timedelta(seconds=2))
     def get_cache(self):
