@@ -25,25 +25,25 @@ def __convert_value(value):
     return value
 
 
-def __name_tuple_to_dict(obj):
+def __name_tuple_to_dict(obj) -> dict:
     result = {}
     for key in obj._fields:
         result[key] = __convert_value(getattr(obj, key))
     return result
 
 
-def __tuple_to_dict(obj):
+def __tuple_to_dict(obj) -> tuple:
     return tuple(__convert_value(item) for item in obj)
 
 
-def __dict_to_dict(collect):
+def __dict_to_dict(collect) -> dict:
     result = {}
     for key, value in dict(collect).items():
         result[key] = __convert_value(value)
     return result
 
 
-def __base_to_dict(obj, found=None):
+def __base_to_dict(obj, found=None) -> dict:
     if not found:
         found = set()
 
@@ -65,8 +65,8 @@ def __base_to_dict(obj, found=None):
                         result[name] = result_arr
                     else:
                         result[name] = __base_to_dict(related_obj, found)
-            except:
-                pass # Do nothing here unable to load relationship
+            except (ValueError, Exception):
+                pass  # Do nothing here unable to load relationship
 
     return result
 
@@ -114,14 +114,13 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
 
 class ResultToDict(object):
-
     def __init__(self, callback: Callable[[dict], Awaitable[dict]] = None):
         self.callback = callback
 
     def __call__(self, func, *args, **kwargs):
-
         @wraps(func)
         def __wrapper(*args, **kwargs):
             return_val = func(*args, **kwargs)
             return result_to_dict(return_val, properties_as_dict=True, callback=self.callback)
+
         return __wrapper

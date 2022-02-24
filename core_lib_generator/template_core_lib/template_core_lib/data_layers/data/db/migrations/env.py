@@ -28,6 +28,7 @@ config_section = config.get_section(config.config_ini_section)
 # url = build_url(**app_config.core_lib.db)
 # config_section["sqlalchemy.url"] = url
 
+
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
@@ -65,9 +66,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

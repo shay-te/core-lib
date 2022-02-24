@@ -5,7 +5,6 @@ from core_lib.session.security_handler import SecurityHandler
 
 
 class UserAuthMiddleware(MiddlewareMixin):
-
     def process_request(self, request):
         # assert hasattr(request, 'handler'), (
         #     "The Django authentication middleware requires handler middleware "

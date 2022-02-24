@@ -1,6 +1,5 @@
 import pysolr
 from omegaconf import DictConfig
-from sqlalchemy import create_engine
 
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.data_helpers import build_url
@@ -14,7 +13,6 @@ from examples.demo_core_lib.core_lib.data_layers.service.demo_service import Dem
 
 
 class DemoCoreLib(CoreLib):
-
     def __init__(self, conf: DictConfig):
         self.config = conf
 
@@ -23,5 +21,3 @@ class DemoCoreLib(CoreLib):
 
         self.info = DemoService(DemoDataAccess(db_data_session))
         self.search = DemoSearchService(DemoSearchDataAccess(solr_data_session))
-
-

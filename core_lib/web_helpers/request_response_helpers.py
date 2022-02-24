@@ -37,7 +37,7 @@ def response_json(data: dict, status: int = HTTPStatus.OK.value):
 
 def response_download_content(content, media_type: MediaType, file_name: str):
     headers = {HttpHeaders.CONTENT_DISPOSITION.value: f'attachment; filename="{file_name}"'}
-    return generate_response(content,  HTTPStatus.OK.value, media_type, headers)
+    return generate_response(content, HTTPStatus.OK.value, media_type, headers)
 
 
 def generate_response(data, status, media_type: MediaType, headers: dict = {}):
@@ -64,9 +64,12 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
         response.headers[key] = value
     return response
 
+
 #
 # HELPERS
 #
+
+
 def request_body_dict(request):
     if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
         return json.loads(request.body.decode('utf-8'))

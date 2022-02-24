@@ -16,29 +16,29 @@ packages2 = find_namespace_packages(include=['hydra_plugins.*'])
 packages = list(set(packages1 + packages2))
 
 with open('README.md', 'r') as fh:
-   long_description = fh.read()
+    long_description = fh.read()
 
-   setup(
-      name='core-lib',
-      version=core_lib.__version__,
-      author='template_full_name',
-      author_email='template_email',
-      description='termplate_description',
-      long_description=long_description,
-      long_description_content_type='text/markdown',
-      url='template_url',
-      packages=packages,
-      license='MIT',
-      classifiers=[
-         'License :: OSI Approved :: MIT License',
-         'Programming Language :: Python :: 3',
-         'Operating System :: OS Independent',
-         'Development Status :: 3 - Alpha',
-         'Topic :: Software Development :: Libraries',
-         'Topic :: Software Development :: Libraries :: Python Modules'
-      ],
-      install_requires=[str(ir.requirement) for ir in install_reqs],
-      include_package_data=True,
-      python_requires='>=3.7',
-      scripts=['bin/core_lib']
-   )
+    setup(
+        name='core-lib',
+        version=core_lib.__version__,
+        author='template_full_name',
+        author_email='template_email',
+        description='termplate_description',
+        long_description=long_description,
+        long_description_content_type='text/markdown',
+        url='template_url',
+        packages=packages,
+        license='MIT',
+        classifiers=[
+            'License :: OSI Approved :: MIT License',
+            'Programming Language :: Python :: 3',
+            'Operating System :: OS Independent',
+            'Development Status :: 3 - Alpha',
+            'Topic :: Software Development :: Libraries',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+        ],
+        install_requires=[str(ir.requirement) for ir in install_reqs],
+        include_package_data=True,
+        python_requires='>=3.7',
+        scripts=['bin/core_lib'],
+    )

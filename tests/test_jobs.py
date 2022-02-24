@@ -17,7 +17,6 @@ class TestJob(Job):
 
 
 class TestJobs(unittest.TestCase):
-
     def test_job_decorator(self):
         j = TestJob()
         j.run()
@@ -47,5 +46,3 @@ class TestJobs(unittest.TestCase):
         sleep(5)
         s.stop(j)
         self.assertGreater(j.called, 2)
-
-

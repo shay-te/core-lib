@@ -8,7 +8,6 @@ from core_lib.observer.observer_listener import ObserverListener
 
 
 class EventsDataAccess(DataAccess, CoreLibListener):
-
     def __init__(self):
         self.core_lib_ready_data_access_called = False
 
@@ -21,7 +20,6 @@ class EventsDataAccess(DataAccess, CoreLibListener):
 
 
 class EventsService(Service, CoreLibListener):
-
     def __init__(self, data_access: EventsDataAccess):
         self.data_access = data_access
         self.core_lib_ready_service_called = False
@@ -35,7 +33,6 @@ class EventsService(Service, CoreLibListener):
 
 
 class EventsCoreLib(CoreLib, CoreLibListener):
-
     def __init__(self):
         CoreLib.__init__(self)
         self.core_lib_ready_called = False
@@ -66,13 +63,11 @@ class EventsCoreLib(CoreLib, CoreLibListener):
 
 
 class OtherObserverListener(ObserverListener):
-
     def update(self, key: str, value):
         pass
 
 
 class TestCoreLibBasics(unittest.TestCase):
-
     def test_01_events(self):
         core_lib = EventsCoreLib()
         core_lib.start_core_lib()

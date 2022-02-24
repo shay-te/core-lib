@@ -8,7 +8,6 @@ from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class CRUDSoftDataAccess(DataAccess, CRUD):
-
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 
@@ -16,12 +15,17 @@ class CRUDSoftDataAccess(DataAccess, CRUD):
     def get(self, id: int):
         assert id
         with self._db.get() as session:
-            return session.query(self._db_entity)\
-                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)\
+            return (
+                session.query(self._db_entity)
+                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)
                 .first()
+            )
 
     def delete(self, id: int):
         assert id
         with self._db.get() as session:
-            return session.query(self._db_entity).filter(self._db_entity.id == id).update({'deleted_at': datetime.utcnow()})
-
+            return (
+                session.query(self._db_entity)
+                .filter(self._db_entity.id == id)
+                .update({'deleted_at': datetime.utcnow()})
+            )

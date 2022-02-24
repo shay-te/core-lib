@@ -6,10 +6,8 @@ from core_lib.cache.cache_handler import CacheHandler
 
 
 class CacheHandlerMemcached(CacheHandler):
-
-    def __init__(self, memcached_client: Client):
-        assert isinstance(memcached_client, Client)
-        self.memcached_client = memcached_client
+    def __init__(self, url: str):
+        self.memcached_client = Client([url])
 
     def get(self, key):
         value = self.memcached_client.get(key)

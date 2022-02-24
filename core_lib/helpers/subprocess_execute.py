@@ -8,6 +8,7 @@ from subprocess import Popen
 from time import sleep
 from functools import partial
 
+
 class SubprocessExecute(object):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -33,9 +34,21 @@ class SubprocessExecute(object):
         if poll is None:
             if debug:
                 if process.stdout:
-                    threading.Thread(target=self.__output_reader, args=('STDOUT', process.stdout,)).start()
+                    threading.Thread(
+                        target=self.__output_reader,
+                        args=(
+                            'STDOUT',
+                            process.stdout,
+                        ),
+                    ).start()
                 if process.stderr:
-                    threading.Thread(target=self.__output_reader, args=('STDERR', process.stderr,)).start()
+                    threading.Thread(
+                        target=self.__output_reader,
+                        args=(
+                            'STDERR',
+                            process.stderr,
+                        ),
+                    ).start()
             return process
         else:
             out, err = process.communicate()

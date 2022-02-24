@@ -7,16 +7,16 @@ from core_lib.data_layers.data.handler.neo4j_data_handler import Neo4jDataHandle
 
 
 class Neo4jDataHandlerRegistry(DataHandlerRegistry):
-
     def __init__(self, config: DictConfig):
         self._config = config
-        self._neo4j_driver = GraphDatabase.driver(build_url(**config.url),
-                                            auth=basic_auth(config.credentials.username,
-                                                            config.credentials.password),
-                                            encrypted=False)
+        self._neo4j_driver = GraphDatabase.driver(
+            build_url(**config.url),
+            auth=basic_auth(config.credentials.username, config.credentials.password),
+            encrypted=False,
+        )
 
     @property
-    def driver(self):
+    def driver(self) -> GraphDatabase:
         return self._neo4j_driver
 
     def get(self, *args, **kwargs) -> Neo4jDataHandler:

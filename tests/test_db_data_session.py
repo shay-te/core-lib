@@ -1,11 +1,9 @@
 import unittest
 from contextlib import suppress
 
-from omegaconf import OmegaConf
-from sqlalchemy import create_engine, Integer, Column, VARCHAR
+from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 
 # path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
 from tests.test_data.test_utils import connect_to_mem_db
@@ -20,7 +18,6 @@ class Test(Base):
 
 
 class TestDBRuleValidator(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()

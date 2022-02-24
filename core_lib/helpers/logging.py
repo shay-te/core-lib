@@ -1,16 +1,14 @@
 import logging
 from functools import wraps
 
-from core_lib.helpers.func_utils import build_value_by_func_parameters, get_calling_module, get_func_parameters_as_dict
+from core_lib.helpers.func_utils import build_value_by_func_parameters, get_calling_module
 
 
 class Logging(object):
-
-    def __init__(self, message: str = '', log_parameters: bool = False, level: int = logging.INFO, stack_depth=1):
+    def __init__(self, message: str = '', level: int = logging.INFO, stack_depth=1):
         self.message = message
         self.level = level
         self.calling_module = get_calling_module(stack_depth)
-        self.log_parameters = log_parameters
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
