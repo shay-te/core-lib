@@ -129,6 +129,9 @@ class TestFunctionUtils(unittest.TestCase):
             get_func_parameter_index_by_name(function_with_parameters, "param_46")
 
     def test_generate_key_func(self):
+        def function_with_no_param():
+            pass
+
         def function_with_1_param(param_1):
             pass
 
@@ -152,6 +155,10 @@ class TestFunctionUtils(unittest.TestCase):
 
         key_5 = generate_key_by_func_parameters(function_with_3_params, *["param_1", "param_4"], **{"param_3": 45})
         self.assertEqual(key_5, "{param_1}_{param_2}_{param_3}")
+
+        key_6 = generate_key_by_func_parameters(function_with_no_param)
+        self.assertIsInstance(key_6, str)
+        self.assertEqual(key_6, "")
 
     # def test_get_calling_module(self):
     #     self.assertNotEqual(get_calling_module(stack_depth=1), None)
