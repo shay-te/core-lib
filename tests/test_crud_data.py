@@ -157,6 +157,8 @@ class TestCrud(unittest.TestCase):
         data_5 = result_to_dict(crud_data_access.get(5))
         self.assertEqual(data_5['name'], 'Rosita')
         self.assertEqual(data_5['email'], 'rosita@def.com')
+        if is_soft_delete:
+            self.assertGreater(data_5['updated_at'], data_5['created_at'])
 
         crud_data_access.delete(2)
         with self.assertRaises(StatusCodeException):
