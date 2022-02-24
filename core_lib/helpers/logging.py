@@ -25,9 +25,9 @@ class Logging(object):
                 key_string = "_".join(params_list)
                 message = build_value_by_func_parameters(key_string, func, *args, **kwargs)
             else:
-                message = build_value_by_func_parameters("", func, *args, **kwargs)
+                message = ""
             logging.basicConfig(level=self.level)
-            logging.getLogger(self.calling_module).log(self.level, '{}.{}'.format(self.message, ''.join(message)))
+            logging.getLogger(func.__qualname__).log(self.level, '{}.{}'.format(self.message, ''.join(message)))
             return func(*args, **kwargs)
 
         return __wrapper
