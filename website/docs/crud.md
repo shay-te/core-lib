@@ -16,7 +16,7 @@ This class is used to initialize `CRUD` with database objects, rule validators a
 ```python
 class CRUD(ABC):
 
-    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
+    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
         self._db_entity = db_entity
         self._db = db
         self._rule_validator = rule_validator
@@ -25,7 +25,7 @@ class CRUD(ABC):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUD`
 
@@ -64,7 +64,7 @@ class CRUDDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDDataAccess`
 
@@ -144,7 +144,7 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
@@ -225,7 +225,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
