@@ -40,6 +40,8 @@ def schedule_once(self, initial_delay: str, job: Job):
 
 `frequency` the time interval after which `run()` function will be called.
 
+`job` is the instance of `Job` class created by user that implements `run()` and `initialized()`
+
 The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse).
 
 ### Usage
