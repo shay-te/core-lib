@@ -59,30 +59,5 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> dict:
     return new_key
 
 
-def generate_key_by_func_parameters(func, *args, **kwargs) -> str:
-    params_list = []
-    params = get_func_parameters_as_dict(func, *args, **kwargs)
-    if 'self' in params:
-        del params['self']
-    for key in params:
-        params_list.append(f'{{{str(key)}}}')
-    return '_'.join(params_list)
-
-
-def get_calling_module(stack_depth: int = 1) -> str:
-    stack = inspect.stack()
-    frame = stack[stack_depth]
-    calling_module = None
-    with suppress(Exception):
-        calling_module = frame[0].f_globals[frame[3]].__module__
-    if not calling_module:
-        with suppress(Exception):
-            calling_module = frame[0].f_locals["self"].__module__
-    if not calling_module:
-        with suppress(Exception):
-            calling_module = frame[0].f_locals['__module__']
-    return calling_module
-
-
 def reset_datetime(date: datetime):
     return date.replace(hour=0, minute=0, second=0, microsecond=0)

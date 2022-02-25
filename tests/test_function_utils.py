@@ -6,7 +6,6 @@ from core_lib.helpers.func_utils import (
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
     reset_datetime,
-    generate_key_by_func_parameters,
 )
 
 
@@ -127,42 +126,6 @@ class TestFunctionUtils(unittest.TestCase):
 
         with self.assertRaises(Exception):
             get_func_parameter_index_by_name(function_with_parameters, "param_46")
-
-    def test_generate_key_func(self):
-        def function_with_no_param():
-            pass
-
-        def function_with_1_param(param_1):
-            pass
-
-        def function_with_2_params(param_1, param_2: str = "hello"):
-            pass
-
-        def function_with_3_params(param_1, param_2: str = "hello", param_3: int = 12):
-            pass
-
-        key_1 = generate_key_by_func_parameters(function_with_1_param)
-        self.assertEqual(key_1, "{param_1}")
-
-        key_2 = generate_key_by_func_parameters(function_with_2_params)
-        self.assertEqual(key_2, "{param_1}_{param_2}")
-
-        key_3 = generate_key_by_func_parameters(function_with_3_params)
-        self.assertEqual(key_3, "{param_1}_{param_2}_{param_3}")
-
-        key_4 = generate_key_by_func_parameters(function_with_3_params, *[], **{})
-        self.assertEqual(key_4, "{param_1}_{param_2}_{param_3}")
-
-        key_5 = generate_key_by_func_parameters(function_with_3_params, *["param_1", "param_4"], **{"param_3": 45})
-        self.assertEqual(key_5, "{param_1}_{param_2}_{param_3}")
-
-        key_6 = generate_key_by_func_parameters(function_with_no_param)
-        self.assertIsInstance(key_6, str)
-        self.assertEqual(key_6, "")
-
-    # def test_get_calling_module(self):
-    #     self.assertNotEqual(get_calling_module(stack_depth=1), None)
-    #     self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()
