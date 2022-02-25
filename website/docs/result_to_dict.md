@@ -98,6 +98,7 @@ print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data
 
 ```
 >For `callback` the function has to be implemented by the user for handling different types of data nested inside the given object.
+> Also if the callback is not returning a new value, or it does not find any data to format it will return the original data.
 
 ## ResultToDict Decorator
 
