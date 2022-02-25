@@ -8,131 +8,131 @@ class TestLogging(unittest.TestCase):
     def test_string_logger(self):
         string = "hello"
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(string)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.hello"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.hello"])
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(None)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.!EparamE!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.!EparamE!"])
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params("")
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.!EparamE!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.!EparamE!"])
 
-        with self.assertLogs('TestLogging.logging_message', level='INFO') as cm:
+        with self.assertLogs('logging_message', level='INFO') as cm:
             self.logging_message(string)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message:log_for_test."])
+        self.assertEqual(cm.output, ["INFO:logging_message:log_for_test"])
 
-        with self.assertLogs('TestLogging.logging_params', level='INFO') as cm:
+        with self.assertLogs('logging_params', level='INFO') as cm:
             self.logging_params(string)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_params:.hello"])
+        self.assertEqual(cm.output, ["INFO:logging_params:.hello"])
 
     def test_object_logger(self):
         dat = datetime.date(2022, 1, 1)
         obj = {'date': dat, 'tuple': ("fruit", "apple"), 'list': ["fruit", "apple"]}
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(obj)
         self.assertEqual(
             cm.output,
             [
-                "INFO:TestLogging.logging_message_params:log_for_test.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"
+                "INFO:logging_message_params:log_for_test.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"
             ],
         )
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params({})
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.!EparamE!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.!EparamE!"])
 
-        with self.assertLogs('TestLogging.logging_message', level='INFO') as cm:
+        with self.assertLogs('logging_message', level='INFO') as cm:
             self.logging_message(obj)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message:log_for_test."])
+        self.assertEqual(cm.output, ["INFO:logging_message:log_for_test"])
 
-        with self.assertLogs('TestLogging.logging_params', level='INFO') as cm:
+        with self.assertLogs('logging_params', level='INFO') as cm:
             self.logging_params(obj)
         self.assertEqual(
             cm.output,
             [
-                "INFO:TestLogging.logging_params:.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"
+                "INFO:logging_params:.{'date': datetime.date(2022, 1, 1), 'tuple': ('fruit', 'apple'), 'list': ['fruit', 'apple']}"
             ],
         )
 
     def test_tuple_logger(self):
         tpl = ("fruit", "apple")
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(tpl)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.('fruit', 'apple')"])
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(())
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.!EparamE!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.!EparamE!"])
 
-        with self.assertLogs('TestLogging.logging_message', level='INFO') as cm:
+        with self.assertLogs('logging_message', level='INFO') as cm:
             self.logging_message(tpl)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message:log_for_test."])
+        self.assertEqual(cm.output, ["INFO:logging_message:log_for_test"])
 
-        with self.assertLogs('TestLogging.logging_params', level='INFO') as cm:
+        with self.assertLogs('logging_params', level='INFO') as cm:
             self.logging_params(tpl)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_params:.('fruit', 'apple')"])
+        self.assertEqual(cm.output, ["INFO:logging_params:.('fruit', 'apple')"])
 
     def test_list_logger(self):
         lst = ["fruit", "apple"]
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params(lst)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.['fruit', 'apple']"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.['fruit', 'apple']"])
 
-        with self.assertLogs('TestLogging.logging_message_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_params', level='INFO') as cm:
             self.logging_message_params([])
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_params:log_for_test.!EparamE!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_params:log_for_test.!EparamE!"])
 
-        with self.assertLogs('TestLogging.logging_message', level='INFO') as cm:
+        with self.assertLogs('logging_message', level='INFO') as cm:
             self.logging_message(lst)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message:log_for_test."])
+        self.assertEqual(cm.output, ["INFO:logging_message:log_for_test"])
 
-        with self.assertLogs('TestLogging.logging_params', level='INFO') as cm:
+        with self.assertLogs('logging_params', level='INFO') as cm:
             self.logging_params(lst)
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_params:.['fruit', 'apple']"])
+        self.assertEqual(cm.output, ["INFO:logging_params:.['fruit', 'apple']"])
 
     def test_multi_param_logger(self):
         lst = ["fruit", "apple"]
         tpl = ("fruit", "apple")
 
-        with self.assertLogs('TestLogging.logging_message_multi_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_multi_params', level='INFO') as cm:
             self.logging_message_multi_params(param_1="hello world", param_2=lst, param_3=tpl)
         self.assertEqual(
             cm.output,
             [
-                "INFO:TestLogging.logging_message_multi_params:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"
+                "INFO:logging_message_multi_params:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"
             ],
         )
 
-        with self.assertLogs('TestLogging.logging_message_multi_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_multi_params', level='INFO') as cm:
             self.logging_message_multi_params(param_1="", param_2=[], param_3=())
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_multi_params:log_for_test.!Eparam_1E!_!Eparam_2E!_!Eparam_3E!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_multi_params:log_for_test.!Eparam_1E!_!Eparam_2E!_!Eparam_3E!"])
 
-        with self.assertLogs('TestLogging.logging_message_multi_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_multi_params', level='INFO') as cm:
             self.logging_message_multi_params()
-        self.assertEqual(cm.output, ["INFO:TestLogging.logging_message_multi_params:log_for_test.!Eparam_1E!_!Eparam_2E!_!Eparam_3E!"])
+        self.assertEqual(cm.output, ["INFO:logging_message_multi_params:log_for_test.!Eparam_1E!_!Eparam_2E!_!Eparam_3E!"])
 
-        with self.assertLogs('TestLogging.logging_message_multi_params', level='INFO') as cm:
+        with self.assertLogs('logging_message_multi_params', level='INFO') as cm:
             self.logging_message_multi_params("hello world", lst, tpl)
         self.assertEqual(
-            cm.output, ["INFO:TestLogging.logging_message_multi_params:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"]
+            cm.output, ["INFO:logging_message_multi_params:log_for_test.hello world_['fruit', 'apple']_('fruit', 'apple')"]
         )
 
-        with self.assertLogs('TestLogging.logging_multi_params_message', level='INFO') as cm:
+        with self.assertLogs('logging_multi_params_message', level='INFO') as cm:
             self.logging_multi_params_message(param_1="hello world", param_2=lst, param_3=tpl)
         self.assertEqual(
-            cm.output, ["INFO:TestLogging.logging_multi_params_message:log_for_test."]
+            cm.output, ["INFO:logging_multi_params_message:log_for_test"]
         )
 
-        with self.assertLogs('TestLogging.logging_multi_params', level='INFO') as cm:
+        with self.assertLogs('logging_multi_params', level='INFO') as cm:
             self.logging_multi_params(param_1="hello world", param_2=lst, param_3=tpl)
         self.assertEqual(
-            cm.output, ["INFO:TestLogging.logging_multi_params:.hello world_['fruit', 'apple']_('fruit', 'apple')"]
+            cm.output, ["INFO:logging_multi_params:.hello world_['fruit', 'apple']_('fruit', 'apple')"]
         )
 
     @Logging(message="log_for_test", log_parameters=True)

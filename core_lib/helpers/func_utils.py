@@ -65,9 +65,8 @@ def generate_key_by_func_parameters(func, *args, **kwargs) -> str:
     if 'self' in params:
         del params['self']
     for key in params:
-        params_list.append("{" + str(key) + "}")
-    key_string = "_".join(params_list)
-    return key_string
+        params_list.append(f'{{{str(key)}}}')
+    return '_'.join(params_list)
 
 
 def get_calling_module(stack_depth: int = 1) -> str:

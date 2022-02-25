@@ -17,14 +17,17 @@ class Logging(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             formatted_params = ""
+            message = generate_key_by_func_parameters(func, *args, **kwargs)
             if self.log_parameters:
                 formatted_params = build_value_by_func_parameters(
                     generate_key_by_func_parameters(func, *args, **kwargs), func, *args, **kwargs
                 )
+            if self.message:
+                message = self.message
 
             logging.basicConfig(level=self.level)
-            logging.getLogger(func.__qualname__).log(
-                self.level, f'{self.message}.{formatted_params}'
+            logging.getLogger(func.__name__).log(
+                self.level, f'{".".join(filter(None, [message, formatted_params]))}'
             )
             return func(*args, **kwargs)
 
