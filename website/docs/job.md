@@ -36,8 +36,35 @@ def schedule(self, initial_delay: str, frequency: str, job: Job):
 def schedule_once(self, initial_delay: str, job: Job):
     ... 
 ````
+`initial_delay` the initial time after which the `run()` function will be called for the first time.
+
+`frequency` the time interval after which `run()` function will be called.
 
 The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse).
+
+### Usage
+```python
+from core_lib.jobs.job import Job
+from core_lib.jobs.job_scheduler import JobScheduler
+
+class UpdateCache(Job):
+
+    def initialized(self, data_handler):
+        pass
+
+    def run(self):
+        # code to update your cache
+
+scheduler = JobScheduler()
+job = UpdateCache()
+# updates the cache 1 second after the schedule_once() is called
+scheduler.schedule_once('1s', job)
+
+# updates the cache 1 second after the job is scheduled and keeps updating every 30 minutes until stop() is called.
+scheduler.schedule('1s', '30m', job) 
+
+scheduler.stop()# stops the ongoing job schedule 
+```
 
 # Configuration 
 
