@@ -49,16 +49,9 @@ class DataSoftDelete(Base, SoftDeleteMixin):
 
 
 class DataCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
-    allowed_update_types = [
-        ValueRuleValidator('name', str),
-        ValueRuleValidator('email', str),
-        ValueRuleValidator('active', bool),
-    ]
-
-    rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDelete, connect_to_mem_db(), DataCRUDSoftDeleteDataAccess.rules_validator)
+        CRUD.__init__(self, DataSoftDelete, connect_to_mem_db())
 
 
 class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
@@ -71,16 +64,9 @@ class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 
 
 class DataCRUDSoftDeleteTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
-    allowed_update_types = [
-        ValueRuleValidator('name', str),
-        ValueRuleValidator('email', str),
-        ValueRuleValidator('active', bool),
-    ]
-
-    rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDeleteToken, connect_to_mem_db(), DataCRUDSoftDeleteTokenDataAccess.rules_validator)
+        CRUD.__init__(self, DataSoftDeleteToken, connect_to_mem_db())
 
 
 class TestCrud(unittest.TestCase):

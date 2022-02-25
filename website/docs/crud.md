@@ -25,7 +25,7 @@ class CRUD(ABC):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUD`
 
@@ -64,7 +64,7 @@ class CRUDDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDDataAccess`
 
@@ -85,9 +85,7 @@ def delete(self, id: int):
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
-from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
@@ -101,32 +99,9 @@ class Customer(Base):
 
 
 class CustomerCRUDDataAccess(CRUDDataAccess):
-    allowed_update_types = [
-        ValueRuleValidator('name', str),
-        ValueRuleValidator('email', str),
-        ValueRuleValidator('active', bool)
-    ]
-
-    rules_validator = RuleValidator(allowed_update_types)
-
     def __init__(self):
-        CRUD.__init__(self, Data, db_handler, CustomerCRUDDataAccess.rules_validator)
+        CRUD.__init__(self, Customer, db_handler)
 
-customer = CustomerCRUDDataAccess()
-
-customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
-
-data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True}
-
-customer.update(1, {'email': 'jon@doe.com'})
-
-data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True}
-
-customer.delete(1)
-
-data = customer.get(1) # will raise StatusCodeException Not found
 ```
 
 
@@ -144,7 +119,7 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
@@ -165,10 +140,8 @@ def delete(self, id: int):
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
-from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
-from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
@@ -182,31 +155,10 @@ class Customer(Base, SoftDeleteMixin):
 
 
 class CustomerCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
-    allowed_update_types = [
-        ValueRuleValidator('name', str),
-        ValueRuleValidator('email', str),
-        ValueRuleValidator('active', bool)
-    ]
-
-    rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDelete, db_handler, CustomerCRUDSoftDeleteDataAccess.rules_validator)
-customer = CustomerCRUDSoftDeleteDataAccess()
+        CRUD.__init__(self, Customer, db_handler)
 
-customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
-
-data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True, 'created_at': 'current_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None}
-
-customer.update(1, {'email': 'jon@doe.com'})
-
-data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True, 'created_at': 'created_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None}
-
-customer.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp
-
-data = customer.get(1) # will raise StatusCodeException Not found
 ```
 
 
@@ -225,7 +177,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
 `db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
 
-`rule_validator` is an optional parameter that uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods.
+`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
@@ -250,7 +202,6 @@ from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValid
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_token_mixin import SoftDeleteTokenMixin
-from core_lib.data_transform.result_to_dict import result_to_dict
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
@@ -264,6 +215,34 @@ class Customer(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 
 
 class CustomerCRUDSoftDeleteWithTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
+    def __init__(self):
+        CRUD.__init__(self, Customer, db_handler)
+
+```
+
+### Example for CRUD
+Implementation with SoftDelete and SoftDeleteToken
+```python
+from core_lib.data_layers.data_access.db.crud.crud import CRUD
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access import CRUDSoftDeleteWithTokenDataAccess
+from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
+from core_lib.data_layers.data.db.sqlalchemy.base import Base
+from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
+from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_token_mixin import SoftDeleteTokenMixin
+from core_lib.data_transform.result_to_dict import result_to_dict
+
+from sqlalchemy import Column, Integer, VARCHAR, Boolean
+
+class Customer(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
+    __tablename__ = 'customer_data'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(VARCHAR(length=255), nullable=False, default="")
+    email = Column(VARCHAR(length=255), nullable=False, default="")
+    active = Column(Boolean, nullable=False)
+
+
+class CustomerCRUDDataAccess(CRUDSoftDeleteWithTokenDataAccess):
     allowed_update_types = [
         ValueRuleValidator('name', str),
         ValueRuleValidator('email', str),
@@ -273,9 +252,9 @@ class CustomerCRUDSoftDeleteWithTokenDataAccess(CRUDSoftDeleteWithTokenDataAcces
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, DataSoftDeleteToken, db_handler, CustomerCRUDSoftDeleteWithTokenDataAccess.rules_validator)
+        CRUD.__init__(self, Customer, db_handler, CustomerCRUDDataAccess.rules_validator)
 
-customer = CustomerCRUDSoftDeleteWithTokenDataAccess()
+customer = CustomerCRUDDataAccess()
 
 customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
 
