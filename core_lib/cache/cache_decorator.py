@@ -75,11 +75,8 @@ class Cache(object):
                 result = cache_handler.get(key)
                 if result is None:
                     result = func(*args, **kwargs)
-                    if self.cache_empty_result and result is not None:
+                    if (self.cache_empty_result and result is not None) or result:
                         cache_handler.set(key, result, _get_expire(self.expire))
-                    else:
-                        if result:
-                            cache_handler.set(key, result, _get_expire(self.expire))
                 return result
 
         return __wrapper
