@@ -20,10 +20,10 @@ def handle_exceptions(func):
         except AssertionError as n:
             logger.error(f'handle_exceptions got error for function `{func}`')
             logger.exception(n, exc_info=True)
-            return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR.value)
+            return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
         except BaseException as bx:
             logger.error(f'handle_exceptions got error for function `{func}`')
             logger.exception(bx, exc_info=True)
-            return response_message(status=500)
+            return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return wrapper
