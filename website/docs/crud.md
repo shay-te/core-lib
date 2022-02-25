@@ -60,11 +60,7 @@ class CRUDDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database entity used by this `DataAccesss`.
 
-`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
-
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDDataAccess`
 
@@ -115,11 +111,7 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database entity used by this `DataAccesss`.
 
-`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
-
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
@@ -173,11 +165,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
         CRUD.__init__(self, db_entity, db, rule_validator)
 ```
-`db_entity` the database entity used by this `DataAccesss`.
 
-`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
-
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
@@ -198,7 +186,6 @@ def delete(self, id: int):
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access import CRUDSoftDeleteWithTokenDataAccess
-from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_token_mixin import SoftDeleteTokenMixin
