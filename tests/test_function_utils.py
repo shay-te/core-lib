@@ -11,30 +11,34 @@ from core_lib.helpers.func_utils import (
 
 class TestFunctionUtils(unittest.TestCase):
     def test_cache_generates_key(self):
-        def returns_1(param_1, param_2, param_3=11, param_4=22):
+        def function_with_params(param_1, param_2, param_3=11, param_4=22):
             return 1
 
-        key1 = build_value_by_func_parameters('asdfghjklzxcvbnm', returns_1, *[1234, 12345134], **{})
+        key1 = build_value_by_func_parameters('asdfghjklzxcvbnm', function_with_params, *[1234, 12345134], **{})
         self.assertNotEqual(key1, None)
         self.assertEqual(key1, 'asdfghjklzxcvbnm')
 
-        key2 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, *[11, 22], **{})
+        key2 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[11, 22], **{})
         self.assertNotEqual(key2, None)
         self.assertEqual(key2, 'xyz_11_22')
 
-        key3 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, *[11], **{})
+        key3 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[11], **{})
         self.assertNotEqual(key3, None)
         self.assertEqual(key3, 'xyz_11_!Eparam_2E!')
 
-        key4 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, *[], **{'param_2': 'pp2'})
+        key4 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'})
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_!Eparam_1E!_pp2')
 
-        key5 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, 1, 2)
+        key5 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, 1, 2)
         self.assertNotEqual(key5, None)
         self.assertEqual(key5, 'xyz_1_2')
 
-        key6 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', returns_1, None, None)
+        key6 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, None, None)
+        self.assertNotEqual(key6, None)
+        self.assertEqual(key6, 'xyz_!Eparam_1E!_!Eparam_2E!')
+
+        key7 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, None, None)
         self.assertNotEqual(key6, None)
         self.assertEqual(key6, 'xyz_!Eparam_1E!_!Eparam_2E!')
 
