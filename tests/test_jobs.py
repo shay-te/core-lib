@@ -16,6 +16,19 @@ class TestJob(Job):
         self.called = self.called + 1
 
 
+class TestJobRaiseException(Job):
+    def __init__(self):
+        self.called = 0
+
+    def initialized(self, data_handler):
+        pass
+
+    def run(self):
+        if self.called == 5:
+            raise BaseException
+        self.called = self.called + 1
+
+
 class TestJobs(unittest.TestCase):
     def test_job_decorator(self):
         j = TestJob()
@@ -46,3 +59,9 @@ class TestJobs(unittest.TestCase):
         sleep(5)
         s.stop(j)
         self.assertGreater(j.called, 2)
+
+        job_exception = TestJobForException()
+        s.schedule('1s', '1s', job_exception)
+        sleep(8)
+        s.stop(j)
+        self.assertGreater(job_exception.called, 2)
