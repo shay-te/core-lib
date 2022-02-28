@@ -17,16 +17,15 @@ class TestJob(Job):
 
 
 class TestJobRaiseException(Job):
-    def __init__(self):
-        self.called = 0
+    called = 0
 
     def initialized(self, data_handler):
         pass
 
     def run(self):
-        if self.called == 5:
+        if TestJobRaiseException.called == 5:
             raise BaseException
-        self.called = self.called + 1
+        TestJobRaiseException.called = TestJobRaiseException.called + 1
 
 
 class TestJobs(unittest.TestCase):
@@ -60,8 +59,14 @@ class TestJobs(unittest.TestCase):
         s.stop(j)
         self.assertGreater(j.called, 2)
 
-        job_exception = TestJobForException()
-        s.schedule('1s', '1s', job_exception)
-        sleep(8)
-        s.stop(j)
-        self.assertGreater(job_exception.called, 2)
+    def test_schedule_log(self):
+        s = JobScheduler()
+        job_exception = TestJobRaiseException()
+        with self.assertLogs() as cm:
+            s.schedule('1s', '1s', job_exception)
+            sleep(10.1)
+            log = str(cm.output)
+            self.assertIn('BaseException', log)
+            self.assertIn('Error while running job', log)
+
+
