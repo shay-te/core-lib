@@ -1,7 +1,10 @@
+import logging
 from threading import Lock, Timer
 from pytimeparse import parse
 from core_lib.jobs.job import Job
 
+
+logger = logging.getLogger(__name__)
 
 class JobScheduler(object):
     def __init__(self):
@@ -33,7 +36,11 @@ class JobScheduler(object):
         self._lock.release()
 
     def _run_job(self, job: Job, frequency: str):
-        job.run()
+        try:
+            job.run()
+        except BaseException as ex:
+            logger.exception(f'Error while running job {job.__repr__() if job else "<None Job>"}', ex)
+
         del self._job_to_timer[job]
         if frequency:
             self._schedule(frequency, frequency, job)
