@@ -81,7 +81,7 @@ class Cache(object):
 * `expire` Period of time when the value is expired.
 * `invalidate` Remove the value from the cache using the key.
 * `handler` name of the handler to be used for handling the cache, by default `Core-Lib`'s default `CacheHandler` is used.
-* `cache_empty_result` type `bool`, default `True`, is responsible for caching the empty values like `{}`, `[]`, `()`, `""` and `set()`.
+* `cache_empty_result` type `bool`, default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
 
 
 ### Cache Initialization

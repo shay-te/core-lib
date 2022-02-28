@@ -214,7 +214,6 @@ class TestCache(unittest.TestCase):
             self.clear_cache_empty_false()
             self.assertEqual(self.get_dont_cache_empty_results(empty_value), empty_value)
             self.assertEqual(self.get_dont_cache_empty_results(cache_data), cache_data)
-            TestCache.test_dict = {}
             self.assertEqual(self.get_dont_cache_empty_results(empty_value), cache_data)
             with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
                 self.assertEqual(self.get_dont_cache_empty_results(empty_value), empty_value)
