@@ -67,6 +67,7 @@ scheduler.schedule('1s', '30m', job)
 
 scheduler.stop()# stops the ongoing job schedule 
 ```
+>If a job fails while running the `Exception` and the message will be logged by the `JobScheduler` for the same.
 
 # Configuration 
 

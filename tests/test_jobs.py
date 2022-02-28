@@ -68,5 +68,3 @@ class TestJobs(unittest.TestCase):
             log = str(cm.output)
             self.assertIn('BaseException', log)
             self.assertIn('Error while running job', log)
-
-

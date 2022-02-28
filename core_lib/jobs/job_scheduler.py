@@ -6,6 +6,7 @@ from core_lib.jobs.job import Job
 
 logger = logging.getLogger(__name__)
 
+
 class JobScheduler(object):
     def __init__(self):
         self._lock = Lock()
