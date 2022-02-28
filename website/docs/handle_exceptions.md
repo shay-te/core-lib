@@ -11,9 +11,7 @@ with error message in case of any exception.
 ```python
 def handle_exceptions(func):
 ```
-This decorator can be used when for handling exceptions when making requests to the db or server to log the exception and 
-send a appropriate error message in HTTP Response. Can be configured with both `Flask` and `Django` with the help of 
-`Core-Lib`'s `WebHelpersUtils`.
+>Can be configured with `Flask` and `Django` with the help of `Core-Lib`'s `WebHelpersUtils`.
 
 Can handle exceptions for:
 - `StatusCodeException` a part of `Core-Lib`'s `error_handling` class, raises a `StatusCodeException` with the given `status_code` if the user wants to return a different status code.
