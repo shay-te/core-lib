@@ -1,5 +1,8 @@
 import datetime
+import enum
 import unittest
+
+from geoalchemy2 import WKTElement
 
 from core_lib.helpers.func_utils import (
     build_value_by_func_parameters,
@@ -7,6 +10,12 @@ from core_lib.helpers.func_utils import (
     get_func_parameter_index_by_name,
     reset_datetime,
 )
+
+
+class MyEnum(enum.Enum):
+    one = 1
+    two = 2
+    three = 3
 
 
 class TestFunctionUtils(unittest.TestCase):
@@ -26,7 +35,9 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertNotEqual(key3, None)
         self.assertEqual(key3, 'xyz_11_!Eparam_2E!')
 
-        key4 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'})
+        key4 = build_value_by_func_parameters(
+            'xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'}
+        )
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_!Eparam_1E!_pp2')
 
@@ -38,9 +49,30 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertNotEqual(key6, None)
         self.assertEqual(key6, 'xyz_!Eparam_1E!_!Eparam_2E!')
 
-        key7 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, None, None)
-        self.assertNotEqual(key6, None)
-        self.assertEqual(key6, 'xyz_!Eparam_1E!_!Eparam_2E!')
+        dat = datetime.date(2022, 1, 1)
+        dattime = datetime.datetime(2022, 1, 1)
+        tpl = ("fruit", "apple")
+        lst = ["fruit", "apple"]
+        point = WKTElement('POINT(5 45)')
+        set_value = {"fruit", "apple"}
+        obj = {"fruit1": "apple", "fruit2": "orange"}
+
+        def function_with_multi_params(
+            param_1, param_2, param_3, param_4, param_5, param_6=point, param_7=set_value, param_8=MyEnum.one.value
+        ):
+            pass
+
+        key7 = build_value_by_func_parameters(
+            'xyz_{param_1}_{param_2}_{param_3}_{param_4}_{param_5}_{param_6}_{param_7}_{param_8}',
+            function_with_multi_params,
+            dat,
+            dattime,
+            tpl,
+            lst,
+            obj,
+        )
+        self.assertNotEqual(key7, None)
+        self.assertEqual(key7, f'xyz_{dat}_{dattime}_{tpl}_{lst}_{obj}_{point}_{set_value}_{MyEnum.one.value}')
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):
