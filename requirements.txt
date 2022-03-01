@@ -16,6 +16,7 @@ pymongo
 python-memcached
 cryptography
 boto3
+boto
 geoalchemy2
 shapely
 
@@ -26,3 +27,4 @@ flask
 
 # Test
 python-dotenv
+moto

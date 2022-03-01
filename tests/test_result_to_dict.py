@@ -19,7 +19,6 @@ class MyEnum(enum.Enum):
 
 
 class Data(Base):
-
     __tablename__ = 'data'
 
     id = Column(Integer, primary_key=True, nullable=False)

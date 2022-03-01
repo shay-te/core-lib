@@ -1,3 +1,4 @@
+import io
 import logging
 import tempfile
 from sys import path
@@ -8,18 +9,17 @@ from core_lib.data_layers.data.handler.object_data_handler_registry import Objec
 
 class ObjectsDataAccess(DataAccess):
     def __init__(self, data_session_factory: ObjectDataHandlerRegistry):
-        DataAccess.__init__(self, data_session_factory)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.data_session_factory = data_session_factory
 
     def get_object(self, bucket_name: str, object_name: str):
-        with tempfile.TemporaryFile() as file_name:
-            with self.get_session() as s3:
-                s3.download_fileobj(bucket_name, object_name, file_name)
-                file_content = path(file_name).bytes()
-        return file_content
+        file_object = io.BytesIO()
+        with self.data_session_factory.get() as s3:
+            s3.download_fileobj(bucket_name, object_name, file_object)
+        return file_object
 
     def set_object(self, bucket_name: str, value):
-        with tempfile.TemporaryFile() as tmp_file:
-            tmp_file.write(value.encode())
-            with self.get_session() as session:
-                session.upload_file(tmp_file.name, bucket_name, value)
+        with open(value, "rb") as f:
+            with self.data_session_factory.get() as session:
+                session.upload_file(f.name, bucket_name, value)
+
