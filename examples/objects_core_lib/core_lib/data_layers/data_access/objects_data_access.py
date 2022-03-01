@@ -12,14 +12,14 @@ class ObjectsDataAccess(DataAccess):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.data_session_factory = data_session_factory
 
-    def get_object(self, bucket_name: str, object_name: str):
-        file_object = io.BytesIO()
+    def get_object(self, bucket_name: str, object_name: str, key: str):
         with self.data_session_factory.get() as s3:
-            s3.download_fileobj(bucket_name, object_name, file_object)
-        return file_object
+            with open(object_name, 'wb') as data:
+                s3.download_fileobj(bucket_name, key, data)
+                return data
 
-    def set_object(self, bucket_name: str, value):
-        with open(value, "rb") as f:
+    def set_object(self, bucket_name: str, value, key: str):
+        with open(value, "rb") as file:
             with self.data_session_factory.get() as session:
-                session.upload_file(f.name, bucket_name, value)
+                session.upload_fileobj(file, bucket_name, key)
 
