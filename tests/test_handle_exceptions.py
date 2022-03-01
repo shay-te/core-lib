@@ -47,14 +47,6 @@ class TestHandleExceptions(unittest.TestCase):
         self.assertIn('handle_exceptions got error for function', str(cm.output))
 
         with self.assertLogs() as cm:
-            resp_json = self.get_data()
-            self.assertEqual(resp_json.status_code, 500)
-            resp_msg_data = json.loads(resp_json.content.decode('utf-8'))
-            self.assertIsInstance(resp_msg_data, dict)
-            self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-        self.assertIn('handle_exceptions got error for function', str(cm.output))
-
-        with self.assertLogs() as cm:
             resp_json = self.raise_assertion()
             self.assertEqual(resp_json.status_code, 500)
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
@@ -98,15 +90,6 @@ class TestHandleExceptions(unittest.TestCase):
         self.assertIn('handle_exceptions got error for function', str(cm.output))
 
         with self.assertLogs() as cm:
-            resp_json = self.get_data()
-            self.assertEqual(resp_json.status_code, 500)
-            self.assertEqual(resp_json.status, "500 INTERNAL SERVER ERROR")
-            resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
-            self.assertIsInstance(resp_msg_data, dict)
-            self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-        self.assertIn('handle_exceptions got error for function', str(cm.output))
-
-        with self.assertLogs() as cm:
             resp_json = self.raise_assertion()
             self.assertEqual(resp_json.status_code, 500)
             self.assertEqual(resp_json.status, "500 INTERNAL SERVER ERROR")
@@ -119,10 +102,6 @@ class TestHandleExceptions(unittest.TestCase):
     @handle_exceptions
     def raise_exception(self, excp_type):
         raise excp_type
-
-    @handle_exceptions
-    def get_data(self):
-        return response_json()
 
     @handle_exceptions
     def raise_assertion(self):

@@ -27,11 +27,11 @@ from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_json
 
 @handle_exceptions
-def get_data(self, user_id):
-    # if this query fails decorator will log the entire BaseException message and return HTTP Response with status code 500
-    return response_json(session.get_user(user_id))
+def get_user(request):
+    # if this query fails decorator will log the entire Exception message and return HTTP Response with status code 500
+    return response_json(example_core_lib.user.get(request.user.user_id))
 
-get_data()# return the HTTP response as per the execution of query.
+get_user()# get the HTTP response as per the execution of query.
 
 user_status = 'inactive'
 @handle_exceptions
