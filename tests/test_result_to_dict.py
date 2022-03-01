@@ -43,9 +43,6 @@ def convert_str_to_dict(result):
     return None
 
 
-def convert_return_none(result): return None
-
-
 class TestResultToDict(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -197,7 +194,7 @@ class TestResultToDict(unittest.TestCase):
             'id': 1,
             'title': 'Some Title',
         }
-        data = result_to_dict(json_value_without_str_obj, callback=convert_return_none)
+        data = result_to_dict(json_value_without_str_obj, callback=convert_str_to_dict)
         self.assertDictEqual(data, json_value_without_str_obj)
 
     @ResultToDict()
