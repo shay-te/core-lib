@@ -8,7 +8,7 @@ from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
-    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
+    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
         CRUD.__init__(self, db_entity, db, rule_validator)
 
     @NotFoundErrorHandler()

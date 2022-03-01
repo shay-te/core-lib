@@ -115,14 +115,14 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
 #### Functions provided by `CRUDSoftDeleteDataAccess`
 
-- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id`.
+- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
 ```python
 def get(self, id: int):
 ```
 `id` is the id of the column we want to query.
 
 
-- `delete(id: int)` overrides the function in `CRUD` class, soft deletes the data for the given `id`.
+- `delete(id: int)` overrides the function in `CRUD` class, soft deletes the data for the given `id`, `SoftDeleteMixin` will set the `deleted_at` to current timestamp.
 ```python
 def delete(self, id: int):
 ```
@@ -156,8 +156,7 @@ class CustomerCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
 
 ### CRUDSoftDeleteWithTokenDataAccess
 This class is similar to `CRUDSoftDeleteDataAccess` but is uses `SoftDeleteMixin` as well as `SoftDeleteTokenMixin` which
-creates the `delete_token` column, if someone wants to index the deleted columns then this class will be used, as 
-`delete_token` is type `int` it can be used for indexing.
+creates the `delete_token` column, because indexing a `DateTime` column is slow, adding the `delete_token` allows us to index the columns that have been deleted.
 
 ```python
 class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
@@ -169,14 +168,15 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
 #### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
-- `get()` overrides the function in `CRUD` class, used to get data from database for a given `id`.
+- `get()` overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
 ```python
 def get(self, id: int):
 ```
 `id` is the id of the column we want to query.
 
 
-- `delete()` overrides the function in `CRUD` class, soft deletes the data for the given `id`.
+- `delete()` overrides the function in `CRUD` class, soft deletes the data for the given `id`, 
+`SoftDeleteMixin` will set the `deleted_at` to current timestamp and `SoftDeleteTokenMixin` will set the `delete_token` to `int` value of current timestamp.
 ```python
 def delete(self, id: int):
 ```
