@@ -33,7 +33,7 @@ solr_core = "demo"
 core_lib = CombineCoreLib(config.core_lib)
 
 dattime = date.today()
-user_data = {
+user_data_crud = {
     'email': 'jon@email.com',
     'username': 'jondoe',
     'password': 'jon@12345',
@@ -45,7 +45,9 @@ user_data = {
     'gender': User.Gender.MALE.value,
 }
 
+
 class TestCombinedExample(unittest.TestCase):
+
     def test_01_group_services(self):
         self.assertEqual(core_lib.test.test.test_1.get_value(), 1)
         self.assertEqual(core_lib.test.test.test_2.get_value(), 2)
@@ -148,17 +150,16 @@ class TestCombinedExample(unittest.TestCase):
         self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
 
     def test_example_crud(self):
-
-        user = core_lib.test.user_crud.create(user_data)
+        user = core_lib.test.user_crud.create(user_data_crud)
         db_data = core_lib.test.user_crud.get(user['id'])
-        user_data.update({
+        user_data_crud.update({
             'id': user['id'],
             'birthday': datetime.combine(dattime, datetime.min.time()).timestamp(),
             'updated_at': db_data['created_at'],
             'created_at': db_data['created_at'],
             'deleted_at': None,
         })
-        self.assertDictEqual(db_data, user_data)
+        self.assertDictEqual(db_data, user_data_crud)
 
         core_lib.test.user_crud.update(user['id'], {'email': 'jon@doe.com'})
         db_data = core_lib.test.user_crud.get(user['id'])
