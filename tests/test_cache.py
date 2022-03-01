@@ -245,7 +245,7 @@ class TestCache(unittest.TestCase):
 
     CACHE_WITH_PARAMS = 'test_cache_param_{param_1}'
 
-    @Cache(key=CACHE_WITH_PARAMS, expire=timedelta(seconds=2), handler=cache_client_name)
+    @Cache(key=CACHE_WITH_PARAMS, expire=timedelta(seconds=2), handler_name=cache_client_name)
     def get_cache_with_param(self, param_1):
         return TestCache.test_value
 
@@ -259,11 +259,11 @@ class TestCache(unittest.TestCase):
     def get_cache_with_param_optional(self, param_1, param_2=2, param_3=None, param_4="param4"):
         return TestCache.test_value
 
-    @Cache(key=CACHE_WITH_PARAMS_OPTIONAL, invalidate=True, handler=cache_client_name)
+    @Cache(key=CACHE_WITH_PARAMS_OPTIONAL, invalidate=True, handler_name=cache_client_name)
     def clear_cache_with_param_optional(self, param_1, param_2=2, param_3=None, param_4="param4"):
         pass
 
-    @Cache(key=CACHE_TEST, expire=timedelta(seconds=2), handler="sosososos")
+    @Cache(key=CACHE_TEST, expire=timedelta(seconds=2), handler_name="sosososos")
     def not_exists_cache_client_name(self):
         return TestCache.test_value
 
