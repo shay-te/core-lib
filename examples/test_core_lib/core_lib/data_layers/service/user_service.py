@@ -2,10 +2,11 @@ from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDS
 from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+from examples.test_core_lib.core_lib.data_layers.data_access.user_data_access import UserDataAccess
 
 
 class UserService(Service):
-    def __init__(self, data_access: CRUDSoftDataAccess):
+    def __init__(self, data_access: UserDataAccess or CRUDSoftDataAccess):
         self.data_access = data_access
 
     @ResultToDict()

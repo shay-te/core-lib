@@ -1,16 +1,15 @@
 core_lib:
   app:
     secret: 000000000000000000101010110
-  db:
-    protocol: mysql
-    username: ${oc.env:MYSQL_USER}
-    password: ${oc.env:MYSQL_ROOT_PASSWORD}
-    host: 127.0.0.1
-    port: 3306
-    file: ${oc.env:MYSQL_DB}
 
-    log_queries: true
+  db:
+    log_queries: false
     create_db: true
+    session:
+      pool_recycle: 3600
+      pool_pre_ping: false
+    url:
+      protocol: sqlite
 
   solr:
     protocol: http

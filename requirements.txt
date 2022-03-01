@@ -5,6 +5,8 @@ PyJWT
 argh
 pytimeparse
 parsedatetime
+omegaconf
+neo4j
 
 # Connectors
 sqlalchemy
@@ -20,11 +22,15 @@ boto
 geoalchemy2
 shapely
 
+
 # web
 django
 flask
+requests
 
 
 # Test
 python-dotenv
 moto
+freezegun
+setuptools

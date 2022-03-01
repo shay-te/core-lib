@@ -1,6 +1,6 @@
 import os
 import unittest
-from datetime import date
+from datetime import date, datetime
 from time import sleep
 
 import hydra
@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from hydra.core.utils import configure_log
 from pathlib import Path
 
-
+from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.generate_data import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
@@ -32,6 +32,18 @@ solr_core = "demo"
 
 core_lib = CombineCoreLib(config.core_lib)
 
+dattime = date.today()
+user_data = {
+    'email': 'jon@email.com',
+    'username': 'jondoe',
+    'password': 'jon@12345',
+    'nick_name': 'jon',
+    'first_name': 'Jon',
+    'middle_name': 'P',
+    'last_name': 'Doe',
+    'birthday': dattime,
+    'gender': User.Gender.MALE.value,
+}
 
 class TestCombinedExample(unittest.TestCase):
     def test_01_group_services(self):
@@ -134,3 +146,25 @@ class TestCombinedExample(unittest.TestCase):
             "gender": User.Gender.MALE,
         }
         self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
+
+    def test_example_crud(self):
+
+        user = core_lib.test.user_crud.create(user_data)
+        db_data = core_lib.test.user_crud.get(user['id'])
+        user_data.update({
+            'id': user['id'],
+            'birthday': datetime.combine(dattime, datetime.min.time()).timestamp(),
+            'updated_at': db_data['created_at'],
+            'created_at': db_data['created_at'],
+            'deleted_at': None,
+        })
+        self.assertDictEqual(db_data, user_data)
+
+        core_lib.test.user_crud.update(user['id'], {'email': 'jon@doe.com'})
+        db_data = core_lib.test.user_crud.get(user['id'])
+        self.assertEqual(db_data['email'], 'jon@doe.com')
+        self.assertNotEqual(db_data['created_at'], db_data['updated_at'])
+
+        core_lib.test.user_crud.delete(user['id'])
+        with self.assertRaises(StatusCodeException):
+            core_lib.test.user_crud.get(user['id'])

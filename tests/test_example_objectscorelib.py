@@ -2,17 +2,10 @@ import os
 import unittest
 
 import boto3
-import hydra
 from moto import mock_s3
 from omegaconf import OmegaConf
 
 from examples.objects_core_lib.core_lib.objects_core_lib import ObjectsCoreLib
-
-# config_file = 'config.yaml'
-# hydra.initialize(config_path='../examples/objects_core_lib/config')
-# config = hydra.compose(config_file)
-#
-# objects_core_lib = ObjectsCoreLib(config.core_lib)
 
 
 class ObjectsCoreLibTesting(ObjectsCoreLib):
