@@ -49,7 +49,6 @@ class DataSoftDelete(Base, SoftDeleteMixin):
 
 
 class DataCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
-
     def __init__(self):
         CRUD.__init__(self, DataSoftDelete, connect_to_mem_db())
 
@@ -64,7 +63,6 @@ class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 
 
 class DataCRUDSoftDeleteTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
-
     def __init__(self):
         CRUD.__init__(self, DataSoftDeleteToken, connect_to_mem_db())
 

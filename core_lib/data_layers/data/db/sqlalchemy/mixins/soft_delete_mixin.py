@@ -10,6 +10,3 @@ class SoftDeleteMixin(object):
     updated_at._creation_order = 9998
     deleted_at = Column(DateTime, default=None)
     deleted_at._creation_order = 9998
-
-
-
