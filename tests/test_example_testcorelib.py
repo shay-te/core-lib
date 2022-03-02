@@ -44,27 +44,27 @@ class TestExamples(unittest.TestCase):
 
     def test_example_crud(self):
         user = TestExamples.core_lib.user_crud.create(user_data)
-        db_data = TestExamples.core_lib.user_crud.get(user['id'])
+        db_data = TestExamples.core_lib.user_crud.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
 
-        TestExamples.core_lib.user_crud.update(user['id'], {'email': 'jon@doe.com'})
-        db_data = TestExamples.core_lib.user_crud.get(user['id'])
-        self.assertEqual(db_data['email'], 'jon@doe.com')
-        self.assertNotEqual(db_data['created_at'], db_data['updated_at'])
+        TestExamples.core_lib.user_crud.update(user[User.id.key], {'email': 'jon@doe.com'})
+        db_data = TestExamples.core_lib.user_crud.get(user[User.id.key])
+        self.assertEqual(db_data[User.email.key], 'jon@doe.com')
+        self.assertGreater(db_data[User.updated_at.key], db_data[User.created_at.key])
 
-        TestExamples.core_lib.user_crud.delete(user['id'])
+        TestExamples.core_lib.user_crud.delete(user[User.id.key])
         with self.assertRaises(StatusCodeException):
-            TestExamples.core_lib.user_crud.get(user['id'])
+            TestExamples.core_lib.user_crud.get(user[User.id.key])
 
     def test_example_user_data_access(self):
         user = TestExamples.core_lib.user.create(user_data)
-        db_data = TestExamples.core_lib.user.get(user['id'])
+        db_data = TestExamples.core_lib.user.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
 
-        TestExamples.core_lib.user.update(user['id'], {'gender': User.Gender.FEMALE.value})
-        db_data = TestExamples.core_lib.user.get(user['id'])
-        self.assertEqual(db_data['gender'], User.Gender.FEMALE.value)
-        self.assertNotEqual(db_data['created_at'], db_data['updated_at'])
+        TestExamples.core_lib.user.update(user[User.id.key], {'gender': User.Gender.FEMALE.value})
+        db_data = TestExamples.core_lib.user.get(user[User.id.key])
+        self.assertEqual(db_data[User.gender.key], User.Gender.FEMALE.value)
+        self.assertGreater(db_data[User.updated_at.key], db_data[User.created_at.key])
 
     def test_example_test_data_access(self):
         self.assertEqual(TestExamples.core_lib.test.test_1.get_value(), 1)
