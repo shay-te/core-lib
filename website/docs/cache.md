@@ -67,7 +67,7 @@ class Cache(object):
         max_key_length: int = 250,
         expire: Union[timedelta, str] = None,
         invalidate: bool = False,
-        handler: str = None,
+        handler_name: str = None,
         cache_empty_result: bool = True,
     ):
 ```
@@ -80,7 +80,7 @@ class Cache(object):
 * `max_key_length` default `250`, the maximum length of key string to be accepted by decorator.
 * `expire` Period of time when the value is expired.
 * `invalidate` Remove the value from the cache using the key.
-* `handler` name of the handler to be used for handling the cache, by default `Core-Lib`'s default `CacheHandler` is used.
+* `handler_name` name of the handler, will specify what `CacheHandler` to use, using the `CoreLib.cache_registry`.
 * `cache_empty_result` type `bool`, default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
 
 
