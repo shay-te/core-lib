@@ -1,7 +1,5 @@
 import enum
-import json
 import unittest
-from abc import ABC
 from datetime import timedelta, datetime
 from http import HTTPStatus
 
@@ -20,7 +18,7 @@ from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.decorators import handle_exceptions
 from core_lib.web_helpers.django.decorators import RequireLogin
-from core_lib.web_helpers.request_response_helpers import response_message
+from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_utils import connect_to_mem_db
 
@@ -73,12 +71,12 @@ class CustomerSecurity(UserSecurity):
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
         data_dict = result_to_dict(user_data_access.get(session_obj.id))
         if data_dict['email'] == session_obj.email:
-            if data_dict['role'] == policies[0].value:
-                return response_message('THIS IS A ADMIN PAGE', HTTPStatus.UNAUTHORIZED)
+            if data_dict['role'] in policies:
+                return response_status(HTTPStatus.OK)
             else:
-                return response_message('OK', HTTPStatus.OK)
+                return response_status(HTTPStatus.UNAUTHORIZED)
         else:
-            return response_message('CREDENTIALS NOT MATCHED', HTTPStatus.FORBIDDEN)
+            return response_status(HTTPStatus.FORBIDDEN)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
         return SessionUser(session_data['id'], session_data['email'])
@@ -99,60 +97,71 @@ security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=2))
 SecurityHandler.register(security_handler)
 
 # DJANGO INIT
-settings.configure()
-settings.DEFAULT_CHARSET = 'utf-8'
+if not settings.configured:
+    settings.configure()
+    settings.DEFAULT_CHARSET = 'utf-8'
 web_util = WebHelpersUtils()
 web_util.init(web_util.ServerType.DJANGO)
 
 
 class TestUserSecurity(unittest.TestCase):
 
+    user = {'id': 1, 'email': 'user@def.com'}
+    tester = {'id': 2, 'email': 'tester@def.com'}
+    admin = {'id': 3, 'email': 'admin@def.com'}
+
     @classmethod
     def setUp(cls):
-        user_data_access.create({'username': 'user_1', 'email': 'user_1@def.com', 'role': 1})
-        user_data_access.create({'username': 'user_2', 'email': 'user_2@def.com', 'role': 2})
-        user_data_access.create({'username': 'user_3', 'email': 'user_3@def.com', 'role': 3})
+        user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': PolicyRoles.USER.value})
+        user_data_access.create({'username': 'tester', 'email': 'tester@def.com', 'role': PolicyRoles.TESTER.value})
+        user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': PolicyRoles.ADMIN.value})
+
+    def _create_request(self, payload: dict):
+        request_object = HttpRequest
+        token = jwt.encode(payload, key)
+        request_object.COOKIES = {'user_cookie': token}
+        return request_object
 
     def test_secure_entry(self):
-        request_object = HttpRequest
-        payload = {'id': 2, 'email': 'user_1@def.com'}
-        token = jwt.encode(payload, key)
-        request_object.COOKIES = {'user_cookie': token}
 
-        resp_msg = user_entry(request_object)
-        self.assertEqual(resp_msg.status_code, 403)
-        resp_msg_data = json.loads(resp_msg.content.decode('utf-8'))
-        self.assertEqual(resp_msg_data['message'], 'CREDENTIALS NOT MATCHED')
+        response = user_entry(self._create_request(TestUserSecurity.user))
+        self.assertEqual(response.status_code, 200)
 
-        request_object = HttpRequest
-        payload = {'id': 2, 'email': 'user_2@def.com'}
-        token = jwt.encode(payload, key)
-        request_object.COOKIES = {'user_cookie': token}
+        response = tester_entry(self._create_request(TestUserSecurity.tester))
+        self.assertEqual(response.status_code, 200)
 
-        resp_msg = user_entry(request_object)
-        self.assertEqual(resp_msg.status_code, 200)
-        resp_msg_data = json.loads(resp_msg.content.decode('utf-8'))
-        self.assertEqual(resp_msg_data['message'], 'OK')
+        response = tester_admin_entry(self._create_request(TestUserSecurity.tester))
+        self.assertEqual(response.status_code, 200)
 
-        request_object = HttpRequest
-        payload = {'id': 3, 'email': 'user_3@def.com'}
-        token = jwt.encode(payload, key)
-        request_object.COOKIES = {'user_cookie': token}
+        response = admin_entry(self._create_request(TestUserSecurity.admin))
+        self.assertEqual(response.status_code, 200)
 
-        resp_msg = user_entry(request_object)
-        self.assertEqual(resp_msg.status_code, 200)
-        resp_msg_data = json.loads(resp_msg.content.decode('utf-8'))
-        self.assertEqual(resp_msg_data['message'], 'OK')
+        response = tester_admin_entry(self._create_request(TestUserSecurity.admin))
+        self.assertEqual(response.status_code, 200)
 
-        request_object = HttpRequest
-        payload = {'id': 1, 'email': 'user_1@def.com'}
-        token = jwt.encode(payload, key)
-        request_object.COOKIES = {'user_cookie': token}
+        response = user_entry(self._create_request(TestUserSecurity.admin))
+        self.assertEqual(response.status_code, 401)
 
-        resp_msg = user_entry(request_object)
-        self.assertEqual(resp_msg.status_code, 401)
-        resp_msg_data = json.loads(resp_msg.content.decode('utf-8'))
-        self.assertEqual(resp_msg_data['message'], 'THIS IS A ADMIN PAGE')
+        response = tester_entry(self._create_request(TestUserSecurity.admin))
+        self.assertEqual(response.status_code, 401)
+
+        response = admin_entry(self._create_request(TestUserSecurity.user))
+        self.assertEqual(response.status_code, 401)
+
+        response = tester_entry(self._create_request(TestUserSecurity.user))
+        self.assertEqual(response.status_code, 401)
+
+        response = tester_admin_entry(self._create_request(TestUserSecurity.user))
+        self.assertEqual(response.status_code, 401)
+
+        response = admin_entry(self._create_request(TestUserSecurity.tester))
+        self.assertEqual(response.status_code, 401)
+
+        response = user_entry(self._create_request(TestUserSecurity.tester))
+        self.assertEqual(response.status_code, 401)
+
+        response = user_entry(self._create_request({'id': 3, 'email': 'user@def.com'}))
+        self.assertEqual(response.status_code, 403)
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()
@@ -164,13 +173,28 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(decoded_dict['id'], user['id'])
         self.assertEqual(decoded_dict['email'], user['email'])
         self.assertGreater(decoded_dict['exp'], time_stamp)
-        print('JWT EXP', decoded_dict['exp'])
-        print('TIMESTAMP', time_stamp)
+        self.assertEqual(int(decoded_dict['exp']), int(time_stamp) + 2)
 
 
-@RequireLogin(policies=[PolicyRoles.USER, PolicyRoles.TESTER, PolicyRoles.ADMIN])
+@RequireLogin(policies=[PolicyRoles.USER.value])
 @handle_exceptions
 def user_entry(request):
     pass
 
-# create user entry for admin tester user and both
+
+@RequireLogin(policies=[PolicyRoles.ADMIN.value])
+@handle_exceptions
+def admin_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.TESTER.value])
+@handle_exceptions
+def tester_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.TESTER.value, PolicyRoles.ADMIN.value])
+@handle_exceptions
+def tester_admin_entry(request):
+    pass

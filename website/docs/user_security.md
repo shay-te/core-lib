@@ -1,0 +1,237 @@
+---
+id: user_security
+title: User Security
+sidebar_label: User Security
+---
+
+`Core-Lib` has classes that provide user security implementations that the user may tailor to their needs for authorization or authentication purposes.
+These classes function together, and the user must implement them in order for `User Security` to work as expected.
+
+Classes that handle `User Security`
+## UserSecurity
+`UserSecurity` is an abstract class that provides security functions to be implemented by user as per their needs. Must be extended in the class where we will implement the abstract methods.
+
+```python
+class UserSecurity(ABC):
+    def __init__(self, cookie_name: str, token_handler: TokenHandler):
+```
+`cookie_name` (*str*) : name of the cookie in which the token is passed
+
+`token_handler` : expects a `TokenHandler` class that implements the `encode` and `decode` functions.
+
+
+
+###Function provides by UserSecurity
+
+- `secure_entry` is an abstract method that the user must implement, it can be customized to perform actions according to the `policies` supplied to the function.
+
+```python
+def secure_entry(self, request, session_obj, policies: list):
+```
+`request` :  the received request object.
+
+`session_obj` : decoded and formatted session data.
+
+`policies` (*list*) : list of policies that will be required for further authentication or authorization.
+
+- `from_session_data` also an abstract method to be implemented by the user, takes care of the formatting and 
+cleaning of the decoded session data.
+
+```python
+def from_session_data(self, session_data: dict):
+```
+`session_data` (*dict*) : decoded session data received from `_secure_entry()`.
+
+- `generate_session_data` also an abstract method to be implemented by user, returns a structured `dict` with the received data that will be used in the response object.
+
+```python
+def generate_session_data(self, obj) -> dict:
+```
+`obj` : data that must be structured and returned.
+
+- `generate_session_data_token` is a method that will encode the data returned by `generate_session_data()` and return the encoded token.
+
+```python
+def generate_session_data_token(self, obj):
+```
+`obj` that is being passed to `generate_session_data` in order to create a structured `dict`.
+
+- `_secure_entry` is being called in the `@RequireLogin` decorator and is responsible for calling the `secure_entry` 
+method that is implemented.
+
+```python
+def _secure_entry(self, request, policies):
+```
+`request` : request object that is received by the decorator containing the cookie with token.
+
+`policies` : list of policies that will be passed to `secure_entry()`
+
+
+## SecurityHandler
+`SecurityHandler` class registers our `UserSecurity` implemented class and is used to call `UserSecurity` methods using `get()`.
+
+```python
+class SecurityHandler(object):
+```
+
+###Function provides by SecurityHandler
+
+- `register` this function registers our `UserSecurity` implemented class.
+
+```python
+def register(user_security: UserSecurity):
+```
+`user_security` : `UserSecurity` implemented class.
+
+- `get` this function returns the `UserSecurity` functions.
+
+```python
+def get() -> UserSecurity:
+```
+
+
+## RequireLogin Decorator
+This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
+It will accept `poilicies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+```python
+class RequireLogin(object):
+    def __init__(self, policies: list = []):
+```
+`policies` (*list*) : list of policies which will be further passed on the the `UserSecurity` functions.
+
+##Example
+```python
+import enum
+from datetime import timedelta, datetime
+from http import HTTPStatus
+
+import jwt
+from django.conf import settings
+from django.http import HttpRequest
+from sqlalchemy import Integer, Column, VARCHAR
+
+from core_lib.data_layers.data.db.sqlalchemy.base import Base
+from core_lib.data_layers.data_access.db.crud.crud import CRUD
+from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
+from core_lib.data_transform.result_to_dict import result_to_dict
+from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
+from core_lib.session.jwt_token_handler import JWTTokenHandler
+from core_lib.session.security_handler import SecurityHandler
+from core_lib.session.user_security import UserSecurity
+from core_lib.web_helpers.decorators import handle_exceptions
+from core_lib.web_helpers.django.decorators import RequireLogin
+from core_lib.web_helpers.request_response_helpers import response_status
+
+
+class User(Base):
+    __tablename__ = 'user_security'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    username = Column(VARCHAR(length=255), nullable=False, default="")
+    email = Column(VARCHAR(length=255), nullable=False, default="")
+    role = Column(Integer, nullable=False)
+
+
+class UserDataAccess(CRUDDataAccess):
+    allowed_update_types = [
+        ValueRuleValidator('username', str),
+        ValueRuleValidator('email', str),
+        ValueRuleValidator('role', int),
+    ]
+
+    rules_validator = RuleValidator(allowed_update_types)
+
+    def __init__(self):
+        CRUD.__init__(self, User, database_handler, UserDataAccess.rules_validator)
+
+
+# USER SECURITY SETUP
+class PolicyRoles(enum.Enum):
+    USER = 1
+    TESTER = 2
+    ADMIN = 3
+
+
+class SessionUser(object):
+
+    def __init__(self, id: int, email: str):
+        self.id = id
+        self.email = email
+
+    def __dict__(self):
+        return {'id': self.id, 'email': self.email}
+
+
+class CustomerSecurity(UserSecurity):
+
+    def __init__(self, cookie_name: str, secret: str, expiration_time: timedelta):
+        UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
+
+    def secure_entry(self, request, session_obj: SessionUser, policies: list):
+        data_dict = result_to_dict(user_data_access.get(session_obj.id))
+        if data_dict['email'] == session_obj.email:
+            if data_dict['role'] in policies:
+                return response_status(HTTPStatus.OK)
+            else:
+                return response_status(HTTPStatus.UNAUTHORIZED)
+        else:
+            return response_status(HTTPStatus.FORBIDDEN)
+
+    def from_session_data(self, session_data: dict) -> SessionUser:
+        return SessionUser(session_data['id'], session_data['email'])
+
+    def generate_session_data(self, user) -> dict:
+        return {
+            'id': user['id'],
+            'email': user['email'],
+        }
+
+# CRUD INIT
+user_data_access = UserDataAccess()
+
+# SECURITY HANDLER REGISTER
+key = 'super-secret'
+security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=2))
+SecurityHandler.register(security_handler)
+
+
+# IMPLEMENTATION
+@RequireLogin(policies=[PolicyRoles.USER.value])
+@handle_exceptions
+def user_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.ADMIN.value])
+@handle_exceptions
+def admin_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.TESTER.value])
+@handle_exceptions
+def tester_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.TESTER.value, PolicyRoles.ADMIN.value])
+@handle_exceptions
+def tester_admin_entry(request):
+    pass
+
+# Function call with HttpRequest.COOKIES set as {'user_cookie': token}
+# where token is the JWT encoded token which will be decoded by UserSecurity
+# and the decoded object with data will be authenticated and authorized in secure_entry()
+response = user_entry(request)
+
+# Similarly, this process will happen with other function and the respective HTTP status code
+# will be returned. This is how UserSecurity is implemented in Core-lib
+
+# For authenticated user
+if response.status_code == 200:
+    user = result_to_dict(user_data_access.get(user_id))
+    # We can return this data back to our application for as an encoded JWT token 
+    user_session = SecurityHandler.get().generate_session_data_token(user)
+    
+
+```
