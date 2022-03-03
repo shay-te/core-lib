@@ -61,7 +61,15 @@ cache_client_factory.get() # returns None. Multiple client registered.
 ```python
 class Cache(object):
     ...
-    def __init__(self, key: str = None, expire: timedelta = None, invalidate: bool = False, cache_client_name: str = None):
+    def __init__(
+        self,
+        key: str = None,
+        max_key_length: int = 250,
+        expire: Union[timedelta, str] = None,
+        invalidate: bool = False,
+        handler_name: str = None,
+        cache_empty_result: bool = True,
+    ):
 ```
 * `key` The key used to store the value. possible values are:
    
@@ -69,9 +77,11 @@ class Cache(object):
     
     `some_key{param_1}{param_2}`: will build a key with the `param_1` and `param_2` values.     
     when a parameter is optional and empty `_` is used. 
+* `max_key_length` default `250`, the maximum length of key string to be accepted by decorator.
 * `expire` Period of time when the value is expired.
 * `invalidate` Remove the value from the cache using the key.
-* `cache_client_name` The name to pay to get the correct `CacheHandler`.
+* `handler_name` name of the handler, will specify what `CacheHandler` to use, using the `CoreLib.cache_registry`.
+* `cache_empty_result` type `bool`, default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
 
 
 ### Cache Initialization

@@ -13,6 +13,11 @@ cache_client_name = "xyz"
 
 class TestCache(unittest.TestCase):
     test_value = 100
+    test_dict = {'value': '100'}
+    test_tuple = ('value', '100')
+    test_list = ['value', '100']
+    test_string = "Hello World"
+    test_set = {1.0, "Hello", (1, 2, 3)}
 
     @classmethod
     def setUpClass(cls):
@@ -25,7 +30,7 @@ class TestCache(unittest.TestCase):
     def test_cache_client_register(self):
         self.assertRaises(ValueError, self.not_exists_cache_client_name)
 
-    def test_cash(self):
+    def test_cache(self):
         self.clear_cache()
         TestCache.test_value = 100
         self.assertEqual(self.get_cache(), 100)
@@ -38,7 +43,7 @@ class TestCache(unittest.TestCase):
         self.clear_cache()
         self.assertEqual(self.get_cache(), 100)
 
-    def test_cash_with_param(self):
+    def test_cache_with_param(self):
         TestCache.test_value = 100
 
         param = "some_val"
@@ -54,7 +59,7 @@ class TestCache(unittest.TestCase):
         self.clear_cache_with_param(param)
         self.assertEqual(self.get_cache_with_param(param), 100)
 
-    def test_cash_with_param_optional(self):
+    def test_cache_with_param_optional(self):
         TestCache.test_value = 100
 
         param = "some_val"
@@ -87,7 +92,7 @@ class TestCache(unittest.TestCase):
         TestCache.test_value = 800
         self.assertEqual(self.get_cache_with_param_optional(param, 4, 5, "__2"), 800)
 
-    def test_cash_only_param_optional(self):
+    def test_cache_only_param_optional(self):
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_only_param_optional(), 100)
         TestCache.test_value = 200
@@ -195,90 +200,163 @@ class TestCache(unittest.TestCase):
         TestCache.test_value = 100
         self.assertEqual(self.get_cache_expire_string_year(), 100)
 
-    @Cache(key="test_cache_1", expire=timedelta(seconds=2))
+    def _test_empty_cache_helper(self, cache_data, empty_value, cache_empty_results):
+        if cache_empty_results:
+            self.clear_cache_empty()
+            self.assertEqual(self.get_cache_empty_results(empty_value), empty_value)
+            self.assertEqual(self.get_cache_empty_results(cache_data), empty_value)
+            with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+                self.assertEqual(self.get_cache_empty_results(cache_data), cache_data)
+            self.assertEqual(self.get_cache_empty_results(empty_value), cache_data)
+            with freeze_time(datetime.utcnow() + timedelta(seconds=4)):
+                self.assertEqual(self.get_cache_empty_results(empty_value), empty_value)
+        else:
+            self.clear_cache_empty_false()
+            self.assertEqual(self.get_dont_cache_empty_results(empty_value), empty_value)
+            self.assertEqual(self.get_dont_cache_empty_results(cache_data), cache_data)
+            self.assertEqual(self.get_dont_cache_empty_results(empty_value), cache_data)
+            with freeze_time(datetime.utcnow() + timedelta(seconds=2)):
+                self.assertEqual(self.get_dont_cache_empty_results(empty_value), empty_value)
+            self.assertEqual(self.get_dont_cache_empty_results(cache_data), cache_data)
+
+    def test_cache_empty(self):
+        self._test_empty_cache_helper(TestCache.test_dict, {}, True)
+        self._test_empty_cache_helper(TestCache.test_tuple, (), True)
+        self._test_empty_cache_helper(TestCache.test_list, [], True)
+        self._test_empty_cache_helper(TestCache.test_string, "", True)
+        self._test_empty_cache_helper(TestCache.test_set, set(), True)
+
+    def test_cache_empty_false(self):
+        self._test_empty_cache_helper(TestCache.test_dict, {}, False)
+        self._test_empty_cache_helper(TestCache.test_tuple, (), False)
+        self._test_empty_cache_helper(TestCache.test_list, [], False)
+        self._test_empty_cache_helper(TestCache.test_string, "", False)
+        self._test_empty_cache_helper(TestCache.test_set, set(), False)
+
+    CACHE_TEST = 'test_cache_1'
+
+    @Cache(key=CACHE_TEST, expire=timedelta(seconds=2))
     def get_cache(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_1", invalidate=True)
+    @Cache(key=CACHE_TEST, invalidate=True)
     def clear_cache(self):
         pass
 
-    @Cache(key="test_cache_param_{param_1}", expire=timedelta(seconds=2), handler=cache_client_name)
+    CACHE_WITH_PARAMS = 'test_cache_param_{param_1}'
+
+    @Cache(key=CACHE_WITH_PARAMS, expire=timedelta(seconds=2), handler_name=cache_client_name)
     def get_cache_with_param(self, param_1):
         return TestCache.test_value
 
-    @Cache(key="test_cache_param_{param_1}", invalidate=True)
+    @Cache(key=CACHE_WITH_PARAMS, invalidate=True)
     def clear_cache_with_param(self, param_1):
         pass
 
-    @Cache(key="test_cache_param_{param_1}{param_2}{param_3}{param_4}", expire=timedelta(seconds=2))
+    CACHE_WITH_PARAMS_OPTIONAL = 'test_cache_param_{param_1}{param_2}{param_3}{param_4}'
+
+    @Cache(key=CACHE_WITH_PARAMS_OPTIONAL, expire=timedelta(seconds=2))
     def get_cache_with_param_optional(self, param_1, param_2=2, param_3=None, param_4="param4"):
         return TestCache.test_value
 
-    @Cache(key="test_cache_param_{param_1}{param_2}{param_3}{param_4}", invalidate=True, handler=cache_client_name)
+    @Cache(key=CACHE_WITH_PARAMS_OPTIONAL, invalidate=True, handler_name=cache_client_name)
     def clear_cache_with_param_optional(self, param_1, param_2=2, param_3=None, param_4="param4"):
         pass
 
-    @Cache(key="test_cache_1", expire=timedelta(seconds=2), handler="sosososos")
+    @Cache(key=CACHE_TEST, expire=timedelta(seconds=2), handler_name="sosososos")
     def not_exists_cache_client_name(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_param_{param_1}{param_2}{param_3}{param_4}", expire=timedelta(seconds=2))
+    @Cache(key=CACHE_WITH_PARAMS_OPTIONAL, expire=timedelta(seconds=2))
     def get_cache_only_param_optional(self, param_1=None, param_2=None, param_3=None, param_4=None):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_seconds", expire="2 second")
+    CACHE_EXP_STR_SECONDS = 'test_cache_expire_string_seconds'
+
+    @Cache(key=CACHE_EXP_STR_SECONDS, expire="2 second")
     def get_cache_expire_string_seconds(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_seconds", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_SECONDS, invalidate=True)
     def clear_cache_expire_string_seconds(self):
         pass
 
-    @Cache(key="test_cache_expire_string_minute", expire="1 minute")
+    CACHE_EXP_STR_MINUTES = 'test_cache_expire_string_minute'
+
+    @Cache(key=CACHE_EXP_STR_MINUTES, expire="1 minute")
     def get_cache_expire_string_minute(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_minute", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_MINUTES, invalidate=True)
     def clear_cache_expire_string_minute(self):
         pass
 
-    @Cache(key="test_cache_expire_string_hour", expire="1 hour")
+    CACHE_EXP_STR_HOUR = 'test_cache_expire_string_hour'
+
+    @Cache(key=CACHE_EXP_STR_HOUR, expire="1 hour")
     def get_cache_expire_string_hour(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_hour", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_HOUR, invalidate=True)
     def clear_cache_expire_string_hour(self):
         pass
 
-    @Cache(key="test_cache_expire_string_day", expire="1 day")
+    CACHE_EXP_STR_DAY = 'test_cache_expire_string_day'
+
+    @Cache(key=CACHE_EXP_STR_DAY, expire="1 day")
     def get_cache_expire_string_day(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_day", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_DAY, invalidate=True)
     def clear_cache_expire_string_day(self):
         pass
 
-    @Cache(key="test_cache_expire_string_week", expire="1 week")
+    CACHE_EXP_STR_WEEK = 'test_cache_expire_string_week'
+
+    @Cache(key=CACHE_EXP_STR_WEEK, expire="1 week")
     def get_cache_expire_string_week(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_week", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_WEEK, invalidate=True)
     def clear_cache_expire_string_week(self):
         pass
 
-    @Cache(key="test_cache_expire_string_month", expire="1 month")
+    CACHE_EXP_STR_MONTH = 'test_cache_expire_string_month'
+
+    @Cache(key=CACHE_EXP_STR_MONTH, expire="1 month")
     def get_cache_expire_string_month(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_month", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_MONTH, invalidate=True)
     def clear_cache_expire_string_month(self):
         pass
 
-    @Cache(key="test_cache_expire_string_year", expire="1 year")
+    CACHE_EXP_STR_YEAR = 'test_cache_expire_string_year'
+
+    @Cache(key=CACHE_EXP_STR_YEAR, expire="1 year")
     def get_cache_expire_string_year(self):
         return TestCache.test_value
 
-    @Cache(key="test_cache_expire_string_year", invalidate=True)
+    @Cache(key=CACHE_EXP_STR_YEAR, invalidate=True)
     def clear_cache_expire_string_year(self):
+        pass
+
+    CACHE_EMPTY_RESULTS = 'test_cache_empty_results'
+
+    @Cache(key=CACHE_EMPTY_RESULTS, expire=timedelta(seconds=2))
+    def get_cache_empty_results(self, param):
+        return param
+
+    @Cache(key=CACHE_EMPTY_RESULTS, invalidate=True)
+    def clear_cache_empty(self):
+        pass
+
+    CACHE_EMPTY_RESULTS_FALSE = 'test_cache_empty_results_false'
+
+    @Cache(key=CACHE_EMPTY_RESULTS_FALSE, cache_empty_result=False, expire=timedelta(seconds=2))
+    def get_dont_cache_empty_results(self, param):
+        return param
+
+    @Cache(key=CACHE_EMPTY_RESULTS_FALSE, invalidate=True)
+    def clear_cache_empty_false(self):
         pass

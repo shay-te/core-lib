@@ -5,7 +5,7 @@ from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class CRUD(ABC):
-    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
+    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
         self._db_entity = db_entity
         self._db = db
         self._rule_validator = rule_validator
