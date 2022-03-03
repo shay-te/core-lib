@@ -2,7 +2,7 @@ import enum
 import json
 import unittest
 from abc import ABC
-from datetime import timedelta
+from datetime import timedelta, datetime
 from http import HTTPStatus
 
 import jwt
@@ -23,9 +23,6 @@ from core_lib.web_helpers.django.decorators import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_message
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_utils import connect_to_mem_db
-
-settings.configure()
-settings.DEFAULT_CHARSET = 'utf-8'
 
 
 # CRUD SETUP
@@ -49,10 +46,6 @@ class DataCRUDDataAccess(CRUDDataAccess):
 
     def __init__(self):
         CRUD.__init__(self, Data, connect_to_mem_db(), DataCRUDDataAccess.rules_validator)
-
-
-# CRUD INIT
-crud = DataCRUDDataAccess()
 
 
 # USER SECURITY SETUP
@@ -97,6 +90,21 @@ class CustomerSecurity(UserSecurity, ABC):
         }
 
 
+# CRUD INIT
+crud = DataCRUDDataAccess()
+
+# SECURITY HANDLER REGISTER
+key = 'super-secret'
+security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=2))
+SecurityHandler.register(security_handler)
+
+# DJANGO INIT
+settings.configure()
+settings.DEFAULT_CHARSET = 'utf-8'
+web_util = WebHelpersUtils()
+web_util.init(web_util.ServerType.DJANGO)
+
+
 class TestUserSecurity(unittest.TestCase):
 
     @classmethod
@@ -105,14 +113,7 @@ class TestUserSecurity(unittest.TestCase):
         crud.create({'username': 'user_2', 'email': 'user_2@def.com', 'role': 2})
         crud.create({'username': 'user_3', 'email': 'user_3@def.com', 'role': 3})
 
-    def test_security(self):
-        key = 'super-secret'
-        security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=2))
-        SecurityHandler.register(security_handler)
-
-        web_util = WebHelpersUtils()
-        web_util.init(web_util.ServerType.DJANGO)
-
+    def test_secure_entry(self):
         request_object = HttpRequest
         payload = {'id': 2, 'email': 'user_1@def.com'}
         token = jwt.encode(payload, key)
@@ -152,6 +153,17 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(resp_msg.status_code, 401)
         resp_msg_data = json.loads(resp_msg.content.decode('utf-8'))
         self.assertEqual(resp_msg_data['message'], 'THIS IS A ADMIN PAGE')
+
+    def test_session_data(self):
+        time_stamp = datetime.utcnow().timestamp()
+        data_dict = result_to_dict(crud.get(1))
+        user_session = SecurityHandler.get().generate_session_data_token(data_dict)
+        decoded_dict = jwt.decode(user_session, options={"verify_signature": False})
+
+        self.assertIsInstance(decoded_dict, dict)
+        self.assertEqual(decoded_dict['id'], data_dict['id'])
+        self.assertEqual(decoded_dict['email'], data_dict['email'])
+        self.assertGreater(decoded_dict['exp'], time_stamp)
 
 
 @RequireLogin(policies=[PolicyRoles.USER, PolicyRoles.TESTER, PolicyRoles.ADMIN])
