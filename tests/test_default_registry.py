@@ -266,11 +266,11 @@ class TestDefaultRegistry(unittest.TestCase):
         customer_c = Customer()
         customer_registry.register('customer_c', customer_c)
 
-        self.assertEquals(customer_registry.get('customer_a'), customer_a)
-        self.assertEquals(customer_registry.get('customer_b'), customer_b)
-        self.assertEquals(customer_registry.get('customer_c'), customer_c)
+        self.assertEqual(customer_registry.get('customer_a'), customer_a)
+        self.assertEqual(customer_registry.get('customer_b'), customer_b)
+        self.assertEqual(customer_registry.get('customer_c'), customer_c)
 
-        self.assertEquals(customer_registry.get(), customer_b)
+        self.assertEqual(customer_registry.get(), customer_b)
         self.assertNotEqual(customer_registry.get(), customer_a)
         self.assertNotEqual(customer_registry.get(), customer_c)
 
