@@ -26,7 +26,7 @@ from tests.test_data.test_utils import connect_to_mem_db
 
 
 # CRUD SETUP
-class Data(Base):
+class User(Base):
     __tablename__ = 'user_security'
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -35,7 +35,7 @@ class Data(Base):
     role = Column(Integer, nullable=False)
 
 
-class DataCRUDDataAccess(CRUDDataAccess):
+class UserDataAccess(CRUDDataAccess):
     allowed_update_types = [
         ValueRuleValidator('username', str),
         ValueRuleValidator('email', str),
@@ -45,7 +45,7 @@ class DataCRUDDataAccess(CRUDDataAccess):
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, Data, connect_to_mem_db(), DataCRUDDataAccess.rules_validator)
+        CRUD.__init__(self, User, connect_to_mem_db(), UserDataAccess.rules_validator)
 
 
 # USER SECURITY SETUP
@@ -65,13 +65,13 @@ class SessionUser(object):
         return {'id': self.id, 'email': self.email}
 
 
-class CustomerSecurity(UserSecurity, ABC):
+class CustomerSecurity(UserSecurity):
 
     def __init__(self, cookie_name: str, secret: str, expiration_time: timedelta):
         UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
 
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
-        data_dict = result_to_dict(crud.get(session_obj.id))
+        data_dict = result_to_dict(user_data_access.get(session_obj.id))
         if data_dict['email'] == session_obj.email:
             if data_dict['role'] == policies[0].value:
                 return response_message('THIS IS A ADMIN PAGE', HTTPStatus.UNAUTHORIZED)
@@ -91,7 +91,7 @@ class CustomerSecurity(UserSecurity, ABC):
 
 
 # CRUD INIT
-crud = DataCRUDDataAccess()
+user_data_access = UserDataAccess()
 
 # SECURITY HANDLER REGISTER
 key = 'super-secret'
@@ -109,9 +109,9 @@ class TestUserSecurity(unittest.TestCase):
 
     @classmethod
     def setUp(cls):
-        crud.create({'username': 'user_1', 'email': 'user_1@def.com', 'role': 1})
-        crud.create({'username': 'user_2', 'email': 'user_2@def.com', 'role': 2})
-        crud.create({'username': 'user_3', 'email': 'user_3@def.com', 'role': 3})
+        user_data_access.create({'username': 'user_1', 'email': 'user_1@def.com', 'role': 1})
+        user_data_access.create({'username': 'user_2', 'email': 'user_2@def.com', 'role': 2})
+        user_data_access.create({'username': 'user_3', 'email': 'user_3@def.com', 'role': 3})
 
     def test_secure_entry(self):
         request_object = HttpRequest
@@ -156,17 +156,21 @@ class TestUserSecurity(unittest.TestCase):
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()
-        data_dict = result_to_dict(crud.get(1))
-        user_session = SecurityHandler.get().generate_session_data_token(data_dict)
+        user = result_to_dict(user_data_access.get(1))
+        user_session = SecurityHandler.get().generate_session_data_token(user)
         decoded_dict = jwt.decode(user_session, options={"verify_signature": False})
 
         self.assertIsInstance(decoded_dict, dict)
-        self.assertEqual(decoded_dict['id'], data_dict['id'])
-        self.assertEqual(decoded_dict['email'], data_dict['email'])
+        self.assertEqual(decoded_dict['id'], user['id'])
+        self.assertEqual(decoded_dict['email'], user['email'])
         self.assertGreater(decoded_dict['exp'], time_stamp)
+        print('JWT EXP', decoded_dict['exp'])
+        print('TIMESTAMP', time_stamp)
 
 
 @RequireLogin(policies=[PolicyRoles.USER, PolicyRoles.TESTER, PolicyRoles.ADMIN])
 @handle_exceptions
 def user_entry(request):
     pass
+
+# create user entry for admin tester user and both
