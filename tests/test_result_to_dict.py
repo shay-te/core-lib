@@ -1,4 +1,5 @@
 import enum
+import json
 import os.path
 import unittest
 import datetime
@@ -19,7 +20,6 @@ class MyEnum(enum.Enum):
 
 
 class Data(Base):
-
     __tablename__ = 'data'
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -33,6 +33,16 @@ class Data(Base):
     data_bool = Column(Boolean, nullable=False, default="")
     data_unicode = Column(Unicode, nullable=False, default="")
     data_enum = Column(Enum(MyEnum))
+
+
+def convert_str_to_dict(result):
+    obj = result.get('object')
+    if obj and isinstance(obj, str):
+        result['object'] = json.loads(obj)
+    return result
+
+
+def convert_return_none(result): return None
 
 
 class TestResultToDict(unittest.TestCase):
@@ -149,6 +159,45 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['data_float'], data_float)
             self.assertEqual(converted_data[0]['data_bool'], data_bool)
             self.assertEqual(converted_data[0]['data_unicode'], data_unicode)
+
+    def test_callback(self):
+        json_value = {
+            'userId': 1,
+            'id': 1,
+            'title': 'Some Title',
+            'object': '{"value": "JSON in Python", "number": 123}',
+        }
+        data = result_to_dict(json_value, callback=convert_str_to_dict)
+        self.assertIsInstance(data, dict)
+        self.assertEqual(data['userId'], 1)
+        self.assertEqual(data['id'], 1)
+        self.assertEqual(data['title'], 'Some Title')
+        self.assertDictEqual(data['object'], {"value": "JSON in Python", "number": 123})
+
+        json_value_nested = {
+            "userId": 1,
+            "id": 1,
+            "title": "Some Title",
+            "object": "{\"value\": \"JSON in Python\", \"number\": 123}",
+            "object_1": {"object_2": {"object_3": {"object": "{\"value\": \"JSON in Python\", \"number\": 123}"}}},
+        }
+        data_nested = result_to_dict(json_value_nested, callback=convert_str_to_dict)
+        self.assertIsInstance(data_nested, dict)
+        self.assertEqual(data_nested['userId'], 1)
+        self.assertEqual(data_nested['id'], 1)
+        self.assertEqual(data_nested['title'], 'Some Title')
+        self.assertDictEqual(
+            data_nested['object_1']['object_2']['object_3']['object'], {"value": "JSON in Python", "number": 123}
+        )
+        self.assertDictEqual(data_nested['object'], {"value": "JSON in Python", "number": 123})
+
+        json_value_without_str_obj = {
+            'userId': 1,
+            'id': 1,
+            'title': 'Some Title',
+        }
+        data = result_to_dict(json_value_without_str_obj, callback=convert_return_none)
+        self.assertDictEqual(data, json_value_without_str_obj)
 
     @ResultToDict()
     def get_from_params(self, param):
