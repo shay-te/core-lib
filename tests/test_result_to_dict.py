@@ -42,7 +42,8 @@ def convert_str_to_dict(result):
     return result
 
 
-def convert_return_none(result): return None
+def convert_return_none(result) -> dict:
+    return None
 
 
 class TestResultToDict(unittest.TestCase):
