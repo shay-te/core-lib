@@ -1,5 +1,4 @@
 import boto3
-from boto import Config
 from omegaconf import DictConfig
 
 from core_lib.core_lib import CoreLib
@@ -13,7 +12,12 @@ class ObjectsCoreLib(CoreLib):
         super().__init__()
         self.config = conf
 
-        boto3_client = boto3.client('s3', region_name=self.config.s3.aws_region)
+        boto3_client = boto3.client(
+            's3',
+            region_name=self.config.s3.aws_region,
+            aws_access_key_id=self.config.s3.aws_access_key_id,
+            aws_secret_access_key=self.config.s3.aws_secret_access_key,
+        )
 
         object_data_session_factory = ObjectDataHandlerRegistry(boto3_client)
         self.object = ObjectsService(ObjectsDataAccess(object_data_session_factory))

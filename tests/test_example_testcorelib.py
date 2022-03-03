@@ -37,24 +37,23 @@ def sync_create_start_core_lib() -> TestCoreLib:
 
 
 class TestExamples(unittest.TestCase):
-
     @classmethod
     def setUp(cls):
         cls.core_lib = sync_create_start_core_lib()
 
     def test_example_crud(self):
-        user = TestExamples.core_lib.user_crud.create(user_data)
-        db_data = TestExamples.core_lib.user_crud.get(user[User.id.key])
+        user = TestExamples.core_lib.customer.create(user_data)
+        db_data = TestExamples.core_lib.customer.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
 
-        TestExamples.core_lib.user_crud.update(user[User.id.key], {'email': 'jon@doe.com'})
-        db_data = TestExamples.core_lib.user_crud.get(user[User.id.key])
+        TestExamples.core_lib.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
+        db_data = TestExamples.core_lib.customer.get(user[User.id.key])
         self.assertEqual(db_data[User.email.key], 'jon@doe.com')
         self.assertGreater(db_data[User.updated_at.key], db_data[User.created_at.key])
 
-        TestExamples.core_lib.user_crud.delete(user[User.id.key])
+        TestExamples.core_lib.customer.delete(user[User.id.key])
         with self.assertRaises(StatusCodeException):
-            TestExamples.core_lib.user_crud.get(user[User.id.key])
+            TestExamples.core_lib.customer.get(user[User.id.key])
 
     def test_example_user_data_access(self):
         user = TestExamples.core_lib.user.create(user_data)

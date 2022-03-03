@@ -20,4 +20,3 @@ class ObjectsDataAccess(DataAccess):
         with open(value, "rb") as file:
             with self.data_session_factory.get() as session:
                 session.upload_fileobj(file, bucket_name, key)
-

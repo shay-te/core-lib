@@ -47,7 +47,6 @@ user_data_crud = {
 
 
 class TestCombinedExample(unittest.TestCase):
-
     def test_01_group_services(self):
         self.assertEqual(core_lib.test.test.test_1.get_value(), 1)
         self.assertEqual(core_lib.test.test.test_2.get_value(), 2)
@@ -150,22 +149,15 @@ class TestCombinedExample(unittest.TestCase):
         self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
 
     def test_example_crud(self):
-        user = core_lib.test.user_crud.create(user_data_crud)
-        db_data = core_lib.test.user_crud.get(user['id'])
-        user_data_crud.update({
-            'id': user['id'],
-            'birthday': datetime.combine(dattime, datetime.min.time()).timestamp(),
-            'updated_at': db_data['created_at'],
-            'created_at': db_data['created_at'],
-            'deleted_at': None,
-        })
-        self.assertDictEqual(db_data, user_data_crud)
+        user = core_lib.test.customer.create(user_data_crud)
+        db_data = core_lib.test.customer.get(user[User.id.key])
+        self.assertDictEqual(db_data, user)
 
-        core_lib.test.user_crud.update(user['id'], {'email': 'jon@doe.com'})
-        db_data = core_lib.test.user_crud.get(user['id'])
-        self.assertEqual(db_data['email'], 'jon@doe.com')
-        self.assertNotEqual(db_data['created_at'], db_data['updated_at'])
+        core_lib.test.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
+        db_data = core_lib.test.customer.get(user[User.id.key])
+        self.assertEqual(db_data[User.email.key], 'jon@doe.com')
+        self.assertGreater(db_data[User.updated_at.key], db_data[User.created_at.key])
 
-        core_lib.test.user_crud.delete(user['id'])
+        core_lib.test.customer.delete(user[User.id.key])
         with self.assertRaises(StatusCodeException):
-            core_lib.test.user_crud.get(user['id'])
+            core_lib.test.customer.get(user[User.id.key])

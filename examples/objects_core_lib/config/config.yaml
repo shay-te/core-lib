@@ -1,11 +1,15 @@
 core_lib:
+#  s3:
+#    aws_region: ${oc.env:s3_aws_region}
+#    aws_access_key_id: ${oc.env:s3_aws_access_key_id}
+#    aws_secret_access_key: ${oc.env:s3_aws_secret_access_key}
+#    aws_s3_bocket: ${oc.env:s3_aws_s3_bucket}
+#    basic_auth_user: ${oc.env:s3_basic_auth_user}
+#    basic_auth_pass: ${oc.env:s3_basic_auth_pass}
+#    access_log: ${oc.env:s3_access_log}
+#    aws_session_token: ${oc.env:s3_aws_session_token}
+#    proxy: ${oc.env:s3_proxy}
   s3:
-    aws_region: ${oc.env:s3_aws_region}
-    aws_access_key_id: ${oc.env:s3_aws_access_key_id}
-    aws_secret_access_key: ${oc.env:s3_aws_secret_access_key}
-    aws_s3_bocket: ${oc.env:s3_aws_s3_bucket}
-    basic_auth_user: ${oc.env:s3_basic_auth_user}
-    basic_auth_pass: ${oc.env:s3_basic_auth_pass}
-    access_log: ${oc.env:s3_access_log}
-    aws_session_token: ${oc.env:s3_aws_session_token}
-    proxy: ${oc.env:s3_proxy}
+    aws_region: us-east-1
+    aws_access_key_id: fake_access_key
+    aws_secret_access_key: fake_access_key
