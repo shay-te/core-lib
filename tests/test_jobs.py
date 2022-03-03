@@ -69,12 +69,3 @@ class TestJobs(unittest.TestCase):
             log = str(cm.output)
             self.assertIn('BaseException', log)
             self.assertIn('Error while running job', log)
-
-        with self.assertLogs() as cm:
-            scheduler.schedule('10s', '5s', job_exception)
-            sleep(25.1)
-            scheduler.stop(job_exception)
-            self.assertEqual(job_exception.called, 3)
-            log = str(cm.output)
-            self.assertIn('BaseException', log)
-            self.assertIn('Error while running job', log)
