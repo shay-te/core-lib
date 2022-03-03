@@ -108,7 +108,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
     # must be last!
     if callback:
-        results = callback(results)
+        results = callback(results) or results
 
     return results
 
