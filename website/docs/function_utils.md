@@ -11,10 +11,10 @@ or get the calling module of a function.
 
 ### Functions and Usage
 
-- `build_value_by_func_parameters` format a new string by merging a unique message with the function parameters and custom parameter.
+- `build_function_key` format a new string by merging a unique message with the function parameters and custom parameter.
 
 ```python
-def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> str:
+def build_function_key(key: str, func, *args, **kwargs) -> str:
     ....
 ```
 `key`: base string for formatting the parameter, when not set the func.__qualname__ is used
@@ -24,17 +24,20 @@ def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> str:
 `*args`, `**kwargs`: the function args/kwargs for building the result string
 
 #### Usage
-```python
-from core_lib.helpers.func_utils import build_value_by_func_parameters
 
-def function_to_format(param_1, param_2, param_3 = "hello"):
+```python
+from core_lib.helpers.func_utils import build_function_key
+
+
+def function_to_format(param_1, param_2, param_3="hello"):
     pass
 
-formatted_parameters = build_value_by_func_parameters('key_{param_1}_{param_2}_{param_3}', function_to_format, 1, 2, "hello world")
-print(formatted_parameters) # key_1_2_hello world
 
-formatted_parameters = build_value_by_func_parameters('key_{param_1}_{param_2}_{param_3}', function_to_format, 1) 
-print(formatted_parameters) # key_1_!Eparam_2E!_hello
+formatted_parameters = build_function_key('key_{param_1}_{param_2}_{param_3}', function_to_format, 1, 2, "hello world")
+print(formatted_parameters)  # key_1_2_hello world
+
+formatted_parameters = build_function_key('key_{param_1}_{param_2}_{param_3}', function_to_format, 1)
+print(formatted_parameters)  # key_1_!Eparam_2E!_hello
 ```
 > **Note:** Will return `None` if the parameter's value is missing.
 

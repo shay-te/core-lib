@@ -1,14 +1,15 @@
 import datetime
 import enum
 import unittest
+from abc import ABC
 
 from geoalchemy2 import WKTElement
 
 from core_lib.helpers.func_utils import (
-    build_value_by_func_parameters,
+    build_function_key,
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
-    reset_datetime,
+    reset_datetime, Keyable,
 )
 
 
@@ -18,34 +19,47 @@ class MyEnum(enum.Enum):
     three = 3
 
 
+class User(Keyable):
+
+    def __init__(self, u_id, name):
+        self.id = u_id
+        self.name = name
+
+    def key(self) -> str:
+        return f'User(id:{self.id}, name:{self.name})'
+
+class UserInit:
+    def __init__(self):
+        User.__init__(1, 'Jon')
+
 class TestFunctionUtils(unittest.TestCase):
     def test_cache_generates_key(self):
         def function_with_params(param_1, param_2, param_3=11, param_4=22):
             return 1
 
-        key1 = build_value_by_func_parameters('asdfghjklzxcvbnm', function_with_params, *[1234, 12345134], **{})
+        key1 = build_function_key('asdfghjklzxcvbnm', function_with_params, *[1234, 12345134], **{})
         self.assertNotEqual(key1, None)
         self.assertEqual(key1, 'asdfghjklzxcvbnm')
 
-        key2 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[11, 22], **{})
+        key2 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, *[11, 22], **{})
         self.assertNotEqual(key2, None)
         self.assertEqual(key2, 'xyz_11_22')
 
-        key3 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, *[11], **{})
+        key3 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, *[11], **{})
         self.assertNotEqual(key3, None)
         self.assertEqual(key3, 'xyz_11_!Eparam_2E!')
 
-        key4 = build_value_by_func_parameters(
+        key4 = build_function_key(
             'xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'}
         )
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_!Eparam_1E!_pp2')
 
-        key5 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, 1, 2)
+        key5 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, 1, 2)
         self.assertNotEqual(key5, None)
         self.assertEqual(key5, 'xyz_1_2')
 
-        key6 = build_value_by_func_parameters('xyz_{param_1}_{param_2}', function_with_params, None, None)
+        key6 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, None, None)
         self.assertNotEqual(key6, None)
         self.assertEqual(key6, 'xyz_!Eparam_1E!_!Eparam_2E!')
 
@@ -58,11 +72,11 @@ class TestFunctionUtils(unittest.TestCase):
         obj = {"fruit1": "apple", "fruit2": "orange"}
 
         def function_with_multi_params(
-            param_1, param_2, param_3, param_4, param_5, param_6=point, param_7=set_value, param_8=MyEnum.one.value
+                param_1, param_2, param_3, param_4, param_5, param_6=point, param_7=set_value, param_8=MyEnum.one.value
         ):
             pass
 
-        key7 = build_value_by_func_parameters(
+        key7 = build_function_key(
             'xyz_{param_1}_{param_2}_{param_3}_{param_4}_{param_5}_{param_6}_{param_7}_{param_8}',
             function_with_multi_params,
             dat,
@@ -73,6 +87,14 @@ class TestFunctionUtils(unittest.TestCase):
         )
         self.assertNotEqual(key7, None)
         self.assertEqual(key7, f'xyz_{dat}_{dattime}_{tpl}_{lst}_{obj}_{point}_{set_value}_{MyEnum.one.value}')
+
+    def test_keyable(self):
+
+        def function_with_params(param_1, param_2, param_3=11, param_4=22):
+            return 1
+
+        key = build_function_key(user.key(), function_with_params)
+        print(isinstance(User, Keyable))
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):

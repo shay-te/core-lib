@@ -1,6 +1,7 @@
 import datetime
 import inspect
 import logging
+from abc import ABC, abstractmethod
 from contextlib import suppress
 from string import Formatter
 
@@ -15,6 +16,13 @@ def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
         )
 
     return list(parameters).index(parameter_name)
+
+
+class Keyable(ABC):
+
+    @abstractmethod
+    def key(self) -> str:
+        pass
 
 
 class UnseenFormatter(Formatter):
@@ -51,8 +59,9 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     return result
 
 
-def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> dict:
+def build_function_key(key: str, func, *args, **kwargs) -> dict:
     if key:
+        print(key)
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
         new_key = func.__qualname__
