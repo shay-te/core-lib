@@ -61,7 +61,6 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
 
 def build_function_key(key: str, func, *args, **kwargs) -> dict:
     if key:
-        print(key)
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
         new_key = func.__qualname__

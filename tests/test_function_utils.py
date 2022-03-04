@@ -26,11 +26,13 @@ class User(Keyable):
         self.name = name
 
     def key(self) -> str:
-        return f'User(id:{self.id}, name:{self.name})'
+        return f'User(id:{{{self.id}}}, name:{{{self.name}}})'
 
-class UserInit:
+
+class UserInit(User):
     def __init__(self):
-        User.__init__(1, 'Jon')
+        User.__init__(self, 'id', 'name')
+
 
 class TestFunctionUtils(unittest.TestCase):
     def test_cache_generates_key(self):
@@ -89,12 +91,11 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(key7, f'xyz_{dat}_{dattime}_{tpl}_{lst}_{obj}_{point}_{set_value}_{MyEnum.one.value}')
 
     def test_keyable(self):
-
-        def function_with_params(param_1, param_2, param_3=11, param_4=22):
+        def function_with_params(id, name):
             return 1
-
-        key = build_function_key(user.key(), function_with_params)
-        print(isinstance(User, Keyable))
+        user = UserInit()
+        key = build_function_key(user.key(), function_with_params, 1, 4)
+        print(key)
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):
