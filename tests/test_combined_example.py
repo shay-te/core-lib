@@ -1,36 +1,18 @@
-import os
 import unittest
-from datetime import date, datetime
+from datetime import date
 from time import sleep
 
-import hydra
-from dotenv import load_dotenv
 from hydra.core.utils import configure_log
-from pathlib import Path
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.generate_data import generate_email, generate_random_string
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
+from tests.test_data.test_utils import sync_create_core_lib_config
 
 configure_log(None, True)
 
-current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-test_output_path = os.path.normpath(os.path.join(current_path, 'test_output'))
-example_path = os.path.normpath(os.path.join(current_path, '../', 'examples'))
-combined_core_lib_path = os.path.join(example_path, 'combined_core_lib')
-env_path = Path(os.path.join(current_path, 'test_data', 'load_env.env'))
-load_dotenv(dotenv_path=env_path)
-
-config_directory = os.path.join(combined_core_lib_path, 'config')
-config_file = 'config.yaml'
-hydra.initialize(config_path='../examples/combined_core_lib/config')
-config = hydra.compose(config_file)
-
-solr_core = "demo"
-
-core_lib = CombineCoreLib(config.core_lib)
 
 dattime = date.today()
 user_data_crud = {
@@ -47,32 +29,37 @@ user_data_crud = {
 
 
 class TestCombinedExample(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = sync_create_core_lib_config('../../examples/combined_core_lib/config')
+        cls.combined_core_lib = CombineCoreLib(config.core_lib)
+
     def test_01_group_services(self):
-        self.assertEqual(core_lib.test.test.test_1.get_value(), 1)
-        self.assertEqual(core_lib.test.test.test_2.get_value(), 2)
+        self.assertEqual(self.combined_core_lib.test.test.test_1.get_value(), 1)
+        self.assertEqual(self.combined_core_lib.test.test.test_2.get_value(), 2)
 
     def test_02_memcached_data(self):
         data_1 = {"str": "shalom"}
         data_2 = {"str": "toda"}
 
         # Get and Set
-        core_lib.test.large_data.set_data(data_1)
-        self.assertEqual(core_lib.test.large_data.get_data(), data_1)
+        self.combined_core_lib.test.large_data.set_data(data_1)
+        self.assertEqual(self.combined_core_lib.test.large_data.get_data(), data_1)
 
         # Set local, get from cache
-        core_lib.test.large_data.set_data_local(data_2)
-        self.assertEqual(core_lib.test.large_data.get_data(), data_1)
-        self.assertNotEqual(core_lib.test.large_data.get_data(), data_2)
+        self.combined_core_lib.test.large_data.set_data_local(data_2)
+        self.assertEqual(self.combined_core_lib.test.large_data.get_data(), data_1)
+        self.assertNotEqual(self.combined_core_lib.test.large_data.get_data(), data_2)
 
         # Wait cache expires and get data_2
         sleep(6)
-        self.assertEqual(core_lib.test.large_data.get_data(), data_2)
+        self.assertEqual(self.combined_core_lib.test.large_data.get_data(), data_2)
 
         # Set Data, Invalidate, Get
-        core_lib.test.large_data.set_data(data_1)
-        self.assertEqual(core_lib.test.large_data.get_data(), data_1)
-        core_lib.test.large_data.set_data(data_2)
-        self.assertEqual(core_lib.test.large_data.get_data(), data_2)
+        self.combined_core_lib.test.large_data.set_data(data_1)
+        self.assertEqual(self.combined_core_lib.test.large_data.get_data(), data_1)
+        self.combined_core_lib.test.large_data.set_data(data_2)
+        self.assertEqual(self.combined_core_lib.test.large_data.get_data(), data_2)
 
     def test_03_core_lib_test_user_create_get(self):
         # Create
@@ -86,7 +73,7 @@ class TestCombinedExample(unittest.TestCase):
             "gender": User.Gender.MALE.value,
         }
 
-        user_create = core_lib.test.user.create(user_data)
+        user_create = self.combined_core_lib.test.user.create(user_data)
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_data["username"], user_create["username"])
         self.assertEqual(user_data["password"], user_create["password"])
@@ -96,7 +83,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_data["gender"], user_create["gender"])
 
         # Get
-        user_get = core_lib.test.user.get(user_create["id"])
+        user_get = self.combined_core_lib.test.user.get(user_create["id"])
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_get["username"], user_create["username"])
         self.assertEqual(user_get["password"], user_create["password"])
@@ -112,7 +99,7 @@ class TestCombinedExample(unittest.TestCase):
         update_first_name = generate_random_string()
         update_birthday = date.today()
         update_gender = User.Gender.FEMALE.value
-        user_update_status = core_lib.test.user.update(
+        user_update_status = self.combined_core_lib.test.user.update(
             user_create["id"],
             {
                 "username": update_username,
@@ -125,7 +112,7 @@ class TestCombinedExample(unittest.TestCase):
         )
         self.assertEqual(user_update_status, 1)
 
-        user_get = core_lib.test.user.get(user_create["id"])
+        user_get = self.combined_core_lib.test.user.get(user_create["id"])
         self.assertNotEqual(user_create, None)
         self.assertEqual(user_get["username"], update_username)
         self.assertEqual(user_get["password"], update_password)
@@ -135,7 +122,7 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_get["gender"], update_gender)
 
         # Rules preventing to update birthday so say the rules
-        self.assertRaises(PermissionError, core_lib.test.user.update, user_create["id"], {"email": generate_email()})
+        self.assertRaises(PermissionError, self.combined_core_lib.test.user.update, user_create["id"], {"email": generate_email()})
 
         # Create
         user_data_invalie_email = {
@@ -146,18 +133,18 @@ class TestCombinedExample(unittest.TestCase):
             "email": 'non valid email',
             "gender": User.Gender.MALE,
         }
-        self.assertRaises(PermissionError, core_lib.test.user.create, user_data_invalie_email)
+        self.assertRaises(PermissionError, self.combined_core_lib.test.user.create, user_data_invalie_email)
 
     def test_example_crud(self):
-        user = core_lib.test.customer.create(user_data_crud)
-        db_data = core_lib.test.customer.get(user[User.id.key])
+        user = self.combined_core_lib.test.customer.create(user_data_crud)
+        db_data = self.combined_core_lib.test.customer.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
 
-        core_lib.test.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
-        db_data = core_lib.test.customer.get(user[User.id.key])
+        self.combined_core_lib.test.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
+        db_data = self.combined_core_lib.test.customer.get(user[User.id.key])
         self.assertEqual(db_data[User.email.key], 'jon@doe.com')
         self.assertGreater(db_data[User.updated_at.key], db_data[User.created_at.key])
 
-        core_lib.test.customer.delete(user[User.id.key])
+        self.combined_core_lib.test.customer.delete(user[User.id.key])
         with self.assertRaises(StatusCodeException):
-            core_lib.test.customer.get(user[User.id.key])
+            self.combined_core_lib.test.customer.get(user[User.id.key])

@@ -1,11 +1,11 @@
-from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
 from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+from examples.test_core_lib.core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
 
 
 class CustomerService(Service):
-    def __init__(self, data_access: CRUDSoftDeleteDataAccess):
+    def __init__(self, data_access: CustomerDataAccess):
         self.data_access = data_access
 
     @ResultToDict()

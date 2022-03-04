@@ -20,6 +20,7 @@ cryptography
 boto3
 geoalchemy2
 shapely
+setuptools
 
 
 # web
@@ -32,4 +33,3 @@ requests
 python-dotenv
 moto
 freezegun
-setuptools

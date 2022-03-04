@@ -19,5 +19,4 @@ class ObjectsCoreLib(CoreLib):
             aws_secret_access_key=self.config.s3.aws_secret_access_key,
         )
 
-        object_data_session_factory = ObjectDataHandlerRegistry(boto3_client)
-        self.object = ObjectsService(ObjectsDataAccess(object_data_session_factory))
+        self.object = ObjectsService(ObjectsDataAccess(ObjectDataHandlerRegistry(boto3_client)))

@@ -6,17 +6,14 @@ import hydra
 from moto import mock_s3
 
 from examples.objects_core_lib.core_lib.objects_core_lib import ObjectsCoreLib
+from tests.test_data.test_utils import sync_create_core_lib_config
 
 
 @mock_s3
 class TestExamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config_file = 'config.yaml'
-        hydra.core.global_hydra.GlobalHydra.instance().clear()
-        hydra.initialize(config_path='../examples/objects_core_lib/config')
-        config = hydra.compose(config_file)
-
+        config = sync_create_core_lib_config('../../examples/objects_core_lib/config')
         cls.objects_core_lib = ObjectsCoreLib(config.core_lib)
 
     def test_object_core_lib(self):
@@ -28,7 +25,7 @@ class TestExamples(unittest.TestCase):
         )
         conn.create_bucket(Bucket=test_bucket)
 
-        TestExamples.objects_core_lib.object.set_object(test_bucket, 'koala.jpeg', file_path)
-        obj = TestExamples.objects_core_lib.object.get_object(test_bucket, 'koala.jpeg')
+        self.objects_core_lib.object.set_object(test_bucket, 'koala.jpeg', file_path)
+        obj = self.objects_core_lib.object.get_object(test_bucket, 'koala.jpeg')
         with open(file_path, 'rb') as file:
             self.assertEqual(file.read(), obj.getvalue())
