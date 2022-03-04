@@ -57,6 +57,9 @@ class TestJobs(unittest.TestCase):
         scheduler.schedule('1s', '1s', job)
         sleep(5)
         scheduler.stop(job)
+        last_value = job.called
+        sleep(5)
+        self.assertEqual(job.called, last_value)
         self.assertGreater(job.called, 2)
 
     def test_schedule_log(self):
