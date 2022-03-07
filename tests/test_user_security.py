@@ -70,13 +70,12 @@ def get_user(u_id):
 
 # USER SECURITY SETUP
 class SessionUser(object):
-    def __init__(self, id: int, email: str, expiry: datetime):
+    def __init__(self, id: int, email: str):
         self.id = id
         self.email = email
-        self.exp = expiry
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email, 'exp': self.exp}
+        return {'id': self.id, 'email': self.email}
 
 
 def has_access(user_policy, check_policies):
@@ -103,7 +102,7 @@ class CustomerSecurity(UserSecurity):
             return response_status(HTTPStatus.FORBIDDEN)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'], session_data['exp'])
+        return SessionUser(session_data['id'], session_data['email'])
 
     def generate_session_data(self, user) -> dict:
         return {
@@ -142,6 +141,8 @@ class TestUserSecurity(unittest.TestCase):
         cls.create = result_to_dict(user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': User.PolicyRoles.CREATE}))
         cls.update = result_to_dict(user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': User.PolicyRoles.UPDATE}))
         cls.user = result_to_dict(user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER}))
+
+        cls.admin.update({})
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
 
