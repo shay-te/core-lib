@@ -20,13 +20,12 @@ class MyEnum(enum.Enum):
 
 class User(Keyable):
 
-    def __init__(self, u_id, name, details):
+    def __init__(self, u_id, name):
         self.id = u_id
         self.name = name
-        self.details = details
 
     def key(self) -> str:
-        return f'User(id:{type(self.id).__name__}, name:{type(self.name).__name__}, details:{type(self.details).__name__})'
+        return f'User(id:{self.id}, name:{self.name})'
 
 
 class TestFunctionUtils(unittest.TestCase):
@@ -91,20 +90,20 @@ class TestFunctionUtils(unittest.TestCase):
         def function_with_params(class_key):
             return 1
 
-        obj = {'fruit1': 'apple', 'fruit2': 'orange'}
-        string = 'Jon Doe'
-        key = build_function_key('type_{class_key}', function_with_params, User(4, string, obj))
-        self.assertEqual('type_User(id:int, name:str, details:dict)', key)
+        key = build_function_key('{class_key}', function_with_params, User(1, 'Jon\n Doe'))
+        self.assertEqual('User(id:1, name:Jon Doe)', key)
 
-        lst = ['fruit', 'apple']
-        string = 'Jon Doe'
-        key = build_function_key('type_{class_key}', function_with_params, User(4, string, lst))
-        self.assertEqual('type_User(id:int, name:str, details:list)', key)
+        key = build_function_key('{class_key}', function_with_params, User(2, 'Jon \rDoe'))
+        self.assertEqual('User(id:2, name:Jon Doe)', key)
 
-        tpl = ("fruit", "apple")
-        string = 'Jon Doe'
-        key = build_function_key('type_{class_key}', function_with_params, User(4, string, tpl))
-        self.assertEqual('type_User(id:int, name:str, details:tuple)', key)
+        key = build_function_key('{class_key}', function_with_params, User(3, 'Jon\n\r Doe'))
+        self.assertEqual('User(id:3, name:Jon Doe)', key)
+
+        def function_with_two_params(class_key, post):
+            return 1
+
+        key = build_function_key('{class_key}_{post}', function_with_two_params, User(3, 'Jon Doe'), 'developer')
+        self.assertEqual('User(id:3, name:Jon Doe)_developer', key)
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):

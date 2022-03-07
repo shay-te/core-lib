@@ -128,15 +128,12 @@ class User(Keyable):
         self.details = details
 
     def key(self) -> str:
-        return f'User(id:{type(self.id).__name__}, name:{type(self.name).__name__}, details:{type(self.details).__name__})'
+        return f'User(id:{self.id}, name:{self.name})'
 
 def function_to_format(custom_key):
     pass
 
-
-u_details = {'location': 'UK', 'gender': 'Female'}
-u_name = 'Rosa Doe'
         
-formatted_parameters = build_function_key('type_{custom_key}', function_to_format, User(4, u_name, u_details))
-print(formatted_parameters)  # type_User(id:int, name:str, details:dict)
+formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe'))
+print(formatted_parameters)  # User(id:int, name:4, details:Rosa Doe)
 ```
