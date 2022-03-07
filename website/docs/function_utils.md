@@ -135,5 +135,5 @@ def function_to_format(custom_key):
 
         
 formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe'))
-print(formatted_parameters)  # User(id:int, name:4, details:Rosa Doe)
+print(formatted_parameters)  # User(id:4, name:Rosa Doe)
 ```
