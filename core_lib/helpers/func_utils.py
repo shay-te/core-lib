@@ -25,14 +25,19 @@ class Keyable(ABC):
         pass
 
 
+def _get_key_value(key, value):
+    if value:
+        return value.key() if isinstance(value, Keyable) else value
+    return f'!E{key}E!'
+
+
 class UnseenFormatter(Formatter):
     def get_value(self, key, args, kwargs):
         try:
-            empty = f'!E{key}E!'
             if isinstance(key, int) and key < len(args):
-                return args[key] or empty
+                return _get_key_value(key, args[key])
             if isinstance(key, str) and key in kwargs:
-                return kwargs[key] or empty
+                return _get_key_value(key, kwargs[key])
             return f'!M{key}M!'
         except BaseException:
             logger.warning(f'Error while building key. `{key}`', exc_info=True)
@@ -59,12 +64,12 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     return result
 
 
-def build_function_key(key: str, func, *args, **kwargs) -> dict:
+def build_function_key(key: str, func, *args, **kwargs) -> str:
     if key:
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
         new_key = func.__qualname__
-    return new_key
+    return new_key.replace('\n', '').replace('\r', '')
 
 
 def get_calling_module(stack_depth: int = 1) -> str:

@@ -1,7 +1,6 @@
 import datetime
 import enum
 import unittest
-from abc import ABC
 
 from geoalchemy2 import WKTElement
 
@@ -21,17 +20,13 @@ class MyEnum(enum.Enum):
 
 class User(Keyable):
 
-    def __init__(self, u_id, name):
+    def __init__(self, u_id, name, details):
         self.id = u_id
         self.name = name
+        self.details = details
 
     def key(self) -> str:
-        return f'User(id:{{{self.id}}}, name:{{{self.name}}})'
-
-
-class UserInit(User):
-    def __init__(self):
-        User.__init__(self, 'id', 'name')
+        return f'User(id:{type(self.id).__name__}, name:{type(self.name).__name__}, details:{type(self.details).__name__})'
 
 
 class TestFunctionUtils(unittest.TestCase):
@@ -72,30 +67,44 @@ class TestFunctionUtils(unittest.TestCase):
         point = WKTElement('POINT(5 45)')
         set_value = {"fruit", "apple"}
         obj = {"fruit1": "apple", "fruit2": "orange"}
+        string = 'Jon\n\r Doe'
 
         def function_with_multi_params(
-                param_1, param_2, param_3, param_4, param_5, param_6=point, param_7=set_value, param_8=MyEnum.one.value
+                param_1, param_2, param_3, param_4, param_5, param_6, param_7=point, param_8=set_value, param_9=MyEnum.one.value
         ):
             pass
 
         key7 = build_function_key(
-            'xyz_{param_1}_{param_2}_{param_3}_{param_4}_{param_5}_{param_6}_{param_7}_{param_8}',
+            'xyz_{param_1}_{param_2}_{param_3}_{param_4}_{param_5}_{param_6}_{param_7}_{param_8}_{param_9}',
             function_with_multi_params,
             dat,
             dattime,
             tpl,
             lst,
             obj,
+            string,
         )
         self.assertNotEqual(key7, None)
-        self.assertEqual(key7, f'xyz_{dat}_{dattime}_{tpl}_{lst}_{obj}_{point}_{set_value}_{MyEnum.one.value}')
+        self.assertEqual(key7, f'xyz_{dat}_{dattime}_{tpl}_{lst}_{obj}_Jon Doe_{point}_{set_value}_{MyEnum.one.value}')
 
     def test_keyable(self):
-        def function_with_params(id, name):
+        def function_with_params(class_key):
             return 1
-        user = UserInit()
-        key = build_function_key(user.key(), function_with_params, 1, 4)
-        print(key)
+
+        obj = {'fruit1': 'apple', 'fruit2': 'orange'}
+        string = 'Jon Doe'
+        key = build_function_key('type_{class_key}', function_with_params, User(4, string, obj))
+        self.assertEqual('type_User(id:int, name:str, details:dict)', key)
+
+        lst = ['fruit', 'apple']
+        string = 'Jon Doe'
+        key = build_function_key('type_{class_key}', function_with_params, User(4, string, lst))
+        self.assertEqual('type_User(id:int, name:str, details:list)', key)
+
+        tpl = ("fruit", "apple")
+        string = 'Jon Doe'
+        key = build_function_key('type_{class_key}', function_with_params, User(4, string, tpl))
+        self.assertEqual('type_User(id:int, name:str, details:tuple)', key)
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):
