@@ -132,22 +132,26 @@ from core_lib.web_helpers.django.decorators import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 
 
-class PolicyRoles(enum.Enum):
-    ADMIN = 1
-    DELETE = 2
-    CREATE = 3
-    UPDATE = 4
-    USER = 5
-
-
 # CRUD SETUP
 class User(Base):
     __tablename__ = 'user_security'
+
+    class PolicyRoles(enum.Enum):
+        ADMIN = 1
+        DELETE = 2
+        CREATE = 3
+        UPDATE = 4
+        USER = 5
+
+    class Status(enum.Enum):
+        ACTIVE = 1
+        NOT_ACTIVE = 0
 
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
     role = Column('role', IntEnum(PolicyRoles), default=PolicyRoles.USER)
+    status = Column('status', IntEnum(Status), default=Status.ACTIVE)
 
 
 class UserDataAccess(CRUDDataAccess):
@@ -169,17 +173,26 @@ def get_user(u_id):
 
 # USER SECURITY SETUP
 class SessionUser(object):
-    def __init__(self, id: int, email: str, expiry: datetime):
+    def __init__(self, id: int, email: str):
         self.id = id
         self.email = email
-        self.exp = expiry
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email, 'exp': self.exp}
+        return {'id': self.id, 'email': self.email}
 
 
-def has_access(user_policy, check_policies):
-    if user_policy <= max(check_policies) or user_policy in check_policies:
+def has_access(user, check_policies):
+    role = 5
+    user_role = user['role']
+
+    status = 1
+    user_status = user['status']
+    for policy in check_policies:
+        if type(policy) == User.PolicyRoles:
+            role = policy.value
+        if type(policy) == User.Status:
+            status = policy.value
+    if user_role <= role and user_status == status:
         return True
     else:
         return False
@@ -194,7 +207,7 @@ class CustomerSecurity(UserSecurity):
         if data_dict['email'] == session_obj.email:
             if not policies:
                 return response_status(HTTPStatus.OK)
-            elif has_access(data_dict['role'], policies):
+            elif has_access(data_dict, policies):
                 return response_status(HTTPStatus.OK)
             else:
                 return response_status(HTTPStatus.UNAUTHORIZED)
@@ -202,7 +215,7 @@ class CustomerSecurity(UserSecurity):
             return response_status(HTTPStatus.FORBIDDEN)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'], session_data['exp'])
+        return SessionUser(session_data['id'], session_data['email'])
 
     def generate_session_data(self, user) -> dict:
         return {
@@ -214,37 +227,37 @@ class CustomerSecurity(UserSecurity):
 user_data_access = UserDataAccess()
 
 # SECURITY HANDLER REGISTER
-key = 'super-secret'
-security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=2))
+secret_key = 'super-secret'
+security_handler = CustomerSecurity('user_cookie', secret_key, timedelta(seconds=2))
 SecurityHandler.register(security_handler)
 
 
 # IMPLEMENTATION
-@RequireLogin(policies=[PolicyRoles.ADMIN.value])
+@RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 @handle_exceptions
 def admin_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.DELETE.value])
+@RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 @handle_exceptions
 def delete_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.CREATE.value])
+@RequireLogin(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
 @handle_exceptions
 def create_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.UPDATE.value])
+@RequireLogin(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
 @handle_exceptions
 def update_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.USER.value])
+@RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
 @handle_exceptions
 def user_entry(request):
     pass
@@ -254,7 +267,6 @@ def user_entry(request):
 @handle_exceptions
 def no_policy_entry(request):
     pass
-
 # Function call with HttpRequest.COOKIES set as {'user_cookie': token}
 # where token is the JWT encoded token which will be decoded by UserSecurity
 # and the decoded object with data will be authenticated and authorized in secure_entry()

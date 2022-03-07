@@ -41,10 +41,15 @@ class User(Base):
         UPDATE = 4
         USER = 5
 
+    class Status(enum.Enum):
+        ACTIVE = 1
+        NOT_ACTIVE = 0
+
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
     role = Column('role', IntEnum(PolicyRoles), default=PolicyRoles.USER)
+    status = Column('status', IntEnum(Status), default=Status.ACTIVE)
 
 
 class UserDataAccess(CRUDDataAccess):
@@ -78,8 +83,18 @@ class SessionUser(object):
         return {'id': self.id, 'email': self.email}
 
 
-def has_access(user_policy, check_policies):
-    if user_policy <= max(check_policies) or user_policy in check_policies:
+def has_access(user, check_policies):
+    role = 5
+    user_role = user['role']
+
+    status = 1
+    user_status = user['status']
+    for policy in check_policies:
+        if type(policy) == User.PolicyRoles:
+            role = policy.value
+        if type(policy) == User.Status:
+            status = policy.value
+    if user_role <= role and user_status == status:
         return True
     else:
         return False
@@ -94,7 +109,7 @@ class CustomerSecurity(UserSecurity):
         if data_dict['email'] == session_obj.email:
             if not policies:
                 return response_status(HTTPStatus.OK)
-            elif has_access(data_dict['role'], policies):
+            elif has_access(data_dict, policies):
                 return response_status(HTTPStatus.OK)
             else:
                 return response_status(HTTPStatus.UNAUTHORIZED)
@@ -112,8 +127,8 @@ class CustomerSecurity(UserSecurity):
 
 
 # SECURITY HANDLER REGISTER
-key = 'super-secret'
-security_handler = CustomerSecurity('user_cookie', key, timedelta(seconds=30))
+secret_key = 'super-secret'
+security_handler = CustomerSecurity('user_cookie', secret_key, timedelta(seconds=30))
 SecurityHandler.register(security_handler)
 
 # DJANGO INIT
@@ -126,133 +141,161 @@ web_util.init(web_util.ServerType.DJANGO)
 
 
 class TestUserSecurity(unittest.TestCase):
-    # admin = {'id': 1, 'email': 'admin@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    # delete = {'id': 2, 'email': 'delete@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    # create = {'id': 3, 'email': 'create@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    # update = {'id': 4, 'email': 'update@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    # user = {'id': 5, 'email': 'user@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-
     @classmethod
     def setUp(cls):
         CoreLib.cache_registry.unregister('test_user_security')
 
-        cls.admin = result_to_dict(user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': User.PolicyRoles.ADMIN}))
-        cls.delete = result_to_dict(user_data_access.create({'username': 'delete', 'email': 'delete@def.com', 'role': User.PolicyRoles.DELETE}))
-        cls.create = result_to_dict(user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': User.PolicyRoles.CREATE}))
-        cls.update = result_to_dict(user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': User.PolicyRoles.UPDATE}))
-        cls.user = result_to_dict(user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER}))
-
-        cls.admin.update({})
+        cls.admin = result_to_dict(
+            user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': User.PolicyRoles.ADMIN})
+        )
+        cls.delete = result_to_dict(
+            user_data_access.create({'username': 'delete', 'email': 'delete@def.com', 'role': User.PolicyRoles.DELETE})
+        )
+        cls.create = result_to_dict(
+            user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': User.PolicyRoles.CREATE})
+        )
+        cls.update = result_to_dict(
+            user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': User.PolicyRoles.UPDATE})
+        )
+        cls.user = result_to_dict(
+            user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER})
+        )
+        cls.admin.update({'exp': datetime.now() + timedelta(seconds=30)})
+        cls.delete.update({'exp': datetime.now() + timedelta(seconds=30)})
+        cls.create.update({'exp': datetime.now() + timedelta(seconds=30)})
+        cls.update.update({'exp': datetime.now() + timedelta(seconds=30)})
+        cls.user.update({'exp': datetime.now() + timedelta(seconds=30)})
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
 
     def _create_request(self, payload: dict):
         request_object = HttpRequest
-        token = jwt.encode(payload, key)
+        token = jwt.encode(payload, secret_key)
         request_object.COOKIES = {'user_cookie': token}
         return request_object
 
     def test_has_access(self):
-        self.assertTrue(has_access(User.PolicyRoles.ADMIN.value, [User.PolicyRoles.ADMIN.value]))
-        self.assertTrue(has_access(User.PolicyRoles.DELETE.value, [User.PolicyRoles.DELETE.value]))
-        self.assertTrue(has_access(User.PolicyRoles.CREATE.value, [User.PolicyRoles.CREATE.value]))
-        self.assertTrue(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.UPDATE.value]))
-        self.assertTrue(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.USER.value]))
+        self.assertTrue(has_access(self.admin, [User.PolicyRoles.ADMIN, User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.delete, [User.PolicyRoles.DELETE]))
+        self.assertTrue(has_access(self.create, [User.PolicyRoles.CREATE]))
+        self.assertTrue(has_access(self.update, [User.PolicyRoles.UPDATE]))
+        self.assertTrue(has_access(self.user, [User.PolicyRoles.USER]))
 
-        self.assertFalse(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.ADMIN.value]))
-        self.assertFalse(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.DELETE.value]))
-        self.assertFalse(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.CREATE.value]))
+        self.assertFalse(has_access(self.user, [User.PolicyRoles.ADMIN]))
+        self.assertFalse(has_access(self.update, [User.PolicyRoles.DELETE]))
+        self.assertFalse(has_access(self.user, [User.PolicyRoles.CREATE]))
+        self.assertFalse(has_access(self.admin, [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE]))
 
-        self.assertTrue(has_access(User.PolicyRoles.ADMIN.value, [User.PolicyRoles.CREATE.value]))
-        self.assertTrue(has_access(User.PolicyRoles.CREATE.value, [User.PolicyRoles.UPDATE.value]))
-        self.assertTrue(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.USER.value]))
+        self.assertTrue(has_access(self.delete, [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.update, [User.PolicyRoles.USER, User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.admin, [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.create, [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.delete, [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
+
+        self.assertTrue(has_access(self.admin, [User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.delete, [User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.create, [User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.update, [User.Status.ACTIVE]))
+        self.assertTrue(has_access(self.user, [User.Status.ACTIVE]))
 
     def test_secure_entry(self):
         # Admin
-        response = admin_entry(self._create_request(TestUserSecurity.admin))
+        response = admin_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
-        response = delete_entry(self._create_request(TestUserSecurity.admin))
+        response = delete_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
-        response = create_entry(self._create_request(TestUserSecurity.admin))
+        response = create_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
-        response = update_entry(self._create_request(TestUserSecurity.admin))
+        response = update_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
-        response = user_entry(self._create_request(TestUserSecurity.admin))
+        response = user_entry(self._create_request(self.admin))
+        self.assertEqual(response.status_code, 200)
+
+        response = no_policy_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
         # Delete
-        response = admin_entry(self._create_request(TestUserSecurity.delete))
+        response = admin_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 401)
 
-        response = delete_entry(self._create_request(TestUserSecurity.delete))
+        response = delete_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 200)
 
-        response = create_entry(self._create_request(TestUserSecurity.delete))
+        response = create_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 200)
 
-        response = update_entry(self._create_request(TestUserSecurity.delete))
+        response = update_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 200)
 
-        response = user_entry(self._create_request(TestUserSecurity.delete))
+        response = user_entry(self._create_request(self.delete))
+        self.assertEqual(response.status_code, 200)
+
+        response = no_policy_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 200)
 
         # Create
-        response = admin_entry(self._create_request(TestUserSecurity.create))
+        response = admin_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 401)
 
-        response = delete_entry(self._create_request(TestUserSecurity.create))
+        response = delete_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 401)
 
-        response = create_entry(self._create_request(TestUserSecurity.create))
+        response = create_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 200)
 
-        response = update_entry(self._create_request(TestUserSecurity.create))
+        response = update_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 200)
 
-        response = user_entry(self._create_request(TestUserSecurity.create))
+        response = user_entry(self._create_request(self.create))
+        self.assertEqual(response.status_code, 200)
+
+        response = no_policy_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 200)
 
         # Update
-        response = admin_entry(self._create_request(TestUserSecurity.update))
+        response = admin_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 401)
 
-        response = delete_entry(self._create_request(TestUserSecurity.update))
+        response = delete_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 401)
 
-        response = create_entry(self._create_request(TestUserSecurity.update))
+        response = create_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 401)
 
-        response = update_entry(self._create_request(TestUserSecurity.update))
+        response = update_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 200)
 
-        response = user_entry(self._create_request(TestUserSecurity.update))
+        response = user_entry(self._create_request(self.update))
+        self.assertEqual(response.status_code, 200)
+
+        response = no_policy_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 200)
 
         # User
-        response = admin_entry(self._create_request(TestUserSecurity.user))
+        response = admin_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 401)
 
-        response = delete_entry(self._create_request(TestUserSecurity.user))
+        response = delete_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 401)
 
-        response = create_entry(self._create_request(TestUserSecurity.user))
+        response = create_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 401)
 
-        response = update_entry(self._create_request(TestUserSecurity.user))
+        response = update_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 401)
 
-        response = user_entry(self._create_request(TestUserSecurity.user))
+        response = user_entry(self._create_request(self.user))
+        self.assertEqual(response.status_code, 200)
+
+        response = no_policy_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 200)
 
     def test_expiry(self):
-        request = self._create_request(TestUserSecurity.admin)
-
-        response = no_policy_entry(request)
-        self.assertEqual(response.status_code, 200)
+        request = self._create_request(self.admin)
 
         response = no_policy_entry(request)
         self.assertEqual(response.status_code, 200)
@@ -260,8 +303,7 @@ class TestUserSecurity(unittest.TestCase):
         with freeze_time(datetime.now() + timedelta(seconds=31)):
             with self.assertLogs():
                 with self.assertRaises(ExpiredSignatureError):
-                    response = no_policy_entry(request)
-                    self.assertEqual(response.status_code, 200)
+                    no_policy_entry(request)
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()
@@ -276,31 +318,31 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(int(decoded_dict['exp']), int(time_stamp) + 30)
 
 
-@RequireLogin(policies=[User.PolicyRoles.ADMIN.value])
+@RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 @handle_exceptions
 def admin_entry(request):
     pass
 
 
-@RequireLogin(policies=[User.PolicyRoles.DELETE.value])
+@RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 @handle_exceptions
 def delete_entry(request):
     pass
 
 
-@RequireLogin(policies=[User.PolicyRoles.CREATE.value])
+@RequireLogin(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
 @handle_exceptions
 def create_entry(request):
     pass
 
 
-@RequireLogin(policies=[User.PolicyRoles.UPDATE.value])
+@RequireLogin(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
 @handle_exceptions
 def update_entry(request):
     pass
 
 
-@RequireLogin(policies=[User.PolicyRoles.USER.value])
+@RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
 @handle_exceptions
 def user_entry(request):
     pass
