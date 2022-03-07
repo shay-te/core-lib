@@ -1,6 +1,7 @@
 import datetime
 import inspect
 import logging
+from abc import ABC, abstractmethod
 from contextlib import suppress
 from string import Formatter
 
@@ -17,14 +18,26 @@ def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     return list(parameters).index(parameter_name)
 
 
+class Keyable(ABC):
+
+    @abstractmethod
+    def key(self) -> str:
+        pass
+
+
+def _get_key_value(key, value):
+    if value:
+        return value.key() if isinstance(value, Keyable) else value
+    return f'!E{key}E!'
+
+
 class UnseenFormatter(Formatter):
     def get_value(self, key, args, kwargs):
         try:
-            empty = f'!E{key}E!'
             if isinstance(key, int) and key < len(args):
-                return args[key] or empty
+                return _get_key_value(key, args[key])
             if isinstance(key, str) and key in kwargs:
-                return kwargs[key] or empty
+                return _get_key_value(key, kwargs[key])
             return f'!M{key}M!'
         except BaseException:
             logger.warning(f'Error while building key. `{key}`', exc_info=True)
@@ -51,12 +64,12 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     return result
 
 
-def build_value_by_func_parameters(key: str, func, *args, **kwargs) -> str:
+def build_function_key(key: str, func, *args, **kwargs) -> str:
     if key:
         new_key = _formatter.format(key, **get_func_parameters_as_dict(func, *args, **kwargs))
     else:
         new_key = func.__qualname__
-    return new_key
+    return new_key.replace('\n', '').replace('\r', '')
 
 
 def get_calling_module(stack_depth: int = 1) -> str:

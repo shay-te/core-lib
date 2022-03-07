@@ -1,7 +1,7 @@
 import logging
 from functools import wraps
 
-from core_lib.helpers.func_utils import build_value_by_func_parameters, get_calling_module
+from core_lib.helpers.func_utils import build_function_key, get_calling_module
 
 
 class Logging(object):
@@ -13,7 +13,7 @@ class Logging(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            message = build_value_by_func_parameters(self.message, func, *args, **kwargs)
+            message = build_function_key(self.message, func, *args, **kwargs)
             logging.getLogger(self.calling_module).log(self.level, '{}.{}'.format(self.message, ''.join(message)))
             return func(*args, **kwargs)
 
