@@ -7,7 +7,6 @@ import jwt
 from django.conf import settings
 from django.http import HttpRequest
 from freezegun import freeze_time
-from jwt import ExpiredSignatureError
 from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.cache.cache_decorator import Cache
@@ -22,9 +21,7 @@ from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValid
 from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
-from core_lib.web_helpers.decorators import handle_exceptions
 from core_lib.web_helpers.django.decorators import RequireLogin
-from core_lib.web_helpers.django.user_auth_middleware import UserAuthMiddleware
 from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_utils import connect_to_mem_db
@@ -303,9 +300,11 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         with freeze_time(datetime.now() + timedelta(seconds=31)):
-            with self.assertLogs():
-                with self.assertRaises(ExpiredSignatureError):
-                    no_policy_entry(request)
+            with self.assertLogs() as cm:
+                resp_json = no_policy_entry(request)
+                self.assertEqual(resp_json.status_code, 401)
+            self.assertIn('ExpiredSignatureError', str(cm.output))
+            self.assertIn('handle_exceptions got error for function', str(cm.output))
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()
@@ -321,36 +320,30 @@ class TestUserSecurity(unittest.TestCase):
 
 
 @RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
-@handle_exceptions
 def admin_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
-@handle_exceptions
 def delete_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
-@handle_exceptions
 def create_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
-@handle_exceptions
 def update_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
-@handle_exceptions
 def user_entry(request):
     pass
 
 
 @RequireLogin(policies=[])
-@handle_exceptions
 def no_policy_entry(request):
     pass

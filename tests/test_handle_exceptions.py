@@ -5,7 +5,7 @@ from http import HTTPStatus
 from django.conf import settings
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.web_helpers.decorators import handle_exceptions
+from core_lib.web_helpers.decorators import HandleExceptions
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 if not settings.configured:
@@ -98,10 +98,10 @@ class TestHandleExceptions(unittest.TestCase):
         self.assertIn('AssertionError', str(cm.output))
         self.assertIn('handle_exceptions got error for function', str(cm.output))
 
-    @handle_exceptions
+    @HandleExceptions
     def raise_exception(self, excp_type):
         raise excp_type
 
-    @handle_exceptions
+    @HandleExceptions
     def raise_assertion(self):
         assert True is False
