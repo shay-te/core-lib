@@ -5,10 +5,17 @@ from http import HTTPStatus
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.validation import is_email
+from core_lib.helpers.validation import is_email, is_int_enum
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.rule_validator.rule_validator_decorator import ParameterRuleValidator
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
+
+
+def enum_gender_converter(value):
+    if isinstance(value, str):
+        return User.Gender.MALE if (value.lower() == 'male') else User.Gender.FEMALE
+    else:
+        return User.Gender(value)
 
 
 user_rule_validators = [
@@ -18,15 +25,13 @@ user_rule_validators = [
     ValueRuleValidator(User.first_name.key, str, nullable=False),
     ValueRuleValidator(User.middle_name.key, str),
     ValueRuleValidator(User.last_name.key, str),
-    # Email included in prohibited_keys.
     ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),
     ValueRuleValidator(User.birthday.key, datetime.date),
-    # Working with enum after conversion.
     ValueRuleValidator(
         User.gender.key,
-        User.Gender,
-        custom_converter=lambda value: User.Gender(value),  # Convert int to enum
-        custom_validator=lambda value: 0 <= value.value <= len(User.Gender),
+        int,
+        custom_converter=lambda value: enum_gender_converter(value),
+        custom_validator=lambda value: is_int_enum(value, User.Gender),
     ),
 ]
 
