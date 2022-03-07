@@ -14,7 +14,7 @@ class TestExamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = sync_create_core_lib_config('../../examples/objects_core_lib/config')
-        cls.objects_core_lib = ObjectsCoreLib(config.core_lib)
+        cls.objects_core_lib = ObjectsCoreLib(config)
 
     def test_object_core_lib(self):
         test_bucket = 'MyBucket'

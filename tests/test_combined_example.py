@@ -32,7 +32,7 @@ class TestCombinedExample(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = sync_create_core_lib_config('../../examples/combined_core_lib/config')
-        cls.combined_core_lib = CombineCoreLib(config.core_lib)
+        cls.combined_core_lib = CombineCoreLib(config)
 
     def test_01_group_services(self):
         self.assertEqual(self.combined_core_lib.test.test.test_1.get_value(), 1)

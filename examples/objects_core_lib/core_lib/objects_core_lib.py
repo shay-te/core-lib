@@ -10,7 +10,7 @@ from examples.objects_core_lib.core_lib.data_layers.service.objects_service impo
 class ObjectsCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
-        self.config = conf
+        self.config = conf.core_lib
 
         boto3_client = boto3.client(
             's3',

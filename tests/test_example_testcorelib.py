@@ -28,7 +28,7 @@ class TestExamples(unittest.TestCase):
     @classmethod
     def setUp(cls):
         config = sync_create_core_lib_config('../../examples/test_core_lib/config')
-        cls.test_core_lib = TestCoreLib(config.core_lib)
+        cls.test_core_lib = TestCoreLib(config)
 
     def test_example_crud(self):
         user = self.test_core_lib.customer.create(user_data)

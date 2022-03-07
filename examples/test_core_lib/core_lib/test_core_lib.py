@@ -20,7 +20,7 @@ from examples.test_core_lib.core_lib.data_layers.service.user_service import Use
 class TestCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
-        self.config = conf
+        self.config = conf.core_lib
         CoreLib.cache_registry.register("memory_cache", CacheHandlerRam())
 
         db_data_session = SqlAlchemyDataHandlerRegistry(self.config.db)

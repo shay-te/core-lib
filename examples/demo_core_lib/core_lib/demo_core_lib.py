@@ -15,7 +15,7 @@ from examples.demo_core_lib.core_lib.data_layers.service.demo_service import Dem
 class DemoCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
-        self.config = conf
+        self.config = conf.core_lib
 
         db_data_session = SqlAlchemyDataHandlerRegistry(self.config.db)
         solr_data_session = ObjectDataHandlerRegistry(pysolr.Solr(build_url(**self.config.solr), always_commit=True))
