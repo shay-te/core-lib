@@ -19,6 +19,8 @@ class UserSecurity(ABC):
 
 `token_handler` : expects a `TokenHandler` class that implements the `encode` and `decode` functions.
 
+>`UserSecurity` token handler uses the `JWTTokenHandler` in `Core-Lib` which handles the `jwt` tokens.
+
 
 
 ###Function provides by UserSecurity
@@ -99,15 +101,22 @@ class RequireLogin(object):
 ```
 `policies` (*list*) : list of policies which will be further passed on the the `UserSecurity` functions.
 
+
+## UserAuthMiddleware
+This middleware can be configured in `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
+the specified cookie is present in the request, turn it to a `Session Object`, and append it to `request.user` variable.
+
+```python
+class UserAuthMiddleware(MiddlewareMixin):
+```
+
 ##Example
 ```python
 import enum
 from datetime import timedelta, datetime
 from http import HTTPStatus
 
-import jwt
 from django.conf import settings
-from django.http import HttpRequest
 from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
@@ -123,54 +132,69 @@ from core_lib.web_helpers.django.decorators import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 
 
+class PolicyRoles(enum.Enum):
+    ADMIN = 1
+    DELETE = 2
+    CREATE = 3
+    UPDATE = 4
+    USER = 5
+
+
+# CRUD SETUP
 class User(Base):
     __tablename__ = 'user_security'
 
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
-    role = Column(Integer, nullable=False)
+    role = Column('role', IntEnum(PolicyRoles), default=PolicyRoles.USER)
 
 
 class UserDataAccess(CRUDDataAccess):
     allowed_update_types = [
         ValueRuleValidator('username', str),
         ValueRuleValidator('email', str),
-        ValueRuleValidator('role', int),
     ]
 
     rules_validator = RuleValidator(allowed_update_types)
 
     def __init__(self):
-        CRUD.__init__(self, User, database_handler, UserDataAccess.rules_validator)
+        CRUD.__init__(self, User, db_handler, UserDataAccess.rules_validator)
+
+
+@Cache(key='user_data_{u_id}', expire=timedelta(seconds=30))
+def get_user(u_id):
+    return result_to_dict(user_data_access.get(u_id))
 
 
 # USER SECURITY SETUP
-class PolicyRoles(enum.Enum):
-    USER = 1
-    TESTER = 2
-    ADMIN = 3
-
-
 class SessionUser(object):
-
-    def __init__(self, id: int, email: str):
+    def __init__(self, id: int, email: str, expiry: datetime):
         self.id = id
         self.email = email
+        self.exp = expiry
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email}
+        return {'id': self.id, 'email': self.email, 'exp': self.exp}
+
+
+def has_access(user_policy, check_policies):
+    if user_policy <= max(check_policies) or user_policy in check_policies:
+        return True
+    else:
+        return False
 
 
 class CustomerSecurity(UserSecurity):
-
     def __init__(self, cookie_name: str, secret: str, expiration_time: timedelta):
         UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
 
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
-        data_dict = result_to_dict(user_data_access.get(session_obj.id))
+        data_dict = get_user(session_obj.id)
         if data_dict['email'] == session_obj.email:
-            if data_dict['role'] in policies:
+            if not policies:
+                return response_status(HTTPStatus.OK)
+            elif has_access(data_dict['role'], policies):
                 return response_status(HTTPStatus.OK)
             else:
                 return response_status(HTTPStatus.UNAUTHORIZED)
@@ -178,7 +202,7 @@ class CustomerSecurity(UserSecurity):
             return response_status(HTTPStatus.FORBIDDEN)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'])
+        return SessionUser(session_data['id'], session_data['email'], session_data['exp'])
 
     def generate_session_data(self, user) -> dict:
         return {
@@ -196,27 +220,39 @@ SecurityHandler.register(security_handler)
 
 
 # IMPLEMENTATION
-@RequireLogin(policies=[PolicyRoles.USER.value])
-@handle_exceptions
-def user_entry(request):
-    pass
-
-
 @RequireLogin(policies=[PolicyRoles.ADMIN.value])
 @handle_exceptions
 def admin_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.TESTER.value])
+@RequireLogin(policies=[PolicyRoles.DELETE.value])
 @handle_exceptions
-def tester_entry(request):
+def delete_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.TESTER.value, PolicyRoles.ADMIN.value])
+@RequireLogin(policies=[PolicyRoles.CREATE.value])
 @handle_exceptions
-def tester_admin_entry(request):
+def create_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.UPDATE.value])
+@handle_exceptions
+def update_entry(request):
+    pass
+
+
+@RequireLogin(policies=[PolicyRoles.USER.value])
+@handle_exceptions
+def user_entry(request):
+    pass
+
+
+@RequireLogin(policies=[])
+@handle_exceptions
+def no_policy_entry(request):
     pass
 
 # Function call with HttpRequest.COOKIES set as {'user_cookie': token}
@@ -227,11 +263,20 @@ response = user_entry(request)
 # Similarly, this process will happen with other function and the respective HTTP status code
 # will be returned. This is how UserSecurity is implemented in Core-lib
 
-# For authenticated user
-if response.status_code == 200:
-    user = result_to_dict(user_data_access.get(user_id))
-    # We can return this data back to our application for as an encoded JWT token 
-    user_session = SecurityHandler.get().generate_session_data_token(user)
-    
+# For authenticated user (Django example)
+@csrf_exempt
+@require_POST
+def api_login_facebook(request):
+    ...
+    body = request_body_dict(request)
+    email = body.get('email')
+    password = body.get('pass')
+    is_authenticated = auth_service.authnticate(email, password)
+    if is_authenticagted:
+        user = ... get the user
+        user_session = SecurityHandler.get().generate_session_data(user)
+        response = response_json({'csrf_token': django.middleware.csrf.get_token(request), 'session': user_session})
+        response.set_cookie(key=settings.COOKIE_NAME, value=SecurityHandler.get().generate_session_data_token(user))
+        return response    
 
 ```
