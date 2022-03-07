@@ -3,7 +3,7 @@ from functools import wraps
 from http import HTTPStatus
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.func_utils import build_value_by_func_parameters
+from core_lib.helpers.func_utils import build_function_key
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class NotFoundErrorHandler(object):
             if not result:
                 logger.debug(f'NotFoundErrorHandler for function `{func.__qualname__}`.')
                 exception_message = (
-                    build_value_by_func_parameters(self.message, func, *args, **kwargs) if self.message else None
+                    build_function_key(self.message, func, *args, **kwargs) if self.message else None
                 )
                 raise StatusCodeException(HTTPStatus.NOT_FOUND.value, exception_message)
             return result
