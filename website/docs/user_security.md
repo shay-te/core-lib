@@ -266,7 +266,7 @@ response = user_entry(request)
 # For authenticated user (Django example)
 @csrf_exempt
 @require_POST
-def api_login_facebook(request):
+def api_login(request):
     ...
     body = request_body_dict(request)
     email = body.get('email')
