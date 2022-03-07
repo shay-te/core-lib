@@ -30,17 +30,16 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_utils import connect_to_mem_db
 
 
-class PolicyRoles(enum.Enum):
-    ADMIN = 1
-    DELETE = 2
-    CREATE = 3
-    UPDATE = 4
-    USER = 5
-
-
 # CRUD SETUP
 class User(Base):
     __tablename__ = 'user_security'
+
+    class PolicyRoles(enum.Enum):
+        ADMIN = 1
+        DELETE = 2
+        CREATE = 3
+        UPDATE = 4
+        USER = 5
 
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(VARCHAR(length=255), nullable=False, default="")
@@ -128,21 +127,21 @@ web_util.init(web_util.ServerType.DJANGO)
 
 
 class TestUserSecurity(unittest.TestCase):
-    admin = {'id': 1, 'email': 'admin@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    delete = {'id': 2, 'email': 'delete@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    create = {'id': 3, 'email': 'create@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    update = {'id': 4, 'email': 'update@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
-    user = {'id': 5, 'email': 'user@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
+    # admin = {'id': 1, 'email': 'admin@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
+    # delete = {'id': 2, 'email': 'delete@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
+    # create = {'id': 3, 'email': 'create@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
+    # update = {'id': 4, 'email': 'update@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
+    # user = {'id': 5, 'email': 'user@def.com', 'exp': datetime.now() + timedelta(seconds=30)}
 
     @classmethod
     def setUp(cls):
         CoreLib.cache_registry.unregister('test_user_security')
 
-        user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': PolicyRoles.ADMIN})
-        user_data_access.create({'username': 'delete', 'email': 'delete@def.com', 'role': PolicyRoles.DELETE})
-        user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': PolicyRoles.CREATE})
-        user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': PolicyRoles.UPDATE})
-        user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': PolicyRoles.USER})
+        cls.admin = result_to_dict(user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': User.PolicyRoles.ADMIN}))
+        cls.delete = result_to_dict(user_data_access.create({'username': 'delete', 'email': 'delete@def.com', 'role': User.PolicyRoles.DELETE}))
+        cls.create = result_to_dict(user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': User.PolicyRoles.CREATE}))
+        cls.update = result_to_dict(user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': User.PolicyRoles.UPDATE}))
+        cls.user = result_to_dict(user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER}))
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
 
@@ -153,22 +152,21 @@ class TestUserSecurity(unittest.TestCase):
         return request_object
 
     def test_has_access(self):
-        self.assertTrue(has_access(PolicyRoles.ADMIN.value, [PolicyRoles.ADMIN.value]))
-        self.assertTrue(has_access(PolicyRoles.DELETE.value, [PolicyRoles.DELETE.value]))
-        self.assertTrue(has_access(PolicyRoles.CREATE.value, [PolicyRoles.CREATE.value]))
-        self.assertTrue(has_access(PolicyRoles.UPDATE.value, [PolicyRoles.UPDATE.value]))
-        self.assertTrue(has_access(PolicyRoles.USER.value, [PolicyRoles.USER.value]))
+        self.assertTrue(has_access(User.PolicyRoles.ADMIN.value, [User.PolicyRoles.ADMIN.value]))
+        self.assertTrue(has_access(User.PolicyRoles.DELETE.value, [User.PolicyRoles.DELETE.value]))
+        self.assertTrue(has_access(User.PolicyRoles.CREATE.value, [User.PolicyRoles.CREATE.value]))
+        self.assertTrue(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.UPDATE.value]))
+        self.assertTrue(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.USER.value]))
 
-        self.assertFalse(has_access(PolicyRoles.USER.value, [PolicyRoles.ADMIN.value]))
-        self.assertFalse(has_access(PolicyRoles.UPDATE.value, [PolicyRoles.DELETE.value]))
-        self.assertFalse(has_access(PolicyRoles.USER.value, [PolicyRoles.CREATE.value]))
+        self.assertFalse(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.ADMIN.value]))
+        self.assertFalse(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.DELETE.value]))
+        self.assertFalse(has_access(User.PolicyRoles.USER.value, [User.PolicyRoles.CREATE.value]))
 
-        self.assertTrue(has_access(PolicyRoles.ADMIN.value, [PolicyRoles.CREATE.value]))
-        self.assertTrue(has_access(PolicyRoles.CREATE.value, [PolicyRoles.UPDATE.value]))
-        self.assertTrue(has_access(PolicyRoles.UPDATE.value, [PolicyRoles.USER.value]))
+        self.assertTrue(has_access(User.PolicyRoles.ADMIN.value, [User.PolicyRoles.CREATE.value]))
+        self.assertTrue(has_access(User.PolicyRoles.CREATE.value, [User.PolicyRoles.UPDATE.value]))
+        self.assertTrue(has_access(User.PolicyRoles.UPDATE.value, [User.PolicyRoles.USER.value]))
 
     def test_secure_entry(self):
-
         # Admin
         response = admin_entry(self._create_request(TestUserSecurity.admin))
         self.assertEqual(response.status_code, 200)
@@ -277,31 +275,31 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(int(decoded_dict['exp']), int(time_stamp) + 30)
 
 
-@RequireLogin(policies=[PolicyRoles.ADMIN.value])
+@RequireLogin(policies=[User.PolicyRoles.ADMIN.value])
 @handle_exceptions
 def admin_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.DELETE.value])
+@RequireLogin(policies=[User.PolicyRoles.DELETE.value])
 @handle_exceptions
 def delete_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.CREATE.value])
+@RequireLogin(policies=[User.PolicyRoles.CREATE.value])
 @handle_exceptions
 def create_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.UPDATE.value])
+@RequireLogin(policies=[User.PolicyRoles.UPDATE.value])
 @handle_exceptions
 def update_entry(request):
     pass
 
 
-@RequireLogin(policies=[PolicyRoles.USER.value])
+@RequireLogin(policies=[User.PolicyRoles.USER.value])
 @handle_exceptions
 def user_entry(request):
     pass
