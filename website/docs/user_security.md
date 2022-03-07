@@ -283,7 +283,7 @@ def api_login(request):
     body = request_body_dict(request)
     email = body.get('email')
     password = body.get('pass')
-    is_authenticated = auth_service.authnticate(email, password)
+    is_authenticated = core_lib.auth.authnticate(email, password)
     if is_authenticagted:
         user = ... get the user
         user_session = SecurityHandler.get().generate_session_data(user)

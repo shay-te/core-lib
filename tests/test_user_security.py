@@ -160,11 +160,13 @@ class TestUserSecurity(unittest.TestCase):
         cls.user = result_to_dict(
             user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER})
         )
-        cls.admin.update({'exp': datetime.now() + timedelta(seconds=30)})
-        cls.delete.update({'exp': datetime.now() + timedelta(seconds=30)})
-        cls.create.update({'exp': datetime.now() + timedelta(seconds=30)})
-        cls.update.update({'exp': datetime.now() + timedelta(seconds=30)})
-        cls.user.update({'exp': datetime.now() + timedelta(seconds=30)})
+
+        exp = datetime.now() + timedelta(seconds=30)
+        cls.admin.update({'exp': exp})
+        cls.delete.update({'exp': exp})
+        cls.create.update({'exp': exp})
+        cls.update.update({'exp': exp})
+        cls.user.update({'exp': exp})
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
 
