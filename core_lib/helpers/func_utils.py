@@ -19,7 +19,6 @@ def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
 
 
 class Keyable(ABC):
-
     @abstractmethod
     def key(self) -> str:
         pass
