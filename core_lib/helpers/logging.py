@@ -12,10 +12,8 @@ class Logging(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            formatted_message = build_function_key(self.message, func, *args, **kwargs)
-            logging.getLogger(func.__qualname__).log(
-                self.level, f'{self.message if formatted_message == func.__qualname__ else formatted_message}'
-            )
+            formatted_message = build_function_key(self.message, func, *args, **kwargs) if self.message else ''
+            logging.getLogger(func.__qualname__).log(self.level, f'{formatted_message}')
             return func(*args, **kwargs)
 
         return __wrapper
