@@ -5,7 +5,7 @@ from typing import Union
 import parsedatetime
 
 from core_lib.core_lib import CoreLib
-from core_lib.helpers.func_utils import build_value_by_func_parameters
+from core_lib.helpers.func_utils import build_function_key
 
 
 logger = logging.getLogger(__name__)
@@ -43,13 +43,15 @@ class Cache(object):
         max_key_length: int = 250,
         expire: Union[timedelta, str] = None,
         invalidate: bool = False,
-        handler: str = None,
+        handler_name: str = None,
+        cache_empty_result: bool = True,
     ):
         self.key = key
         self.max_key_length = max_key_length
         self.invalidate = invalidate
-        self.handler_name = handler
+        self.handler_name = handler_name
         self.expire = _get_expire(expire)
+        self.cache_empty_result = cache_empty_result
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
@@ -57,7 +59,7 @@ class Cache(object):
             cache_handler = CoreLib.cache_registry.get(self.handler_name)
             if not cache_handler:
                 raise ValueError(f'CacheHandler by name {self.handler_name} was not found in `CoreLib.cache_registry`')
-            key = build_value_by_func_parameters(self.key, func, *args, **kwargs)[: self.max_key_length].replace(
+            key = build_function_key(self.key, func, *args, **kwargs)[: self.max_key_length].replace(
                 ' ', '_'
             )
 
@@ -71,9 +73,9 @@ class Cache(object):
                 return result
             else:
                 result = cache_handler.get(key)
-                if not result:
+                if result is None:
                     result = func(*args, **kwargs)
-                    if result:
+                    if (self.cache_empty_result and result is not None) or result:
                         cache_handler.set(key, result, _get_expire(self.expire))
                 return result
 

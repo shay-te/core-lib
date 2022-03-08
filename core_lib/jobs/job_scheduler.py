@@ -6,6 +6,7 @@ from core_lib.jobs.job import Job
 
 logger = logging.getLogger(__name__)
 
+
 class JobScheduler(object):
     def __init__(self):
         self._lock = Lock()
@@ -39,7 +40,8 @@ class JobScheduler(object):
         try:
             job.run()
         except BaseException as ex:
-            logger.exception(f'Error while running job {job.__repr__() if job else "<None Job>"}', ex)
+            logger.error(f'Error while running job {job.__repr__() if job else "<None Job>"}')
+            logger.exception(ex, exc_info=True)
 
         del self._job_to_timer[job]
         if frequency:
