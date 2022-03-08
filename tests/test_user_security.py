@@ -81,17 +81,18 @@ class SessionUser(object):
 
 
 def has_access(user, check_policies):
-    role = 5
     user_role = user['role']
-
+    role = []
     status = 1
     user_status = user['status']
     for policy in check_policies:
-        if type(policy) == User.PolicyRoles:
-            role = policy.value
         if type(policy) == User.Status:
             status = policy.value
-    if user_role <= role and user_status == status:
+        if type(policy) == User.PolicyRoles:
+            role.append(policy.value)
+    if not role:
+        role.append(User.PolicyRoles.USER.value)
+    if user_role <= max(role) and user_status == status:
         return True
     else:
         return False
@@ -214,6 +215,9 @@ class TestUserSecurity(unittest.TestCase):
         response = user_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
+        response = multiple_entry(self._create_request(self.admin))
+        self.assertEqual(response.status_code, 200)
+
         response = no_policy_entry(self._create_request(self.admin))
         self.assertEqual(response.status_code, 200)
 
@@ -231,6 +235,9 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         response = user_entry(self._create_request(self.delete))
+        self.assertEqual(response.status_code, 200)
+
+        response = multiple_entry(self._create_request(self.delete))
         self.assertEqual(response.status_code, 200)
 
         response = no_policy_entry(self._create_request(self.delete))
@@ -252,6 +259,9 @@ class TestUserSecurity(unittest.TestCase):
         response = user_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 200)
 
+        response = multiple_entry(self._create_request(self.create))
+        self.assertEqual(response.status_code, 200)
+
         response = no_policy_entry(self._create_request(self.create))
         self.assertEqual(response.status_code, 200)
 
@@ -269,6 +279,9 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         response = user_entry(self._create_request(self.update))
+        self.assertEqual(response.status_code, 200)
+
+        response = multiple_entry(self._create_request(self.update))
         self.assertEqual(response.status_code, 200)
 
         response = no_policy_entry(self._create_request(self.update))
@@ -289,6 +302,9 @@ class TestUserSecurity(unittest.TestCase):
 
         response = user_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 200)
+
+        response = multiple_entry(self._create_request(self.user))
+        self.assertEqual(response.status_code, 401)
 
         response = no_policy_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 200)
@@ -341,6 +357,11 @@ def update_entry(request):
 
 @RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
 def user_entry(request):
+    pass
+
+
+@RequireLogin(policies=[User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE])
+def multiple_entry(request):
     pass
 
 
