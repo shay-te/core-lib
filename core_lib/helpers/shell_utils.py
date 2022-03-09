@@ -1,6 +1,13 @@
 from core_lib.helpers.validation import is_int
 
 
+def check_default(value, default_value):
+    if not value and default_value is not None:
+        return default_value
+    else:
+        return value
+
+
 def input_yes_no(title, default_value: bool) -> bool:
     converted_default_value = 'yes' if default_value else 'no'
     user_input = input(f'{title} (yes/no) [default: {converted_default_value}]: ')
@@ -18,23 +25,19 @@ def input_yes_no(title, default_value: bool) -> bool:
 
 def input_str(title, default_value=None) -> str:
     user_input = input(f'{title} [default: {default_value}]: ')
-    if not user_input and default_value:
-        user_input = default_value
+    user_input = check_default(user_input, default_value)
     while not str(user_input):
         user_input = input(f'{title} [default: {default_value}]: ')
-        if not user_input and default_value:
-            user_input = default_value
+        user_input = check_default(user_input, default_value)
     return str(user_input)
 
 
 def input_int(title, default_value=None) -> int:
     user_input = input(f'{title} [default: {default_value}]: ')
-    if not user_input and default_value:
-        user_input = default_value
+    user_input = check_default(user_input, default_value)
     while not is_int(user_input):
         user_input = input(f'{title} [default: {default_value}]: ')
-        if not user_input and default_value:
-            user_input = default_value
+        user_input = check_default(user_input, default_value)
     return int(user_input)
 
 
