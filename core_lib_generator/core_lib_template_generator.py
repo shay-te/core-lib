@@ -174,7 +174,12 @@ def generate_db_entity_template() -> dict:
 
                 column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
 
-                columns[i] = {'name': column_name, 'type': column_type, 'default': column_default}
+                columns[column_name] = {
+                    'name': column_name,
+                    'type': DBDatatypes(column_type).name,
+                    'default': column_default
+                }
+
             is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
             if is_soft_delete:
                 is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
