@@ -55,7 +55,7 @@ def generate_db_template() -> dict:
             if in_memory:
                 db_log_queries = input_yes_no('Do you want to log queries?', False)
                 db_create = input_yes_no('Do you want create Database?', True)
-                db_pool_recycle = input_str('Enter the pool recycle time: ', 3200)
+                db_pool_recycle = input_int('Enter the pool recycle time: ', 3200)
                 db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
                 print('\nSQLite created in memory.')
                 add_db = input_yes_no('\nDo you want to add another DB connection?', False)
@@ -67,7 +67,7 @@ def generate_db_template() -> dict:
                         'pool_pre_ping': db_pool_pre_ping,
                     },
                     'url': {
-                        'protocol': db_type,
+                        'protocol': DBTypes(db_type).name.lower(),
                     },
                 }
                 continue
@@ -108,7 +108,7 @@ def generate_db_template() -> dict:
 
 def generate_solr_template() -> dict:
     solr_protocol = input_str('Enter solr protocol (http/https)', 'https')
-    solr_port = input_str('Enter solr port no.', 8983)
+    solr_port = input_int('Enter solr port no.', 8983)
     solr_host = input_str('Enter solr host', 'localhost')
     solr_file = input_str('Enter solr file name (solr/core_name)', 'solr/mycore')
     print('\nInput recorded.')
@@ -217,4 +217,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_template())
+    print(generate_solr_template())
