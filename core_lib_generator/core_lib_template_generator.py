@@ -39,62 +39,71 @@ class DataAccessTypes(enum.Enum):
 
 
 def generate_db_template() -> dict:
-    db_name = input_str('What is the name of the DB connection?')
+    db_template = {}
+    add_db = True
+    while add_db:
+        db_name = input_str('What is the name of the DB connection?')
+        while db_name in db_template:
+            db_name = input_str('What is the name of the DB connection?')
 
-    db_type = input_enum(
-        DBTypes, 'for DB type'
-    )
+        db_type = input_enum(
+            DBTypes, 'for DB type'
+        )
 
-    if db_type == DBTypes.SQLite.value:
-        in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
-        if in_memory:
-            db_log_queries = input_yes_no('Do you want to log queries?', False)
-            db_create = input_yes_no('Do you want create Database?', True)
-            db_pool_recycle = input_str('Enter the pool recycle time: ', 3200)
-            db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-            print('\nSQLite created in memory.')
-            return {
-                'log_queries': db_log_queries,
-                'create_db': db_create,
-                'session': {
-                    'pool_recycle': db_pool_recycle,
-                    'pool_pre_ping': db_pool_pre_ping,
-                },
-                'url': {
-                    'protocol': db_type,
-                },
-            }
-    default_db_ports = {
-        DBTypes.SQLite.name: None,
-        DBTypes.Postgresql.name: 5432,
-        DBTypes.MySQL.name: 3306,
-        DBTypes.Oracle.name: 1521,
-        DBTypes.MSSQL.name: 1433,
-        DBTypes.Firebird.name: 3050,
-        DBTypes.Sybase.name: 5000,
-    }
-    db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
-    db_host = input_str('Enter host of your DB', 'localhost')
-    db_username = input_str('Enter your DB username', 'user')
-    db_password = input_str('Enter your DB password', 'password')
-    print(f'\n{db_type} with {db_host}:{db_port} created')
-    return {
-        'env': {
-            f'{db_name.upper()}_USER': db_username,
-            f'{db_name.upper()}_PASSWORD': db_password,
-            f'{db_name.upper()}_PORT': db_port,
-            f'{db_name.upper()}_DB': db_name,
-            f'{db_name.upper()}_HOST': db_host,
-        },
-        'config': {
-            'protocol': DBTypes(db_type).name.lower(),
-            'username': db_username,
-            'password': db_password,
-            'host': db_host,
-            'port': db_port,
-            'file': db_name,
-        },
-    }
+        if db_type == DBTypes.SQLite.value:
+            in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
+            if in_memory:
+                db_log_queries = input_yes_no('Do you want to log queries?', False)
+                db_create = input_yes_no('Do you want create Database?', True)
+                db_pool_recycle = input_str('Enter the pool recycle time: ', 3200)
+                db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+                print('\nSQLite created in memory.')
+                add_db = input_yes_no('\nDo you want to add another DB connection?', False)
+                db_template[db_name.lower()] = {
+                    'log_queries': db_log_queries,
+                    'create_db': db_create,
+                    'session': {
+                        'pool_recycle': db_pool_recycle,
+                        'pool_pre_ping': db_pool_pre_ping,
+                    },
+                    'url': {
+                        'protocol': db_type,
+                    },
+                }
+                continue
+        default_db_ports = {
+            DBTypes.SQLite.name: None,
+            DBTypes.Postgresql.name: 5432,
+            DBTypes.MySQL.name: 3306,
+            DBTypes.Oracle.name: 1521,
+            DBTypes.MSSQL.name: 1433,
+            DBTypes.Firebird.name: 3050,
+            DBTypes.Sybase.name: 5000,
+        }
+        db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
+        db_host = input_str('Enter host of your DB', 'localhost')
+        db_username = input_str('Enter your DB username', 'user')
+        db_password = input_str('Enter your DB password', 'password')
+        print(f'\n{DBTypes(db_type).name} with {db_host}:{db_port} created')
+        add_db = input_yes_no('\nDo you want to add another DB connection?', False)
+        db_template[db_name.lower()] = {
+            'env': {
+                f'{db_name.upper()}_USER': db_username,
+                f'{db_name.upper()}_PASSWORD': db_password,
+                f'{db_name.upper()}_PORT': db_port,
+                f'{db_name.upper()}_DB': db_name,
+                f'{db_name.upper()}_HOST': db_host,
+            },
+            'config': {
+                'protocol': DBTypes(db_type).name.lower(),
+                'username': db_username,
+                'password': db_password,
+                'host': db_host,
+                'port': db_port,
+                'file': db_name,
+            },
+        }
+    return db_template
 
 
 def generate_solr_template() -> dict:
@@ -208,4 +217,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_entity_template())
+    print(generate_db_template())
