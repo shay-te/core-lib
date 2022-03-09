@@ -156,34 +156,37 @@ def generate_cache_template() -> dict:
 
 
 def generate_db_entity_template() -> dict:
-    column_count = input_int('How many columns will you have in your table? ', 0)
     entities = {}
-    for i in range(0, column_count):
-        column_name = input_str(f'{i + 1}. Enter the name of column: ')
+    add_entity = True
+    while add_entity:
+        is_soft_delete = False
+        is_soft_delete_token = False
+        entity_name = input_str('Enter the name of the entity you\'d like to create: ', 'User')
+        while entity_name in entities:
+            entity_name = input_str('Enter the name of the entity you\'d like to create: ', 'User')
+        column_count = input_int('How many columns will you have in your entity? ', 0)
+        columns = {}
+        if column_count != 0:
+            for i in range(0, column_count):
+                column_name = input_str(f'Enter the name of column #{i + 1}: ')
 
-        column_type = input_enum(DBDatatypes, f'{i + 1}. for datatype: ')
+                column_type = input_enum(DBDatatypes, f'for datatype #{i + 1}')
 
-        column_default = input_str(f'{i + 1}. Enter the default value of column: ', ' ')
+                column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
 
-        entities[i] = {'name': column_name, 'type': column_type, 'default': column_default}
-
-    if column_count != 0:
-        is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
-        if is_soft_delete:
-            is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
-        else:
-            is_soft_delete_token = False
-        return {
-            'entities': entities,
+                columns[i] = {'name': column_name, 'type': column_type, 'default': column_default}
+            is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
+            if is_soft_delete:
+                is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
+        add_entity = input_yes_no('\nDo you want to add another entity?', False)
+        entities[entity_name] = {
+            'name': entity_name,
+            'columns': columns,
             'is_soft_delete': is_soft_delete,
             'is_soft_delete_token': is_soft_delete_token,
         }
 
-    return {
-        'entities': None,
-        'is_soft_delete': False,
-        'is_soft_delete_token': False,
-    }
+    return entities
 
 
 def generate_data_access_template(entities: list) -> dict:
@@ -223,4 +226,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_cache_template())
+    print(generate_db_entity_template())
