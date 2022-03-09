@@ -159,7 +159,10 @@ def generate_db_entity_template() -> dict:
         entities[i] = {'name': column_name, 'type': column_type, 'default': column_default}
 
     is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
-    is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
+    if is_soft_delete:
+        is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
+    else:
+        is_soft_delete_token = False
 
     return {
         'entities': entities,
