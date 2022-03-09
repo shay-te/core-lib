@@ -167,16 +167,22 @@ def generate_db_entity_template() -> dict:
 
         entities[i] = {'name': column_name, 'type': column_type, 'default': column_default}
 
-    is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
-    if is_soft_delete:
-        is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
-    else:
-        is_soft_delete_token = False
+    if column_count != 0:
+        is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
+        if is_soft_delete:
+            is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
+        else:
+            is_soft_delete_token = False
+        return {
+            'entities': entities,
+            'is_soft_delete': is_soft_delete,
+            'is_soft_delete_token': is_soft_delete_token,
+        }
 
     return {
-        'entities': entities,
-        'is_soft_delete': is_soft_delete,
-        'is_soft_delete_token': is_soft_delete_token,
+        'entities': None,
+        'is_soft_delete': False,
+        'is_soft_delete_token': False,
     }
 
 
@@ -217,4 +223,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_solr_template())
+    print(generate_cache_template())
