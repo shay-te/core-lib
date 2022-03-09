@@ -31,6 +31,7 @@ class CacheTypes(enum.Enum):
 
 
 class DataAccessTypes(enum.Enum):
+    __order__ = 'CRUD SoftDelete SoftDeleteToken CRUDSoftDelete CRUDSoftDeleteToken'
     CRUD = 1
     SoftDelete = 2
     SoftDeleteToken = 3
@@ -96,11 +97,11 @@ def generate_db_template() -> dict:
             },
             'config': {
                 'protocol': DBTypes(db_type).name.lower(),
-                'username': db_username,
-                'password': db_password,
-                'host': db_host,
-                'port': db_port,
-                'file': db_name,
+                'username': f'${{oc.env:{db_name.upper()}_USER}}',
+                'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
+                'host': f'${{oc.env:{db_name.upper()}_HOST}}',
+                'port': f'${{oc.env:{db_name.upper()}_PORT}}',
+                'file': f'${{oc.env:{db_name.upper()}_DB}}',
             },
         }
     return db_template
@@ -119,8 +120,8 @@ def generate_solr_template() -> dict:
         },
         'config': {
             'protocol': solr_protocol,
-            'host': solr_host,
-            'port': solr_port,
+            'host': f'${{oc.env:SOLR_HOST}}',
+            'port': f'${{oc.env:SOLR_PORT}}',
             'file': solr_file,
         },
     }
@@ -140,8 +141,8 @@ def generate_cache_template() -> dict:
             },
             'config': {
                 'type': CacheTypes(cache_type).name.lower(),
-                'host': memcache_host,
-                'port': memcache_port,
+                'host': f'${{oc.env:MEMCACHED_HOST}}',
+                'port': f'${{oc.env:MEMCACHED_PORT}}',
             },
         }
     elif cache_type == 2:
@@ -231,4 +232,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_entity_template())
+    print(generate_solr_template())
