@@ -14,7 +14,7 @@ db = generate_db_template()
 solr = generate_solr_template()
 cache = generate_cache_template()
 db_entity = generate_db_entity_template()
-# data_access = generate_data_access_template()
+data_access = generate_data_access_template()
 job = generate_job_template()
 db_config = generate_db_config()
 
@@ -29,6 +29,5 @@ conf = OmegaConf.create(
     }
 )
 print(OmegaConf.to_yaml(conf))
-file = open('core_lib_config.yaml', 'w+')
-OmegaConf.save(config=conf, f=file.name)
-file.close()
+with open('core_lib_config.yaml', 'w+') as file:
+    OmegaConf.save(config=conf, f=file.name)
