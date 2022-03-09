@@ -1,60 +1,93 @@
-def get_data():
-    x = input('Enter your age : ')
-    x = int(x)
-    print(f'Hello, {x}')
+import enum
+
+from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_list
+
+
+class DBTypes(enum.Enum):
+    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase'
+    SQLite = 1
+    Postgresql = 2
+    MySQL = 3
+    Oracle = 4
+    MSSQL = 5
+    Firebird = 6
+    Sybase = 7
+
+
+class DBDatatypes(enum.Enum):
+    __order__ = 'INTEGER VARCHAR DATETIME DATE BOOLEAN'
+    INTEGER = 1
+    VARCHAR = 2
+    DATETIME = 3
+    DATE = 4
+    BOOLEAN = 5
+
+
+class CacheTypes(enum.Enum):
+    __order__ = 'Memcached Memory Empty'
+    Memcached = 1
+    Memory = 2
+    Empty = 3
+
+
+class DataAccessTypes(enum.Enum):
+    CRUD = 1
+    SoftDelete = 2
+    SoftDeleteToken = 3
+    CRUDSoftDelete = 4
+    CRUDSoftDeleteToken = 5
 
 
 def generate_db_template() -> dict:
-    db_name = input('What is the name of the DB connection? ')
-    db_name = str(db_name)
+    db_name = input_str('What is the name of the DB connection?')
 
-    db_list = ['SQLite', 'Postgresql', 'MySQL', 'Oracle', 'MS-SQL', 'Firebird', 'Sybase']
-    [print(db_list.index(i) + 1, i) for i in db_list]
+    db_type = input_enum(
+        DBTypes, 'for DB type'
+    )
 
-    db_type = input('From the following list, select the relevant number for DB type: ')
-    db_type = db_list[int(db_type) - 1]
-
-    if db_type == 'SQLite':
-        in_memory = input('Do you want the SQLite DB in memory?(Y/N): ')
-        if in_memory.upper() == 'Y':
-            db_log_queries = input('Do you want to log queries?(true/false): ')
-            db_log_queries = 'false' if not db_log_queries else db_log_queries
-            db_create = input('Do you want create Database?(true/false): ')
-            db_create = 'false' if not db_create else db_create
-            db_pool_recycle = input('Enter the pool recycle time: ')
-            db_pool_pre_ping = input('Do you want to set pool pre ping?(true/false): ')
-            db_pool_pre_ping = 'false' if not db_pool_pre_ping else db_pool_pre_ping
-            print('\nInput recorded.')
+    if db_type == DBTypes.SQLite.value:
+        in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
+        if in_memory:
+            db_log_queries = input_yes_no('Do you want to log queries?', False)
+            db_create = input_yes_no('Do you want create Database?', True)
+            db_pool_recycle = input_str('Enter the pool recycle time: ', 3200)
+            db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+            print('\nSQLite created in memory.')
             return {
-                'log_queries': db_log_queries.lower(),
-                'create_db': db_create.lower(),
+                'log_queries': db_log_queries,
+                'create_db': db_create,
                 'session': {
                     'pool_recycle': db_pool_recycle,
-                    'pool_pre_ping': db_pool_pre_ping.lower(),
+                    'pool_pre_ping': db_pool_pre_ping,
                 },
                 'url': {
-                    'protocol': db_type.lower(),
+                    'protocol': db_type,
                 },
             }
-    db_port = input('Enter the port no. of your DB: ')
-    db_port = int(db_port)
-    db_host = input('Enter host of your DB: ')
-    db_host = str(db_host)
-    db_username = input('Enter your DB username: ')
-    db_username = str(db_username)
-    db_password = input('Enter your DB password: ')
-    db_password = str(db_password)
-    print('\nInput recorded.')
+    default_db_ports = {
+        DBTypes.SQLite.name: None,
+        DBTypes.Postgresql.name: 5432,
+        DBTypes.MySQL.name: 3306,
+        DBTypes.Oracle.name: 1521,
+        DBTypes.MSSQL.name: 1433,
+        DBTypes.Firebird.name: 3050,
+        DBTypes.Sybase.name: 5000,
+    }
+    db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
+    db_host = input_str('Enter host of your DB', 'localhost')
+    db_username = input_str('Enter your DB username', 'user')
+    db_password = input_str('Enter your DB password', 'password')
+    print(f'\n{db_type} with {db_host}:{db_port} created')
     return {
         'env': {
-            db_name.upper() + '_USER': db_username,
-            db_name.upper() + '_PASSWORD': db_password,
-            db_name.upper() + '_PORT': db_port,
-            db_name.upper() + '_DB': db_name,
-            db_name.upper() + '_HOST': db_host,
+            f'{db_name.upper()}_USER': db_username,
+            f'{db_name.upper()}_PASSWORD': db_password,
+            f'{db_name.upper()}_PORT': db_port,
+            f'{db_name.upper()}_DB': db_name,
+            f'{db_name.upper()}_HOST': db_host,
         },
         'config': {
-            'protocol': db_type.lower(),
+            'protocol': DBTypes(db_type).name.lower(),
             'username': db_username,
             'password': db_password,
             'host': db_host,
@@ -65,14 +98,10 @@ def generate_db_template() -> dict:
 
 
 def generate_solr_template() -> dict:
-    solr_protocol = input('Enter solr protocol (http/https): ')
-    solr_protocol = str(solr_protocol)
-    solr_port = input('Enter solr port no.: ')
-    solr_port = str(solr_port)
-    solr_host = input('Enter solr host: ')
-    solr_host = str(solr_host)
-    solr_file = input('Enter solr file name (solr/core_name): ')
-    solr_file = str(solr_file)
+    solr_protocol = input_str('Enter solr protocol (http/https)', 'https')
+    solr_port = input_str('Enter solr port no.', 8983)
+    solr_host = input_str('Enter solr host', 'localhost')
+    solr_file = input_str('Enter solr file name (solr/core_name)', 'solr/mycore')
     print('\nInput recorded.')
     return {
         'env': {
@@ -89,61 +118,48 @@ def generate_solr_template() -> dict:
 
 
 def generate_cache_template() -> dict:
-    cache_list = ['Memcached', 'Memory', 'Empty']
-    [print(cache_list.index(i) + 1, i) for i in cache_list]
+    cache_type = input_enum(CacheTypes, 'for cache type')
 
-    cache_type = input('From the following list, select the relevant number for cache type: ')
-    cache_type = cache_list[int(cache_type) - 1]
-
-    if cache_type == 'Memcached':
-        memcache_port = input('Enter your memcached server port no.: ')
-        memcache_port = str(memcache_port)
-        memcache_host = input('Enter your memcached server host: ')
-        memcache_host = str(memcache_host)
-        print('\nInput recorded.')
+    if cache_type == 1:
+        memcache_port = input_int('Enter your memcached server port no.', 11211)
+        memcache_host = input_str('Enter your memcached server host', 'localhost')
+        print(f'\nCache type {CacheTypes(cache_type).name} on {memcache_host}:{memcache_port}')
         return {
             'env': {
                 'MEMCACHED_HOST': memcache_host,
                 'MEMCACHED_PORT': memcache_port,
             },
             'config': {
-                'type': cache_type.lower(),
+                'type': CacheTypes(cache_type).name.lower(),
                 'host': memcache_host,
                 'port': memcache_port,
             },
         }
-    elif cache_type == 'Memory':
-        print('\nInput recorded.')
+    elif cache_type == 2:
+        print(f'\nCache type {CacheTypes(cache_type).name}')
         return {
             'config': {
-                'type': cache_type.lower(),
+                'type': CacheTypes(cache_type).name.lower(),
             }
         }
     else:
-        print('\nInput recorded.\nNo cache handler set.')
+        print('\nNo cache set.')
 
 
 def generate_db_entity_template() -> dict:
-    column_count = input('How many columns will you have in your table? ')
-    column_count = int(column_count)
+    column_count = input_int('How many columns will you have in your table? ', 0)
     entities = {}
-    column_list = ['INTEGER', 'VARCHAR', 'DATETIME', 'DATE', 'BOOLEAN']
     for i in range(0, column_count):
-        column_name = input(f'{i + 1}. Enter the name of column: ')
-        column_name = str(column_name)
+        column_name = input_str(f'{i + 1}. Enter the name of column: ')
 
-        [print(column_list.index(i) + 1, i) for i in column_list]
-        column_type = input(f'{i + 1}. From the following list, select the relevant number for datatype: ')
-        column_type = column_list[int(column_type) - 1]
+        column_type = input_enum(DBDatatypes, f'{i + 1}. for datatype: ')
 
-        column_default = input(f'{i + 1}. Enter the default value of column: ')
-        column_default = str(column_default)
+        column_default = input_str(f'{i + 1}. Enter the default value of column: ', ' ')
+
         entities[i] = {'name': column_name, 'type': column_type, 'default': column_default}
 
-    is_soft_delete = input('Do you want to implement Soft Delete?(true/false): ')
-    is_soft_delete = 'false' if not is_soft_delete else is_soft_delete
-    is_soft_delete_token = input('Do you want to implement Soft Delete Token?(true/false): ')
-    is_soft_delete_token = 'false' if not is_soft_delete_token else is_soft_delete_token
+    is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
+    is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
 
     return {
         'entities': entities,
@@ -153,47 +169,26 @@ def generate_db_entity_template() -> dict:
 
 
 def generate_data_access_template(entities: list) -> dict:
-    data_access_name = input('Please enter the name of the data access you\'d want to create: ')
-    data_access_name = str(data_access_name)
+    data_access_name = input_str('Please enter the name of the data access you\'d want to create: ', 'UserDataAccess')
 
-    data_access_list = ['CRUD', 'Soft Delete', 'Soft Delete Token']
-    [print(data_access_list.index(i) + 1, i) for i in data_access_list]
+    data_access_type = input_enum(DataAccessTypes, 'for data access type')
 
-    data_access_type_list = []
-    data_access_type = input(
-        'From the following list, select the relevant number for data access type (seperate number with space for multiple selection or type A to select all): ')
-    if data_access_type == 'A':
-        data_access_type_list = data_access_list
-    else:
-        entity_index = list(map(int, data_access_type.split()))
-        for i in entity_index:
-            data_access_type_list.append(data_access_list[int(i) - 1])
-
-    data_access_crud_entities_list = []
-    if any('CRUD' in type for type in data_access_type_list):
-        [print(entities.index(i) + 1, i) for i in entities]
-        data_access_crud_entities = input(
-            'From the following list, select the relevant number of entity to apply crud on (seperate number with space for multiple selection or type A to select all): '
-        )
-        if data_access_crud_entities == 'A':
-            data_access_crud_entities_list = entities
-        else:
-            entity_index = list(map(int, data_access_crud_entities.split()))
-            for i in entity_index:
-                data_access_crud_entities_list.append(entities[int(i) - 1])
-    create_service = input('Do you want to create a service for the data access?(true/false): ')
-    create_service = 'false' if not create_service else create_service
+    data_access_crud_entity = None
+    if data_access_type in [DataAccessTypes.CRUD.value, DataAccessTypes.CRUDSoftDelete.value,
+                            DataAccessTypes.CRUDSoftDeleteToken.value]:
+        data_access_crud_entity = input_list(entities, 'of entity to apply crud on')
+    create_service = input_yes_no('Do you want to create a service for the data access?', False)
 
     return {
         'name': data_access_name,
-        'type': data_access_type_list,
-        'crud_entities': data_access_crud_entities_list,
+        'type': DataAccessTypes(data_access_type).name,
+        'crud_entity': data_access_crud_entity,
         'create_service': create_service
     }
 
 
 def generate_job_template() -> dict:
-    job_class_name = input('Please enter the class name of the Job you\'d want to create: ')
+    job_class_name = input_str('Please enter the class name of the Job you\'d want to create: ')
     job_class_name = ''.join(x for x in job_class_name.title() if not x.isspace())
 
     return {
@@ -202,8 +197,7 @@ def generate_job_template() -> dict:
 
 
 def generate_db_config() -> dict:
-    migrate = input('Do you want to use migrations?(true/false): ')
-    migrate = 'false' if not migrate else migrate
+    migrate = input_yes_no('Do you want to use migrations?', False)
 
     return {
         'migrate': migrate
@@ -211,4 +205,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_config())
+    print(generate_db_entity_template())
