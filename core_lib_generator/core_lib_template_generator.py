@@ -56,15 +56,19 @@ def _generate_memorydb_config(db_log_queries: bool,
                               db_pool_pre_ping: bool,
                               db_type: int) -> dict:
     return {
-        'log_queries': db_log_queries,
-        'create_db': db_create,
-        'session': {
-            'pool_recycle': db_pool_recycle,
-            'pool_pre_ping': db_pool_pre_ping,
+        'env': {
         },
-        'url': {
-            'protocol': DBTypes(db_type).name.lower(),
-        },
+        'config': {
+            'log_queries': db_log_queries,
+            'create_db': db_create,
+            'session': {
+                'pool_recycle': db_pool_recycle,
+                'pool_pre_ping': db_pool_pre_ping,
+            },
+            'url': {
+                'protocol': DBTypes(db_type).name.lower(),
+            },
+        }
     }
 
 
