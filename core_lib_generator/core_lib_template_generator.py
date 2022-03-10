@@ -45,11 +45,9 @@ def generate_db_template() -> dict:
     while add_db:
         db_name = input_str('What is the name of the DB connection?')
         while db_name in db_template:
-            db_name = input_str('What is the name of the DB connection?')
+            db_name = input_str(f'DB connection with name `{db_name}` already created, please enter a different name.')
 
-        db_type = input_enum(
-            DBTypes, 'for DB type'
-        )
+        db_type = input_enum(DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value)
 
         if db_type == DBTypes.SQLite.value:
             in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
@@ -60,7 +58,7 @@ def generate_db_template() -> dict:
                 db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
                 print('\nSQLite created in memory.')
                 add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-                db_template[db_name.lower()] = {
+                db_template[db_name] = {
                     'log_queries': db_log_queries,
                     'create_db': db_create,
                     'session': {
@@ -84,10 +82,10 @@ def generate_db_template() -> dict:
         db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
         db_host = input_str('Enter host of your DB', 'localhost')
         db_username = input_str('Enter your DB username', 'user')
-        db_password = input_str('Enter your DB password', 'password')
+        db_password = input_str('Enter your DB password',)
         print(f'\n{DBTypes(db_type).name} with {db_host}:{db_port} created')
         add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-        db_template[db_name.lower()] = {
+        db_template[db_name] = {
             'env': {
                 f'{db_name.upper()}_USER': db_username,
                 f'{db_name.upper()}_PASSWORD': db_password,
@@ -128,9 +126,9 @@ def generate_solr_template() -> dict:
 
 
 def generate_cache_template() -> dict:
-    cache_type = input_enum(CacheTypes, 'for cache type')
+    cache_type = input_enum(CacheTypes, 'From the following list, select the relevant number for cache type', CacheTypes.Memory.value)
 
-    if cache_type == 1:
+    if cache_type == CacheTypes.Memcached.value:
         memcache_port = input_int('Enter your memcached server port no.', 11211)
         memcache_host = input_str('Enter your memcached server host', 'localhost')
         print(f'\nCache type {CacheTypes(cache_type).name} on {memcache_host}:{memcache_port}')
@@ -145,7 +143,7 @@ def generate_cache_template() -> dict:
                 'port': f'${{oc.env:MEMCACHED_PORT}}',
             },
         }
-    elif cache_type == 2:
+    elif cache_type == CacheTypes.Memory.value:
         print(f'\nCache type {CacheTypes(cache_type).name}')
         return {
             'config': {
@@ -162,16 +160,16 @@ def generate_db_entity_template() -> dict:
     while add_entity:
         is_soft_delete = False
         is_soft_delete_token = False
-        entity_name = input_str('Enter the name of the entity you\'d like to create: ', 'User')
+        entity_name = input_str('Enter the name of the entity you\'d like to create', 'User')
         while entity_name in entities:
-            entity_name = input_str('Enter the name of the entity you\'d like to create: ', 'User')
+            entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         column_count = input_int('How many columns will you have in your entity? ', 0)
         columns = {}
         if column_count != 0:
             for i in range(0, column_count):
                 column_name = input_str(f'Enter the name of column #{i + 1}: ')
 
-                column_type = input_enum(DBDatatypes, f'for datatype #{i + 1}')
+                column_type = input_enum(DBDatatypes, f'From the following list, select the relevant number for datatype #{i + 1}', DBDatatypes.VARCHAR.value)
 
                 column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
 
@@ -198,12 +196,12 @@ def generate_db_entity_template() -> dict:
 def generate_data_access_template(entities: list) -> dict:
     data_access_name = input_str('Please enter the name of the data access you\'d want to create: ', 'UserDataAccess')
 
-    data_access_type = input_enum(DataAccessTypes, 'for data access type')
+    data_access_type = input_enum(DataAccessTypes, 'From the following list, select the relevant number for data access type', DataAccessTypes.CRUD.value)
 
     data_access_crud_entity = None
     if data_access_type in [DataAccessTypes.CRUD.value, DataAccessTypes.CRUDSoftDelete.value,
                             DataAccessTypes.CRUDSoftDeleteToken.value]:
-        data_access_crud_entity = input_list(entities, 'of entity to apply crud on')
+        data_access_crud_entity = input_list(entities, 'of entity to apply crud on', 1)
     create_service = input_yes_no('Do you want to create a service for the data access?', False)
 
     return {
@@ -232,4 +230,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_solr_template())
+    print(generate_db_entity_template())
