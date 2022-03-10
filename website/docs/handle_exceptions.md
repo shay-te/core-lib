@@ -1,15 +1,15 @@
 ---
-id: handle_exceptions
-title: handle_exceptions Decorator
-sidebar_label: handle_exceptions Decorator
+id: handle_exception
+title: HandleException Decorator
+sidebar_label: handle_exception Decorator
 ---
 
-## HandleExceptions Decorator
-`Core-Lib`'s `web_helpers` provides `HandleExceptions` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
-with error message in case of any exception. 
+## HandleException Decorator
+`Core-Lib`'s `web_helpers` provides `HandleException` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
+with error message and appropriate status code.
 
 ```python
-def HandleExceptions(func):
+def HandleException(func):
 ```
 >Can be configured with `Flask` and `Django` with the help of `Core-Lib`'s `WebHelpersUtils`.
 
@@ -23,11 +23,11 @@ Can handle exceptions for:
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.decorators import HandleExceptions
+from core_lib.web_helpers.decorators import HandleException
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_json
 
-@HandleExceptions
+@HandleException
 def get_user(request):
     # if this query fails decorator will log the entire Exception message and return HTTP Response with status code 500
     return response_json(example_core_lib.user.get(request.user.user_id))
@@ -35,12 +35,12 @@ def get_user(request):
 get_user()# get the HTTP response as per the execution of query.
 
 user_status = 'inactive'
-@HandleExceptions
+@HandleException
 def check_active(user_id):
     # decorator will log the AssertionError message and return HTTP Response with status code 500
     assert user_status == 'active'
 
-@HandleExceptions
+@HandleException
 def validate_user(user_id):
     ...
     if not user_validate:
@@ -48,13 +48,13 @@ def validate_user(user_id):
         raise StatusCodeException(HTTPStatus.UNAUTHORIZED)
 ```
 
-## handle_exceptions Function
+## handle_exception Function
 
-`handle_exceptions` function is also being used by the `HandleExceptions` decorator, this function is responsible for
+`handle_exception` function is also being used by the `HandleException` decorator, this function is responsible for
 returning HTTP response for the raised exception.
 
 ```python
-def handle_exceptions(func, *args, **kwargs):
+def handle_exception(func, *args, **kwargs):
 ```
 
 `func`: the function on which we need to handle exceptions.
@@ -65,7 +65,7 @@ def handle_exceptions(func, *args, **kwargs):
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.decorators import handle_exceptions
+from core_lib.web_helpers.decorators import handle_exception
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_json
 
@@ -73,19 +73,19 @@ def get_user(request):
     # if this query fails function will log the entire Exception message and return HTTP Response with status code 500
     return response_json(example_core_lib.user.get(request.user.user_id))
 
-handle_exceptions(get_user())# get the HTTP response as per the execution of query.
+handle_exception(get_user())# get the HTTP response as per the execution of query.
 
 user_status = 'inactive'
 def check_active(user_id):
     assert user_status == 'active'
 
-handle_exceptions(check_active(1)) # function will log the AssertionError message and return HTTP Response with status code 500
+handle_exception(check_active(1)) # function will log the AssertionError message and return HTTP Response with status code 500
 
 def validate_user(user_id):
     ...
     if not user_validate:
         raise StatusCodeException(HTTPStatus.UNAUTHORIZED)
 
-handle_exceptions(validate_user(1))# function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
+handle_exception(validate_user(1))# function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
 ```
 

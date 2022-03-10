@@ -21,7 +21,7 @@ from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValid
 from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
-from core_lib.web_helpers.django.decorators import RequireLogin
+from core_lib.web_helpers.django.require_login import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_utils import connect_to_mem_db
@@ -40,7 +40,9 @@ class User(Base):
 
     class Status(enum.Enum):
         ACTIVE = 1
-        NOT_ACTIVE = 0
+        NOT_ACTIVE = 2
+        DELETED = 3
+        BAN = 4
 
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(VARCHAR(length=255), nullable=False, default="")
@@ -72,19 +74,21 @@ def get_user(u_id):
 
 # USER SECURITY SETUP
 class SessionUser(object):
-    def __init__(self, id: int, email: str):
+    def __init__(self, id: int, email: str, role: int, status: int):
         self.id = id
         self.email = email
+        self.role = role
+        self.status = status
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email}
+        return {'id': self.id, 'email': self.email, 'role': self.role, 'status': self.status}
 
 
-def has_access(user, check_policies):
-    user_role = user['role']
+def has_access(user_session, check_policies):
+    user_role = user_session.role
     role = []
-    status = 1
-    user_status = user['status']
+    status = User.Status.ACTIVE.value
+    user_status = user_session.status
     for policy in check_policies:
         if type(policy) == User.Status:
             status = policy.value
@@ -103,19 +107,15 @@ class CustomerSecurity(UserSecurity):
         UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
 
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
-        data_dict = get_user(session_obj.id)
-        if data_dict['email'] == session_obj.email:
-            if not policies:
-                return response_status(HTTPStatus.OK)
-            elif has_access(data_dict, policies):
-                return response_status(HTTPStatus.OK)
-            else:
-                return response_status(HTTPStatus.UNAUTHORIZED)
+        if not policies:
+            return response_status(HTTPStatus.OK)
+        elif has_access(session_obj, policies):
+            return response_status(HTTPStatus.OK)
         else:
-            return response_status(HTTPStatus.FORBIDDEN)
+            return response_status(HTTPStatus.UNAUTHORIZED)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'])
+        return SessionUser(session_data['id'], session_data['email'], session_data['role'], session_data['status'])
 
     def generate_session_data(self, user) -> dict:
         return {
@@ -175,28 +175,28 @@ class TestUserSecurity(unittest.TestCase):
         return request_object
 
     def test_has_access(self):
-        self.assertTrue(has_access(self.admin, [User.PolicyRoles.ADMIN, User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.delete, [User.PolicyRoles.DELETE]))
-        self.assertTrue(has_access(self.create, [User.PolicyRoles.CREATE]))
-        self.assertTrue(has_access(self.update, [User.PolicyRoles.UPDATE]))
-        self.assertTrue(has_access(self.user, [User.PolicyRoles.USER]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.DELETE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.CREATE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.UPDATE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.USER]))
 
-        self.assertFalse(has_access(self.user, [User.PolicyRoles.ADMIN]))
-        self.assertFalse(has_access(self.update, [User.PolicyRoles.DELETE]))
-        self.assertFalse(has_access(self.user, [User.PolicyRoles.CREATE]))
-        self.assertFalse(has_access(self.admin, [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.ADMIN]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.DELETE]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.CREATE]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE]))
 
-        self.assertTrue(has_access(self.delete, [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.update, [User.PolicyRoles.USER, User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.admin, [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.create, [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.delete, [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.USER, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
 
-        self.assertTrue(has_access(self.admin, [User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.delete, [User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.create, [User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.update, [User.Status.ACTIVE]))
-        self.assertTrue(has_access(self.user, [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user), [User.Status.ACTIVE]))
 
     def test_secure_entry(self):
         # Admin
@@ -320,7 +320,7 @@ class TestUserSecurity(unittest.TestCase):
                 resp_json = no_policy_entry(request)
                 self.assertEqual(resp_json.status_code, 401)
             self.assertIn('ExpiredSignatureError', str(cm.output))
-            self.assertIn('handle_exceptions got error for function', str(cm.output))
+            self.assertIn('handle_exception got error for function', str(cm.output))
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()

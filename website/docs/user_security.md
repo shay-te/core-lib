@@ -4,7 +4,7 @@ title: User Security
 sidebar_label: User Security
 ---
 
-`Core-Lib` has classes that provide user security implementations that the user may tailor to their needs for authorization or authentication purposes.
+`Core-Lib` has classes that provide user security implementations that users can tailor to their needs for authorization or authentication purposes.
 These classes function together, and the user must implement them in order for `User Security` to work as expected.
 
 Classes that handle `User Security`
@@ -19,13 +19,14 @@ class UserSecurity(ABC):
 
 `token_handler` : expects a `TokenHandler` class that implements the `encode` and `decode` functions.
 
->`UserSecurity` token handler uses the `JWTTokenHandler` in `Core-Lib` which handles the `jwt` tokens.
+>`UserSecurity` token handler uses the `JWTTokenHandler` in `Core-Lib` which handles the [jwt](https://jwt.io) tokens. 
 
 
 
 ###Function provides by UserSecurity
 
-- `secure_entry` is an abstract method that the user must implement, it can be customized to perform actions according to the `policies` supplied to the function.
+- `secure_entry` is an abstract method that the user must implement, it can be customized to perform actions according 
+to the `policies` supplied to the `RequireLogin` decorator.
 
 ```python
 def secure_entry(self, request, session_obj, policies: list):
@@ -103,17 +104,18 @@ class RequireLogin(object):
 
 
 ## UserAuthMiddleware
-This middleware can be configured in `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
-the specified cookie is present in the request, turn it to a `Session Object`, and append it to `request.user` variable.
+This middleware can be configured in the `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
+the specified cookie is present in the request, turn it to a `Session Object`, and append it to the `request.user` variable.
 
 ```python
 class UserAuthMiddleware(MiddlewareMixin):
 ```
 
 ##Example
+
 ```python
 import enum
-from datetime import timedelta, datetime
+from datetime import timedelta
 from http import HTTPStatus
 
 from django.conf import settings
@@ -127,8 +129,8 @@ from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValid
 from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
-from core_lib.web_helpers.decorators import handle_exceptions
-from core_lib.web_helpers.django.decorators import RequireLogin
+from core_lib.web_helpers.decorators import HandleException
+from core_lib.web_helpers.django.require_login import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 
 
@@ -173,26 +175,29 @@ def get_user(u_id):
 
 # USER SECURITY SETUP
 class SessionUser(object):
-    def __init__(self, id: int, email: str):
+    def __init__(self, id: int, email: str, role: int, status: int):
         self.id = id
         self.email = email
+        self.role = role
+        self.status = status
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email}
+        return {'id': self.id, 'email': self.email, 'role': self.role, 'status': self.status}
 
 
-def has_access(user, check_policies):
-    role = 5
-    user_role = user['role']
-
-    status = 1
-    user_status = user['status']
+def has_access(user_session, check_policies):
+    user_role = user_session.role
+    role = []
+    status = User.Status.ACTIVE.value
+    user_status = user_session.status
     for policy in check_policies:
-        if type(policy) == User.PolicyRoles:
-            role = policy.value
         if type(policy) == User.Status:
             status = policy.value
-    if user_role <= role and user_status == status:
+        if type(policy) == User.PolicyRoles:
+            role.append(policy.value)
+    if not role:
+        role.append(User.PolicyRoles.USER.value)
+    if user_role <= max(role) and user_status == status:
         return True
     else:
         return False
@@ -203,25 +208,22 @@ class CustomerSecurity(UserSecurity):
         UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
 
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
-        data_dict = get_user(session_obj.id)
-        if data_dict['email'] == session_obj.email:
-            if not policies:
-                return response_status(HTTPStatus.OK)
-            elif has_access(data_dict, policies):
-                return response_status(HTTPStatus.OK)
-            else:
-                return response_status(HTTPStatus.UNAUTHORIZED)
+        if not policies:
+            return response_status(HTTPStatus.OK)
+        elif has_access(session_obj, policies):
+            return response_status(HTTPStatus.OK)
         else:
-            return response_status(HTTPStatus.FORBIDDEN)
+            return response_status(HTTPStatus.UNAUTHORIZED)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'])
+        return SessionUser(session_data['id'], session_data['email'], session_data['role'], session_data['status'])
 
     def generate_session_data(self, user) -> dict:
         return {
             'id': user['id'],
             'email': user['email'],
         }
+
 
 # CRUD INIT
 user_data_access = UserDataAccess()
@@ -234,43 +236,46 @@ SecurityHandler.register(security_handler)
 
 # IMPLEMENTATION
 @RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
-@handle_exceptions
+@HandleException()
 def admin_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
-@handle_exceptions
+@HandleException()
 def delete_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
-@handle_exceptions
+@HandleException()
 def create_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
-@handle_exceptions
+@HandleException()
 def update_entry(request):
     pass
 
 
 @RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
-@handle_exceptions
+@HandleException()
 def user_entry(request):
     pass
 
 
 @RequireLogin(policies=[])
-@handle_exceptions
+@HandleException()
 def no_policy_entry(request):
     pass
+
+
 # Function call with HttpRequest.COOKIES set as {'user_cookie': token}
 # where token is the JWT encoded token which will be decoded by UserSecurity
 # and the decoded object with data will be authenticated and authorized in secure_entry()
 response = user_entry(request)
+
 
 # Similarly, this process will happen with other function and the respective HTTP status code
 # will be returned. This is how UserSecurity is implemented in Core-lib
@@ -285,10 +290,13 @@ def api_login(request):
     password = body.get('pass')
     is_authenticated = core_lib.auth.authnticate(email, password)
     if is_authenticagted:
-        user = ... get the user
+        user = ...
+        get
+        the
+        user
         user_session = SecurityHandler.get().generate_session_data(user)
         response = response_json({'csrf_token': django.middleware.csrf.get_token(request), 'session': user_session})
         response.set_cookie(key=settings.COOKIE_NAME, value=SecurityHandler.get().generate_session_data_token(user))
-        return response    
+        return response
 
 ```
