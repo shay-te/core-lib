@@ -5,7 +5,7 @@ sidebar_label: Logging
 ---
 
 # Logging
-`Core-Lib`'s `Logging` decorator automatically logs function call, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
+`Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
 
 ```python
 class Logging(object):
@@ -27,27 +27,28 @@ from core_lib.helpers.logging import Logging
 from core_lib.helpers.func_utils import Keyable
 
 class CustomerCreds(Keyable):
-    def __init__(self, c_name, password):
+    def __init__(self, c_name: str):
         self.c_name = c_name
-        self.password = password
 
     def key(self) -> str:
-        return f'CustomerCreds(u_name:{self.c_name}, password:{type(self.password).__name__})'
+        return f'CustomerCreds(u_name:{self.c_name})'
 
 class Customer:
-    @Logging(message="get_data_{id} logs", level=logging.DEBUG)
-    def get_data(self, id):
+    @Logging(message='get_data_{id} logs', level=logging.DEBUG)
+    def get_data(self, id: int):
         ...
         return data
     
-    @Logging(message="login_data_{customer_creds}", level=logging.ERROR)
-    def login_data(self, customer_creds):
+    @Logging(message='login_data_{customer_creds}', level=logging.ERROR)
+    def login_data(self, customer_creds: CustomerCreds):
         ...
         return data
     
+
+customer = Customer()
+customer_id = 5
+customer.get_data(customer_id) # logs ["DEBUG:Customer.get_data:get_data_5 logs"]
     
-    get_data(5) # logs ["DEBUG:Customer.get_data:get_data_5 logs"]
-    
-    # For not logging sensitive data
-    login_data(CustomerCreds('jon_doe', 'password@12345')) # logs ['ERROR:Customer.login_data:login_data_CustomerCreds(u_name:jon_doe, password:str)']
+# For not logging sensitive data
+customer.login_data(CustomerCreds('jon_doe')) # logs ['ERROR:Customer.login_data:login_data_CustomerCreds(u_name:jon_doe)']
 ```

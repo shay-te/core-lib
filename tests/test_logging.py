@@ -7,121 +7,117 @@ from core_lib.helpers.logging import Logging
 
 
 class User(Keyable):
-    def __init__(self, u_name, password):
+    def __init__(self, u_name: str):
         self.u_name = u_name
-        self.password = password
 
     def key(self) -> str:
-        return f'User(u_name:{self.u_name}, password:{type(self.password).__name__})'
+        return f'User(u_name:{self.u_name})'
 
 
 class GetHugeData(Keyable):
-    def __init__(self, source, data):
+    def __init__(self, source: str, data: dict):
         self.source = source
         self.data = data
 
     def key(self) -> str:
-        return f'GetHugeData(source:{self.source}, data:{type(self.data).__name__})'
+        return f'GetHugeData(source:{self.source}, data:{self.data[list(self.data)[0]]})'
 
 
 class TestLogging(unittest.TestCase):
-    def test_string_logger(self):
-        string = 'hello'
+    string = 'hello world'
+    dat = datetime.date(2022, 1, 1)
+    obj = {'date': dat, 'tuple': ("fruit", "apple"), 'list': ["fruit", "apple"]}
+    tpl = ('fruit', 'apple')
+    lst = ['fruit', 'apple']
 
+    def test_string_logger(self):
         with self.assertLogs('TestLogging.logging_message', level='ERROR') as cm:
-            self.logging_message(string)
+            self.logging_message(self.string)
         self.assertEqual(cm.output, ['ERROR:TestLogging.logging_message:log_for_test'])
 
         with self.assertLogs('TestLogging.logging_message_with_params', level='ERROR') as cm:
-            self.logging_message_with_params(string)
-        self.assertEqual(cm.output, ['ERROR:TestLogging.logging_message_with_params:test_parameter_hello'])
+            self.logging_message_with_params(self.string)
+        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{self.string}'])
 
         with self.assertLogs('TestLogging.logging_without_message', level='INFO') as cm:
-            self.logging_without_message(string)
+            self.logging_without_message(self.string)
         self.assertEqual(cm.output, ['INFO:TestLogging.logging_without_message:'])
 
     def test_object_logger(self):
-        dat = datetime.date(2022, 1, 1)
-        obj = {'date': dat, 'tuple': ("fruit", "apple"), 'list': ["fruit", "apple"]}
-
         with self.assertLogs('TestLogging.logging_message', level='ERROR') as cm:
-            self.logging_message(obj)
+            self.logging_message(self.obj)
         self.assertEqual(cm.output, ['ERROR:TestLogging.logging_message:log_for_test'])
 
         with self.assertLogs('TestLogging.logging_message_with_params', level='ERROR') as cm:
-            self.logging_message_with_params(obj)
+            self.logging_message_with_params(self.obj)
         self.assertEqual(
             cm.output,
-            [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{obj}'],
+            [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{self.obj}'],
         )
 
         with self.assertLogs('TestLogging.logging_without_message', level='INFO') as cm:
-            self.logging_without_message(obj)
+            self.logging_without_message(self.obj)
         self.assertEqual(
             cm.output,
             ['INFO:TestLogging.logging_without_message:'],
         )
 
     def test_tuple_logger(self):
-        tpl = ('fruit', 'apple')
-
         with self.assertLogs('TestLogging.logging_message', level='ERROR') as cm:
-            self.logging_message(tpl)
+            self.logging_message(self.tpl)
         self.assertEqual(cm.output, ['ERROR:TestLogging.logging_message:log_for_test'])
 
         with self.assertLogs('TestLogging.logging_message_with_params', level='ERROR') as cm:
-            self.logging_message_with_params(tpl)
-        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{tpl}'])
+            self.logging_message_with_params(self.tpl)
+        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{self.tpl}'])
 
         with self.assertLogs('TestLogging.logging_without_message', level='INFO') as cm:
-            self.logging_without_message(tpl)
+            self.logging_without_message(self.tpl)
         self.assertEqual(cm.output, ['INFO:TestLogging.logging_without_message:'])
 
     def test_list_logger(self):
-        lst = ['fruit', 'apple']
-
         with self.assertLogs('TestLogging.logging_message', level='ERROR') as cm:
-            self.logging_message(lst)
+            self.logging_message(self.lst)
         self.assertEqual(cm.output, ['ERROR:TestLogging.logging_message:log_for_test'])
 
         with self.assertLogs('TestLogging.logging_message_with_params', level='ERROR') as cm:
-            self.logging_message_with_params(lst)
-        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{lst}'])
+            self.logging_message_with_params(self.lst)
+        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_message_with_params:test_parameter_{self.lst}'])
 
         with self.assertLogs('TestLogging.logging_without_message', level='INFO') as cm:
-            self.logging_without_message(lst)
+            self.logging_without_message(self.lst)
         self.assertEqual(cm.output, ['INFO:TestLogging.logging_without_message:'])
 
     def test_multi_param_logger(self):
-        lst = ['fruit', 'apple']
-        tpl = ('fruit', 'apple')
 
         with self.assertLogs('TestLogging.logging_multi_params_message', level='ERROR') as cm:
-            self.logging_multi_params_message(param_1='hello world', param_2=lst, param_3=tpl)
+            self.logging_multi_params_message(param_1=self.string, param_2=self.lst, param_3=self.tpl)
         self.assertEqual(cm.output, ['ERROR:TestLogging.logging_multi_params_message:log_for_test'])
 
         with self.assertLogs('TestLogging.logging_multi_params_message_with_params', level='ERROR') as cm:
-            self.logging_multi_params_message_with_params(param_1='hello world', param_2=lst, param_3=tpl)
+            self.logging_multi_params_message_with_params(param_1=self.string, param_2=self.lst, param_3=self.tpl)
         self.assertEqual(
             cm.output,
-            [f'ERROR:TestLogging.logging_multi_params_message_with_params:test_parameter_hello world_{lst}_{tpl}'],
+            [f'ERROR:TestLogging.logging_multi_params_message_with_params:test_parameter_{self.string}_{self.lst}_{self.tpl}'],
         )
 
         with self.assertLogs('TestLogging.logging_multi_params_without_message', level='INFO') as cm:
-            self.logging_multi_params_without_message(param_1='hello world', param_2=lst, param_3=tpl)
+            self.logging_multi_params_without_message(param_1=self.string, param_2=self.lst, param_3=self.tpl)
         self.assertEqual(cm.output, ['INFO:TestLogging.logging_multi_params_without_message:'])
 
     def test_keyable_logging(self):
+        username = 'jon_doe'
+        source = 'old_user_base'
         with self.assertLogs('TestLogging.logging_keyable', level='INFO') as cm:
-            self.logging_keyable(User('jon_doe', 'password@12345'))
+            self.logging_keyable(User(username))
         self.assertEqual(
-            cm.output, ['ERROR:TestLogging.logging_keyable:test_keyable_User(u_name:jon_doe, password:str)']
+            cm.output, [f'ERROR:TestLogging.logging_keyable:test_keyable_User(u_name:{username})']
         )
 
         with self.assertLogs('TestLogging.logging_keyable', level='INFO') as cm:
-            self.logging_keyable(GetHugeData('old_user_base', {'data': 'huge dict of data'}))
+            self.logging_keyable(GetHugeData(source, {'data': 'huge dict of data', 'more_data': 'some more huge data'}))
         self.assertEqual(
-            cm.output, ['ERROR:TestLogging.logging_keyable:test_keyable_GetHugeData(source:old_user_base, data:dict)']
+            cm.output, [f'ERROR:TestLogging.logging_keyable:test_keyable_GetHugeData(source:{source}, data:huge dict of data)']
         )
 
     @Logging(message='log_for_test', level=logging.ERROR)
