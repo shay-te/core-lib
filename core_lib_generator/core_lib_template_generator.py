@@ -39,6 +39,56 @@ class DataAccessTypes(enum.Enum):
     CRUDSoftDeleteToken = 5
 
 
+default_db_ports = {
+    DBTypes.SQLite.name: None,
+    DBTypes.Postgresql.name: 5432,
+    DBTypes.MySQL.name: 3306,
+    DBTypes.Oracle.name: 1521,
+    DBTypes.MSSQL.name: 1433,
+    DBTypes.Firebird.name: 3050,
+    DBTypes.Sybase.name: 5000,
+}
+
+
+def _generate_memorydb_config(db_log_queries: bool,
+                              db_create: bool,
+                              db_pool_recycle: int,
+                              db_pool_pre_ping: bool,
+                              db_type: int) -> dict:
+    return {
+        'log_queries': db_log_queries,
+        'create_db': db_create,
+        'session': {
+            'pool_recycle': db_pool_recycle,
+            'pool_pre_ping': db_pool_pre_ping,
+        },
+        'url': {
+            'protocol': DBTypes(db_type).name.lower(),
+        },
+    }
+
+
+def _generate_db_config(db_name: str, db_username: str, db_password: str, db_port: int, db_host: str,
+                        db_type: int) -> dict:
+    return {
+        'env': {
+            f'{db_name.upper()}_USER': db_username,
+            f'{db_name.upper()}_PASSWORD': db_password,
+            f'{db_name.upper()}_PORT': db_port,
+            f'{db_name.upper()}_DB': db_name,
+            f'{db_name.upper()}_HOST': db_host,
+        },
+        'config': {
+            'protocol': DBTypes(db_type).name.lower(),
+            'username': f'${{oc.env:{db_name.upper()}_USER}}',
+            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
+            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
+            'port': f'${{oc.env:{db_name.upper()}_PORT}}',
+            'file': f'${{oc.env:{db_name.upper()}_DB}}',
+        },
+    }
+
+
 def generate_db_template() -> dict:
     db_template = {}
     add_db = True
@@ -47,7 +97,8 @@ def generate_db_template() -> dict:
         while db_name in db_template:
             db_name = input_str(f'DB connection with name `{db_name}` already created, please enter a different name.')
 
-        db_type = input_enum(DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value)
+        db_type = input_enum(DBTypes, 'From the following list, select the relevant number for DB type',
+                             DBTypes.Postgresql.value)
 
         if db_type == DBTypes.SQLite.value:
             in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
@@ -58,50 +109,19 @@ def generate_db_template() -> dict:
                 db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
                 print('\nSQLite created in memory.')
                 add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-                db_template[db_name] = {
-                    'log_queries': db_log_queries,
-                    'create_db': db_create,
-                    'session': {
-                        'pool_recycle': db_pool_recycle,
-                        'pool_pre_ping': db_pool_pre_ping,
-                    },
-                    'url': {
-                        'protocol': DBTypes(db_type).name.lower(),
-                    },
-                }
+                db_template[db_name] = _generate_memorydb_config(db_log_queries,
+                                                                 db_create,
+                                                                 db_pool_recycle,
+                                                                 db_pool_pre_ping,
+                                                                 db_type)
                 continue
-        default_db_ports = {
-            DBTypes.SQLite.name: None,
-            DBTypes.Postgresql.name: 5432,
-            DBTypes.MySQL.name: 3306,
-            DBTypes.Oracle.name: 1521,
-            DBTypes.MSSQL.name: 1433,
-            DBTypes.Firebird.name: 3050,
-            DBTypes.Sybase.name: 5000,
-        }
         db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
         db_host = input_str('Enter host of your DB', 'localhost')
         db_username = input_str('Enter your DB username', 'user')
-        db_password = input_str('Enter your DB password',)
+        db_password = input_str('Enter your DB password', )
         print(f'\n{DBTypes(db_type).name} with {db_host}:{db_port} created')
         add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-        db_template[db_name] = {
-            'env': {
-                f'{db_name.upper()}_USER': db_username,
-                f'{db_name.upper()}_PASSWORD': db_password,
-                f'{db_name.upper()}_PORT': db_port,
-                f'{db_name.upper()}_DB': db_name,
-                f'{db_name.upper()}_HOST': db_host,
-            },
-            'config': {
-                'protocol': DBTypes(db_type).name.lower(),
-                'username': f'${{oc.env:{db_name.upper()}_USER}}',
-                'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
-                'host': f'${{oc.env:{db_name.upper()}_HOST}}',
-                'port': f'${{oc.env:{db_name.upper()}_PORT}}',
-                'file': f'${{oc.env:{db_name.upper()}_DB}}',
-            },
-        }
+        db_template[db_name] = _generate_db_config(db_name, db_username, db_password, db_port, db_host, db_type)
     return db_template
 
 
@@ -126,7 +146,8 @@ def generate_solr_template() -> dict:
 
 
 def generate_cache_template() -> dict:
-    cache_type = input_enum(CacheTypes, 'From the following list, select the relevant number for cache type', CacheTypes.Memory.value)
+    cache_type = input_enum(CacheTypes, 'From the following list, select the relevant number for cache type',
+                            CacheTypes.Memory.value)
 
     if cache_type == CacheTypes.Memcached.value:
         memcache_port = input_int('Enter your memcached server port no.', 11211)
@@ -169,7 +190,9 @@ def generate_db_entity_template() -> dict:
             for i in range(0, column_count):
                 column_name = input_str(f'Enter the name of column #{i + 1}: ')
 
-                column_type = input_enum(DBDatatypes, f'From the following list, select the relevant number for datatype #{i + 1}', DBDatatypes.VARCHAR.value)
+                column_type = input_enum(DBDatatypes,
+                                         f'From the following list, select the relevant number for datatype #{i + 1}',
+                                         DBDatatypes.VARCHAR.value)
 
                 column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
 
@@ -196,7 +219,9 @@ def generate_db_entity_template() -> dict:
 def generate_data_access_template(entities: list) -> dict:
     data_access_name = input_str('Please enter the name of the data access you\'d want to create: ', 'UserDataAccess')
 
-    data_access_type = input_enum(DataAccessTypes, 'From the following list, select the relevant number for data access type', DataAccessTypes.CRUD.value)
+    data_access_type = input_enum(DataAccessTypes,
+                                  'From the following list, select the relevant number for data access type',
+                                  DataAccessTypes.CRUD.value)
 
     data_access_crud_entity = None
     if data_access_type in [DataAccessTypes.CRUD.value, DataAccessTypes.CRUDSoftDelete.value,
@@ -230,4 +255,4 @@ def generate_db_config() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_entity_template())
+    print(generate_db_template())
