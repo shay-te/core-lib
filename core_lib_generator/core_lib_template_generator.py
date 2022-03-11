@@ -269,15 +269,15 @@ def generate_db_entity_template() -> dict:
     return entities
 
 
-def generate_data_access_template(entities: dict) -> dict:
+def generate_data_access_template(db_entities: dict) -> dict:
     data_access = {}
-    entities.pop('migrate', None)
-    for entity in entities:
+    db_entities.pop('migrate', None)
+    for entity in db_entities:
         data_access_name = input_str(
             f'Please enter the name of the data access you\'d want to create for `{entity}`',
             f'{entity.lower()}_data_access'
         )
-        if entities[entity]['is_soft_delete'] and entities[entity]['is_soft_delete_token']:
+        if db_entities[entity]['is_soft_delete'] and db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete_token = input_yes_no(
                 'Do you want to implement CRUD Soft Delete Token on your data access?', True
             )
@@ -285,7 +285,7 @@ def generate_data_access_template(entities: dict) -> dict:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True, True)
             else:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name)
-        elif entities[entity]['is_soft_delete'] and not entities[entity]['is_soft_delete_token']:
+        elif db_entities[entity]['is_soft_delete'] and not db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete = input_yes_no('Do you want to implement CRUD Soft Delete on your data access?', True)
             if is_crud_soft_delete:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True)
