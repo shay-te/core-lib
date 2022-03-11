@@ -274,11 +274,12 @@ def generate_job_template() -> dict:
     package_name = input_str('Please enter the package to access the job', f'my.package.{class_name}')
 
     return {
-        'name': name,
-        'class_name': class_name,
-        'initial_delay': initial_delay,
-        'frequency': frequency,
-        'package_name': package_name,
+        name: {
+            'class_name': class_name,
+            'initial_delay': initial_delay,
+            'frequency': frequency,
+            'package_name': package_name,
+        }
     }
 
 
