@@ -286,11 +286,6 @@ def _validate_new_core_lib(core_lib_name):
     return safe_file_name
 
 
-hydra.core.global_hydra.GlobalHydra.instance().clear()
-hydra.initialize()
-config = hydra.compose('TestCoreLib.yaml')
-
-
 class CoreLibGenerate(object):
     def new(self, core_lib_name):
         _create_core_lib(_validate_new_core_lib(core_lib_name))
@@ -309,12 +304,3 @@ class CoreLibGenerate(object):
             {},
         )
 
-def create_python_file(path, file_name):
-    pass
-
-def get_db_entities():
-    entities = list(config.db_entity.keys())
-
-
-
-get_db_entities()
