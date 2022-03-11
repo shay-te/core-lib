@@ -83,6 +83,6 @@ conf = OmegaConf.create(
         }
     }
 )
-print(OmegaConf.to_yaml(conf))
+
 with open(f'{core_lib_name}.yaml', 'w+') as file:
     OmegaConf.save(config=conf, f=file.name)
