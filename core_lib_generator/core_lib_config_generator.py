@@ -64,7 +64,7 @@ if want_db:
         db_entity = generate_db_entity_template()
         data_layers.setdefault('data', {})
         for entity_name in db_entity:
-            data_layers['data'] = db_entity
+            data_layers['data'][entity_name] = db_entity[entity_name]
 
         want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)
         if want_data_access:
