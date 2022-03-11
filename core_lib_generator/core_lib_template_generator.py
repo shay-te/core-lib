@@ -20,9 +20,7 @@ class DBDatatypes(enum.Enum):
     __order__ = 'INTEGER VARCHAR DATETIME DATE BOOLEAN'
     INTEGER = 1
     VARCHAR = 2
-    DATETIME = 3
-    DATE = 4
-    BOOLEAN = 5
+    BOOLEAN = 3
 
 
 class CacheTypes(enum.Enum):
@@ -40,7 +38,6 @@ class DataAccessTypes(enum.Enum):
 
 
 default_db_ports = {
-    DBTypes.SQLite.name: None,
     DBTypes.Postgresql.name: 5432,
     DBTypes.MySQL.name: 3306,
     DBTypes.Oracle.name: 1521,
@@ -137,14 +134,11 @@ def generate_db_template() -> dict:
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value
         )
 
-        if db_type == DBTypes.SQLite.value:
-            in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
-
         db_log_queries = input_yes_no('Do you want to log queries?', False)
         db_create = input_yes_no('Do you want create Database?', True)
         db_pool_recycle = input_int('Enter the pool recycle time', 3200)
         db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-        if in_memory:
+        if db_type == DBTypes.SQLite.value:
             print('\nSQLite created in memory.')
             add_db = input_yes_no('\nDo you want to add another DB connection?', False)
             db_template[f'{db_name.lower()}_db'] = _generate_db_config(
@@ -318,7 +312,6 @@ def generate_job_template() -> dict:
 
     return {
         name: {
-            'class_name': class_name,
             'initial_delay': initial_delay,
             'frequency': frequency,
             'handler': {
