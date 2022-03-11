@@ -98,7 +98,9 @@ class TestLogging(unittest.TestCase):
             self.logging_multi_params_message_with_params(param_1=self.string, param_2=self.lst, param_3=self.tpl)
         self.assertEqual(
             cm.output,
-            [f'ERROR:TestLogging.logging_multi_params_message_with_params:test_parameter_{self.string}_{self.lst}_{self.tpl}'],
+            [
+                f'ERROR:TestLogging.logging_multi_params_message_with_params:test_parameter_{self.string}_{self.lst}_{self.tpl}'
+            ],
         )
 
         with self.assertLogs('TestLogging.logging_multi_params_without_message', level='INFO') as cm:
@@ -110,14 +112,13 @@ class TestLogging(unittest.TestCase):
         source = 'old_user_base'
         with self.assertLogs('TestLogging.logging_keyable', level='INFO') as cm:
             self.logging_keyable(User(username))
-        self.assertEqual(
-            cm.output, [f'ERROR:TestLogging.logging_keyable:test_keyable_User(u_name:{username})']
-        )
+        self.assertEqual(cm.output, [f'ERROR:TestLogging.logging_keyable:test_keyable_User(u_name:{username})'])
 
         with self.assertLogs('TestLogging.logging_keyable', level='INFO') as cm:
             self.logging_keyable(GetHugeData(source, {'data': 'huge dict of data', 'more_data': 'some more huge data'}))
         self.assertEqual(
-            cm.output, [f'ERROR:TestLogging.logging_keyable:test_keyable_GetHugeData(source:{source}, data:huge dict of data)']
+            cm.output,
+            [f'ERROR:TestLogging.logging_keyable:test_keyable_GetHugeData(source:{source}, data:huge dict of data)'],
         )
 
     @Logging(message='log_for_test', level=logging.ERROR)

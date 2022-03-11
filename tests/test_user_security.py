@@ -74,14 +74,13 @@ def get_user(u_id):
 
 # USER SECURITY SETUP
 class SessionUser(object):
-    def __init__(self, id: int, email: str, role: int, status: int):
+    def __init__(self, id: int, role: int, status: int):
         self.id = id
-        self.email = email
         self.role = role
         self.status = status
 
     def __dict__(self):
-        return {'id': self.id, 'email': self.email, 'role': self.role, 'status': self.status}
+        return {'id': self.id, 'role': self.role, 'status': self.status}
 
 
 def has_access(user_session, check_policies):
@@ -115,18 +114,15 @@ class CustomerSecurity(UserSecurity):
             return response_status(HTTPStatus.UNAUTHORIZED)
 
     def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'], session_data['role'], session_data['status'])
+        return SessionUser(session_data['id'], session_data['role'], session_data['status'])
 
     def generate_session_data(self, user) -> dict:
-        return {
-            'id': user['id'],
-            'email': user['email'],
-        }
+        return {'id': user['id'], 'email': user['email'], 'role': user['role'], 'status': user['status']}
 
 
 # SECURITY HANDLER REGISTER
 secret_key = 'super-secret'
-security_handler = CustomerSecurity('user_cookie', secret_key, timedelta(seconds=30))
+security_handler = CustomerSecurity('my_cookie_name', secret_key, timedelta(seconds=30))
 SecurityHandler.register(security_handler)
 
 # DJANGO INIT
@@ -139,6 +135,7 @@ web_util.init(web_util.ServerType.DJANGO)
 
 
 class TestUserSecurity(unittest.TestCase):
+
     @classmethod
     def setUp(cls):
         CoreLib.cache_registry.unregister('test_user_security')
@@ -158,6 +155,21 @@ class TestUserSecurity(unittest.TestCase):
         cls.user = result_to_dict(
             user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER})
         )
+        cls.user_ban = result_to_dict(
+            user_data_access.create(
+                {'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER, 'status': User.Status.BAN}
+            )
+        )
+        cls.user_inactive = result_to_dict(
+            user_data_access.create(
+                {
+                    'username': 'user',
+                    'email': 'user@def.com',
+                    'role': User.PolicyRoles.USER,
+                    'status': User.Status.NOT_ACTIVE,
+                }
+            )
+        )
 
         exp = datetime.now() + timedelta(seconds=30)
         cls.admin.update({'exp': exp})
@@ -165,17 +177,21 @@ class TestUserSecurity(unittest.TestCase):
         cls.create.update({'exp': exp})
         cls.update.update({'exp': exp})
         cls.user.update({'exp': exp})
+        cls.user_ban.update({'exp': exp})
+        cls.user_inactive.update({'exp': exp})
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
 
     def _create_request(self, payload: dict):
         request_object = HttpRequest
         token = jwt.encode(payload, secret_key)
-        request_object.COOKIES = {'user_cookie': token}
+        request_object.COOKIES = {'my_cookie_name': token}
         return request_object
 
     def test_has_access(self):
-        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE]))
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+        )
         self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.DELETE]))
         self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.CREATE]))
         self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.UPDATE]))
@@ -184,13 +200,25 @@ class TestUserSecurity(unittest.TestCase):
         self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.ADMIN]))
         self.assertFalse(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.DELETE]))
         self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.CREATE]))
-        self.assertFalse(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE]))
+        self.assertFalse(
+            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE])
+        )
 
-        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.USER, User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.UPDATE, User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.CREATE, User.Status.ACTIVE]))
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
+        )
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.USER, User.Status.ACTIVE])
+        )
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
+        )
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
+        )
+        self.assertTrue(
+            has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
+        )
 
         self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.Status.ACTIVE]))
         self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.Status.ACTIVE]))
@@ -308,6 +336,51 @@ class TestUserSecurity(unittest.TestCase):
 
         response = no_policy_entry(self._create_request(self.user))
         self.assertEqual(response.status_code, 200)
+
+        # Banned users
+        response = admin_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = delete_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = create_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = update_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = user_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = multiple_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 401)
+
+        response = no_policy_entry(self._create_request(self.user_ban))
+        self.assertEqual(response.status_code, 200)
+
+        # Not active users
+        response = admin_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = delete_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = create_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = update_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = user_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = multiple_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 401)
+
+        response = no_policy_entry(self._create_request(self.user_inactive))
+        self.assertEqual(response.status_code, 200)
+
 
     def test_expiry(self):
         request = self._create_request(self.admin)

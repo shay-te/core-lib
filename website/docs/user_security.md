@@ -9,7 +9,7 @@ These classes function together, and the user must implement them in order for `
 
 Classes that handle `User Security`
 ## UserSecurity
-`UserSecurity` is an abstract class that provides security functions to be implemented by user as per their needs. Must be extended in the class where we will implement the abstract methods.
+`UserSecurity` is an abstract class that provides security functions to be implemented by the user as per their needs. Must be extended in the class where we will implement the abstract methods.
 
 ```python
 class UserSecurity(ABC):
@@ -95,7 +95,7 @@ def get() -> UserSecurity:
 
 ## RequireLogin Decorator
 This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
-It will accept `poilicies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
 ```python
 class RequireLogin(object):
     def __init__(self, policies: list = []):

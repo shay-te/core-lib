@@ -36,4 +36,5 @@ class HandleException(object):
         @wraps(func)
         def wrapper(*args, **kwargs):
             return handle_exception(func, *args, **kwargs)
+
         return wrapper
