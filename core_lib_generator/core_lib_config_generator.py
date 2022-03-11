@@ -55,7 +55,7 @@ want_job = input_yes_no('\nWould you like to create a Job?', False)
 if want_job:
     print('\nPlease fill out the requested information for Job.')
     job = generate_job_template()
-    config['data']['jobs'] = job
+    config['jobs'] = job
 
 if want_db:
     want_entities = input_yes_no('\nWould you like to add entities?', True)
