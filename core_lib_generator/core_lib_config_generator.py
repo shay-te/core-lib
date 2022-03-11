@@ -22,26 +22,18 @@ def _get_env_variables(data):
         return env_variables
 
 
-def _get_config(name, data):
-    return data[name]['config']
-
-
-# core_lib_template = {'config': {}, 'env': {}}
 config = {}
 env = {}
 data_layers = {}
 jobs = {}
 core_lib_name = input_str('Please enter the name for your Core-lib: ', 'MyCoreLib')
-# core_lib_template.setdefault(core_lib_name, {})
-# core_lib_template['config'].setdefault('data', {})
 
 print('\nPlease fill out the requested Database information.')
 db = generate_db_template()
 env.update(_get_env_variables(db))
 config.setdefault('data', {})
-config['data'].setdefault('db', {})
 for db_name in db:
-    config['data']['db'][db_name] = db[db_name]['config']
+    config['data'][db_name] = db[db_name]['config']
 
 print('\nPlease fill out the requested solr information.')
 solr = generate_solr_template()
@@ -69,7 +61,7 @@ data_layers['data_access'] = data_access['create_service']
 
 print('\nPlease fill out the requested information for Job.')
 job = generate_job_template()
-jobs = job
+config['data']['jobs'] = solr['config']
 
 print('\nPlease fill out the requested information for Database configuration.')
 db_config = generate_db_config()
@@ -81,7 +73,6 @@ conf = OmegaConf.create(
             'env': env,
             'config': config,
             'data_layers': data_layers,
-            'jobs': jobs,
         }
     }
 )
