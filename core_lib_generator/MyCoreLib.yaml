@@ -1,9 +1,9 @@
 MyCoreLib:
   env:
     USER_USER: user
-    USER_PASSWORD: pass
+    USER_PASSWORD: password
     USER_PORT: 5432
-    USER_DB: User
+    USER_DB: user
     USER_HOST: localhost
     SOLR_HOST: localhost
     SOLR_PORT: 8983
@@ -24,7 +24,7 @@ MyCoreLib:
           host: ${oc.env:USER_HOST}
           port: ${oc.env:USER_PORT}
           file: ${oc.env:USER_DB}
-      customer_db:
+      cust_db:
         log_queries: false
         create_db: true
         session:
@@ -33,22 +33,21 @@ MyCoreLib:
         url:
           protocol: sqlite
       solr:
-        url: 
+        url:
           protocol: https
           host: ${oc.env:SOLR_HOST}
           port: ${oc.env:SOLR_PORT}
           file: solr/mycore
+      jobs:
+        my_job:
+          class_name: UpdateUser
+          initial_delay: 1m
+          frequency: 0s
+          package_name: my.package.UpdateUser
     cache:
       type: memcached
       host: ${oc.env:MEMCACHED_HOST}
       port: ${oc.env:MEMCACHED_PORT}
-    jobs:
-      my_job: 
-        initial_delay: 1s  # 'boot', 'startup', 1m, 1s make sure input is valid
-        frequency: 1m # this is non mandatory 
-        handler: 
-          _target_: my.package.Updateuser
-
   data_layers:
     data:
       User:
@@ -57,16 +56,15 @@ MyCoreLib:
           name:
             name: name
             type: VARCHAR
-            default: ' '
+            default: none
           pass:
             name: pass
             type: VARCHAR
-            default: ' '
-        is_soft_delete: false
-        is_soft_delete_token: false
-        migrate: true
-    data_access: 
-      user_data_access:
-        entity: User
-        is_crud_soft_delete: true # show only when true
-        is_crud_soft_delete_token: true # show only when true
+            default: none
+        is_soft_delete: true
+        is_soft_delete_token: true
+      migrate: true
+    data_access:
+      name: user_data_access
+      entity: User
+      is_crud_soft_delete: true
