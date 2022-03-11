@@ -283,4 +283,4 @@ def generate_job_template() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_job_template())
+    print(generate_db_template())
