@@ -265,7 +265,7 @@ def generate_db_entity_template() -> dict:
         }
     migrate = input_yes_no('\nDo you want to create a migration for these entities?', False)
     entities['migrate'] = migrate
-    print(f'\n{list(entities.keys())} entities created')
+    print(f'\nEntities created')
     return entities
 
 
@@ -297,7 +297,7 @@ def generate_data_access_template(entities: dict) -> dict:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name, True)
             else:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name)
-    print(f'\n{list(data_access.keys())} data access created')
+    print(f'\n{list(data_access.keys())} created')
     return data_access
 
 
