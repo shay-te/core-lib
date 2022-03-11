@@ -266,7 +266,7 @@ def generate_db_entity_template() -> dict:
             'is_soft_delete': is_soft_delete,
             'is_soft_delete_token': is_soft_delete_token,
         }
-    migrate = input_yes_no('Do you want to create a migration for these entities?', False)
+    migrate = input_yes_no('\nDo you want to create a migration for these entities?', False)
     entities['migrate'] = migrate
     return entities
 
@@ -321,7 +321,9 @@ def generate_job_template() -> dict:
             'class_name': class_name,
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'package_name': package_name,
+            'handler': {
+                '_target_': package_name,
+            }
         }
     }
 
