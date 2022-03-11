@@ -69,10 +69,7 @@ if want_db:
         want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)
         if want_data_access:
             print('\nPlease fill out the requested information for creating Data Access for entities.')
-            entity_names = list(db_entity.keys())
-            if 'migrate' in entity_names:
-                entity_names.remove('migrate')
-            data_access = generate_data_access_template(entity_names)
+            data_access = generate_data_access_template(db_entity)
             data_layers.setdefault('data_access', {})
             data_layers['data_access'] = data_access
 
