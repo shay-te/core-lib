@@ -73,9 +73,6 @@ if want_db:
             data_layers.setdefault('data_access', {})
             data_layers['data_access'] = data_access
 
-# print('\nPlease fill out the requested information for Database configuration.')
-# db_config = generate_db_config()
-# config['data']['db']['migration'] = db_config
 
 conf = OmegaConf.create(
     {
@@ -87,5 +84,5 @@ conf = OmegaConf.create(
     }
 )
 print(OmegaConf.to_yaml(conf))
-# with open(f'{core_lib_name}.yaml', 'w+') as file:
-#     OmegaConf.save(config=conf, f=file.name)
+with open(f'{core_lib_name}.yaml', 'w+') as file:
+    OmegaConf.save(config=conf, f=file.name)
