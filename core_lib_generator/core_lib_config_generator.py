@@ -22,6 +22,7 @@ def _get_env_variables(data):
 
 
 config = {}
+config.setdefault('data', {})
 env = {}
 data_layers = {}
 jobs = {}
@@ -32,7 +33,6 @@ if want_db:
     print('\nPlease fill out the requested Database information.')
     db = generate_db_template()
     env.update(_get_env_variables(db))
-    config.setdefault('data', {})
     for db_name in db:
         config['data'][db_name] = db[db_name]['config']
 
