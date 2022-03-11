@@ -2,7 +2,7 @@ import enum
 
 from pytimeparse import parse
 
-from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_list
+from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_bool
 
 
 class DBTypes(enum.Enum):
@@ -17,12 +17,10 @@ class DBTypes(enum.Enum):
 
 
 class DBDatatypes(enum.Enum):
-    __order__ = 'INTEGER VARCHAR DATETIME DATE BOOLEAN'
+    __order__ = 'INTEGER VARCHAR BOOLEAN'
     INTEGER = 1
     VARCHAR = 2
-    DATETIME = 3
-    DATE = 4
-    BOOLEAN = 5
+    BOOLEAN = 3
 
 
 class CacheTypes(enum.Enum):
@@ -40,7 +38,6 @@ class DataAccessTypes(enum.Enum):
 
 
 default_db_ports = {
-    DBTypes.SQLite.name: None,
     DBTypes.Postgresql.name: 5432,
     DBTypes.MySQL.name: 3306,
     DBTypes.Oracle.name: 1521,
@@ -128,7 +125,6 @@ def generate_db_template() -> dict:
     db_template = {}
     add_db = True
     while add_db:
-        in_memory = False
         db_name = input_str('What is the name of the DB connection?')
         while f'{db_name.lower()}_db' in db_template:
             db_name = input_str(f'DB connection with name `{db_name}` already created, please enter a different name.')
@@ -137,14 +133,11 @@ def generate_db_template() -> dict:
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value
         )
 
-        if db_type == DBTypes.SQLite.value:
-            in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
-
         db_log_queries = input_yes_no('Do you want to log queries?', False)
         db_create = input_yes_no('Do you want create Database?', True)
         db_pool_recycle = input_int('Enter the pool recycle time', 3200)
         db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-        if in_memory:
+        if db_type == DBTypes.SQLite.value:
             print('\nSQLite created in memory.')
             add_db = input_yes_no('\nDo you want to add another DB connection?', False)
             db_template[f'{db_name.lower()}_db'] = _generate_db_config(
@@ -247,8 +240,12 @@ def generate_db_entity_template() -> dict:
                     f'From the following list, select the relevant number for datatype #{i + 1}',
                     DBDatatypes.VARCHAR.value,
                 )
-
-                column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
+                if column_type == DBDatatypes.INTEGER.value:
+                    column_default = input_int(f'Enter the default value of column #{i + 1}', 0)
+                elif column_type == DBDatatypes.VARCHAR.value:
+                    column_default = input_str(f'Enter the default value of column #{i + 1}', '', True)
+                else:
+                    column_default = input_bool(f'Enter the default value of column #{i + 1} (true, false, 0(false), 1(true))', 'true')
 
                 columns[column_name] = {
                     'name': column_name,
@@ -268,6 +265,7 @@ def generate_db_entity_template() -> dict:
         }
     migrate = input_yes_no('\nDo you want to create a migration for these entities?', False)
     entities['migrate'] = migrate
+    print(f'\n{list(entities.keys())} entities created')
     return entities
 
 
@@ -299,7 +297,7 @@ def generate_data_access_template(entities: dict) -> dict:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name, True)
             else:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name)
-
+    print(f'\n{list(data_access.keys())} data access created')
     return data_access
 
 
@@ -315,10 +313,9 @@ def generate_job_template() -> dict:
         )
     frequency = input_str('Please set the frequency of the job', '0s')
     package_name = input_str('Please enter the package to access the job', f'my.package.{class_name}')
-
+    print(f'\n{name} job created')
     return {
         name: {
-            'class_name': class_name,
             'initial_delay': initial_delay,
             'frequency': frequency,
             'handler': {
@@ -329,27 +326,4 @@ def generate_job_template() -> dict:
 
 
 if __name__ == "__main__":
-    print(
-        generate_data_access_template(
-            {
-                'User': {
-                    'name': 'User',
-                    'columns': {
-                        'user': {'name': 'user', 'type': 'VARCHAR', 'default': 'None'},
-                        'cusst': {'name': 'cusst', 'type': 'VARCHAR', 'default': 'none'},
-                    },
-                    'is_soft_delete': True,
-                    'is_soft_delete_token': True,
-                },
-                'Cust': {
-                    'name': 'Cust',
-                    'columns': {
-                        'name': {'name': 'name', 'type': 'VARCHAR', 'default': 'none'},
-                        'pass': {'name': 'pass', 'type': 'VARCHAR', 'default': 'none'},
-                    },
-                    'is_soft_delete': False,
-                    'is_soft_delete_token': False,
-                },
-            }
-        )
-    )
+    print(generate_db_entity_template())
