@@ -8,7 +8,8 @@ from core_lib.helpers.func_utils import (
     build_function_key,
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
-    reset_datetime, Keyable,
+    reset_datetime,
+    Keyable,
 )
 
 
@@ -19,7 +20,6 @@ class MyEnum(enum.Enum):
 
 
 class User(Keyable):
-
     def __init__(self, u_id, name):
         self.id = u_id
         self.name = name
@@ -45,9 +45,7 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertNotEqual(key3, None)
         self.assertEqual(key3, 'xyz_11_!Eparam_2E!')
 
-        key4 = build_function_key(
-            'xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'}
-        )
+        key4 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'})
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_!Eparam_1E!_pp2')
 
@@ -69,7 +67,15 @@ class TestFunctionUtils(unittest.TestCase):
         string = 'Jon\n\r Doe'
 
         def function_with_multi_params(
-                param_1, param_2, param_3, param_4, param_5, param_6, param_7=point, param_8=set_value, param_9=MyEnum.one.value
+            param_1,
+            param_2,
+            param_3,
+            param_4,
+            param_5,
+            param_6,
+            param_7=point,
+            param_8=set_value,
+            param_9=MyEnum.one.value,
         ):
             pass
 
@@ -170,33 +176,29 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict8['param_4'], 22)
 
     def test_param_index_func(self):
-        def returns_1(param_1, param_2, param_3, param_4=11, param_5=22):
+        def function_with_parameters(param_1, param_2, param_3, param_4=11, param_5=22):
             return 1
 
-        index1 = get_func_parameter_index_by_name(returns_1, "param_1")
+        index1 = get_func_parameter_index_by_name(function_with_parameters, "param_1")
         self.assertEqual(index1, 0)
 
-        index2 = get_func_parameter_index_by_name(returns_1, "param_2")
+        index2 = get_func_parameter_index_by_name(function_with_parameters, "param_2")
         self.assertEqual(index2, 1)
 
-        index3 = get_func_parameter_index_by_name(returns_1, "param_3")
+        index3 = get_func_parameter_index_by_name(function_with_parameters, "param_3")
         self.assertEqual(index3, 2)
 
-        index4 = get_func_parameter_index_by_name(returns_1, "param_4")
+        index4 = get_func_parameter_index_by_name(function_with_parameters, "param_4")
         self.assertEqual(index4, 3)
 
-        index4 = get_func_parameter_index_by_name(returns_1, "param_5")
+        index4 = get_func_parameter_index_by_name(function_with_parameters, "param_5")
         self.assertEqual(index4, 4)
 
         with self.assertRaises(Exception):
-            get_func_parameter_index_by_name(returns_1)
+            get_func_parameter_index_by_name(function_with_parameters)
 
         with self.assertRaises(Exception):
-            get_func_parameter_index_by_name(returns_1, "param_46")
-
-    # def test_get_calling_module(self):
-    #     self.assertNotEqual(get_calling_module(stack_depth=1), None)
-    #     self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
+            get_func_parameter_index_by_name(function_with_parameters, "param_46")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()
