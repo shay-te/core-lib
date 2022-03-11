@@ -53,7 +53,7 @@ class JobScheduler(object):
         self._validate_str_time(initial_delay, 'initial_delay')
 
     def _validate_str_time(self, str_time: str, variable_name: str):
-        error_msg = '{} `{}` is invalid'.format(variable_name, str_time)
+        error_msg = f'{variable_name} `{str_time}` is invalid'
         assert str_time, error_msg
         initial_delay_seconds = parse(str_time)
         assert initial_delay_seconds is not None, error_msg
