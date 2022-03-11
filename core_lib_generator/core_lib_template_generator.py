@@ -50,17 +50,18 @@ default_db_ports = {
 }
 
 
-def _generate_db_config(db_type: int,
-                        db_name: str,
-                        db_username: str,
-                        db_password: str,
-                        db_port: int,
-                        db_host: str = 'localhost',
-                        db_log_queries: bool = False,
-                        db_create: bool = True,
-                        db_pool_recycle: int = 3200,
-                        db_pool_pre_ping: bool = False,
-                        ) -> dict:
+def _generate_db_config(
+        db_type: int,
+        db_name: str,
+        db_username: str,
+        db_password: str,
+        db_port: int,
+        db_host: str = 'localhost',
+        db_log_queries: bool = False,
+        db_create: bool = True,
+        db_pool_recycle: int = 3200,
+        db_pool_pre_ping: bool = False,
+) -> dict:
     env = {}
     if not db_host:
         url = {
@@ -91,9 +92,36 @@ def _generate_db_config(db_type: int,
                 'pool_recycle': db_pool_recycle,
                 'pool_pre_ping': db_pool_pre_ping,
             },
-            'url': url
-        }
+            'url': url,
+        },
     }
+
+
+def _generate_data_access_config(
+        name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
+) -> dict:
+    if crud_soft_delete_token:
+        return {
+            'entity': name,
+            'is_crud': True,
+            'is_crud_soft_delete': True,
+            'is_crud_soft_delete_token': True,
+        }
+    elif crud_soft_delete:
+        return {
+            'entity': name,
+            'is_crud': True,
+            'is_crud_soft_delete': True,
+        }
+    elif crud:
+        return {
+            'entity': name,
+            'is_crud': True,
+        }
+    else:
+        return {
+            'entity': name,
+        }
 
 
 def generate_db_template() -> dict:
@@ -105,8 +133,9 @@ def generate_db_template() -> dict:
         while f'{db_name.lower()}_db' in db_template:
             db_name = input_str(f'DB connection with name `{db_name}` already created, please enter a different name.')
 
-        db_type = input_enum(DBTypes, 'From the following list, select the relevant number for DB type',
-                             DBTypes.Postgresql.value)
+        db_type = input_enum(
+            DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value
+        )
 
         if db_type == DBTypes.SQLite.value:
             in_memory = input_yes_no('Do you want the SQLite DB in memory?', True)
@@ -118,26 +147,30 @@ def generate_db_template() -> dict:
         if in_memory:
             print('\nSQLite created in memory.')
             add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-            db_template[f'{db_name.lower()}_db'] = _generate_db_config(db_type,
-                                                                       db_name,
-                                                                       None,
-                                                                       None,
-                                                                       None,
-                                                                       None,
-                                                                       db_log_queries,
-                                                                       db_create,
-                                                                       db_pool_recycle,
-                                                                       db_pool_pre_ping,
-                                                                       )
+            db_template[f'{db_name.lower()}_db'] = _generate_db_config(
+                db_type,
+                db_name,
+                None,
+                None,
+                None,
+                None,
+                db_log_queries,
+                db_create,
+                db_pool_recycle,
+                db_pool_pre_ping,
+            )
             continue
         db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
         db_host = input_str('Enter host of your DB', 'localhost')
         db_username = input_str('Enter your DB username', 'user')
-        db_password = input_str('Enter your DB password', )
+        db_password = input_str(
+            'Enter your DB password',
+        )
         print(f'\n{DBTypes(db_type).name} with {db_host}:{db_port} created')
         add_db = input_yes_no('\nDo you want to add another DB connection?', False)
-        db_template[f'{db_name.lower()}_db'] = _generate_db_config(db_type, db_name, db_username, db_password, db_port,
-                                                                   db_host)
+        db_template[f'{db_name.lower()}_db'] = _generate_db_config(
+            db_type, db_name, db_username, db_password, db_port, db_host
+        )
     return db_template
 
 
@@ -164,8 +197,9 @@ def generate_solr_template() -> dict:
 
 
 def generate_cache_template() -> dict:
-    cache_type = input_enum(CacheTypes, 'From the following list, select the relevant number for cache type',
-                            CacheTypes.Memory.value)
+    cache_type = input_enum(
+        CacheTypes, 'From the following list, select the relevant number for cache type', CacheTypes.Memory.value
+    )
 
     if cache_type == CacheTypes.Memcached.value:
         memcache_port = input_int('Enter your memcached server port no.', 11211)
@@ -208,16 +242,18 @@ def generate_db_entity_template() -> dict:
             for i in range(0, column_count):
                 column_name = input_str(f'Enter the name of column #{i + 1}')
 
-                column_type = input_enum(DBDatatypes,
-                                         f'From the following list, select the relevant number for datatype #{i + 1}',
-                                         DBDatatypes.VARCHAR.value)
+                column_type = input_enum(
+                    DBDatatypes,
+                    f'From the following list, select the relevant number for datatype #{i + 1}',
+                    DBDatatypes.VARCHAR.value,
+                )
 
                 column_default = input_str(f'Enter the default value of column #{i + 1}', ' ')
 
                 columns[column_name] = {
                     'name': column_name,
                     'type': DBDatatypes(column_type).name,
-                    'default': column_default
+                    'default': column_default,
                 }
 
             is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
@@ -235,31 +271,35 @@ def generate_db_entity_template() -> dict:
     return entities
 
 
-def generate_data_access_template(entities: list) -> dict:
-    data_access_name = input_str('Please enter the name of the data access you\'d want to create', 'user_data_access')
+def generate_data_access_template(entities: dict) -> dict:
+    data_access = {}
+    for entity in entities:
+        data_access_name = input_str(
+            f'Please enter the name of the data access you\'d want to create for `{entity}`',
+            f'{entity.lower()}_data_access'
+        )
+        if entities[entity]['is_soft_delete'] and entities[entity]['is_soft_delete_token']:
+            is_crud_soft_delete_token = input_yes_no(
+                'Do you want to implement CRUD Soft Delete Token on your data access?', True
+            )
+            if is_crud_soft_delete_token:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True, True)
+            else:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name)
+        elif entities[entity]['is_soft_delete'] and not entities[entity]['is_soft_delete_token']:
+            is_crud_soft_delete = input_yes_no('Do you want to implement CRUD Soft Delete on your data access?', True)
+            if is_crud_soft_delete:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True)
+            else:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name)
+        else:
+            is_crud = input_yes_no('Do you want to implement CRUD on your data access?', True)
+            if is_crud:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, True)
+            else:
+                data_access[data_access_name] = _generate_data_access_config(data_access_name)
 
-    data_access_type = input_enum(DataAccessTypes,
-                                  'From the following list, select the relevant number for data access type',
-                                  DataAccessTypes.CRUD.value)
-    data_access_crud_entity = input_list(entities, 'From the following list, select the relevant number of entity to apply crud on', 1)
-    if data_access_type == DataAccessTypes.CRUD.value:
-        return {
-            'name': data_access_name,
-            'entity': data_access_crud_entity,
-        }
-    elif data_access_type == DataAccessTypes.CRUDSoftDelete.value:
-        return {
-            'name': data_access_name,
-            'entity': data_access_crud_entity,
-            'is_crud_soft_delete': True
-        }
-    else:
-        return {
-            'name': data_access_name,
-            'entity': data_access_crud_entity,
-            'is_crud_soft_delete': True,
-            'is_crud_soft_delete_token': True
-        }
+    return data_access
 
 
 def generate_job_template() -> dict:
@@ -269,7 +309,9 @@ def generate_job_template() -> dict:
     if initial_delay in ['boot', 'startup']:
         initial_delay = '0s'
     while parse(initial_delay) is None:
-        initial_delay = input_str('Please input a relevant value for initial delay (boot, startup, 1s, 1m, 2m ...)', '1m')
+        initial_delay = input_str(
+            'Please input a relevant value for initial delay (boot, startup, 1s, 1m, 2m ...)', '1m'
+        )
     frequency = input_str('Please set the frequency of the job', '0s')
     package_name = input_str('Please enter the package to access the job', f'my.package.{class_name}')
 
@@ -284,4 +326,27 @@ def generate_job_template() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_template())
+    print(
+        generate_data_access_template(
+            {
+                'User': {
+                    'name': 'User',
+                    'columns': {
+                        'user': {'name': 'user', 'type': 'VARCHAR', 'default': 'None'},
+                        'cusst': {'name': 'cusst', 'type': 'VARCHAR', 'default': 'none'},
+                    },
+                    'is_soft_delete': True,
+                    'is_soft_delete_token': True,
+                },
+                'Cust': {
+                    'name': 'Cust',
+                    'columns': {
+                        'name': {'name': 'name', 'type': 'VARCHAR', 'default': 'none'},
+                        'pass': {'name': 'pass', 'type': 'VARCHAR', 'default': 'none'},
+                    },
+                    'is_soft_delete': False,
+                    'is_soft_delete_token': False,
+                },
+            }
+        )
+    )
