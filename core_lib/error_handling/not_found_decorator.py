@@ -18,9 +18,7 @@ class NotFoundErrorHandler(object):
             result = func(*args, **kwargs)
             if not result:
                 logger.debug(f'NotFoundErrorHandler for function `{func.__qualname__}`.')
-                exception_message = (
-                    build_function_key(self.message, func, *args, **kwargs) if self.message else None
-                )
+                exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
                 raise StatusCodeException(HTTPStatus.NOT_FOUND.value, exception_message)
             return result
 

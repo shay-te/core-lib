@@ -8,7 +8,8 @@ from core_lib.helpers.func_utils import (
     build_function_key,
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
-    reset_datetime, Keyable,
+    reset_datetime,
+    Keyable,
 )
 
 
@@ -19,7 +20,6 @@ class MyEnum(enum.Enum):
 
 
 class User(Keyable):
-
     def __init__(self, u_id, name):
         self.id = u_id
         self.name = name
@@ -45,9 +45,7 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertNotEqual(key3, None)
         self.assertEqual(key3, 'xyz_11_!Eparam_2E!')
 
-        key4 = build_function_key(
-            'xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'}
-        )
+        key4 = build_function_key('xyz_{param_1}_{param_2}', function_with_params, *[], **{'param_2': 'pp2'})
         self.assertNotEqual(key4, None)
         self.assertEqual(key4, 'xyz_!Eparam_1E!_pp2')
 
@@ -69,7 +67,15 @@ class TestFunctionUtils(unittest.TestCase):
         string = 'Jon\n\r Doe'
 
         def function_with_multi_params(
-                param_1, param_2, param_3, param_4, param_5, param_6, param_7=point, param_8=set_value, param_9=MyEnum.one.value
+            param_1,
+            param_2,
+            param_3,
+            param_4,
+            param_5,
+            param_6,
+            param_7=point,
+            param_8=set_value,
+            param_9=MyEnum.one.value,
         ):
             pass
 
