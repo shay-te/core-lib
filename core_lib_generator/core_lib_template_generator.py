@@ -273,6 +273,7 @@ def generate_db_entity_template() -> dict:
 
 def generate_data_access_template(entities: dict) -> dict:
     data_access = {}
+    entities.pop('migrate', None)
     for entity in entities:
         data_access_name = input_str(
             f'Please enter the name of the data access you\'d want to create for `{entity}`',
