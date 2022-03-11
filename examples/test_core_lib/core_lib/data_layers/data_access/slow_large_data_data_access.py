@@ -6,7 +6,7 @@ from core_lib.data_layers.data_access.data_access import DataAccess
 
 class SlowLargeDataDataAccess(DataAccess):
     def __init__(self):
-        self.data = {"data": "i weight allot"}
+        self.data = {'data': 'user data'}
 
     @Cache(key='large_data_cache_key', expire=timedelta(seconds=5))
     def get_data(self):
