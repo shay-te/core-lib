@@ -39,13 +39,15 @@ def input_yes_no(title: str, default_value: bool = None) -> bool:
             return _check_yes_no(user_input)
 
 
-def input_str(title: str, default_value: str = None) -> str:
+def input_str(title: str, default_value: str = None, allow_empty: bool = False) -> str:
     take_input = True
     while take_input:
         user_input = input(f'{title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
-        if str(user_input).strip():
+        if allow_empty and str(user_input).strip() == '':
             return str(user_input).strip()
+        if str(user_input).strip():
+            return str(user_input).strip().strip('"').strip("'")
 
 
 def input_int(title: str, default_value: int = None) -> int:
@@ -55,6 +57,18 @@ def input_int(title: str, default_value: int = None) -> int:
         user_input = _get_value(user_input, default_value)
         if is_int(user_input):
             return int(user_input)
+
+
+def input_bool(title: str, default_value: str = None) -> bool:
+    take_input = True
+    while take_input:
+        user_input = input(f'{title} {_print_default(default_value)}: ')
+        user_input = _get_value(user_input, default_value)
+        if user_input.lower() in ['true', 'false', '0', '1']:
+            if user_input.lower in ['true', '1']:
+                return True
+            else:
+                return False
 
 
 def input_enum(enum_class: enum, title: str, default_value: int = None) -> int:
