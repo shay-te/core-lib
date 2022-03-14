@@ -60,7 +60,7 @@ def _generate_db_config(
         db_pool_pre_ping: bool = False,
 ) -> dict:
     env = {}
-    if not db_host:
+    if db_type == DBTypes.SQLite.value:
         url = {
             'protocol': DBTypes(db_type).name.lower(),
         }
@@ -138,8 +138,8 @@ def generate_db_template() -> dict:
         db_pool_recycle = input_int('Enter the pool recycle time', 3200)
         db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
         if db_type == DBTypes.SQLite.value:
-            print('\nSQLite created in memory.')
-            add_db = input_yes_no('\nDo you want to add another DB connection?', False)
+            print('SQLite in memory.')
+            add_db = input_yes_no('Do you want to add another DB connection?', False)
             db_template[f'{db_name.lower()}_db'] = _generate_db_config(
                 db_type,
                 db_name,
@@ -159,8 +159,8 @@ def generate_db_template() -> dict:
         db_password = input_str(
             'Enter your DB password',
         )
-        print(f'\n{DBTypes(db_type).name} with {db_host}:{db_port} created')
-        add_db = input_yes_no('\nDo you want to add another DB connection?', False)
+        print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
+        add_db = input_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name.lower()}_db'] = _generate_db_config(
             db_type, db_name, db_username, db_password, db_port, db_host
         )
@@ -172,7 +172,7 @@ def generate_solr_template() -> dict:
     solr_port = input_int('Enter solr port no.', 8983)
     solr_host = input_str('Enter solr host', 'localhost')
     solr_file = input_str('Enter solr file name (solr/core_name)', 'solr/mycore')
-    print('\nInput recorded.')
+    print(f'Solr on {solr_host}:{solr_port}')
     return {
         'env': {
             'SOLR_HOST': solr_host,
@@ -197,7 +197,7 @@ def generate_cache_template() -> dict:
     if cache_type == CacheTypes.Memcached.value:
         memcache_port = input_int('Enter your memcached server port no.', 11211)
         memcache_host = input_str('Enter your memcached server host', 'localhost')
-        print(f'\nCache type {CacheTypes(cache_type).name} on {memcache_host}:{memcache_port}')
+        print(f'Cache type {CacheTypes(cache_type).name} on {memcache_host}:{memcache_port}')
         return {
             'env': {
                 'MEMCACHED_HOST': memcache_host,
@@ -210,14 +210,14 @@ def generate_cache_template() -> dict:
             },
         }
     elif cache_type == CacheTypes.Memory.value:
-        print(f'\nCache type {CacheTypes(cache_type).name}')
+        print(f'Cache type {CacheTypes(cache_type).name}')
         return {
             'config': {
                 'type': CacheTypes(cache_type).name.lower(),
             }
         }
     else:
-        print('\nNo cache set.')
+        print('No cache set.')
 
 
 def generate_db_entity_template() -> dict:
@@ -226,7 +226,7 @@ def generate_db_entity_template() -> dict:
     while add_entity:
         is_soft_delete = False
         is_soft_delete_token = False
-        entity_name = input_str('Enter the name of the db entity you\'d like to create', 'User')# change title, Mandatory input
+        entity_name = input_str('Enter the name of the database entity you\'d like to create')
         while entity_name in entities:
             entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         column_count = input_int('How many columns will you have in your entity? ', 0)
@@ -245,7 +245,8 @@ def generate_db_entity_template() -> dict:
                 elif column_type == DBDatatypes.VARCHAR.value:
                     column_default = input_str(f'Enter the default value of column #{i + 1}', '', True)
                 else:
-                    column_default = input_bool(f'Enter the default value of column #{i + 1} (true, false, 0(false), 1(true))', 'true')
+                    column_default = input_bool(
+                        f'Enter the default value of column #{i + 1} (true, false, 0(false), 1(true))', 'true')
 
                 columns[column_name] = {
                     'name': column_name,
@@ -256,20 +257,19 @@ def generate_db_entity_template() -> dict:
             is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
             if is_soft_delete:
                 is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
-        add_entity = input_yes_no('\nDo you want to add another entity?', False)
+        add_entity = input_yes_no('Do you want to add another entity?', False)
         entities[entity_name] = {
             'name': entity_name,
             'columns': columns,
             'is_soft_delete': is_soft_delete,
             'is_soft_delete_token': is_soft_delete_token,
         }
-    migrate = input_yes_no('\nDo you want to create a migration for these entities?', False)
+    migrate = input_yes_no('Do you want to create a migration for these entities?', False)
     entities['migrate'] = migrate
-    print(f'\nEntities created')# remove msg
     return entities
 
-#\n remove from file
-def generate_data_access_template(db_entities: dict) -> dict: #dont exec if 0 entities
+
+def generate_data_access_template(db_entities: dict) -> dict:
     data_access = {}
     db_entities.pop('migrate', None)
     for entity in db_entities:
@@ -297,23 +297,27 @@ def generate_data_access_template(db_entities: dict) -> dict: #dont exec if 0 en
                 data_access[data_access_name] = _generate_data_access_config(data_access_name, True)
             else:
                 data_access[data_access_name] = _generate_data_access_config(data_access_name)
-    print(f'\n{list(data_access.keys())} created')
+    print(f'{list(data_access.keys())} created')
     return data_access
 
 
 def generate_job_template() -> dict:
     name = input_str('Enter the name of the job', 'my_job')
-    class_name = input_str('Please enter the class name of the Job you\'d want to create', 'UpdateUser')#  Remove
-    initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)', '1m') # default boot or startup
+    package_name = input_str('Please enter the package to access the job (my.package.UpdateCache)')
+    initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)',
+                              'startup')
     if initial_delay in ['boot', 'startup']:
         initial_delay = '0s'
     while parse(initial_delay) is None:
         initial_delay = input_str(
             'Please input a relevant value for initial delay (boot, startup, 1s, 1m, 2m ...)', '1m'
         )
-    frequency = input_str('Please set the frequency of the job', '0s')# default blank, 1s, 1m, 1h, 1h30m ...) egs,
-    package_name = input_str('Please enter the package to access the job', f'my.package.{class_name}')
-    print(f'\n{name} job created')
+    frequency = input_str('Please set the frequency of the job (1s, 1m, 1h, 1h30m ...)', '', True)
+    while frequency and parse(frequency) is None:
+        frequency = input_str(
+            'Please input a relevant value for frequency (1s, 1m, 1h, 1h30m ...)', '', True
+        )
+    print(f'{name} job created')
     return {
         name: {
             'initial_delay': initial_delay,
@@ -326,4 +330,4 @@ def generate_job_template() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_db_entity_template())
+    print(generate_db_template())
