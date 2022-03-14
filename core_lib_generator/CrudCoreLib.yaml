@@ -1,0 +1,63 @@
+CrudCoreLib:
+  env:
+    USER_USER: user
+    USER_PASSWORD: password
+    USER_PORT: 5432
+    USER_DB: user
+    USER_HOST: localhost
+    SOLR_HOST: localhost
+    SOLR_PORT: 8983
+    MEMCACHED_HOST: localhost
+    MEMCACHED_PORT: 11211
+  config:
+    data:
+      user_db:
+        log_queries: false
+        create_db: true
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
+        url:
+          protocol: postgresql
+          username: ${oc.env:USER_USER}
+          password: ${oc.env:USER_PASSWORD}
+          host: ${oc.env:USER_HOST}
+          port: ${oc.env:USER_PORT}
+          file: ${oc.env:USER_DB}
+      solr:
+        url:
+          protocol: https
+          host: ${oc.env:SOLR_HOST}
+          port: ${oc.env:SOLR_PORT}
+          file: solr/user_core
+    cache:
+      type: memcached
+      host: ${oc.env:MEMCACHED_HOST}
+      port: ${oc.env:MEMCACHED_PORT}
+    jobs:
+      my_job:
+        initial_delay: 0s
+        frequency: 1s
+        handler:
+          _target_: my.package.MyJob
+  data_layers:
+    data:
+      User:
+        name: User
+        columns:
+          username:
+            name: username
+            type: VARCHAR
+            default: ''
+          password:
+            name: password
+            type: VARCHAR
+            default: ''
+        is_soft_delete: true
+        is_soft_delete_token: false
+      migrate: true
+    data_access:
+      user_data_access:
+        entity: user_data_access
+        is_crud: true
+        is_crud_soft_delete: true

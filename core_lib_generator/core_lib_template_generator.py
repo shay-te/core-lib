@@ -130,7 +130,7 @@ def generate_db_template() -> dict:
             db_name = input_str(f'DB connection with name `{db_name}` already created, please enter a different name.')
 
         db_type = input_enum(
-            DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.Postgresql.value
+            DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
         )
 
         db_log_queries = input_yes_no('Do you want to log queries?', False)
@@ -226,7 +226,7 @@ def generate_db_entity_template() -> dict:
     while add_entity:
         is_soft_delete = False
         is_soft_delete_token = False
-        entity_name = input_str('Enter the name of the entity you\'d like to create', 'User')
+        entity_name = input_str('Enter the name of the db entity you\'d like to create', 'User')# change title, Mandatory input
         while entity_name in entities:
             entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         column_count = input_int('How many columns will you have in your entity? ', 0)
@@ -265,11 +265,11 @@ def generate_db_entity_template() -> dict:
         }
     migrate = input_yes_no('\nDo you want to create a migration for these entities?', False)
     entities['migrate'] = migrate
-    print(f'\nEntities created')
+    print(f'\nEntities created')# remove msg
     return entities
 
-
-def generate_data_access_template(db_entities: dict) -> dict:
+#\n remove from file
+def generate_data_access_template(db_entities: dict) -> dict: #dont exec if 0 entities
     data_access = {}
     db_entities.pop('migrate', None)
     for entity in db_entities:
@@ -303,15 +303,15 @@ def generate_data_access_template(db_entities: dict) -> dict:
 
 def generate_job_template() -> dict:
     name = input_str('Enter the name of the job', 'my_job')
-    class_name = input_str('Please enter the class name of the Job you\'d want to create', 'UpdateUser')
-    initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)', '1m')
+    class_name = input_str('Please enter the class name of the Job you\'d want to create', 'UpdateUser')#  Remove
+    initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)', '1m') # default boot or startup
     if initial_delay in ['boot', 'startup']:
         initial_delay = '0s'
     while parse(initial_delay) is None:
         initial_delay = input_str(
             'Please input a relevant value for initial delay (boot, startup, 1s, 1m, 2m ...)', '1m'
         )
-    frequency = input_str('Please set the frequency of the job', '0s')
+    frequency = input_str('Please set the frequency of the job', '0s')# default blank, 1s, 1m, 1h, 1h30m ...) egs,
     package_name = input_str('Please enter the package to access the job', f'my.package.{class_name}')
     print(f'\n{name} job created')
     return {
