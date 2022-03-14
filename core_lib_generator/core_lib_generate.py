@@ -303,4 +303,3 @@ class CoreLibGenerate(object):
             f'{generate_name}.py',
             {},
         )
-

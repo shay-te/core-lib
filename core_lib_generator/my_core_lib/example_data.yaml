@@ -1,0 +1,69 @@
+variables:
+  MYSQL_USER: xyz
+  MYSQL_PASSWORD: xx
+  MYSQL_DB: db
+  postgres_user: x
+  postgres_password: x
+  postgres_db: s
+  sqlite_db: db
+  solr_core_name: objective_love
+
+core_lib:
+  data:
+    db:
+      - protocol: mysql
+        username: ${oc.env:MYSQL_USER}
+        password: ${oc.env:MYSQL_PASSWORD}
+        address: localhost
+        port: 3306
+        file: ${oc.env:MYSQL_DB}
+      - protocol: sqlite
+        file: ${oc.env:sqlite_db}
+      - protocol: postgresql
+        username: ${oc.env:postgres_user}
+        password: ${oc.env:postgres_password}
+        address: localhost
+        port: 5432
+        file: ${oc.env:postgres_db}
+    memcached:
+      url:
+        host: localhost
+        port: 11211
+    solr:
+      always_commit: true
+      url:
+        protocol: http
+        host: localhost
+        port: 8983
+        path: solr
+        file: ${oc.env:solr_core_name}
+
+docker-compose:
+version: '2'
+
+services:
+
+  core_lib_name:
+    build:
+      context: ""
+      dockerfile: ./Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+      memcached:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: mysql
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}

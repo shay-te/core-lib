@@ -1,4 +1,4 @@
-TemplateCoreLib:
+MyCoreLib:
   env:
     USER_USER: user
     USER_PASSWORD: password
@@ -76,6 +76,7 @@ TemplateCoreLib:
             default: ''
         is_soft_delete: false
         is_soft_delete_token: false
+      migrate: false
     data_access:
       user_data_access:
         entity: user_data_access

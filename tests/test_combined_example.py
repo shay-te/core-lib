@@ -122,7 +122,9 @@ class TestCombinedExample(unittest.TestCase):
         self.assertEqual(user_get["gender"], update_gender)
 
         # Rules preventing to update birthday so say the rules
-        self.assertRaises(PermissionError, self.combined_core_lib.test.user.update, user_create["id"], {"email": generate_email()})
+        self.assertRaises(
+            PermissionError, self.combined_core_lib.test.user.update, user_create["id"], {"email": generate_email()}
+        )
 
         # Create
         user_data_invalie_email = {
