@@ -2,6 +2,8 @@ from functools import wraps
 from core_lib.session.security_handler import SecurityHandler
 import logging
 
+from core_lib.web_helpers.decorators import handle_exception
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,7 +14,7 @@ class RequireLogin(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(request, *args, **kwargs):
-            response = SecurityHandler.get()._secure_entry(request, self.policies)
+            response = handle_exception(SecurityHandler.get()._secure_entry, request, self.policies)
             if not response:
                 try:
                     return func(request, *args, **kwargs)

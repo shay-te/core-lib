@@ -176,33 +176,29 @@ class TestFunctionUtils(unittest.TestCase):
         self.assertEqual(dict8['param_4'], 22)
 
     def test_param_index_func(self):
-        def returns_1(param_1, param_2, param_3, param_4=11, param_5=22):
+        def function_with_parameters(param_1, param_2, param_3, param_4=11, param_5=22):
             return 1
 
-        index1 = get_func_parameter_index_by_name(returns_1, "param_1")
+        index1 = get_func_parameter_index_by_name(function_with_parameters, "param_1")
         self.assertEqual(index1, 0)
 
-        index2 = get_func_parameter_index_by_name(returns_1, "param_2")
+        index2 = get_func_parameter_index_by_name(function_with_parameters, "param_2")
         self.assertEqual(index2, 1)
 
-        index3 = get_func_parameter_index_by_name(returns_1, "param_3")
+        index3 = get_func_parameter_index_by_name(function_with_parameters, "param_3")
         self.assertEqual(index3, 2)
 
-        index4 = get_func_parameter_index_by_name(returns_1, "param_4")
+        index4 = get_func_parameter_index_by_name(function_with_parameters, "param_4")
         self.assertEqual(index4, 3)
 
-        index4 = get_func_parameter_index_by_name(returns_1, "param_5")
+        index4 = get_func_parameter_index_by_name(function_with_parameters, "param_5")
         self.assertEqual(index4, 4)
 
         with self.assertRaises(Exception):
-            get_func_parameter_index_by_name(returns_1)
+            get_func_parameter_index_by_name(function_with_parameters)
 
         with self.assertRaises(Exception):
-            get_func_parameter_index_by_name(returns_1, "param_46")
-
-    # def test_get_calling_module(self):
-    #     self.assertNotEqual(get_calling_module(stack_depth=1), None)
-    #     self.assertEqual(get_calling_module(stack_depth=1), "test_function_utils")
+            get_func_parameter_index_by_name(function_with_parameters, "param_46")
 
     def test_reset_date(self):
         dattime = datetime.datetime.utcnow()
