@@ -289,7 +289,7 @@ def api_login(request):
     email = body.get('email')
     password = body.get('pass')
     is_authenticated = core_lib.auth.authnticate(email, password)
-    if is_authenticagted:
+    if is_authenticated:
         user = ...
         get
         the
