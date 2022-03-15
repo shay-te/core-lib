@@ -303,7 +303,7 @@ def generate_data_access_template(db_entities: dict) -> dict:
 
 def generate_job_template() -> dict:
     name = input_str('Enter the name of the job', 'my_job')
-    package_name = input_str('Please enter the package to access the job (my.package.UpdateCache)')
+    class_name = input_str('Please enter the Class Name for the job (UpdateCache)')
     initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)',
                               'startup')
     if initial_delay in ['boot', 'startup']:
@@ -322,9 +322,7 @@ def generate_job_template() -> dict:
         name: {
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'handler': {
-                '_target_': package_name,
-            }
+            'class_name': class_name
         }
     }
 
