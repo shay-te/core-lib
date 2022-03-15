@@ -74,6 +74,10 @@ MyCoreLib:
             name: password
             type: VARCHAR
             default: ''
+          contact:
+            name: contact
+            type: INTEGER
+            default: ''
         is_soft_delete: false
         is_soft_delete_token: false
       migrate: false
