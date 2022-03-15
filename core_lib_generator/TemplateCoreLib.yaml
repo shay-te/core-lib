@@ -7,8 +7,6 @@ MyCoreLib:
     USER_HOST: localhost
     SOLR_HOST: localhost
     SOLR_PORT: 8983
-    MEMCACHED_HOST: localhost
-    MEMCACHED_PORT: 11211
   config:
     data:
       user_db:
@@ -24,14 +22,6 @@ MyCoreLib:
           host: ${oc.env:USER_HOST}
           port: ${oc.env:USER_PORT}
           file: ${oc.env:USER_DB}
-      memory_db:
-        log_queries: false
-        create_db: true
-        session:
-          pool_recycle: 3200
-          pool_pre_ping: false
-        url:
-          protocol: sqlite
       solr:
         url:
           protocol: https
@@ -39,21 +29,19 @@ MyCoreLib:
           port: ${oc.env:SOLR_PORT}
           file: solr/mycore
     cache:
-      type: memcached
-      host: ${oc.env:MEMCACHED_HOST}
-      port: ${oc.env:MEMCACHED_PORT}
+      type: memory
     jobs:
       my_job:
-        initial_delay: 2h30m10s
+        initial_delay: 0s
         frequency: ''
-        class_name: UpdateCache
+        class_name: UpdateUser
   data_layers:
     data:
       User:
         name: User
         columns:
-          name:
-            name: name
+          username:
+            name: username
             type: VARCHAR
             default: ''
           password:
@@ -62,8 +50,8 @@ MyCoreLib:
             default: ''
         is_soft_delete: true
         is_soft_delete_token: false
-      Cust:
-        name: Cust
+      Customer:
+        name: Customer
         columns:
           name:
             name: name
@@ -75,14 +63,18 @@ MyCoreLib:
             default: ''
           contact:
             name: contact
-            type: INTEGER
+            type: VARCHAR
             default: ''
         is_soft_delete: true
         is_soft_delete_token: true
-      migrate: false
+      migrate: true
     data_access:
       user_data_access:
-        entity: user_data_access
-      cust_data_access:
-        entity: cust_data_access
+        entity: User
         is_crud: true
+        is_crud_soft_delete: true
+      customer_data_access:
+        entity: Customer
+        is_crud: true
+        is_crud_soft_delete: true
+        is_crud_soft_delete_token: true

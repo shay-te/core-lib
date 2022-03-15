@@ -6,7 +6,8 @@ import shutil
 import hydra
 
 from core_lib.helpers.string import camel_to_snake, snake_to_camel
-from core_lib_generator.core_lib_file_updater import replace_file_strings, add_columns_to_entity
+from core_lib_generator.generator_file_utils import replace_file_strings, add_columns_to_entity, \
+    add_imports_to_main_class, add_data_access_instances
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -46,19 +47,20 @@ def _clean_template_files(folder_path: str):
 
 if not os.path.isdir(camel_to_snake(core_lib_name)):
     shutil.copytree('template_core_lib', camel_to_snake(core_lib_name), dirs_exist_ok=True)
-    os.rename(
-        f'{camel_to_snake(core_lib_name)}/template_core_lib.py',
-        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}.py',
-    )
-    replace_file_strings(
-        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}.py',
-        'TemplateCoreLib',
-        f'{core_lib_name}',
-    )
+
 if not os.path.isdir(f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}'):
     os.rename(
         f'{camel_to_snake(core_lib_name)}/template_core_lib',
         f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}',
+    )
+    os.rename(
+        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/template_core_lib.py',
+        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}.py',
+    )
+    replace_file_strings(
+        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}.py',
+        'TemplateCoreLib',
+        f'{core_lib_name}',
     )
 
 # Create Entities
@@ -91,7 +93,6 @@ _clean_template_files('data_layers/data/db')
 
 # Create data access for entities
 for name in data_access_list:
-
     if 'is_crud_soft_delete_token' in core_lib_data_access[name]:
         _create_data_access(name, 'template_crud_soft_delete_token_data_access')
     elif 'is_crud_soft_delete' in core_lib_data_access[name]:
@@ -107,9 +108,7 @@ _clean_template_files('data_layers/data_access')
 # Create Job
 jobs = core_lib_config['jobs']
 for name in jobs:
-    new_file_name = (
-        f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/job/{name.lower()}.py'
-    )
+    new_file_name = f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/job/{name.lower()}.py'
     if not os.path.isfile(new_file_name):
         shutil.copy(
             f'{camel_to_snake(core_lib_name)}/{camel_to_snake(core_lib_name)}/job/template.py',
@@ -119,3 +118,8 @@ for name in jobs:
 
 # Clean Template files for jobs
 _clean_template_files('job')
+
+add_imports_to_main_class(data_access_list, '# template_da_imports', core_lib_name)
+add_imports_to_main_class(db_entities_list, '# template_entity_imports', core_lib_name)
+add_data_access_instances(core_lib_data_access, '# template_da_instances', core_lib_name)
+# add_data_handler_instance()

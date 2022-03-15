@@ -1,4 +1,4 @@
-#template_import
+# template_import
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
@@ -7,4 +7,4 @@ from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import Sof
 class Template(Base, SoftDeleteMixin):
     __tablename__ = 'template'
 
-    #template_column
+    # template_column
