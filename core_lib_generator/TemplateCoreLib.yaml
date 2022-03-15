@@ -45,9 +45,8 @@ MyCoreLib:
     jobs:
       my_job:
         initial_delay: 2h30m10s
-        frequency: 0s
-        handler:
-          _target_: my.package.UpdateCache
+        frequency: ''
+        class_name: UpdateCache
   data_layers:
     data:
       User:
@@ -78,8 +77,8 @@ MyCoreLib:
             name: contact
             type: INTEGER
             default: ''
-        is_soft_delete: false
-        is_soft_delete_token: false
+        is_soft_delete: true
+        is_soft_delete_token: true
       migrate: false
     data_access:
       user_data_access:
