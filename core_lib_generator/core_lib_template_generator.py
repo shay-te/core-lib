@@ -258,8 +258,8 @@ def generate_db_entity_template() -> dict:
             if is_soft_delete:
                 is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
         add_entity = input_yes_no('Do you want to add another entity?', False)
-        entities[entity_name] = {
-            'name': entity_name,
+        entities[entity_name.title()] = {
+            'name': entity_name.title(),
             'columns': columns,
             'is_soft_delete': is_soft_delete,
             'is_soft_delete_token': is_soft_delete_token,
@@ -282,21 +282,21 @@ def generate_data_access_template(db_entities: dict) -> dict:
                 'Do you want to implement CRUD Soft Delete Token on your data access?', True
             )
             if is_crud_soft_delete_token:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True, True)
+                data_access[data_access_name] = _generate_data_access_config(entity, True, True, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name)
+                data_access[data_access_name] = _generate_data_access_config(entity)
         elif db_entities[entity]['is_soft_delete'] and not db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete = input_yes_no('Do you want to implement CRUD Soft Delete on your data access?', True)
             if is_crud_soft_delete:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name, True, True)
+                data_access[data_access_name] = _generate_data_access_config(entity, True, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name)
+                data_access[data_access_name] = _generate_data_access_config(entity)
         else:
             is_crud = input_yes_no('Do you want to implement CRUD on your data access?', True)
             if is_crud:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name, True)
+                data_access[data_access_name] = _generate_data_access_config(entity, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(data_access_name)
+                data_access[data_access_name] = _generate_data_access_config(entity)
     print(f'{list(data_access.keys())} created')
     return data_access
 
