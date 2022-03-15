@@ -6,4 +6,3 @@ class MyCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
         self.config = conf
-
