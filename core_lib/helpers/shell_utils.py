@@ -95,6 +95,6 @@ def input_list(list_value: list, title: str, default_value: int = None):
     while result is None:
         user_input = input(f'{title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
-        if is_int(user_input) and int(user_input) <= len(list_value) or int(user_input) > 0:
+        if is_int(user_input) and len(list_value) >= int(user_input) > 0:
             result = list_value[int(user_input) - 1]
     return result

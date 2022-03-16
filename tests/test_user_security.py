@@ -135,7 +135,6 @@ web_util.init(web_util.ServerType.DJANGO)
 
 
 class TestUserSecurity(unittest.TestCase):
-
     @classmethod
     def setUp(cls):
         CoreLib.cache_registry.unregister('test_user_security')
@@ -380,7 +379,6 @@ class TestUserSecurity(unittest.TestCase):
 
         response = no_policy_entry(self._create_request(self.user_inactive))
         self.assertEqual(response.status_code, 200)
-
 
     def test_expiry(self):
         request = self._create_request(self.admin)

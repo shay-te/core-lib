@@ -2,7 +2,7 @@ import enum
 
 from pytimeparse import parse
 
-from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_bool
+from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_bool, input_list
 
 
 class DBTypes(enum.Enum):
@@ -48,16 +48,16 @@ default_db_ports = {
 
 
 def _generate_db_config(
-        db_type: int,
-        db_name: str,
-        db_username: str,
-        db_password: str,
-        db_port: int,
-        db_host: str = 'localhost',
-        db_log_queries: bool = False,
-        db_create: bool = True,
-        db_pool_recycle: int = 3200,
-        db_pool_pre_ping: bool = False,
+    db_type: int,
+    db_name: str,
+    db_username: str,
+    db_password: str,
+    db_port: int,
+    db_host: str = 'localhost',
+    db_log_queries: bool = False,
+    db_create: bool = True,
+    db_pool_recycle: int = 3200,
+    db_pool_pre_ping: bool = False,
 ) -> dict:
     env = {}
     if db_type == DBTypes.SQLite.value:
@@ -95,7 +95,7 @@ def _generate_db_config(
 
 
 def _generate_data_access_config(
-        name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
+    name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
 ) -> dict:
     if crud_soft_delete_token:
         return {
@@ -162,7 +162,16 @@ def generate_db_template() -> dict:
         print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
         add_db = input_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name.lower()}_db'] = _generate_db_config(
-            db_type, db_name, db_username, db_password, db_port, db_host
+            db_type,
+            db_name,
+            db_username,
+            db_password,
+            db_port,
+            db_host,
+            db_log_queries,
+            db_create,
+            db_pool_recycle,
+            db_pool_pre_ping,
         )
     return db_template
 
@@ -220,13 +229,21 @@ def generate_cache_template() -> dict:
         print('No cache set.')
 
 
-def generate_db_entity_template() -> dict:
+def generate_db_entity_template(db_conn_list: list) -> dict:
     entities = {}
     add_entity = True
     while add_entity:
         is_soft_delete = False
         is_soft_delete_token = False
         entity_name = input_str('Enter the name of the database entity you\'d like to create')
+        if len(db_conn_list) > 1:
+            entity_db = input_list(
+                db_conn_list,
+                f'From the following list, select the relevant number of db connection for {entity_name} entity',
+                1,
+            )
+        else:
+            entity_db = db_conn_list[0]
         while entity_name in entities:
             entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         column_count = input_int('How many columns will you have in your entity? ', 0)
@@ -246,7 +263,8 @@ def generate_db_entity_template() -> dict:
                     column_default = input_str(f'Enter the default value of column #{i + 1}', '', True)
                 else:
                     column_default = input_bool(
-                        f'Enter the default value of column #{i + 1} (true, false, 0(false), 1(true))', 'true')
+                        f'Enter the default value of column #{i + 1} (true, false, 0(false), 1(true))', 'true'
+                    )
 
                 columns[column_name] = {
                     'name': column_name,
@@ -260,6 +278,7 @@ def generate_db_entity_template() -> dict:
         add_entity = input_yes_no('Do you want to add another entity?', False)
         entities[entity_name.title()] = {
             'name': entity_name.title(),
+            'db_connection': entity_db,
             'columns': columns,
             'is_soft_delete': is_soft_delete,
             'is_soft_delete_token': is_soft_delete_token,
@@ -275,7 +294,7 @@ def generate_data_access_template(db_entities: dict) -> dict:
     for entity in db_entities:
         data_access_name = input_str(
             f'Please enter the name of the data access you\'d want to create for `{entity}`',
-            f'{entity.lower()}_data_access'
+            f'{entity.lower()}_data_access',
         )
         if db_entities[entity]['is_soft_delete'] and db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete_token = input_yes_no(
@@ -304,8 +323,9 @@ def generate_data_access_template(db_entities: dict) -> dict:
 def generate_job_template() -> dict:
     name = input_str('Enter the name of the job', 'my_job')
     class_name = input_str('Please enter the Class Name for the job (UpdateCache)')
-    initial_delay = input_str('Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)',
-                              'startup')
+    initial_delay = input_str(
+        'Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)', 'startup'
+    )
     if initial_delay in ['boot', 'startup']:
         initial_delay = '0s'
     while parse(initial_delay) is None:
@@ -314,18 +334,10 @@ def generate_job_template() -> dict:
         )
     frequency = input_str('Please set the frequency of the job (1s, 1m, 1h, 1h30m ...)', '', True)
     while frequency and parse(frequency) is None:
-        frequency = input_str(
-            'Please input a relevant value for frequency (1s, 1m, 1h, 1h30m ...)', '', True
-        )
+        frequency = input_str('Please input a relevant value for frequency (1s, 1m, 1h, 1h30m ...)', '', True)
     print(f'{name} job created')
-    return {
-        name: {
-            'initial_delay': initial_delay,
-            'frequency': frequency,
-            'class_name': class_name
-        }
-    }
+    return {name: {'initial_delay': initial_delay, 'frequency': frequency, 'class_name': class_name}}
 
 
 if __name__ == "__main__":
-    print(generate_db_template())
+    print(generate_db_entity_template(['user', 'memoer']))

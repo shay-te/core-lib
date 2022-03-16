@@ -35,6 +35,24 @@ if want_db:
     env.update(_get_env_variables(db))
     for db_name in db:
         config['data'][db_name] = db[db_name]['config']
+    want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
+    if want_entities:
+        print('Please fill out the requested information for creating entities in Database.')
+        db_entity = generate_db_entity_template(list(db.keys()))
+        data_layers.setdefault('data', {})
+        for entity_name in db_entity:
+            data_layers['data'][entity_name] = db_entity[entity_name]
+
+        want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)
+        if want_data_access:
+            print('Please fill out the requested information for creating Data Access for entities.')
+            data_access = generate_data_access_template(db_entity)
+            data_layers.setdefault('data_access', {})
+            data_layers['data_access'] = data_access
+            for da_name in data_layers['data_access']:
+                entity = data_layers['data_access'][da_name]['entity']
+                db_connection = data_layers['data'][entity]['db_connection']
+                data_layers['data_access'][da_name]['db_connection'] = db_connection
 
 want_solr = input_yes_no('\nWill you be using Solr?', False)
 if want_solr:
@@ -56,22 +74,6 @@ if want_job:
     print('Please fill out the requested information for Job.')
     job = generate_job_template()
     config['jobs'] = job
-
-if want_db:
-    want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
-    if want_entities:
-        print('Please fill out the requested information for creating entities in Database.')
-        db_entity = generate_db_entity_template()
-        data_layers.setdefault('data', {})
-        for entity_name in db_entity:
-            data_layers['data'][entity_name] = db_entity[entity_name]
-
-        want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)
-        if want_data_access:
-            print('Please fill out the requested information for creating Data Access for entities.')
-            data_access = generate_data_access_template(db_entity)
-            data_layers.setdefault('data_access', {})
-            data_layers['data_access'] = data_access
 
 
 conf = OmegaConf.create(
