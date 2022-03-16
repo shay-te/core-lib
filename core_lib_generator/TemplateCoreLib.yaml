@@ -16,12 +16,7 @@ MyCoreLib:
           pool_recycle: 3200
           pool_pre_ping: false
         url:
-          protocol: postgresql
-          username: ${oc.env:USER_USER}
-          password: ${oc.env:USER_PASSWORD}
-          host: ${oc.env:USER_HOST}
-          port: ${oc.env:USER_PORT}
-          file: ${oc.env:USER_DB}
+          protocol: sqlite
       solr:
         url:
           protocol: https
@@ -29,7 +24,9 @@ MyCoreLib:
           port: ${oc.env:SOLR_PORT}
           file: solr/mycore
     cache:
-      type: memory
+      type: memcached
+      host: localhost
+      port: 4444
     jobs:
       my_job:
         initial_delay: 0s
@@ -39,6 +36,7 @@ MyCoreLib:
     data:
       User:
         name: User
+        db_connection: user_db
         columns:
           username:
             name: username
@@ -52,6 +50,7 @@ MyCoreLib:
         is_soft_delete_token: false
       Customer:
         name: Customer
+        db_connection: user_db
         columns:
           name:
             name: name
@@ -73,8 +72,10 @@ MyCoreLib:
         entity: User
         is_crud: true
         is_crud_soft_delete: true
+        db_connection: user_db
       customer_data_access:
         entity: Customer
         is_crud: true
         is_crud_soft_delete: true
         is_crud_soft_delete_token: true
+        db_connection: user_db

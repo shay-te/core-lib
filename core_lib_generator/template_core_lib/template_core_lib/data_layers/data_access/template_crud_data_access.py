@@ -5,5 +5,5 @@ from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class TemplateCRUDDataAccess(CRUDDataAccess):
-    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator):
+    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
         CRUD.__init__(self, db_entity, db, rule_validator)

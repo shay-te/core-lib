@@ -1,16 +1,14 @@
-import fileinput
 from pathlib import Path
 
-import hydra
 
-from core_lib.helpers.string import camel_to_snake, snake_to_camel
+from core_lib.helpers.string import snake_to_camel
 
 
 def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> str:
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {camel_to_snake(core_lib_name)}.data_layers.data_access.{da_name} import {snake_to_camel(da_name)}'
+            f'from {core_lib_name}.{core_lib_name}.data_layers.data_access.{da_name} import {snake_to_camel(da_name)}'
         )
     return '\n'.join(da_imports)
 
@@ -19,9 +17,17 @@ def _create_entity_imports(db_entities_list: list, core_lib_name: str) -> str:
     entity_imports = []
     for entity_name in db_entities_list:
         entity_imports.append(
-            f'from {camel_to_snake(core_lib_name)}.data_layers.db.{entity_name.lower()} import {entity_name}'
+            f'from {core_lib_name}.{core_lib_name}.data_layers.data.db.{entity_name.lower()} import {entity_name}'
         )
     return '\n'.join(entity_imports)
+
+
+def _create_job_imports(job_list: list, core_lib_name: str, jobs: dict) -> str:
+    job_imports = []
+    for job_name in job_list:
+        class_name = jobs[job_name]['class_name']
+        job_imports.append(f'from {core_lib_name}.{core_lib_name}.jobs.{job_name.lower()} import {class_name}')
+    return '\n'.join(job_imports)
 
 
 def replace_file_strings(filename: str, old_string: str, new_string: str) -> bool:
@@ -36,66 +42,24 @@ def replace_file_strings(filename: str, old_string: str, new_string: str) -> boo
         return True
 
 
-def add_columns_to_entity(filename: str, columns: dict):
-    import_data_types = ['INTEGER']
-    id_str = 'id = Column(INTEGER, primary_key=True, nullable=False)'
-    columns_str = [id_str.rjust(len(id_str)+4)]
-    for key in columns:
-        import_data_types.append(columns[key]['type'])
-        column_type = columns[key]['type']
-        default = None if not columns[key]['default'] else columns[key]['default']
-        columns_str.append(f'{key:>{len(key) + 4}} = Column({column_type}, nullable=False, default={default})')
+def replace_file_line(filename: str, old_line: str, new_line: str):
     with open(filename) as fd:
         path = Path(filename)
         text = path.read_text()
         for line in fd:
             line = line.rstrip()
-            if '# template_column' in line:
-                new_line = '\n'.join(columns_str)
-                text = text.replace(line, new_line)
-                path.write_text(text)
-            imports_to_add = ', '.join(set(import_data_types))
-            if '# template_import' in line:
-                new_line = f'from sqlalchemy import Column, {imports_to_add}'
+            if old_line in line:
                 text = text.replace(line, new_line)
                 path.write_text(text)
 
 
-def add_imports_to_main_class(import_list: list, template_name: str, core_lib_name: str):
+def add_imports_to_main_class(import_list: list, template_name: str, core_lib_name: str, data: dict = None):
     import_str = ''
-    snake_core_lib_name = camel_to_snake(core_lib_name)
-    filename = f'{snake_core_lib_name}/{snake_core_lib_name}/{snake_core_lib_name}.py'
+    filename = f'{core_lib_name}/{core_lib_name}/{core_lib_name}.py'
     if 'da' in template_name:
         import_str = _create_data_access_imports(import_list, core_lib_name)
     elif 'entity' in template_name:
         import_str = _create_entity_imports(import_list, core_lib_name)
-    with open(filename) as fd:
-        path = Path(filename)
-        text = path.read_text()
-        for line in fd:
-            line = line.rstrip()
-            if template_name in line:
-                new_line = import_str
-                text = text.replace(line, new_line)
-                path.write_text(text)
-
-
-def add_data_access_instances(da_data: dict, template_name: str, core_lib_name: str):
-    inst_list = []
-    snake_core_lib_name = camel_to_snake(core_lib_name)
-    filename = f'{snake_core_lib_name}/{snake_core_lib_name}/{snake_core_lib_name}.py'
-    for name in da_data:
-        entity = da_data[name]['entity']
-        inst_str = f'self.{entity.lower()} = {snake_to_camel(name)}({entity.title()}, db_data_session)'
-        inst_list.append(
-            inst_str.rjust(len(inst_str)+8)
-        )
-    with open(filename) as fd:
-        path = Path(filename)
-        text = path.read_text()
-        for line in fd:
-            line = line.rstrip()
-            if template_name in line:
-                new_line = '\n'.join(inst_list)
-                text = text.replace(line, new_line)
-                path.write_text(text)
+    elif 'job' in template_name:
+        import_str = _create_job_imports(import_list, core_lib_name, data)
+    replace_file_line(filename, template_name, import_str)

@@ -3,7 +3,7 @@ def build_url(
     username: str = None,
     password: str = None,
     host: str = None,
-    port: str = None,
+    port: int = None,
     path: str = None,
     file: str = None,
     *args,

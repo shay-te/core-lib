@@ -1,9 +1,0 @@
-defaults:
-  - core_lib
-  - template_core_lib
-
-core_lib_module: template_core_lib
-
-hydra:
-  run:
-    dir: .
