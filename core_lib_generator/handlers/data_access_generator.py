@@ -36,7 +36,7 @@ class DataAccessGenerateTemplate(TemplateGenerate):
 def add_data_access_instances(da_data: dict, core_lib_name: str):
     inst_list = []
     handler_list = []
-    filename = f'{core_lib_name}/{core_lib_name}/{core_lib_name}.py'
+    filename = f'{core_lib_name}/core_lib/{core_lib_name}.py'
     replace_file_line(
         filename,
         '# template_data_handlers_imports',
@@ -51,16 +51,3 @@ def add_data_access_instances(da_data: dict, core_lib_name: str):
         handler_list.append(handler_str.rjust(len(handler_str) + 8))
     replace_file_line(filename, '# template_da_instances', '\n'.join(inst_list))
     replace_file_line(filename, '# template_data_handlers', '\n'.join(set(handler_list)))
-
-
-def generate_data_access(data_access: dict, core_lib_name: str):
-    data_access_list = list(data_access.keys())
-    for name in data_access_list:
-        if 'is_crud_soft_delete_token' in data_access[name]:
-            _create_data_access(name, 'template_crud_soft_delete_token_data_access', core_lib_name)
-        elif 'is_crud_soft_delete' in data_access[name]:
-            _create_data_access(name, 'template_crud_soft_delete_data_access', core_lib_name)
-        elif 'is_crud' in data_access[name]:
-            _create_data_access(name, 'template_crud_data_access', core_lib_name)
-        else:
-            _create_data_access(name, 'template_data_access', core_lib_name)

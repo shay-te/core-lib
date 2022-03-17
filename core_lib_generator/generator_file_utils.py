@@ -8,7 +8,7 @@ def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> s
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data_access.{da_name} import {snake_to_camel(da_name)}'
+            f'from {core_lib_name}.core_lib.data_layers.data_access.{da_name} import {snake_to_camel(da_name)}'
         )
     return '\n'.join(da_imports)
 
@@ -17,7 +17,7 @@ def _create_entity_imports(db_entities_list: list, core_lib_name: str) -> str:
     entity_imports = []
     for entity_name in db_entities_list:
         entity_imports.append(
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data.db.{entity_name.lower()} import {entity_name}'
+            f'from {core_lib_name}.core_lib.data_layers.data.db.{entity_name.lower()} import {entity_name}'
         )
     return '\n'.join(entity_imports)
 
@@ -26,7 +26,7 @@ def _create_job_imports(job_list: list, core_lib_name: str, jobs: dict) -> str:
     job_imports = []
     for job_name in job_list:
         class_name = jobs[job_name]['class_name']
-        job_imports.append(f'from {core_lib_name}.{core_lib_name}.jobs.{job_name.lower()} import {class_name}')
+        job_imports.append(f'from {core_lib_name}.core_lib.jobs.{job_name.lower()} import {class_name}')
     return '\n'.join(job_imports)
 
 
@@ -55,7 +55,7 @@ def replace_file_line(filename: str, old_line: str, new_line: str):
 
 def add_imports_to_main_class(import_list: list, template_name: str, core_lib_name: str, data: dict = None):
     import_str = ''
-    filename = f'{core_lib_name}/{core_lib_name}/{core_lib_name}.py'
+    filename = f'{core_lib_name}/core_lib/{core_lib_name}.py'
     if 'da' in template_name:
         import_str = _create_data_access_imports(import_list, core_lib_name)
     elif 'entity' in template_name:
