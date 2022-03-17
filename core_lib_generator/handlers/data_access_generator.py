@@ -6,6 +6,18 @@ from core_lib_generator.generator_file_utils import replace_file_strings, replac
 from core_lib_generator.handlers.template_generate import TemplateGenerate
 
 
+class DataAccessGenerateTemplate(TemplateGenerate):
+    def handle(self, template_path: str, yaml_data: dict):
+        if 'is_crud_soft_delete_token' in yaml_data:
+            _create_data_access(template_path, 'template_crud_soft_delete_token_data_access', yaml_data['name'])
+        elif 'is_crud_soft_delete' in yaml_data:
+            _create_data_access(template_path, 'template_crud_soft_delete_data_access', yaml_data['name'])
+        elif 'is_crud' in yaml_data:
+            _create_data_access(template_path, 'template_crud_data_access', yaml_data['name'])
+        else:
+            _create_data_access(template_path, 'template_data_access', yaml_data['name'])
+
+
 def _create_data_access(file_path: str, data_access_type: str, name: str):
     template_class_name = snake_to_camel(data_access_type).replace('Crud', 'CRUD')
     da_file_name = f'{file_path}'
@@ -19,18 +31,6 @@ def _create_data_access(file_path: str, data_access_type: str, name: str):
             f'{template_class_name}',
             f'{snake_to_camel(name)}',
         )
-
-
-class DataAccessGenerateTemplate(TemplateGenerate):
-    def handle(self, template_path: str, yaml_data: dict):
-        if 'is_crud_soft_delete_token' in yaml_data:
-            _create_data_access(template_path, 'template_crud_soft_delete_token_data_access', yaml_data['name'])
-        elif 'is_crud_soft_delete' in yaml_data:
-            _create_data_access(template_path, 'template_crud_soft_delete_data_access', yaml_data['name'])
-        elif 'is_crud' in yaml_data:
-            _create_data_access(template_path, 'template_crud_data_access', yaml_data['name'])
-        else:
-            _create_data_access(template_path, 'template_data_access', yaml_data['name'])
 
 
 def add_data_access_instances(da_data: dict, core_lib_name: str):

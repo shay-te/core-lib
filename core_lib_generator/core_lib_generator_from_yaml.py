@@ -10,6 +10,7 @@ from core_lib_generator.generator_file_utils import add_imports_to_main_class
 from core_lib_generator.handlers.data_access_generator import DataAccessGenerateTemplate, add_data_access_instances
 from core_lib_generator.handlers.entity_generator import EntityGenerateTemplate
 from core_lib_generator.handlers.jobs_generator import add_job_instances, generate_jobs
+from core_lib_generator.handlers.template_generate import TemplateGenerate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -45,8 +46,10 @@ class CoreLibGenerator:
         for current_folder, _, _ in folder_iter:
             open(f'{current_folder}/__init__.py', 'w').close()
 
-    def generate_template(self, template_path: str, yaml_data: dict, template_generate):
+    def _generate_template(self, template_path: str, yaml_data: dict, template_generate):
+        # read the file, pass it to the handle function
         template_generate.handle(self, template_path, yaml_data)
+        # write it to file
 
     def generate_core_lib_structure(self):
         os.makedirs(f'{self.snake_core_lib_name}/core_lib/config', exist_ok=True)
@@ -60,7 +63,7 @@ class CoreLibGenerator:
         if self.core_lib_data_access:
             os.makedirs(f'{self.snake_core_lib_name}/core_lib/data_layers/data_access', exist_ok=True)
             for da_name in self.core_lib_data_access:
-                self.generate_template(
+                self._generate_template(
                     f'{self.snake_core_lib_name}/core_lib/data_layers/data_access/{da_name}.py',
                     self.core_lib_data_access[da_name],
                     DataAccessGenerateTemplate,
@@ -69,11 +72,13 @@ class CoreLibGenerator:
             add_data_access_instances(self.core_lib_data_access, self.snake_core_lib_name)
             self._add_init_file()
 
+    def _write_content(self, template_generator: TemplateGenerate, ):
+
     def generate_entities(self):
         if self.core_lib_entities:
             os.makedirs(f'{self.snake_core_lib_name}/core_lib/data_layers/data/db/entities', exist_ok=True)
             for entity_name in self.db_entities_list:
-                self.generate_template(
+                self._generate_template(
                     f'{self.snake_core_lib_name}/core_lib/data_layers/data/db/entities/{entity_name.lower()}.py',
                     self.core_lib_entities[entity_name],
                     EntityGenerateTemplate,
