@@ -1,0 +1,26 @@
+# @package _global_
+core_lib:
+  data:
+    user_db:
+      log_queries: false
+      create_db: true
+      session:
+        pool_recycle: 3200
+        pool_pre_ping: false
+      url:
+        protocol: sqlite
+    solr:
+      url:
+        protocol: https
+        host: ${oc.env:SOLR_HOST}
+        port: ${oc.env:SOLR_PORT}
+        file: solr/mycore
+  cache:
+    type: memcached
+    host: localhost
+    port: 4444
+  jobs:
+    my_job:
+      initial_delay: 0s
+      frequency: ''
+      class_name: UpdateUser

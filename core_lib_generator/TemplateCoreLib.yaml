@@ -1,4 +1,4 @@
-MyCoreLib:
+TestCoreLib:
   env:
     USER_USER: user
     USER_PASSWORD: password
@@ -69,11 +69,13 @@ MyCoreLib:
       migrate: true
     data_access:
       user_data_access:
+        name: user_data_access
         entity: User
         is_crud: true
         is_crud_soft_delete: true
         db_connection: user_db
       customer_data_access:
+        name: customer_data_access
         entity: Customer
         is_crud: true
         is_crud_soft_delete: true
