@@ -3,6 +3,7 @@ import enum
 from pytimeparse import parse
 
 from core_lib.helpers.shell_utils import input_enum, input_str, input_yes_no, input_int, input_bool, input_list
+from core_lib.helpers.string import convert_to_camel
 
 
 class DBTypes(enum.Enum):
@@ -95,7 +96,11 @@ def _generate_db_config(
 
 
 def _generate_data_access_config(
-    name: str, entity_name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
+    name: str,
+    entity_name: str,
+    crud: bool = False,
+    crud_soft_delete: bool = False,
+    crud_soft_delete_token: bool = False,
 ) -> dict:
     if crud_soft_delete_token:
         return {
@@ -239,7 +244,9 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
     while add_entity:
         is_soft_delete = False
         is_soft_delete_token = False
-        entity_name = input_str('Enter the name of the database entity you\'d like to create')
+        entity_name = convert_to_camel(input_str('Enter the name of the database entity you\'d like to create'))
+        while entity_name in entities:
+            entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         if len(db_conn_list) > 1:
             entity_db = input_list(
                 db_conn_list,
@@ -248,8 +255,6 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
             )
         else:
             entity_db = db_conn_list[0]
-        while entity_name in entities:
-            entity_name = input_str(f'Entity with name `{entity_name}` already created, please enter a different name')
         column_count = input_int('How many columns will you have in your entity? ', 0)
         columns = {}
         if column_count != 0:
@@ -280,8 +285,8 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
             if is_soft_delete:
                 is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
         add_entity = input_yes_no('Do you want to add another entity?', False)
-        entities[entity_name.title()] = {
-            'name': entity_name.title(),
+        entities[entity_name] = {
+            'name': entity_name,
             'db_connection': entity_db,
             'columns': columns,
             'is_soft_delete': is_soft_delete,
@@ -296,9 +301,11 @@ def generate_data_access_template(db_entities: dict) -> dict:
     data_access = {}
     db_entities.pop('migrate', None)
     for entity in db_entities:
-        data_access_name = input_str(
-            f'Please enter the name of the data access you\'d want to create for `{entity}`',
-            f'{entity.lower()}_data_access',
+        data_access_name = convert_to_camel(
+            input_str(
+                f'Please enter the name of the data access you\'d want to create for `{entity}`',
+                f'{entity}DataAccess',
+            )
         )
         if db_entities[entity]['is_soft_delete'] and db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete_token = input_yes_no(
@@ -326,7 +333,7 @@ def generate_data_access_template(db_entities: dict) -> dict:
 
 def generate_job_template() -> dict:
     name = input_str('Enter the name of the job', 'my_job')
-    class_name = input_str('Please enter the Class Name for the job (UpdateCache)')
+    class_name = convert_to_camel(input_str('Please enter the Class Name for the job (UpdateCache)'))
     initial_delay = input_str(
         'Please set the initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)', 'startup'
     )
@@ -340,8 +347,14 @@ def generate_job_template() -> dict:
     while frequency and parse(frequency) is None:
         frequency = input_str('Please input a relevant value for frequency (1s, 1m, 1h, 1h30m ...)', '', True)
     print(f'{name} job created')
-    return {name: {'initial_delay': initial_delay, 'frequency': frequency, 'class_name': class_name}}
+    return {
+        name: {
+            'initial_delay': initial_delay,
+            'frequency': frequency,
+            'handler': {'_target_': f'core_lib.jobs.{class_name}'},
+        }
+    }
 
 
 if __name__ == "__main__":
-    print(generate_db_entity_template(['user', 'memoer']))
+    print(generate_db_entity_template(['user', 'memory']))
