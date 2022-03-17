@@ -95,29 +95,33 @@ def _generate_db_config(
 
 
 def _generate_data_access_config(
-    name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
+    name: str, entity_name: str, crud: bool = False, crud_soft_delete: bool = False, crud_soft_delete_token: bool = False
 ) -> dict:
     if crud_soft_delete_token:
         return {
-            'entity': name,
+            'name': name,
+            'entity': entity_name,
             'is_crud': True,
             'is_crud_soft_delete': True,
             'is_crud_soft_delete_token': True,
         }
     elif crud_soft_delete:
         return {
-            'entity': name,
+            'name': name,
+            'entity': entity_name,
             'is_crud': True,
             'is_crud_soft_delete': True,
         }
     elif crud:
         return {
-            'entity': name,
+            'name': name,
+            'entity': entity_name,
             'is_crud': True,
         }
     else:
         return {
-            'entity': name,
+            'name': name,
+            'entity': entity_name,
         }
 
 
@@ -301,21 +305,21 @@ def generate_data_access_template(db_entities: dict) -> dict:
                 'Do you want to implement CRUD Soft Delete Token on your data access?', True
             )
             if is_crud_soft_delete_token:
-                data_access[data_access_name] = _generate_data_access_config(entity, True, True, True)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity, True, True, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(entity)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity)
         elif db_entities[entity]['is_soft_delete'] and not db_entities[entity]['is_soft_delete_token']:
             is_crud_soft_delete = input_yes_no('Do you want to implement CRUD Soft Delete on your data access?', True)
             if is_crud_soft_delete:
-                data_access[data_access_name] = _generate_data_access_config(entity, True, True)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity, True, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(entity)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity)
         else:
             is_crud = input_yes_no('Do you want to implement CRUD on your data access?', True)
             if is_crud:
-                data_access[data_access_name] = _generate_data_access_config(entity, True)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity, True)
             else:
-                data_access[data_access_name] = _generate_data_access_config(entity)
+                data_access[data_access_name] = _generate_data_access_config(data_access_name, entity)
     print(f'{list(data_access.keys())} created')
     return data_access
 
