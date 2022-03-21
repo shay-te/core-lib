@@ -54,8 +54,9 @@ def _generate_data_access_config(
 def generate_data_access_template(db_entities: dict) -> dict:
     data_access = {}
     for db_conn in db_entities:
-        db_entities[db_conn].pop('migrate', None)
         for entity in db_entities[db_conn]:
+            if entity == 'migrate':
+                continue
             default = (
                 f'{entity.capitalize()}DataAccess' if f'{entity.capitalize()}DataAccess' not in data_access else None
             )

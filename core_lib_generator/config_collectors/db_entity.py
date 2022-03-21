@@ -56,17 +56,13 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
                 if is_soft_delete:
                     is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
             add_entity = input_yes_no('Do you want to add another entity?', False)
-            entities[db_conn].update(
-                {
-                    entity_name: {
+            entities[db_conn][entity_name] = {
                         'name': entity_name,
                         'db_connection': db_conn,
                         'columns': columns,
                         'is_soft_delete': is_soft_delete,
                         'is_soft_delete_token': is_soft_delete_token,
                     }
-                }
-            )
         migrate = input_yes_no('Do you want to create a migration for these entities?', False)
         entities[db_conn]['migrate'] = migrate
     return entities
