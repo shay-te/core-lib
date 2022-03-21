@@ -1,17 +1,13 @@
-import re
-
 from omegaconf import OmegaConf
 
 from core_lib.helpers.shell_utils import input_str, input_yes_no
-from core_lib.helpers.string import convert_to_camel
-from core_lib_generator.core_lib_template_generator import (
-    generate_db_template,
-    generate_solr_template,
-    generate_cache_template,
-    generate_db_entity_template,
-    generate_data_access_template,
-    generate_job_template,
-)
+from core_lib.helpers.string import any_to_camel
+from core_lib_generator.config_collectors.cache import generate_cache_template
+from core_lib_generator.config_collectors.data_access import generate_data_access_template
+from core_lib_generator.config_collectors.database import generate_db_template
+from core_lib_generator.config_collectors.db_entity import generate_db_entity_template
+from core_lib_generator.config_collectors.job import generate_job_template
+from core_lib_generator.config_collectors.solr import generate_solr_template
 
 
 def _get_env_variables(data):
@@ -24,13 +20,13 @@ def _get_env_variables(data):
         return env_variables
 
 
-def get_data_from_user():
-    config = {}
-    config.setdefault('data', {})
-    env = {}
-    data_layers = {}
-    core_lib_name = convert_to_camel(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
+config = {}
+config.setdefault('data', {})
+env = {}
+data_layers = {}
 
+
+def _get_data_layers_config():
     want_db = input_yes_no('Will you be using a Database?', True)
     if want_db:
         print('Please fill out the requested Database information.')
@@ -52,32 +48,30 @@ def get_data_from_user():
                 data_access = generate_data_access_template(db_entity)
                 data_layers.setdefault('data_access', {})
                 data_layers['data_access'] = data_access
-                for da_name in data_layers['data_access']:
-                    entity = data_layers['data_access'][da_name]['entity']
-                    db_connection = data_layers['data'][entity]['db_connection']
-                    data_layers['data_access'][da_name]['db_connection'] = db_connection
 
-    want_solr = input_yes_no('\nWill you be using Solr?', False)
-    if want_solr:
-        print('Please fill out the requested solr information.')
-        solr = generate_solr_template()
-        env.update(_get_env_variables(solr))
-        config['data']['solr'] = solr['config']
 
-    want_cache = input_yes_no('\nWould you like to use cache?', True)
-    if want_cache:
-        print('Please fill out the requested Cache information.')
-        cache = generate_cache_template()
-        if 'env' in cache:
-            env.update(_get_env_variables(cache))
-        config['cache'] = cache['config']
+def _get_solr_config():
+    print('Please fill out the requested solr information.')
+    solr = generate_solr_template()
+    env.update(_get_env_variables(solr))
+    config['data']['solr'] = solr['config']
 
-    want_job = input_yes_no('\nWould you like to create a Job?', False)
-    if want_job:
-        print('Please fill out the requested information for Job.')
-        job = generate_job_template()
-        config['jobs'] = job
 
+def _get_cache_config():
+    print('Please fill out the requested Cache information.')
+    cache = generate_cache_template()
+    if 'env' in cache:
+        env.update(_get_env_variables(cache))
+    config['cache'] = cache['config']
+
+
+def _get_jobs_config():
+    print('Please fill out the requested information for Job.')
+    job = generate_job_template()
+    config['jobs'] = job
+
+
+def create_yaml_file(core_lib_name: str):
     conf = OmegaConf.create(
         {
             core_lib_name: {
@@ -90,6 +84,26 @@ def get_data_from_user():
 
     with open(f'{core_lib_name}.yaml', 'w+') as file:
         OmegaConf.save(config=conf, f=file.name)
+
+
+def get_data_from_user():
+    core_lib_name = any_to_camel(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
+
+    _get_data_layers_config()
+
+    want_solr = input_yes_no('\nWill you be using Solr?', False)
+    if want_solr:
+        _get_solr_config()
+
+    want_cache = input_yes_no('\nWould you like to use cache?', True)
+    if want_cache:
+        _get_cache_config()
+
+    want_job = input_yes_no('\nWould you like to create a Job?', False)
+    if want_job:
+        _get_jobs_config()
+
+    create_yaml_file(core_lib_name)
 
 
 if __name__ == '__main__':

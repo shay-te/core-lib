@@ -1,70 +1,107 @@
-TemplateCoreLib:
+MyCoreLib:
   env:
+    USER_DATA_USER: user
+    USER_DATA_PASSWORD: password
+    USER_DATA_PORT: 5432
+    USER_DATA_DB: user_data
+    USER_DATA_HOST: localhost
+    CUSTOMER_DATA_USER: user
+    CUSTOMER_DATA_PASSWORD: password
+    CUSTOMER_DATA_PORT: 5432
+    CUSTOMER_DATA_DB: customer_data
+    CUSTOMER_DATA_HOST: localhost
+    SOLR_HOST: localhost
+    SOLR_PORT: 8983
     MEMCACHED_HOST: localhost
     MEMCACHED_PORT: 11211
   config:
     data:
-      user_db:
+      user_data:
         log_queries: false
         create_db: true
         session:
           pool_recycle: 3200
           pool_pre_ping: false
         url:
-          protocol: sqlite
+          protocol: postgresql
+          username: ${oc.env:USER_DATA_USER}
+          password: ${oc.env:USER_DATA_PASSWORD}
+          host: ${oc.env:USER_DATA_HOST}
+          port: ${oc.env:USER_DATA_PORT}
+          file: ${oc.env:USER_DATA_DB}
+      customer_data:
+        log_queries: false
+        create_db: true
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
+        url:
+          protocol: postgresql
+          username: ${oc.env:CUSTOMER_DATA_USER}
+          password: ${oc.env:CUSTOMER_DATA_PASSWORD}
+          host: ${oc.env:CUSTOMER_DATA_HOST}
+          port: ${oc.env:CUSTOMER_DATA_PORT}
+          file: ${oc.env:CUSTOMER_DATA_DB}
+      solr:
+        url:
+          protocol: https
+          host: ${oc.env:SOLR_HOST}
+          port: ${oc.env:SOLR_PORT}
+          file: solr/mycore
     cache:
       type: memcached
-      host: ${oc.env:MEMCACHED_HOST}
-      port: ${oc.env:MEMCACHED_PORT}
+      url:
+        host: ${oc.env:MEMCACHED_HOST}
+        port: ${oc.env:MEMCACHED_PORT}
     jobs:
       my_job:
         initial_delay: 0s
         frequency: ''
         handler:
-          _target_: core_lib.jobs.UpdateUser
+          _target_: core_lib.jobs.UpdatecustomerDetails
   data_layers:
     data:
-      User:
-        name: User
-        db_connection: user_db
-        columns:
-          username:
-            name: username
-            type: VARCHAR
-            default: ''
-          password:
-            name: password
-            type: VARCHAR
-            default: ''
-        is_soft_delete: true
-        is_soft_delete_token: false
-      Customer:
-        name: Customer
-        db_connection: user_db
-        columns:
-          name:
-            name: name
-            type: VARCHAR
-            default: ''
-          password:
-            name: password
-            type: VARCHAR
-            default: ''
-          contact:
-            name: contact
-            type: INTEGER
-            default: 0
-        is_soft_delete: true
-        is_soft_delete_token: true
-      migrate: true
+      user_data:
+        details:
+          name: details
+          db_connection: user_data
+          columns:
+            name:
+              name: name
+              type: VARCHAR
+              default: ''
+            address:
+              name: address
+              type: VARCHAR
+              default: ''
+          is_soft_delete: true
+          is_soft_delete_token: true
+      customer_data:
+        details:
+          name: details
+          db_connection: customer_data
+          columns:
+            name:
+              name: name
+              type: VARCHAR
+              default: ''
+            contact:
+              name: contact
+              type: VARCHAR
+              default: ''
+          is_soft_delete: true
+          is_soft_delete_token: false
     data_access:
-      UserDataAccess:
-        name: UserDataAccess
-        entity: User
+      DetailsDataAccess:
+        name: DetailsDataAccess
+        entity: details
+        db_connection: user_data
         is_crud: true
         is_crud_soft_delete: true
-        db_connection: user_db
-      CustomerDataAccess:
-        name: CustomerDataAccess
-        entity: Customer
-        db_connection: user_db
+        is_crud_soft_delete_token: true
+      CustDetailsDataAccess:
+        name: CustDetailsDataAccess
+        entity: details
+        db_connection: customer_data
+        is_crud: true
+        is_crud_soft_delete: true
