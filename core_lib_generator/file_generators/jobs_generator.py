@@ -7,10 +7,11 @@ from core_lib_generator.generator_file_utils import replace_file_strings, replac
 
 class JobsGenerateTemplate(TemplateGenerate):
     def handle(self, template_file: str, yaml_data: dict):
-        print(yaml_data)
+        job_class = yaml_data['handler']['_target_'].split('.')[-1]
+        return template_file.replace('Template', job_class)
 
-    def get_template_data(self, yaml_data: dict) -> str:
-        pass
+    def get_template_file(self, yaml_data: dict) -> str:
+        return 'template_core_lib/core_lib/jobs/template.py'
 
 
 def add_job_instances(jobs: dict, core_lib_name: str):

@@ -7,5 +7,5 @@ class TemplateGenerate(ABC):
         pass
 
     @abstractmethod
-    def get_template_data(self, yaml_data: dict) -> str:
+    def get_template_file(self, yaml_data: dict) -> str:
         pass

@@ -1,14 +1,14 @@
 from pathlib import Path
 
 
-from core_lib.helpers.string import snake_to_camel
+from core_lib.helpers.string import snake_to_camel, camel_to_snake
 
 
 def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> str:
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {core_lib_name}.core_lib.data_layers.data_access.{da_name} import {snake_to_camel(da_name)}'
+            f'from {core_lib_name}.core_lib.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
         )
     return '\n'.join(da_imports)
 

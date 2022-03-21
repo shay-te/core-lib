@@ -1,4 +1,4 @@
-from sqlalchemy import Column, VARCHAR, INTEGER
+from sqlalchemy import Column, INTEGER, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin

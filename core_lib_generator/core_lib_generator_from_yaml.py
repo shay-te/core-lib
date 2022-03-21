@@ -9,7 +9,7 @@ from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.generator_file_utils import add_imports_to_main_class
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate, add_data_access_instances
 from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
-from core_lib_generator.file_generators.jobs_generator import add_job_instances, generate_jobs
+from core_lib_generator.file_generators.jobs_generator import add_job_instances, generate_jobs, JobsGenerateTemplate
 from core_lib_generator.file_generators.template_generate import TemplateGenerate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
@@ -45,7 +45,7 @@ class CoreLibGenerator:
 
     def _generate_template(self, file_path: str, yaml_data: dict, template_generate):
         generator = template_generate()
-        with open(generator.get_template_data(yaml_data), 'r') as template_file:
+        with open(generator.get_template_file(yaml_data), 'r') as template_file:
             new_file = generator.handle(template_file.read(), yaml_data)
         with open(file_path, 'w') as file:
             file.write(new_file)
@@ -97,12 +97,12 @@ class CoreLibGenerator:
         if self.core_lib_jobs:
             for name in self.core_lib_jobs:
                 os.makedirs(
-                    f'{self.snake_core_lib_name}/core_lib/jobs/{name}', exist_ok=True
+                    f'{self.snake_core_lib_name}/core_lib/jobs/', exist_ok=True
                 )
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/core_lib/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
-                    self.core_lib_entities[db_conn_name][entity_name],
-                    EntityGenerateTemplate,
+                    f'{self.snake_core_lib_name}/core_lib/jobs/{name}.py',
+                    self.core_lib_jobs[name],
+                    JobsGenerateTemplate,
                 )
 
     # def generate_jobs(self):

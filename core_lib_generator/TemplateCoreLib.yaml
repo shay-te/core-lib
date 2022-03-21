@@ -58,7 +58,7 @@ TestCoreLib:
         initial_delay: 0s
         frequency: ''
         handler:
-          _target_: core_lib.jobs.UpdateCustomerDetails
+          _target_: test_core_lib.core_lib.jobs.my_job.UpdateCustomerDetails
   data_layers:
     data:
       user_data:

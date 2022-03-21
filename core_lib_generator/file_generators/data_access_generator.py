@@ -10,7 +10,7 @@ class DataAccessGenerateTemplate(TemplateGenerate):
     def handle(self, template_file, yaml_data: dict) -> str:
         return template_file.replace('Template', yaml_data['name'])
 
-    def get_template_data(self, yaml_data: dict) -> str:
+    def get_template_file(self, yaml_data: dict) -> str:
         if 'is_crud_soft_delete_token' in yaml_data:
             return 'template_core_lib/core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
         elif 'is_crud_soft_delete' in yaml_data:
@@ -48,7 +48,7 @@ def add_data_access_instances(da_data: dict, core_lib_name: str):
     for name in da_data:
         entity = da_data[name]['entity']
         db_connection = da_data[name]['db_connection']
-        inst_str = f'self.{entity.lower()} = {snake_to_camel(name)}({entity.title()}, {db_connection}_session)'
+        inst_str = f'self.{entity.lower()} = {name}({entity.title()}, {db_connection}_session)'
         inst_list.append(inst_str.rjust(len(inst_str) + 8))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.data.{db_connection})'
         handler_list.append(handler_str.rjust(len(handler_str) + 8))

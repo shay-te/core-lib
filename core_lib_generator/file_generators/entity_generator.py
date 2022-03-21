@@ -13,7 +13,7 @@ class EntityGenerateTemplate(TemplateGenerate):
         new_file = new_file.replace('Template', f'{entity_name.title()}')
         return new_file
 
-    def get_template_data(self, yaml_data: dict) -> str:
+    def get_template_file(self, yaml_data: dict) -> str:
         if yaml_data['is_soft_delete'] and yaml_data['is_soft_delete_token']:
             return f'template_core_lib/core_lib/data_layers/data/db/entities/template_soft_delete_token.py'
         elif yaml_data['is_soft_delete'] and not yaml_data['is_soft_delete_token']:
