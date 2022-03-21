@@ -4,6 +4,6 @@ from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDS
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 
-class UserDataAccess(CRUDSoftDeleteDataAccess):
+class Custdetailsdataaccess(CRUDSoftDeleteDataAccess):
     def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
         CRUD.__init__(self, db_entity, db, rule_validator)

@@ -3,7 +3,7 @@ import shutil
 
 from core_lib.helpers.string import snake_to_camel
 from core_lib_generator.generator_file_utils import replace_file_strings, replace_file_line
-from core_lib_generator.handlers.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generate import TemplateGenerate
 
 
 class DataAccessGenerateTemplate(TemplateGenerate):

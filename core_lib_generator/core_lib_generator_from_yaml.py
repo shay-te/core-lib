@@ -7,10 +7,10 @@ from omegaconf import OmegaConf
 
 from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.generator_file_utils import add_imports_to_main_class
-from core_lib_generator.handlers.data_access_generator import DataAccessGenerateTemplate, add_data_access_instances
-from core_lib_generator.handlers.entity_generator import EntityGenerateTemplate
-from core_lib_generator.handlers.jobs_generator import add_job_instances, generate_jobs
-from core_lib_generator.handlers.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate, add_data_access_instances
+from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
+from core_lib_generator.file_generators.jobs_generator import add_job_instances, generate_jobs
+from core_lib_generator.file_generators.template_generate import TemplateGenerate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -72,14 +72,12 @@ class CoreLibGenerator:
             add_data_access_instances(self.core_lib_data_access, self.snake_core_lib_name)
             self._add_init_file()
 
-    def _write_content(self, template_generator: TemplateGenerate, ):
-
-    def generate_entities(self):
+    def generate_entities(self, db_connection: str):
         if self.core_lib_entities:
-            os.makedirs(f'{self.snake_core_lib_name}/core_lib/data_layers/data/db/entities', exist_ok=True)
+            os.makedirs(f'{self.snake_core_lib_name}/core_lib/data_layers/data/{db_connection}/entities', exist_ok=True)
             for entity_name in self.db_entities_list:
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/core_lib/data_layers/data/db/entities/{entity_name.lower()}.py',
+                    f'{self.snake_core_lib_name}/core_lib/data_layers/data/{db_connection}/entities/{entity_name.lower()}.py',
                     self.core_lib_entities[entity_name],
                     EntityGenerateTemplate,
                 )
