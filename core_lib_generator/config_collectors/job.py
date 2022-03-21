@@ -1,10 +1,10 @@
 from pytimeparse import parse
 
 from core_lib.helpers.shell_utils import input_str
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.string import any_to_camel, camel_to_snake
 
 
-def generate_job_template() -> dict:
+def generate_job_template(core_lib_name: str) -> dict:
     name = input_str('Enter the name of the job', 'my_job')
     class_name = any_to_camel(input_str('Please enter the Class Name for the job (UpdateCache)'))
     initial_delay = input_str(
@@ -24,6 +24,6 @@ def generate_job_template() -> dict:
         name: {
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'handler': {'_target_': f'core_lib.jobs.{class_name}'},
+            'handler': {'_target_': f'{camel_to_snake(core_lib_name)}.core_lib.jobs.{name}.{class_name}'},
         }
     }

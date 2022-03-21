@@ -63,9 +63,9 @@ def _get_cache_config():
     config['cache'] = cache['config']
 
 
-def _get_jobs_config():
+def _get_jobs_config(core_lib_name: str)
     print('Please fill out the requested information for Job.')
-    job = generate_job_template()
+    job = generate_job_template(core_lib_name)
     config['jobs'] = job
 
 
@@ -99,7 +99,7 @@ def get_data_from_user():
 
     want_job = input_yes_no('\nWould you like to create a Job?', False)
     if want_job:
-        _get_jobs_config()
+        _get_jobs_config(core_lib_name)
 
     create_yaml_file(core_lib_name)
 
