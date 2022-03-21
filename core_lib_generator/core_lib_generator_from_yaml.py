@@ -1,16 +1,13 @@
-import glob
 import os
 import shutil
 
 import hydra
-from omegaconf import OmegaConf
 
 from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.generator_file_utils import add_imports_to_main_class
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate, add_data_access_instances
 from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
-from core_lib_generator.file_generators.jobs_generator import add_job_instances, generate_jobs, JobsGenerateTemplate
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.jobs_generator import JobsGenerateTemplate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -105,38 +102,10 @@ class CoreLibGenerator:
                     JobsGenerateTemplate,
                 )
 
-    # def generate_jobs(self):
-    #     if 'jobs' in core_lib_config:
-    #         jobs = core_lib_config['jobs']
-    #         generate_jobs(jobs, snake_core_lib_name)
-    #         add_imports_to_main_class(list(jobs.keys()), '# template_job_imports', snake_core_lib_name, jobs)
-    #         add_job_instances(jobs, snake_core_lib_name)
-    #         print(f'Creating jobs')
-
 
 generate = CoreLibGenerator('TemplateCoreLib.yaml')
 generate.generate_core_lib_structure()
 generate.generate_data_access()
 generate.generate_entities()
 generate.generate_jobs()
-#
-# # Create Job
-# if 'jobs' in core_lib_config:
-#     jobs = core_lib_config['jobs']
-#     generate_jobs(jobs, snake_core_lib_name)
-#     add_imports_to_main_class(list(jobs.keys()), '# template_job_imports', snake_core_lib_name, jobs)
-#     add_job_instances(jobs, snake_core_lib_name)
-#     _clean_template_files('jobs')
-#     print(f'Creating jobs')
-#
-# generate_cache(core_lib_config['cache'], snake_core_lib_name)
-# #  take from config
-# # config inside the core_lib folder and rename my_core_lib to core_lib
-# # add hydra_plugin flder
-# # entities folder for entities inside db
-# # update db folder structure
-# # make entity columns default from yaml file
-# # dont copy example_data.yaml, License
-# # update manifest .in
-# # create readme file with title core lib name
-# print(f'\nCreated {core_lib_name}!')
+
