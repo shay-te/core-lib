@@ -14,8 +14,8 @@ class TemplateCoreLib(CoreLib):
         super().__init__()
         self.config = conf
         # template_cache_handler
-        user_data_session = SqlAlchemyDataHandlerRegistry(self.config.data.user_data)
         customer_data_session = SqlAlchemyDataHandlerRegistry(self.config.data.customer_data)
+        user_data_session = SqlAlchemyDataHandlerRegistry(self.config.data.user_data)
         self.details = Detailsdataaccess(Details, user_data_session)
         self.details = Custdetailsdataaccess(Details, customer_data_session)
         # template_job_instances

@@ -58,7 +58,7 @@ TestCoreLib:
         initial_delay: 0s
         frequency: ''
         handler:
-          _target_: core_lib.jobs.UpdatecustomerDetails
+          _target_: core_lib.jobs.UpdateCustomerDetails
   data_layers:
     data:
       user_data:
@@ -76,6 +76,7 @@ TestCoreLib:
               default: ''
           is_soft_delete: true
           is_soft_delete_token: true
+        migrate: false
       customer_data:
         details:
           name: details
@@ -91,6 +92,7 @@ TestCoreLib:
               default: ''
           is_soft_delete: true
           is_soft_delete_token: false
+        migrate: false
     data_access:
       DetailsDataAccess:
         name: DetailsDataAccess

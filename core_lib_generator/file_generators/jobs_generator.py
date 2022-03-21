@@ -1,7 +1,16 @@
 import os
 import shutil
 
+from core_lib_generator.file_generators.template_generate import TemplateGenerate
 from core_lib_generator.generator_file_utils import replace_file_strings, replace_file_line
+
+
+class JobsGenerateTemplate(TemplateGenerate):
+    def handle(self, template_file: str, yaml_data: dict):
+        print(yaml_data)
+
+    def get_template_data(self, yaml_data: dict) -> str:
+        pass
 
 
 def add_job_instances(jobs: dict, core_lib_name: str):

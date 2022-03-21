@@ -7,15 +7,18 @@ from core_lib_generator.file_generators.template_generate import TemplateGenerat
 
 
 class DataAccessGenerateTemplate(TemplateGenerate):
-    def handle(self, template_path: str, yaml_data: dict):
+    def handle(self, template_file, yaml_data: dict) -> str:
+        return template_file.replace('Template', yaml_data['name'])
+
+    def get_template_data(self, yaml_data: dict) -> str:
         if 'is_crud_soft_delete_token' in yaml_data:
-            _create_data_access(template_path, 'template_crud_soft_delete_token_data_access', yaml_data['name'])
+            return 'template_core_lib/core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
         elif 'is_crud_soft_delete' in yaml_data:
-            _create_data_access(template_path, 'template_crud_soft_delete_data_access', yaml_data['name'])
+            return 'template_core_lib/core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
         elif 'is_crud' in yaml_data:
-            _create_data_access(template_path, 'template_crud_data_access', yaml_data['name'])
+            return 'template_core_lib/core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
-            _create_data_access(template_path, 'template_data_access', yaml_data['name'])
+            return 'template_core_lib/core_lib/data_layers/data_access/template_data_access.py'
 
 
 def _create_data_access(file_path: str, data_access_type: str, name: str):
@@ -29,7 +32,7 @@ def _create_data_access(file_path: str, data_access_type: str, name: str):
         replace_file_strings(
             da_file_name,
             f'{template_class_name}',
-            f'{snake_to_camel(name)}',
+            f'{name}',
         )
 
 
