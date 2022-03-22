@@ -5,5 +5,5 @@ include README.md
 
 global-exclude *.pyc
 global-exclude __pycache__
-recursive-include hydra_plugins/* *.yaml
-recursive-include core_lib_template/config/* *.yaml
+recursive-include template_core_lib/hydra_plugins/* *.yaml
+recursive-include template_core_lib/core_lib/config/* *.yaml

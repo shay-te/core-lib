@@ -4,11 +4,17 @@ import hydra
 
 from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.file_generators.config_generator import ConfigGenerateTemplate
-from core_lib_generator.file_generators.core_lib_generator import CoreLibGenerateTemplate
+from core_lib_generator.file_generators.core_lib_class_generator import CoreLibClassGenerateTemplate
+from core_lib_generator.file_generators.default_config_generator import DefaultConfigGenerateTemplate
+from core_lib_generator.file_generators.dockerignore_generator import DockerIgnoreGenerateTemplate
+from core_lib_generator.file_generators.gitignore_generator import GitIgnoreGenerateTemplate
 from core_lib_generator.file_generators.hydra_plugins_generator import HydraPluginsGenerateTemplate
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate
 from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
 from core_lib_generator.file_generators.jobs_generator import JobsGenerateTemplate
+from core_lib_generator.file_generators.manifest_generator import ManifestGenerateTemplate
+from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
+from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -18,9 +24,7 @@ class CoreLibGenerator:
     def __init__(self, path_to_config: str):
         config = hydra.compose(path_to_config)
         self.core_lib_name = next(iter(config))
-        self.snake_core_lib_name = camel_to_snake(
-            self.core_lib_name
-        )
+        self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
         self.core_lib_config = config[self.core_lib_name].config
 
         self.core_lib_entities = {}
@@ -60,7 +64,7 @@ class CoreLibGenerator:
                     f'{self.snake_core_lib_name}/core_lib/data_layers/data_access/{camel_to_snake(da_name)}.py',
                     self.core_lib_data_access[da_name],
                     DataAccessGenerateTemplate,
-                    da_name
+                    da_name,
                 )
 
     def generate_entities(self):
@@ -73,15 +77,13 @@ class CoreLibGenerator:
                         f'{self.snake_core_lib_name}/core_lib/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
                         self.core_lib_entities[db_conn_name][entity_name],
                         EntityGenerateTemplate,
-                        entity_name
+                        entity_name,
                     )
 
     def generate_jobs(self):
         if self.core_lib_jobs:
             for name in self.core_lib_jobs:
-                os.makedirs(
-                    f'{self.snake_core_lib_name}/core_lib/jobs/', exist_ok=True
-                )
+                os.makedirs(f'{self.snake_core_lib_name}/core_lib/jobs/', exist_ok=True)
                 self._generate_template(
                     f'{self.snake_core_lib_name}/core_lib/jobs/{name}.py',
                     self.core_lib_jobs[name],
@@ -96,28 +98,63 @@ class CoreLibGenerator:
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
             },
-            CoreLibGenerateTemplate,
+            CoreLibClassGenerateTemplate,
         )
 
     def generate_config(self):
         self._generate_template(
             f'{self.snake_core_lib_name}/core_lib/config/{self.snake_core_lib_name}.yaml',
             self.core_lib_config,
-            ConfigGenerateTemplate
+            ConfigGenerateTemplate,
         )
 
     def generate_hydra_plugins(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}.py',
-            {},
-            HydraPluginsGenerateTemplate
+            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}.py', {}, HydraPluginsGenerateTemplate
+        )
+
+    def generate_git_ignore(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/.gitignore', {}, GitIgnoreGenerateTemplate
+        )
+
+    def generate_docker_ignore(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate
+        )
+
+    def generate_readme(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate
+        )
+
+    def generate_requirements(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate
+        )
+
+    def generate_default_config(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate
+        )
+
+    def generate_manifest(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate
         )
 
 
-generator = CoreLibGenerator('FacebookCoreLib.yaml')
-generator.generate_data_access()
-generator.generate_entities()
-generator.generate_jobs()
-generator.generate_core_lib()
-generator.generate_config()
-generator.generate_hydra_plugins()
+if __name__ == '__main__':
+    generator = CoreLibGenerator('FacebookCoreLib.yaml')
+    generator.generate_data_access()
+    generator.generate_entities()
+    generator.generate_jobs()
+    generator.generate_core_lib()
+    generator.generate_config()
+    generator.generate_hydra_plugins()
+    generator.generate_git_ignore()
+    generator.generate_docker_ignore()
+    generator.generate_readme()
+    generator.generate_requirements()
+    generator.generate_default_config()
+    generator.generate_manifest()

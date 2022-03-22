@@ -1,7 +1,6 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_bool, input_str, input_int, input_enum, input_list, input_yes_no
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.shell_utils import input_bool, input_str, input_int, input_enum, input_yes_no
 
 
 class DBDatatypes(enum.Enum):
@@ -56,11 +55,11 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
                     is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)
             add_entity = input_yes_no(f'Do you want to add another entity to `{db_conn}`?', False)
             entities[db_conn][entity_name] = {
-                        'db_connection': db_conn,
-                        'columns': columns,
-                        'is_soft_delete': is_soft_delete,
-                        'is_soft_delete_token': is_soft_delete_token,
-                    }
+                'db_connection': db_conn,
+                'columns': columns,
+                'is_soft_delete': is_soft_delete,
+                'is_soft_delete_token': is_soft_delete_token,
+            }
         migrate = input_yes_no(f'Do you want to create a migration for `{db_conn}` entities?', False)
         entities[db_conn]['migrate'] = migrate
     return entities
