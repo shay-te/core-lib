@@ -36,7 +36,6 @@ class CoreLibGenerator:
             self.core_lib_entities = config[self.core_lib_name].data_layers.data
             if 'data_access' in config[self.core_lib_name].data_layers:
                 self.core_lib_data_access = config[self.core_lib_name].data_layers.data_access
-                self.data_access_list = list(config[self.core_lib_name].data_layers.data_access.keys())
         if 'jobs' in self.core_lib_config:
             self.core_lib_jobs = self.core_lib_config.jobs
         if 'cache' in self.core_lib_config:
@@ -90,7 +89,7 @@ class CoreLibGenerator:
                     JobsGenerateTemplate,
                 )
 
-    def generate_core_lib(self):
+    def generate_core_lib_class(self):
         self._generate_template(
             f'{self.snake_core_lib_name}/core_lib/{self.snake_core_lib_name}.py',
             {
@@ -137,7 +136,7 @@ if __name__ == '__main__':
     generator.generate_data_access()
     generator.generate_entities()
     generator.generate_jobs()
-    generator.generate_core_lib()
+    generator.generate_core_lib_class()
     generator.generate_config()
     generator.generate_hydra_plugins()
     generator.generate_git_ignore()
