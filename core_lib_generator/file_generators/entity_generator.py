@@ -1,16 +1,13 @@
-import os
-import shutil
-
-from core_lib_generator.generator_file_utils import replace_file_strings, replace_file_line
+from core_lib.helpers.string import any_to_camel
 from core_lib_generator.file_generators.template_generate import TemplateGenerate
 
 
 class EntityGenerateTemplate(TemplateGenerate):
-    def handle(self, template_file: str, yaml_data: dict, core_lib_name: str) -> str:
+    def generate(self, template_file: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         new_file = _add_columns_to_entity(template_file, yaml_data['columns'])
-        entity_name = yaml_data['name']
+        entity_name = file_name
         new_file = new_file.replace('template', f'{entity_name.lower()}')
-        new_file = new_file.replace('Template', f'{entity_name.title()}')
+        new_file = new_file.replace('Template', f'{any_to_camel(entity_name)}')
         return new_file
 
     def get_template_file(self, yaml_data: dict) -> str:

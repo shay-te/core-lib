@@ -63,15 +63,12 @@ TestCoreLib:
     data:
       user_data:
         details:
-          name: details
           db_connection: user_data
           columns:
             name:
-              name: name
               type: VARCHAR
               default: ''
             address:
-              name: address
               type: VARCHAR
               default: ''
           is_soft_delete: true
@@ -79,15 +76,12 @@ TestCoreLib:
         migrate: false
       customer_data:
         details:
-          name: details
           db_connection: customer_data
           columns:
             name:
-              name: name
               type: VARCHAR
               default: ''
             contact:
-              name: contact
               type: VARCHAR
               default: ''
           is_soft_delete: true
@@ -95,14 +89,12 @@ TestCoreLib:
         migrate: false
     data_access:
       DetailsDataAccess:
-        name: DetailsDataAccess
         entity: details
         db_connection: user_data
         is_crud: true
         is_crud_soft_delete: true
         is_crud_soft_delete_token: true
       CustDetailsDataAccess:
-        name: CustDetailsDataAccess
         entity: details
         db_connection: customer_data
         is_crud: true

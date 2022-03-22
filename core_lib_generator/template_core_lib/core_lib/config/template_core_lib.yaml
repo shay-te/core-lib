@@ -1,0 +1,16 @@
+# @package _global_
+core_lib:
+  template_core_lib:
+    jobs:
+      my_job:
+        initial_delay: startup
+        frequency: 30s
+        handler:
+          _target_: package.MyJob
+          param_1: 0
+          param_2: 100
+    cache:
+      my_cache:
+        url:
+          host: ${oc.env:MEMCACHED_HOST}
+          port: ${oc.env:MEMCACHED_PORT}

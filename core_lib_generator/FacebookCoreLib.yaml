@@ -1,0 +1,117 @@
+FacebookCoreLib:
+  env:
+    USERDB_USER: user
+    USERDB_PASSWORD: password
+    USERDB_PORT: 5432
+    USERDB_DB: userdb
+    USERDB_HOST: localhost
+    SELLERDB_USER: user
+    SELLERDB_PASSWORD: password
+    SELLERDB_PORT: 5432
+    SELLERDB_DB: sellerdb
+    SELLERDB_HOST: localhost
+    MEMCACHED_HOST: localhost
+    MEMCACHED_PORT: 11211
+  config:
+    data:
+      userdb:
+        log_queries: false
+        create_db: true
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
+        url:
+          protocol: postgresql
+          username: ${oc.env:USERDB_USER}
+          password: ${oc.env:USERDB_PASSWORD}
+          host: ${oc.env:USERDB_HOST}
+          port: ${oc.env:USERDB_PORT}
+          file: ${oc.env:USERDB_DB}
+      sellerdb:
+        log_queries: false
+        create_db: true
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
+        url:
+          protocol: postgresql
+          username: ${oc.env:SELLERDB_USER}
+          password: ${oc.env:SELLERDB_PASSWORD}
+          host: ${oc.env:SELLERDB_HOST}
+          port: ${oc.env:SELLERDB_PORT}
+          file: ${oc.env:SELLERDB_DB}
+    cache:
+      type: memcached
+      url:
+        host: ${oc.env:MEMCACHED_HOST}
+        port: ${oc.env:MEMCACHED_PORT}
+    jobs:
+      my_job:
+        initial_delay: 0s
+        frequency: ''
+        handler:
+          _target_: facebook_core_lib.core_lib.jobs.my_job.UpdateSeller
+  data_layers:
+    data:
+      userdb:
+        details:
+          db_connection: userdb
+          columns:
+            name:
+              type: VARCHAR
+              default: ''
+            active:
+              type: BOOLEAN
+              default: false
+          is_soft_delete: true
+          is_soft_delete_token: true
+        data:
+          db_connection: userdb
+          columns:
+            address:
+              type: VARCHAR
+              default: ''
+            contact:
+              type: INTEGER
+              default: 0
+          is_soft_delete: true
+          is_soft_delete_token: false
+        migrate: true
+      sellerdb:
+        details:
+          db_connection: sellerdb
+          columns:
+            name:
+              type: VARCHAR
+              default: ''
+          is_soft_delete: true
+          is_soft_delete_token: true
+        data:
+          db_connection: sellerdb
+          columns:
+            name:
+              type: VARCHAR
+              default: ''
+            password:
+              type: VARCHAR
+              default: ''
+          is_soft_delete: false
+          is_soft_delete_token: false
+        migrate: false
+    data_access:
+      DetailsDataAccess:
+        entity: details
+        db_connection: userdb
+        is_crud: true
+        is_crud_soft_delete: true
+        is_crud_soft_delete_token: true
+      DataDataAccess:
+        entity: data
+        db_connection: userdb
+      SellerDetailsDataAccess:
+        entity: details
+        db_connection: sellerdb
+      SellerDataAccess:
+        entity: data
+        db_connection: sellerdb
+        is_crud: true
