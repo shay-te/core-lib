@@ -6,7 +6,7 @@ from core_lib_generator.generator_file_utils import replace_file_strings, replac
 
 
 class JobsGenerateTemplate(TemplateGenerate):
-    def handle(self, template_file: str, yaml_data: dict):
+    def handle(self, template_file: str, yaml_data: dict, core_lib_name: str) -> str:
         job_class = yaml_data['handler']['_target_'].split('.')[-1]
         return template_file.replace('Template', job_class)
 

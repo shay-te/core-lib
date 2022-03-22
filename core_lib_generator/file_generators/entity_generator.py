@@ -6,7 +6,7 @@ from core_lib_generator.file_generators.template_generate import TemplateGenerat
 
 
 class EntityGenerateTemplate(TemplateGenerate):
-    def handle(self, template_file: str, yaml_data: dict):
+    def handle(self, template_file: str, yaml_data: dict, core_lib_name: str) -> str:
         new_file = _add_columns_to_entity(template_file, yaml_data['columns'])
         entity_name = yaml_data['name']
         new_file = new_file.replace('template', f'{entity_name.lower()}')
@@ -22,7 +22,7 @@ class EntityGenerateTemplate(TemplateGenerate):
             return f'template_core_lib/core_lib/data_layers/data/db/entities/template.py'
 
 
-def _add_columns_to_entity(file: str, columns: dict):
+def _add_columns_to_entity(file: str, columns: dict) -> str:
     import_data_types = ['INTEGER']
     id_str = 'id = Column(INTEGER, primary_key=True, nullable=False)'
     columns_str = [id_str]

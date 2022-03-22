@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class TemplateGenerate(ABC):
     @abstractmethod
-    def handle(self, template_file: str, yaml_data: dict):
+    def handle(self, template_file: str, yaml_data: dict, core_lib_name: str):
         pass
 
     @abstractmethod

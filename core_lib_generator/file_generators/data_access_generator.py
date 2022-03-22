@@ -7,8 +7,16 @@ from core_lib_generator.file_generators.template_generate import TemplateGenerat
 
 
 class DataAccessGenerateTemplate(TemplateGenerate):
-    def handle(self, template_file, yaml_data: dict) -> str:
-        return template_file.replace('Template', yaml_data['name'])
+    def handle(self, template_file: str, yaml_data: dict, core_lib_name: str) -> str:
+        new_file = template_file.replace('Template', yaml_data['name'])
+        db_conn = yaml_data['db_connection']
+        entity = yaml_data['entity']
+        new_file = new_file.replace(
+            '# template_entity_imports',
+            f'from {core_lib_name}.core_lib.data_layers.data.{db_conn}.entities.{entity.lower()} import {entity.title()}'
+        )
+        new_file = new_file.replace('db_entity', entity.title())
+        return new_file
 
     def get_template_file(self, yaml_data: dict) -> str:
         if 'is_crud_soft_delete_token' in yaml_data:
@@ -19,6 +27,22 @@ class DataAccessGenerateTemplate(TemplateGenerate):
             return 'template_core_lib/core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
             return 'template_core_lib/core_lib/data_layers/data_access/template_data_access.py'
+
+
+class DataAccessGenerateImports(TemplateGenerate):
+    def handle(self, template_file: str, yaml_data: dict):
+        pass
+
+    def get_template_file(self, yaml_data: dict) -> str:
+        pass
+
+
+class DataAccessGenerateInstances(TemplateGenerate):
+    def handle(self, template_file: str, yaml_data: dict):
+        pass
+
+    def get_template_file(self, yaml_data: dict) -> str:
+        pass
 
 
 def _create_data_access(file_path: str, data_access_type: str, name: str):
