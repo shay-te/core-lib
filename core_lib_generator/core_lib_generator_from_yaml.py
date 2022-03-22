@@ -114,34 +114,22 @@ class CoreLibGenerator:
         )
 
     def generate_git_ignore(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/.gitignore', {}, GitIgnoreGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/.gitignore', {}, GitIgnoreGenerateTemplate)
 
     def generate_docker_ignore(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate)
 
     def generate_readme(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate)
 
     def generate_requirements(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate)
 
     def generate_default_config(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate)
 
     def generate_manifest(self):
-        self._generate_template(
-            f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate
-        )
+        self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate)
 
 
 if __name__ == '__main__':
