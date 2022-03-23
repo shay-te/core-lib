@@ -15,6 +15,8 @@ from core_lib_generator.file_generators.jobs_generator import JobsGenerateTempla
 from core_lib_generator.file_generators.manifest_generator import ManifestGenerateTemplate
 from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
+from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
+from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -31,6 +33,7 @@ class CoreLibGenerator:
         self.core_lib_data_access = {}
         self.core_lib_jobs = {}
         self.core_lib_cache = {}
+        self.core_lib_setup = self.core_lib_config['setup']
 
         if 'data' in config[self.core_lib_name].data_layers:
             self.core_lib_entities = config[self.core_lib_name].data_layers.data
@@ -44,7 +47,9 @@ class CoreLibGenerator:
     def _generate_template(self, file_path: str, yaml_data: dict, template_generate, file_name: str = None):
         template_generator = template_generate()
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(file_path):
+        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(
+            file_path
+        ):
             open(f'{os.path.dirname(file_path)}/__init__.py', 'w').close()
         os.makedirs(f'{self.snake_core_lib_name}/hydra_plugins/conf', exist_ok=True)
         open(f'{self.snake_core_lib_name}/hydra_plugins/conf/__init__.py', 'w').close()
@@ -126,6 +131,12 @@ class CoreLibGenerator:
     def generate_manifest(self):
         self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate)
 
+    def generate_setup(self):
+        self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate)
+        self._generate_template(
+            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py', {}, VersionGenerateTemplate
+        )
+
 
 if __name__ == '__main__':
     generator = CoreLibGenerator('TemplateCoreLib.yaml')
@@ -141,3 +152,4 @@ if __name__ == '__main__':
     generator.generate_requirements()
     generator.generate_default_config()
     generator.generate_manifest()
+    generator.generate_setup()

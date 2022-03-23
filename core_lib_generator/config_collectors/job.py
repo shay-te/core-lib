@@ -13,6 +13,8 @@ def generate_job_template(core_lib_name: str) -> dict:
         camel_to_snake(class_name): {
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'handler': {'_target_': f'{camel_to_snake(core_lib_name)}.core_lib.jobs.{camel_to_snake(class_name)}.{class_name}'},
+            'handler': {
+                '_target_': f'{camel_to_snake(core_lib_name)}.core_lib.jobs.{camel_to_snake(class_name)}.{class_name}'
+            },
         }
     }

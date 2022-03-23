@@ -18,7 +18,9 @@ class DataAccessGenerateTemplate(TemplateGenerate):
         if 'is_crud_soft_delete_token' in yaml_data:
             return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
         elif 'is_crud_soft_delete' in yaml_data:
-            return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
+            return (
+                'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
+            )
         elif 'is_crud' in yaml_data:
             return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
         else:

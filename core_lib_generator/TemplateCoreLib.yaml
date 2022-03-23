@@ -40,6 +40,19 @@ TestCoreLib:
           host: ${oc.env:SELLERDB_HOST}
           port: ${oc.env:SELLERDB_PORT}
           file: ${oc.env:SELLERDB_DB}
+    setup:
+      author: Jon Doe
+      author_email: jon@doe.com
+      description: Simple core lib project
+      url: http://google.com
+      license: MIT
+      classifiers:
+        - 'Framework :: Flask'
+        - 'Development Status :: 3 - Alpha'
+        - 'Environment :: MacOS X'
+        - 'Environment :: Win32 (MS Windows)'
+        - 'Topic :: Software Development'
+        - 'Topic :: Software Development :: Libraries'
     cache:
       cache_name:
         type: memcached

@@ -12,9 +12,7 @@ class CacheTypes(enum.Enum):
 
 def generate_cache_template() -> dict:
     cache_name = input_str('Enter name for your cache')
-    cache_type = input_enum(
-        CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value
-    )
+    cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value)
 
     if cache_type == CacheTypes.Memcached.value:
         memcache_port = input_int('Enter your memcached server port no.', 11211)

@@ -1,7 +1,9 @@
 import enum
+import re
+
 from pytimeparse import parse
 
-from core_lib.helpers.validation import is_int
+from core_lib.helpers.validation import is_int, is_email
 
 
 def input_yes_no(title: str, default_value: bool = None) -> bool:
@@ -83,6 +85,35 @@ def input_list(list_value: list, title: str, default_value: int = None):
         user_input = _get_value(user_input, default_value)
         if is_int(user_input) and len(list_value) >= int(user_input) > 0:
             result = list_value[int(user_input) - 1]
+    return result
+
+
+def input_email(title: str, default_value: str = None) -> str:
+    result = None
+    while result is None:
+        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        user_input = _get_value(user_input, default_value)
+        if is_email(user_input):
+            result = user_input
+    return result
+
+
+def input_url(title: str, default_value: str = None) -> str:
+    result = None
+    while result is None:
+        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        user_input = _get_value(user_input, default_value)
+        regex = re.compile(
+            r'^(http)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$',
+            re.IGNORECASE,
+        )
+        if re.match(regex, user_input) is not None:
+            result = user_input
     return result
 
 

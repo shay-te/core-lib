@@ -7,6 +7,7 @@ from core_lib_generator.config_collectors.data_access import generate_data_acces
 from core_lib_generator.config_collectors.database import generate_db_template
 from core_lib_generator.config_collectors.db_entity import generate_db_entity_template
 from core_lib_generator.config_collectors.job import generate_job_template
+from core_lib_generator.config_collectors.setup_collector import generate_setup_template
 from core_lib_generator.config_collectors.solr import generate_solr_template
 
 
@@ -22,6 +23,7 @@ def _get_env_variables(data):
 
 config = {}
 config.setdefault('data', {})
+config.setdefault('setup', {})
 env = {}
 data_layers = {}
 
@@ -100,6 +102,9 @@ def get_data_from_user():
     want_job = input_yes_no('\nWould you like to create a Job?', False)
     if want_job:
         _get_jobs_config(core_lib_name)
+
+    print('\nPlease provide the following information for setup.py')
+    config['setup'] = generate_setup_template()
 
     create_yaml_file(core_lib_name)
     return f'{core_lib_name}.yaml'
