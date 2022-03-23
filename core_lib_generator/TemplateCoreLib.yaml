@@ -15,11 +15,6 @@ TestCoreLib:
   config:
     data:
       userdb:
-        log_queries: false
-        create_db: true
-        session:
-          pool_recycle: 3200
-          pool_pre_ping: false
         url:
           protocol: postgresql
           username: ${oc.env:USERDB_USER}

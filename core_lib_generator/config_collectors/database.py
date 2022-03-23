@@ -37,7 +37,7 @@ def generate_db_template() -> dict:
         )
 
         db_log_queries = input_yes_no('Do you want to log queries?', False)
-        db_create = input_yes_no('Do you want create Database?', True)
+        db_create = input_yes_no('Do you want create Database?', False)
         db_pool_recycle = input_int('Enter the pool recycle time', 3200)
         db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
         if db_type == DBTypes.SQLite.value:
