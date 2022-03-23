@@ -33,14 +33,14 @@ def generate_data_access_template(db_entities: dict) -> dict:
                         default,
                     )
                 )
+            is_crud_soft_delete_token = False
+            is_crud_soft_delete = False
+            is_crud = False
             if db_entities[db_conn][entity]['is_soft_delete'] and db_entities[db_conn][entity]['is_soft_delete_token']:
                 is_crud_soft_delete_token = input_yes_no(
                     'Do you want to implement CRUD Soft Delete Token on your data access?', False
                 )
-                if is_crud_soft_delete_token:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True, True, True)
-                else:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn)
+
             elif (
                 db_entities[db_conn][entity]['is_soft_delete']
                 and not db_entities[db_conn][entity]['is_soft_delete_token']
@@ -48,16 +48,17 @@ def generate_data_access_template(db_entities: dict) -> dict:
                 is_crud_soft_delete = input_yes_no(
                     'Do you want to implement CRUD Soft Delete on your data access?', False
                 )
-                if is_crud_soft_delete:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True, True)
-                else:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn)
             else:
                 is_crud = input_yes_no('Do you want to implement CRUD on your data access?', False)
-                if is_crud:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True)
-                else:
-                    data_access[data_access_name] = _generate_data_access_config(entity, db_conn)
+
+            if is_crud_soft_delete_token:
+                data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True, True, True)
+            elif is_crud_soft_delete:
+                data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True, True)
+            elif is_crud:
+                data_access[data_access_name] = _generate_data_access_config(entity, db_conn, True)
+            else:
+                data_access[data_access_name] = _generate_data_access_config(entity, db_conn)
     print(f'{list(data_access.keys())} created')
     return data_access
 
