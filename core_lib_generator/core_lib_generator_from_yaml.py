@@ -44,7 +44,9 @@ class CoreLibGenerator:
     def _generate_template(self, file_path: str, yaml_data: dict, template_generate, file_name: str = None):
         template_generator = template_generate()
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(file_path):
+        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(
+            file_path
+        ):
             open(f'{os.path.dirname(file_path)}/__init__.py', 'w').close()
         os.makedirs(f'{self.snake_core_lib_name}/hydra_plugins/conf', exist_ok=True)
         open(f'{self.snake_core_lib_name}/hydra_plugins/conf/__init__.py', 'w').close()
