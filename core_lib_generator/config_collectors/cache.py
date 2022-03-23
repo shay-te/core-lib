@@ -11,8 +11,9 @@ class CacheTypes(enum.Enum):
 
 
 def generate_cache_template() -> dict:
+    cache_name = input_str('Enter name for your cache')
     cache_type = input_enum(
-        CacheTypes, 'From the following list, select the relevant number for cache type', CacheTypes.Memory.value
+        CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value
     )
 
     if cache_type == CacheTypes.Memcached.value:
@@ -25,18 +26,22 @@ def generate_cache_template() -> dict:
                 'MEMCACHED_PORT': memcache_port,
             },
             'config': {
-                'type': CacheTypes(cache_type).name.lower(),
-                'url': {
-                    'host': f'${{oc.env:MEMCACHED_HOST}}',
-                    'port': f'${{oc.env:MEMCACHED_PORT}}',
-                },
+                cache_name: {
+                    'type': CacheTypes(cache_type).name.lower(),
+                    'url': {
+                        'host': f'${{oc.env:MEMCACHED_HOST}}',
+                        'port': f'${{oc.env:MEMCACHED_PORT}}',
+                    },
+                }
             },
         }
     elif cache_type == CacheTypes.Memory.value:
         print(f'Cache type {CacheTypes(cache_type).name}')
         return {
             'config': {
-                'type': CacheTypes(cache_type).name.lower(),
+                cache_name: {
+                    'type': CacheTypes(cache_type).name.lower(),
+                }
             }
         }
     else:

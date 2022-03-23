@@ -6,7 +6,7 @@ from core_lib.core_lib import CoreLib
 # template_da_imports
 
 
-class TemplateCoreLib(CoreLib):
+class Template(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
         self.config = conf

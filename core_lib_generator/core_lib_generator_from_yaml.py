@@ -41,26 +41,23 @@ class CoreLibGenerator:
         if 'cache' in self.core_lib_config:
             self.core_lib_cache = self.core_lib_config.cache
 
-    def _add_init_file(self):
-        folder_iter = os.walk(self.snake_core_lib_name)
-        for current_folder, _, _ in folder_iter:
-            open(f'{current_folder}/__init__.py', 'w').close()
-
     def _generate_template(self, file_path: str, yaml_data: dict, template_generate, file_name: str = None):
         template_generator = template_generate()
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(file_path):
+            open(f'{os.path.dirname(file_path)}/__init__.py', 'w').close()
         os.makedirs(f'{self.snake_core_lib_name}/hydra_plugins/conf', exist_ok=True)
+        open(f'{self.snake_core_lib_name}/hydra_plugins/conf/__init__.py', 'w').close()
         with open(template_generator.get_template_file(yaml_data), 'r') as template_file:
             new_file = template_generator.generate(template_file.read(), yaml_data, self.snake_core_lib_name, file_name)
         with open(file_path, 'w') as file:
             file.write(new_file)
-        self._add_init_file()
 
     def generate_data_access(self):
         if self.core_lib_data_access:
             for da_name in self.core_lib_data_access:
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/core_lib/data_layers/data_access/{camel_to_snake(da_name)}.py',
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data_access/{camel_to_snake(da_name)}.py',
                     self.core_lib_data_access[da_name],
                     DataAccessGenerateTemplate,
                     da_name,
@@ -73,7 +70,7 @@ class CoreLibGenerator:
                     if entity_name == 'migrate':
                         continue
                     self._generate_template(
-                        f'{self.snake_core_lib_name}/core_lib/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
+                        f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
                         self.core_lib_entities[db_conn_name][entity_name],
                         EntityGenerateTemplate,
                         entity_name,
@@ -82,16 +79,15 @@ class CoreLibGenerator:
     def generate_jobs(self):
         if self.core_lib_jobs:
             for name in self.core_lib_jobs:
-                os.makedirs(f'{self.snake_core_lib_name}/core_lib/jobs/', exist_ok=True)
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/core_lib/jobs/{name}.py',
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/jobs/{name}.py',
                     self.core_lib_jobs[name],
                     JobsGenerateTemplate,
                 )
 
     def generate_core_lib_class(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/core_lib/{self.snake_core_lib_name}.py',
+            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/{self.snake_core_lib_name}.py',
             {
                 'data_access': self.core_lib_data_access,
                 'jobs': self.core_lib_jobs,
@@ -102,7 +98,7 @@ class CoreLibGenerator:
 
     def generate_config(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/core_lib/config/{self.snake_core_lib_name}.yaml',
+            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/config/{self.snake_core_lib_name}.yaml',
             self.core_lib_config,
             ConfigGenerateTemplate,
         )
@@ -132,7 +128,7 @@ class CoreLibGenerator:
 
 
 if __name__ == '__main__':
-    generator = CoreLibGenerator('ExampleCoreLib.yaml')
+    generator = CoreLibGenerator('TemplateCoreLib.yaml')
     generator.generate_data_access()
     generator.generate_entities()
     generator.generate_jobs()

@@ -24,53 +24,6 @@ default_db_ports = {
 }
 
 
-def _generate_db_config(
-    db_type: int,
-    db_name: str,
-    db_username: str,
-    db_password: str,
-    db_port: int,
-    db_host: str = 'localhost',
-    db_log_queries: bool = False,
-    db_create: bool = True,
-    db_pool_recycle: int = 3200,
-    db_pool_pre_ping: bool = False,
-) -> dict:
-    env = {}
-    if db_type == DBTypes.SQLite.value:
-        url = {
-            'protocol': DBTypes(db_type).name.lower(),
-        }
-    else:
-        url = {
-            'protocol': DBTypes(db_type).name.lower(),
-            'username': f'${{oc.env:{db_name.upper()}_USER}}',
-            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
-            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
-            'port': f'${{oc.env:{db_name.upper()}_PORT}}',
-            'file': f'${{oc.env:{db_name.upper()}_DB}}',
-        }
-        env = {
-            f'{db_name.upper()}_USER': db_username,
-            f'{db_name.upper()}_PASSWORD': db_password,
-            f'{db_name.upper()}_PORT': db_port,
-            f'{db_name.upper()}_DB': db_name,
-            f'{db_name.upper()}_HOST': db_host,
-        }
-    return {
-        'env': env,
-        'config': {
-            'log_queries': db_log_queries,
-            'create_db': db_create,
-            'session': {
-                'pool_recycle': db_pool_recycle,
-                'pool_pre_ping': db_pool_pre_ping,
-            },
-            'url': url,
-        },
-    }
-
-
 def generate_db_template() -> dict:
     db_template = {}
     add_db = True
@@ -124,3 +77,50 @@ def generate_db_template() -> dict:
             db_pool_pre_ping,
         )
     return db_template
+
+
+def _generate_db_config(
+    db_type: int,
+    db_name: str,
+    db_username: str,
+    db_password: str,
+    db_port: int,
+    db_host: str = 'localhost',
+    db_log_queries: bool = False,
+    db_create: bool = True,
+    db_pool_recycle: int = 3200,
+    db_pool_pre_ping: bool = False,
+) -> dict:
+    env = {}
+    if db_type == DBTypes.SQLite.value:
+        url = {
+            'protocol': DBTypes(db_type).name.lower(),
+        }
+    else:
+        url = {
+            'protocol': DBTypes(db_type).name.lower(),
+            'username': f'${{oc.env:{db_name.upper()}_USER}}',
+            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
+            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
+            'port': f'${{oc.env:{db_name.upper()}_PORT}}',
+            'file': f'${{oc.env:{db_name.upper()}_DB}}',
+        }
+        env = {
+            f'{db_name.upper()}_USER': db_username,
+            f'{db_name.upper()}_PASSWORD': db_password,
+            f'{db_name.upper()}_PORT': db_port,
+            f'{db_name.upper()}_DB': db_name,
+            f'{db_name.upper()}_HOST': db_host,
+        }
+    return {
+        'env': env,
+        'config': {
+            'log_queries': db_log_queries,
+            'create_db': db_create,
+            'session': {
+                'pool_recycle': db_pool_recycle,
+                'pool_pre_ping': db_pool_pre_ping,
+            },
+            'url': url,
+        },
+    }

@@ -20,8 +20,6 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
             is_soft_delete_token = False
             entity_name = input_str('Enter the name of the database entity you\'d like to create')
             while entity_name in entities[db_conn]:
-                print(entities[db_conn])
-                print(entities)
                 entity_name = input_str(
                     f'Entity with name `{entity_name}` already created, please enter a different name'
                 )

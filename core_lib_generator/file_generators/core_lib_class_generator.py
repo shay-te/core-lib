@@ -3,9 +3,9 @@ from core_lib_generator.file_generators.template_generate import TemplateGenerat
 
 
 class CoreLibClassGenerateTemplate(TemplateGenerate):
-    def generate(self, template_file: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
+    def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         data_access_list = list(yaml_data['data_access'].keys())
-        updated_file = template_file.replace('TemplateCoreLib', snake_to_camel(core_lib_name))
+        updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))
         if data_access_list:
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
         if yaml_data['cache']:
@@ -15,22 +15,22 @@ class CoreLibClassGenerateTemplate(TemplateGenerate):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'template_core_lib/core_lib/template_core_lib.py'
+        return 'template_core_lib/template_core_lib/template_core_lib.py'
 
 
 def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> str:
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {core_lib_name}.core_lib.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
+            f'from {core_lib_name}.{core_lib_name}.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
         )
     return '\n'.join(da_imports)
 
 
-def _add_data_access(template_file: str, yaml_data: dict, core_lib_name: str, data_access_list: list) -> str:
+def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str, data_access_list: list) -> str:
     inst_list = []
     handler_list = []
-    updated_file = template_file
+    updated_file = template_content
     for name in yaml_data['data_access']:
         entity = yaml_data['data_access'][name]['entity']
         db_connection = yaml_data['data_access'][name]['db_connection']
@@ -50,34 +50,34 @@ def _add_data_access(template_file: str, yaml_data: dict, core_lib_name: str, da
     return updated_file
 
 
-def _add_cache(template_file: str, yaml_data: dict, core_lib_name: str) -> str:
-    cache_type = yaml_data['cache']['type']
-    updated_file = template_file
-    if cache_type == 'memory':
-        updated_file = updated_file.replace(
-            '# template_cache_handler_imports',
-            f'from core_lib.cache.cache_handler_ram import CacheHandlerRam',
-        )
-        cache_str = f'CoreLib.cache_registry.register(\'memory_cache\', CacheHandlerRam())'
-        updated_file = updated_file.replace('# template_cache_handler', cache_str.rjust(len(cache_str) + 8))
-    elif cache_type == 'memcached':
-        cache_imports = [
-            'from core_lib.data_layers.data.data_helpers import build_url',
-            'from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached',
-        ]
-        updated_file = updated_file.replace(
-            '# template_cache_handler_imports',
-            '\n'.join(cache_imports),
-        )
-        cache_str = f'CoreLib.cache_registry.register(\'memcached_cache\', CacheHandlerMemcached(build_url(host=self.config.core_lib.{core_lib_name}.cache.url.host, port=self.config.core_lib.{core_lib_name}.cache.url.port)))'
-        updated_file = updated_file.replace('# template_cache_handler', cache_str.rjust(len(cache_str) + 8))
-    else:
-        pass
+def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    updated_file = template_content
+    cache_imports = []
+    cache_inits = []
+    for name in yaml_data['cache']:
+        cache_type = yaml_data['cache'][name]['type']
+        if cache_type == 'memory':
+            cache_imports.append(f'from core_lib.cache.cache_handler_ram import CacheHandlerRam')
+            cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRam())'
+            cache_inits.append(cache_str.rjust(len(cache_str) + 8))
+        elif cache_type == 'memcached':
+            cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
+            cache_imports.append('from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached')
+            cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerMemcached(build_url(host=self.config.core_lib.{core_lib_name}.cache.url.host, port=self.config.core_lib.{core_lib_name}.cache.url.port)))'
+            cache_inits.append(cache_str.rjust(len(cache_str) + 8))
+    updated_file = updated_file.replace(
+        '# template_cache_handler_imports',
+        '\n'.join(cache_imports),
+    )
+    updated_file = updated_file.replace(
+        '# template_cache_handler',
+        '\n'.join(cache_inits),
+    )
     return updated_file
 
 
-def _add_job(template_file: str, yaml_data: dict, core_lib_name: str) -> str:
-    updated_file = template_file
+def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    updated_file = template_content
     job_list = list(yaml_data['jobs'].keys())
     job_handler = {}
     job_handler_str = f'jobs_data_handlers = {str(job_handler)}'

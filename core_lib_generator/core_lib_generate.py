@@ -2,8 +2,6 @@
 import os
 import logging
 
-import hydra
-
 from core_lib_generator import template_core_lib
 from core_lib.helpers.command_line import _to_safe_file_name, input_file_name
 from core_lib.helpers.string import snake_to_camel
