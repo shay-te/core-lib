@@ -15,6 +15,7 @@ __pycache__/
 # TESTS
 /examples/**/outputs/
 /tests/data_output
+/tests/test_cache_redis.py
 
 # BUILD
 *.egg-info

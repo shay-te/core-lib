@@ -5,7 +5,6 @@ from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-# path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
 from tests.test_data.test_utils import connect_to_mem_db
 
 
