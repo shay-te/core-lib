@@ -5,7 +5,6 @@ from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-# path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
 from tests.test_data.test_utils import connect_to_mem_db
 
 
@@ -17,7 +16,7 @@ class Test(Base):
     test_name = Column(VARCHAR(length=255), nullable=False, default="")
 
 
-class TestDBRuleValidator(unittest.TestCase):
+class TestDBDataSession(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
