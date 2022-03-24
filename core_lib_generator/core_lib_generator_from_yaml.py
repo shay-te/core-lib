@@ -42,18 +42,6 @@ class CoreLibGenerator:
         if 'cache' in self.core_lib_config:
             self.core_lib_cache = self.core_lib_config.cache
 
-        if 'data' in self.core_lib_config:
-            for conn_name in self.core_lib_config.data:
-                with open_dict(self.core_lib_config.data):
-                    if self.core_lib_config.data[conn_name].get('log_queries') is None:
-                        self.core_lib_config.data[conn_name].setdefault('log_queries', False)
-                    if self.core_lib_config.data[conn_name].get('create_db') is None:
-                        self.core_lib_config.data[conn_name].setdefault('create_db', False)
-                    if self.core_lib_config.data[conn_name].get('session') is None:
-                        self.core_lib_config.data[conn_name].setdefault('session', {})
-                        self.core_lib_config.data[conn_name]['session'].setdefault('pool_recycle', 3200)
-                        self.core_lib_config.data[conn_name]['session'].setdefault('pool_pre_ping', False)
-
     def _generate_template(self, file_path: str, yaml_data: dict, template_generate, file_name: str = None):
         template_generator = template_generate()
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
