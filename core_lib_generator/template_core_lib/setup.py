@@ -10,6 +10,11 @@ from pip._internal.req import parse_requirements
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 install_reqs = parse_requirements(os.path.join(dir_path, 'requirements.txt'), session=PipSession)
+requirements = []
+try:
+    requirements = [str(ir.req) for ir in install_reqs]
+except:
+    requirements = [str(ir.requirement) for ir in install_reqs]
 
 packages1 = setuptools.find_packages()
 packages2 = find_namespace_packages(include=['hydra_plugins.*'])
@@ -30,7 +35,7 @@ with open('README.md', 'r') as fh:
         packages=packages,
         license='template_license',
         # template_classifiers
-        install_requires=[str(ir.requirement) for ir in install_reqs],
+        install_requires=requirements,
         include_package_data=True,
         python_requires='>=3.7',
         scripts=['bin/core_lib'],

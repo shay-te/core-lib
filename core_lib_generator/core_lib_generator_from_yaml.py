@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import hydra
 
@@ -12,6 +13,7 @@ from core_lib_generator.file_generators.hydra_plugins_generator import HydraPlug
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate
 from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
 from core_lib_generator.file_generators.jobs_generator import JobsGenerateTemplate
+from core_lib_generator.file_generators.license_generator import LicenseGenerateTemplate
 from core_lib_generator.file_generators.manifest_generator import ManifestGenerateTemplate
 from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
@@ -134,7 +136,15 @@ class CoreLibGenerator:
     def generate_setup(self):
         self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate)
         self._generate_template(
-            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py', {}, VersionGenerateTemplate
+            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
+            self.core_lib_setup,
+            VersionGenerateTemplate,
+        )
+        utc_now = datetime.utcnow()
+        self._generate_template(
+            f'{self.snake_core_lib_name}/LICENSE_{utc_now.year}_{utc_now.month}_{utc_now.day}',
+            self.core_lib_setup,
+            LicenseGenerateTemplate,
         )
 
 

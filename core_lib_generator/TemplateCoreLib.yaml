@@ -45,7 +45,7 @@ TestCoreLib:
       author_email: jon@doe.com
       description: Simple core lib project
       url: http://google.com
-      license: MIT
+      license: APACHE_LICENSE_2
       classifiers:
         - 'Framework :: Flask'
         - 'Development Status :: 3 - Alpha'
@@ -53,6 +53,7 @@ TestCoreLib:
         - 'Environment :: Win32 (MS Windows)'
         - 'Topic :: Software Development'
         - 'Topic :: Software Development :: Libraries'
+      version: 0.0.0.1
     cache:
       cache_name:
         type: memcached
