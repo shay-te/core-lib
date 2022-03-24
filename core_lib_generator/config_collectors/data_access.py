@@ -13,6 +13,10 @@ class DataAccessTypes(enum.Enum):
 
 def generate_data_access_template(db_entities: dict) -> dict:
     data_access = {}
+
+    def is_exists(user_input: str):
+        return False if user_input in data_access else True
+
     for db_conn in db_entities:
         for entity in db_entities[db_conn]:
             if entity == 'migrate':
@@ -24,15 +28,10 @@ def generate_data_access_template(db_entities: dict) -> dict:
                 input_str(
                     f'What is the name of the data access? (Database connection: {db_conn}, Entity: {entity})',
                     default,
+                    False,
+                    is_exists
                 )
             )
-            while data_access_name in data_access:
-                data_access_name = any_to_camel(
-                    input_str(
-                        f'Data access with name {data_access_name} already present (for Database connection: {db_conn}, Entity: {entity})',
-                        default,
-                    )
-                )
             is_crud_soft_delete_token = False
             is_crud_soft_delete = False
             is_crud = False
@@ -41,8 +40,8 @@ def generate_data_access_template(db_entities: dict) -> dict:
                     'Do you want to implement CRUD Soft Delete Token on your data access?', False
                 )
             elif (
-                db_entities[db_conn][entity]['is_soft_delete']
-                and not db_entities[db_conn][entity]['is_soft_delete_token']
+                    db_entities[db_conn][entity]['is_soft_delete']
+                    and not db_entities[db_conn][entity]['is_soft_delete_token']
             ):
                 is_crud_soft_delete = input_yes_no(
                     'Do you want to implement CRUD Soft Delete on your data access?', False
@@ -63,11 +62,11 @@ def generate_data_access_template(db_entities: dict) -> dict:
 
 
 def _generate_data_access_config(
-    entity_name: str,
-    db_conn: str,
-    crud: bool = False,
-    crud_soft_delete: bool = False,
-    crud_soft_delete_token: bool = False,
+        entity_name: str,
+        db_conn: str,
+        crud: bool = False,
+        crud_soft_delete: bool = False,
+        crud_soft_delete_token: bool = False,
 ) -> dict:
     if crud_soft_delete_token:
         return {

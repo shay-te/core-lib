@@ -14,15 +14,15 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
     entities = {}
     for db_conn in db_conn_list:
         entities.setdefault(db_conn, {})
+
+        def is_exists(user_input: str):
+            return False if user_input in entities[db_conn] else True
+
         add_entity = input_yes_no(f'Do you want to add entities to `{db_conn}` db connection?', True)
         while add_entity:
             is_soft_delete = False
             is_soft_delete_token = False
-            entity_name = input_str('Enter the name of the database entity you\'d like to create')
-            while entity_name in entities[db_conn]:
-                entity_name = input_str(
-                    f'Entity with name `{entity_name}` already created, please enter a different name'
-                )
+            entity_name = input_str('Enter the name of the database entity you\'d like to create', None, False, is_exists)
             column_count = input_int('How many columns will you have in your entity? ', 0)
             columns = {}
             if column_count != 0:

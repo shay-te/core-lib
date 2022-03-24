@@ -1,6 +1,5 @@
 import enum
-import re
-from typing import Union
+from typing import Union, Callable, Awaitable
 
 from pytimeparse import parse
 
@@ -19,22 +18,27 @@ def input_yes_no(title: str, default_value: bool = None) -> bool:
 
 
 def input_str(
-    title: str,
-    default_value: str = None,
-    allow_empty: bool = False,
-    existing_selected: Union[list, dict] = None,
-    title_existing_selected: str = 'Already selected please select a different value',
+        title: str,
+        default_value: str = None,
+        allow_empty: bool = False,
+        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+        title_validate_value_fail: str = 'Result value invalid'
 ) -> str:
     result = None
+    is_result_valid = True
     while result is None:
-        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        new_title = title if is_result_valid else title_validate_value_fail
+        user_input = _input(f'{new_title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
         if allow_empty and str(user_input) == '':
             result = str(user_input)
         if str(user_input):
-            if user_input in existing_selected:
-                return input_str(title_existing_selected, default_value, allow_empty, existing_selected)
-            result = str(user_input)
+            if validate_value_callback and not validate_value_callback(user_input):
+                result = None
+                is_result_valid = False
+            else:
+                result = str(user_input)
+                is_result_valid = True
     return result
 
 
@@ -73,11 +77,9 @@ def input_timeframe(title: str, default_value: str = None, allow_empty: bool = F
 
 
 def input_enum(
-    enum_class: enum,
-    title: str,
-    default_value: int = None,
-    existing_selected: Union[list, dict] = None,
-    title_existing_selected: str = 'Already selected please select a different value',
+        enum_class: enum,
+        title: str,
+        default_value: int = None,
 ) -> int:
     enum_values = set()
     for item in enum_class:
@@ -93,26 +95,26 @@ def input_enum(
 
 
 def input_list(
-    list_value: list,
-    title: str,
-    default_value: int = None,
-    existing_selected: Union[list, dict] = None,
-    title_existing_selected: str = 'Already selected please select a different value',
+        list_value: list,
+        title: str,
+        default_value: int = None,
+        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+        title_validate_value_fail: str = 'Result value invalid'
 ):
     [print(f'{list_value.index(i) + 1}-{i}') for i in list_value]
     result = None
+    is_result_valid = True
     while result is None:
-        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        new_title = title if is_result_valid else title_validate_value_fail
+        user_input = _input(f'{new_title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
         if is_int(user_input) and len(list_value) >= int(user_input) > 0:
-            if list_value[int(user_input) - 1] in existing_selected:
-                return input_list(
-                    list_value,
-                    f'`{list_value[int(user_input) - 1]}` {title_existing_selected}',
-                    default_value,
-                    existing_selected,
-                )
-            result = list_value[int(user_input) - 1]
+            if validate_value_callback and not validate_value_callback(user_input):
+                result = None
+                is_result_valid = False
+            else:
+                result = list_value[int(user_input) - 1]
+                is_result_valid = True
     return result
 
 
