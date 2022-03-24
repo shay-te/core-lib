@@ -38,5 +38,4 @@ with open('README.md', 'r') as fh:
         install_requires=requirements,
         include_package_data=True,
         python_requires='>=3.7',
-        scripts=['bin/core_lib'],
     )
