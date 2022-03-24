@@ -16,7 +16,7 @@ class Test(Base):
     test_name = Column(VARCHAR(length=255), nullable=False, default="")
 
 
-class TestDBRuleValidator(unittest.TestCase):
+class TestDBDataSession(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
