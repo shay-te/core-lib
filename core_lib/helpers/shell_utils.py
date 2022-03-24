@@ -18,11 +18,11 @@ def input_yes_no(title: str, default_value: bool = None) -> bool:
 
 
 def input_str(
-        title: str,
-        default_value: str = None,
-        allow_empty: bool = False,
-        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
-        title_validate_value_fail: str = 'Result value invalid'
+    title: str,
+    default_value: str = None,
+    allow_empty: bool = False,
+    validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+    title_validate_value_fail: str = 'Result value invalid',
 ) -> str:
     result = None
     is_result_valid = True
@@ -77,9 +77,9 @@ def input_timeframe(title: str, default_value: str = None, allow_empty: bool = F
 
 
 def input_enum(
-        enum_class: enum,
-        title: str,
-        default_value: int = None,
+    enum_class: enum,
+    title: str,
+    default_value: int = None,
 ) -> int:
     enum_values = set()
     for item in enum_class:
@@ -95,11 +95,11 @@ def input_enum(
 
 
 def input_list(
-        list_value: list,
-        title: str,
-        default_value: int = None,
-        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
-        title_validate_value_fail: str = 'Result value invalid'
+    list_value: list,
+    title: str,
+    default_value: int = None,
+    validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+    title_validate_value_fail: str = 'Result value invalid',
 ):
     [print(f'{list_value.index(i) + 1}-{i}') for i in list_value]
     result = None

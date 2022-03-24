@@ -22,7 +22,9 @@ def generate_db_entity_template(db_conn_list: list) -> dict:
         while add_entity:
             is_soft_delete = False
             is_soft_delete_token = False
-            entity_name = input_str('Enter the name of the database entity you\'d like to create', None, False, is_exists)
+            entity_name = input_str(
+                'Enter the name of the database entity you\'d like to create', None, False, is_exists
+            )
             column_count = input_int('How many columns will you have in your entity? ', 0)
             columns = {}
             if column_count != 0:

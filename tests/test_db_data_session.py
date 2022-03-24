@@ -42,32 +42,3 @@ class TestDBDataSession(unittest.TestCase):
             session.query(Test).filter(Test.id == test.id).update({"test_name": "new name2"})
 
             session.query(Test).all()
-
-
-class TestDefaultsForSQLAlchemyDataHandlerRegistry(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        conf = {
-            'url': {'protocol': 'sqlite'},
-        }
-        cls.db_data_session = SqlAlchemyDataHandlerRegistry(OmegaConf.create(conf))
-
-    def test_query(self):
-        with self.__class__.db_data_session.get() as session:
-            # Add new
-            test = Test()
-            test.test_name = "test_name"
-            session.add(test)
-            session.commit()
-            session.flush()
-            session.close()
-
-        # Update
-        with self.__class__.db_data_session.get() as session:
-            with suppress(Exception):
-                session.add(Test({"test_name": "Test name 11", "new_!": "not existing field"}))
-
-        with self.__class__.db_data_session.get() as session:
-            session.query(Test).filter(Test.id == test.id).update({"test_name": "new name2"})
-
-            session.query(Test).all()
