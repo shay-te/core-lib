@@ -36,10 +36,12 @@ def generate_setup_template():
         'Typing :: Typed',
     ]
     user_classifiers = []
+
+    def is_exists(user_input: str):
+        return False if user_input in user_classifiers else True
+
     while add_classifiers:
-        user_classifiers_input = input_list(
-            classifiers, 'Select the classifiers for your project', None, user_classifiers
-        )
+        user_classifiers_input = input_list(classifiers, 'Select the classifiers for your project', None, is_exists)
         user_classifiers.append(user_classifiers_input)
         add_classifiers = input_yes_no('Do you want to add another classifier?', True)
 

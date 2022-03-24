@@ -82,16 +82,16 @@ def generate_db_template() -> dict:
 
 
 def _generate_db_config(
-        db_type: int,
-        db_name: str,
-        db_username: str,
-        db_password: str,
-        db_port: int,
-        db_host: str = 'localhost',
-        db_log_queries: bool = False,
-        db_create: bool = True,
-        db_pool_recycle: int = 3200,
-        db_pool_pre_ping: bool = False,
+    db_type: int,
+    db_name: str,
+    db_username: str,
+    db_password: str,
+    db_port: int,
+    db_host: str = 'localhost',
+    db_log_queries: bool = False,
+    db_create: bool = True,
+    db_pool_recycle: int = 3200,
+    db_pool_pre_ping: bool = False,
 ) -> dict:
     env = {}
     if db_type == DBTypes.SQLite.value:

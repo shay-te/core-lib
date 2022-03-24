@@ -29,7 +29,7 @@ def generate_data_access_template(db_entities: dict) -> dict:
                     f'What is the name of the data access? (Database connection: {db_conn}, Entity: {entity})',
                     default,
                     False,
-                    is_exists
+                    is_exists,
                 )
             )
             is_crud_soft_delete_token = False
@@ -40,8 +40,8 @@ def generate_data_access_template(db_entities: dict) -> dict:
                     'Do you want to implement CRUD Soft Delete Token on your data access?', False
                 )
             elif (
-                    db_entities[db_conn][entity]['is_soft_delete']
-                    and not db_entities[db_conn][entity]['is_soft_delete_token']
+                db_entities[db_conn][entity]['is_soft_delete']
+                and not db_entities[db_conn][entity]['is_soft_delete_token']
             ):
                 is_crud_soft_delete = input_yes_no(
                     'Do you want to implement CRUD Soft Delete on your data access?', False
@@ -62,11 +62,11 @@ def generate_data_access_template(db_entities: dict) -> dict:
 
 
 def _generate_data_access_config(
-        entity_name: str,
-        db_conn: str,
-        crud: bool = False,
-        crud_soft_delete: bool = False,
-        crud_soft_delete_token: bool = False,
+    entity_name: str,
+    db_conn: str,
+    crud: bool = False,
+    crud_soft_delete: bool = False,
+    crud_soft_delete_token: bool = False,
 ) -> dict:
     if crud_soft_delete_token:
         return {
