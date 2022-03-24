@@ -1,8 +1,8 @@
 from core_lib.helpers.string import any_to_camel
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class EntityGenerateTemplate(TemplateGenerate):
+class EntityGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         updated_file = _add_columns_to_entity(template_content, yaml_data['columns'])
         entity_name = file_name

@@ -1,7 +1,7 @@
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class VersionGenerateTemplate(TemplateGenerate):
+class VersionGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         version = yaml_data['version']
         return template_content.replace('# template_version', f'__version__ = \'{version}\'')

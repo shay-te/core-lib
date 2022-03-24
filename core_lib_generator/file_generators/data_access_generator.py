@@ -1,8 +1,8 @@
 from core_lib.helpers.string import any_to_camel
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class DataAccessGenerateTemplate(TemplateGenerate):
+class DataAccessGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         updated_file = template_content.replace('Template', file_name)
         db_conn = yaml_data['db_connection']

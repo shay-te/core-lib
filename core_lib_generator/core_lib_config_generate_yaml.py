@@ -23,7 +23,7 @@ def _get_env_variables(data):
 
 config = {}
 config.setdefault('data', {})
-config.setdefault('setup', {})
+setup = {}
 env = {}
 data_layers = {}
 
@@ -65,6 +65,11 @@ def _get_cache_config():
     config['cache'] = cache['config']
 
 
+def _get_setup_details():
+    print('\nPlease provide the following information for setup.py')
+    setup.setdefault('data', generate_setup_template())
+
+
 def _get_jobs_config(core_lib_name: str):
     print('Please fill out the requested information for Job.')
     job = generate_job_template(core_lib_name)
@@ -78,6 +83,7 @@ def create_yaml_file(core_lib_name: str):
                 'env': env,
                 'config': config,
                 'data_layers': data_layers,
+                'setup': setup['data'],
             }
         }
     )
@@ -103,8 +109,9 @@ def get_data_from_user():
     if want_job:
         _get_jobs_config(core_lib_name)
 
-    print('\nPlease provide the following information for setup.py')
-    config['setup'] = generate_setup_template()
+    want_setup = input_yes_no('\nDo you want to add setup.py?', True)
+    if want_setup:
+        _get_setup_details()
 
     create_yaml_file(core_lib_name)
     return f'{core_lib_name}.yaml'

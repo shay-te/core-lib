@@ -3,13 +3,6 @@ import enum
 from core_lib.helpers.shell_utils import input_enum, input_int, input_str
 
 
-class CacheTypes(enum.Enum):
-    __order__ = 'Memcached Memory Empty'
-    Memcached = 1
-    Memory = 2
-    Empty = 3
-
-
 def generate_cache_template() -> dict:
     cache_name = input_str('Enter name for your cache')
     cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value)
@@ -44,3 +37,10 @@ def generate_cache_template() -> dict:
         }
     else:
         print('No cache set.')
+
+
+class CacheTypes(enum.Enum):
+    __order__ = 'Memcached Memory Empty'
+    Memcached = 1
+    Memory = 2
+    Empty = 3

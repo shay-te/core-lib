@@ -1,8 +1,8 @@
 from core_lib.helpers.string import camel_to_snake, snake_to_camel
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class CoreLibClassGenerateTemplate(TemplateGenerate):
+class CoreLibClassGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         data_access_list = list(yaml_data['data_access'].keys())
         updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))

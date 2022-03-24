@@ -15,3 +15,5 @@ class TestStrings(unittest.TestCase):
         self.assertEqual(any_to_camel('This iS CaMel'), 'ThisIsCamel')
         self.assertEqual(any_to_camel('thisIsCamel'), 'ThisIsCamel')
         self.assertEqual(any_to_camel('this_is_camel'), 'ThisIsCamel')
+        self.assertEqual(any_to_camel('ThisIsCamel'), 'ThisIsCamel')
+        self.assertEqual(any_to_camel('this \n\t\r  ------- Is ____camel'), 'ThisIsCamel')

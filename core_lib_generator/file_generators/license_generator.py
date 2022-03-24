@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class LicenseGenerateTemplate(TemplateGenerate):
+class LicenseGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         author = yaml_data['author']
         copy_right = f'Copyright {datetime.utcnow().year} {author}'

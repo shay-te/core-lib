@@ -128,11 +128,13 @@ def input_email(title: str, default_value: str = None) -> str:
     return result
 
 
-def input_url(title: str, default_value: str = None) -> str:
+def input_url(title: str, default_value: str = None, allow_empty: bool = False) -> str:
     result = None
     while result is None:
         user_input = _input(f'{title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
+        if allow_empty and str(user_input) == '':
+            result = str(user_input)
         if is_url(user_input):
             result = user_input
     return result

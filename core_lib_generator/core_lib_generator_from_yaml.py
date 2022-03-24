@@ -18,6 +18,7 @@ from core_lib_generator.file_generators.manifest_generator import ManifestGenera
 from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
 from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
@@ -35,7 +36,7 @@ class CoreLibGenerator:
         self.core_lib_data_access = {}
         self.core_lib_jobs = {}
         self.core_lib_cache = {}
-        self.core_lib_setup = self.core_lib_config['setup']
+        self.core_lib_setup = {}
 
         if 'data' in config[self.core_lib_name].data_layers:
             self.core_lib_entities = config[self.core_lib_name].data_layers.data
@@ -45,16 +46,22 @@ class CoreLibGenerator:
             self.core_lib_jobs = self.core_lib_config.jobs
         if 'cache' in self.core_lib_config:
             self.core_lib_cache = self.core_lib_config.cache
+        if 'setup' in config[self.core_lib_name]:
+            self.core_lib_setup = config[self.core_lib_name].setup
 
-    def _generate_template(self, file_path: str, yaml_data: dict, template_generate, file_name: str = None):
-        template_generator = template_generate()
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        if not os.path.isfile(f'{os.path.dirname(file_path)}/__init__.py') and 'hydra_plugins' not in os.path.dirname(
-            file_path
-        ):
-            open(f'{os.path.dirname(file_path)}/__init__.py', 'w').close()
-        os.makedirs(f'{self.snake_core_lib_name}/hydra_plugins/conf', exist_ok=True)
-        open(f'{self.snake_core_lib_name}/hydra_plugins/conf/__init__.py', 'w').close()
+    def _generate_template(
+        self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
+    ):
+        file_dir_path = os.path.dirname(file_path)
+        os.makedirs(file_dir_path, exist_ok=True)
+        excluded_init_dirs = template_generator.exclude_init_from_dirs()
+        dir_names = file_dir_path.split('/')
+        init_path = ''
+        for filename in dir_names:
+            init_path = os.path.join(init_path, filename)
+            init_file_path = f'{init_path}/__init__.py'
+            if not os.path.isfile(init_file_path) and filename not in excluded_init_dirs:
+                open(init_file_path, 'w').close()
         with open(template_generator.get_template_file(yaml_data), 'r') as template_file:
             new_file = template_generator.generate(template_file.read(), yaml_data, self.snake_core_lib_name, file_name)
         with open(file_path, 'w') as file:
@@ -66,7 +73,7 @@ class CoreLibGenerator:
                 self._generate_template(
                     f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data_access/{camel_to_snake(da_name)}.py',
                     self.core_lib_data_access[da_name],
-                    DataAccessGenerateTemplate,
+                    DataAccessGenerateTemplate(),
                     da_name,
                 )
 
@@ -79,7 +86,7 @@ class CoreLibGenerator:
                     self._generate_template(
                         f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
                         self.core_lib_entities[db_conn_name][entity_name],
-                        EntityGenerateTemplate,
+                        EntityGenerateTemplate(),
                         entity_name,
                     )
 
@@ -89,7 +96,7 @@ class CoreLibGenerator:
                 self._generate_template(
                     f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/jobs/{name}.py',
                     self.core_lib_jobs[name],
-                    JobsGenerateTemplate,
+                    JobsGenerateTemplate(),
                 )
 
     def generate_core_lib_class(self):
@@ -100,51 +107,53 @@ class CoreLibGenerator:
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
             },
-            CoreLibClassGenerateTemplate,
+            CoreLibClassGenerateTemplate(),
         )
 
     def generate_config(self):
         self._generate_template(
             f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/config/{self.snake_core_lib_name}.yaml',
             self.core_lib_config,
-            ConfigGenerateTemplate,
+            ConfigGenerateTemplate(),
         )
 
     def generate_hydra_plugins(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}.py', {}, HydraPluginsGenerateTemplate
+            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}/{self.snake_core_lib_name}_sourcepath.py',
+            {},
+            HydraPluginsGenerateTemplate(),
         )
 
     def generate_git_ignore(self):
-        self._generate_template(f'{self.snake_core_lib_name}/.gitignore', {}, GitIgnoreGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/.gitignore', {}, GitIgnoreGenerateTemplate())
 
     def generate_docker_ignore(self):
-        self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate())
 
     def generate_readme(self):
-        self._generate_template(f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate())
 
     def generate_requirements(self):
-        self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
 
     def generate_default_config(self):
-        self._generate_template(f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate())
 
     def generate_manifest(self):
-        self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate())
 
     def generate_setup(self):
-        self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate)
+        self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate())
         self._generate_template(
             f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
             self.core_lib_setup,
-            VersionGenerateTemplate,
+            VersionGenerateTemplate(),
         )
         utc_now = datetime.utcnow()
         self._generate_template(
             f'{self.snake_core_lib_name}/LICENSE_{utc_now.year}_{utc_now.month}_{utc_now.day}',
             self.core_lib_setup,
-            LicenseGenerateTemplate,
+            LicenseGenerateTemplate(),
         )
 
 

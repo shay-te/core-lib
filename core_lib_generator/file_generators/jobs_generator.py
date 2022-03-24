@@ -1,7 +1,7 @@
-from core_lib_generator.file_generators.template_generate import TemplateGenerate
+from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
-class JobsGenerateTemplate(TemplateGenerate):
+class JobsGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         job_class = yaml_data['handler']['_target_'].split('.')[-1]
         return template_content.replace('Template', job_class)

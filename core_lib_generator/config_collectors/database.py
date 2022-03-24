@@ -3,6 +3,52 @@ import enum
 from core_lib.helpers.shell_utils import input_str, input_enum, input_yes_no, input_int
 
 
+def generate_db_template() -> dict:
+    db_template = {}
+
+    def is_exists(user_input: str):
+        return False if user_input in db_template else True
+
+    add_db = True
+    while add_db:
+        db_name = input_str('What is the name of the DB connection?', None, False, is_exists)
+
+        db_type = input_enum(
+            DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
+        )
+
+        db_log_queries = input_yes_no('Do you want to log queries?', False)
+        db_create = input_yes_no('Do you want create Database?', True)
+        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
+        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+        db_username = None
+        db_password = None
+        db_port = None
+        db_host = None
+        if db_type != DBTypes.SQLite.value:
+            db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
+            db_host = input_str('Enter host of your DB', 'localhost')
+            db_username = input_str('Enter your DB username', 'user')
+            db_password = input_str(
+                'Enter your DB password',
+            )
+        print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
+        add_db = input_yes_no('Do you want to add another DB connection?', False)
+        db_template[f'{db_name}'] = _generate_db_config(
+            db_type,
+            db_name,
+            db_username,
+            db_password,
+            db_port,
+            db_host,
+            db_log_queries,
+            db_create,
+            db_pool_recycle,
+            db_pool_pre_ping,
+        )
+    return db_template
+
+
 class DBTypes(enum.Enum):
     __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase'
     SQLite = 1
@@ -22,63 +68,6 @@ default_db_ports = {
     DBTypes.Firebird.name: 3050,
     DBTypes.Sybase.name: 5000,
 }
-
-
-def generate_db_template() -> dict:
-    db_template = {}
-
-    def is_exists(user_input: str):
-        return False if user_input in db_template else True
-
-    add_db = True
-    while add_db:
-        db_name = input_str('What is the name of the DB connection?', None, False, is_exists)
-
-        db_type = input_enum(
-            DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
-        )
-
-        db_log_queries = input_yes_no('Do you want to log queries?', False)
-        db_create = input_yes_no('Do you want create Database?', True)
-        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
-        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-        if db_type == DBTypes.SQLite.value:
-            print('SQLite in memory.')
-            add_db = input_yes_no('Do you want to add another DB connection?', False)
-            db_template[f'{db_name}'] = _generate_db_config(
-                db_type,
-                db_name,
-                None,
-                None,
-                None,
-                None,
-                db_log_queries,
-                db_create,
-                db_pool_recycle,
-                db_pool_pre_ping,
-            )
-            continue
-        db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
-        db_host = input_str('Enter host of your DB', 'localhost')
-        db_username = input_str('Enter your DB username', 'user')
-        db_password = input_str(
-            'Enter your DB password',
-        )
-        print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
-        add_db = input_yes_no('Do you want to add another DB connection?', False)
-        db_template[f'{db_name}'] = _generate_db_config(
-            db_type,
-            db_name,
-            db_username,
-            db_password,
-            db_port,
-            db_host,
-            db_log_queries,
-            db_create,
-            db_pool_recycle,
-            db_pool_pre_ping,
-        )
-    return db_template
 
 
 def _generate_db_config(
