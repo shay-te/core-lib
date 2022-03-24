@@ -1,5 +1,6 @@
 import enum
 import re
+from typing import Union
 
 from pytimeparse import parse
 
@@ -17,7 +18,13 @@ def input_yes_no(title: str, default_value: bool = None) -> bool:
     return result
 
 
-def input_str(title: str, default_value: str = None, allow_empty: bool = False) -> str:
+def input_str(
+    title: str,
+    default_value: str = None,
+    allow_empty: bool = False,
+    existing_selected: Union[list, dict] = None,
+    title_existing_selected: str = 'Already selected please select a different value',
+) -> str:
     result = None
     while result is None:
         user_input = _input(f'{title} {_print_default(default_value)}: ')
@@ -25,6 +32,8 @@ def input_str(title: str, default_value: str = None, allow_empty: bool = False) 
         if allow_empty and str(user_input) == '':
             result = str(user_input)
         if str(user_input):
+            if user_input in existing_selected:
+                return input_str(title_existing_selected, default_value, allow_empty, existing_selected)
             result = str(user_input)
     return result
 
@@ -63,7 +72,13 @@ def input_timeframe(title: str, default_value: str = None, allow_empty: bool = F
     return result
 
 
-def input_enum(enum_class: enum, title: str, default_value: int = None) -> int:
+def input_enum(
+    enum_class: enum,
+    title: str,
+    default_value: int = None,
+    existing_selected: Union[list, dict] = None,
+    title_existing_selected: str = 'Already selected please select a different value',
+) -> int:
     enum_values = set()
     for item in enum_class:
         enum_values.add(item.value)
@@ -77,13 +92,21 @@ def input_enum(enum_class: enum, title: str, default_value: int = None) -> int:
     return result
 
 
-def input_list(list_value: list, title: str, default_value: int = None):
+def input_list(
+    list_value: list,
+    title: str,
+    default_value: int = None,
+    existing_selected: Union[list, dict] = None,
+    title_existing_selected: str = 'Already selected please select a different value',
+):
     [print(f'{list_value.index(i) + 1}-{i}') for i in list_value]
     result = None
     while result is None:
         user_input = _input(f'{title} {_print_default(default_value)}: ')
         user_input = _get_value(user_input, default_value)
         if is_int(user_input) and len(list_value) >= int(user_input) > 0:
+            if list_value[int(user_input) - 1] in existing_selected:
+                return input_list(list_value, title_existing_selected, default_value, existing_selected)
             result = list_value[int(user_input) - 1]
     return result
 
