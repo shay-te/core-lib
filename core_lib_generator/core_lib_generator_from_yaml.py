@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import hydra
 
@@ -12,9 +13,12 @@ from core_lib_generator.file_generators.hydra_plugins_generator import HydraPlug
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate
 from core_lib_generator.file_generators.entity_generator import EntityGenerateTemplate
 from core_lib_generator.file_generators.jobs_generator import JobsGenerateTemplate
+from core_lib_generator.file_generators.license_generator import LicenseGenerateTemplate
 from core_lib_generator.file_generators.manifest_generator import ManifestGenerateTemplate
 from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
+from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
+from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize()
@@ -31,6 +35,7 @@ class CoreLibGenerator:
         self.core_lib_data_access = {}
         self.core_lib_jobs = {}
         self.core_lib_cache = {}
+        self.core_lib_setup = self.core_lib_config['setup']
 
         if 'data' in config[self.core_lib_name].data_layers:
             self.core_lib_entities = config[self.core_lib_name].data_layers.data
@@ -128,6 +133,20 @@ class CoreLibGenerator:
     def generate_manifest(self):
         self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate)
 
+    def generate_setup(self):
+        self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate)
+        self._generate_template(
+            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
+            self.core_lib_setup,
+            VersionGenerateTemplate,
+        )
+        utc_now = datetime.utcnow()
+        self._generate_template(
+            f'{self.snake_core_lib_name}/LICENSE_{utc_now.year}_{utc_now.month}_{utc_now.day}',
+            self.core_lib_setup,
+            LicenseGenerateTemplate,
+        )
+
 
 if __name__ == '__main__':
     generator = CoreLibGenerator('TemplateCoreLib.yaml')
@@ -143,3 +162,4 @@ if __name__ == '__main__':
     generator.generate_requirements()
     generator.generate_default_config()
     generator.generate_manifest()
+    generator.generate_setup()
