@@ -1,4 +1,3 @@
-import re
 from re import split
 
 
@@ -10,12 +9,11 @@ def camel_to_snake(s) -> str:
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
 
 
-def any_to_camel(string: str) -> str:
-    if not _is_camel_case(string):
-        return ''.join(a.capitalize() for a in split('([^a-zA-Z0-9])', string) if a.isalnum())
-    else:
-        return re.sub('([a-zA-Z])', lambda x: x.groups()[0].upper(), string, 1)  # capitalize first word just in case
-
-
-def _is_camel_case(string: str) -> bool:
-    return string != string.lower() and string != string.upper() and "_" not in string and " " not in string
+def any_to_pascal(string: str) -> str:
+    pascal_string = []
+    string = string[1:] if string[0].isnumeric() else string
+    for word in split('([^a-zA-Z0-9])', string):
+        if word.isalnum():
+            word = ' '.join(w[:1].upper() + w[1:] for w in word.split(' ')) if not word[0].isupper() and not word[0].isnumeric() else word
+            pascal_string.append(word)
+    return ''.join(pascal_string)

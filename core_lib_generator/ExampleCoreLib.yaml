@@ -1,4 +1,4 @@
-TestCoreLib:
+ExampleCoreLib:
   env:
     USERDB_USER: user
     USERDB_PASSWORD: password

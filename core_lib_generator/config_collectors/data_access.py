@@ -1,7 +1,7 @@
 import enum
 
 from core_lib.helpers.shell_utils import input_str, input_yes_no
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.string import any_to_pascal
 
 
 def generate_data_access_template(db_entities: dict) -> dict:
@@ -15,9 +15,11 @@ def generate_data_access_template(db_entities: dict) -> dict:
             if entity == 'migrate':
                 continue
             default = (
-                f'{any_to_camel(entity)}DataAccess' if f'{any_to_camel(entity)}DataAccess' not in data_access else None
+                f'{any_to_pascal(entity)}DataAccess'
+                if f'{any_to_pascal(entity)}DataAccess' not in data_access
+                else None
             )
-            data_access_name = any_to_camel(
+            data_access_name = any_to_pascal(
                 input_str(
                     f'What is the name of the data access? (Database connection: {db_conn}, Entity: {entity})',
                     default,

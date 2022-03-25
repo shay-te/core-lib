@@ -158,7 +158,7 @@ class CoreLibGenerator:
 
 
 if __name__ == '__main__':
-    generator = CoreLibGenerator('TemplateCoreLib.yaml')
+    generator = CoreLibGenerator('ExampleCoreLib.yaml')
     generator.generate_data_access()
     generator.generate_entities()
     generator.generate_jobs()

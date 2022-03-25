@@ -1,7 +1,7 @@
 from omegaconf import OmegaConf
 
 from core_lib.helpers.shell_utils import input_str, input_yes_no
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.config_collectors.cache import generate_cache_template
 from core_lib_generator.config_collectors.data_access import generate_data_access_template
 from core_lib_generator.config_collectors.database import generate_db_template
@@ -93,7 +93,7 @@ def create_yaml_file(core_lib_name: str):
 
 
 def get_data_from_user():
-    core_lib_name = any_to_camel(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
+    core_lib_name = any_to_pascal(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
 
     _get_data_layers_config()
 

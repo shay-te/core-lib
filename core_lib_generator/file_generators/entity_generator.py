@@ -1,4 +1,4 @@
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
@@ -7,7 +7,7 @@ class EntityGenerateTemplate(TemplateGenerator):
         updated_file = _add_columns_to_entity(template_content, yaml_data['columns'])
         entity_name = file_name
         updated_file = updated_file.replace('template', f'{entity_name.lower()}')
-        updated_file = updated_file.replace('Template', f'{any_to_camel(entity_name)}')
+        updated_file = updated_file.replace('Template', f'{any_to_pascal(entity_name)}')
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:

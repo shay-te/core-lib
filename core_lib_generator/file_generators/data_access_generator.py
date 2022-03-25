@@ -1,4 +1,4 @@
-from core_lib.helpers.string import any_to_camel
+from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
@@ -9,9 +9,9 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         entity = yaml_data['entity']
         updated_file = updated_file.replace(
             '# template_entity_imports',
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_camel(entity)}',
+            f'from {core_lib_name}.{core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
         )
-        updated_file = updated_file.replace('db_entity', any_to_camel(entity))
+        updated_file = updated_file.replace('db_entity', any_to_pascal(entity))
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
