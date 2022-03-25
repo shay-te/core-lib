@@ -52,7 +52,7 @@ ExampleCoreLib:
         initial_delay: 0s
         frequency: ''
         handler:
-          _target_: facebook_core_lib.core_lib.jobs.update_seller.UpdateSeller
+          _target_: example_core_lib.example_core_lib.jobs.update_seller.UpdateSeller
   data_layers:
     data:
       userdb:
