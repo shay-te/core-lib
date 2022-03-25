@@ -16,7 +16,7 @@ def generate_cache_template() -> dict:
             }
         }
     elif cache_type == CacheTypes.Empty.value:
-        print('No cache set.')
+        pass
     else:
         cache_type_name = CacheTypes(cache_type).name
         cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
