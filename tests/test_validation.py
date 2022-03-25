@@ -1,7 +1,7 @@
 import enum
 import unittest
 
-from core_lib.helpers.validation import is_bool, is_float, is_int, is_email, is_int_enum
+from core_lib.helpers.validation import is_bool, is_float, is_int, is_email, is_int_enum, is_url
 
 
 class MyEnum(enum.Enum):
@@ -76,3 +76,21 @@ class TestValidations(unittest.TestCase):
         self.assertEqual(is_int_enum(None, MyEnum), False)
         self.assertEqual(is_int_enum(11, MyEnum), False)
         self.assertEqual(is_int_enum(11, 'MyEnum'), False)
+
+    def test_url(self):
+        self.assertEqual(is_url('http://domian.com'), True)
+        self.assertEqual(is_url('https://domian.com'), True)
+        self.assertEqual(is_url('https://www.domian.com'), True)
+        self.assertEqual(is_url('http://domian.com.co.uk'), True)
+        self.assertEqual(is_url('https://192.168.0.0.com'), True)
+        self.assertEqual(is_url('https://subdomain.domain.com'), True)
+        self.assertEqual(is_url('ftp://domian.com'), False)
+        self.assertEqual(is_url('random://domain.com'), False)
+        self.assertEqual(is_url('telnet://domain.com'), False)
+        self.assertEqual(is_url('subdomain.domain.com'), False)
+        self.assertEqual(is_url('domain.com'), False)
+        self.assertEqual(is_url('hello world'), False)
+        self.assertEqual(is_url('192.168.0.0'), False)
+        self.assertEqual(is_url('12345'), False)
+        self.assertEqual(is_url('http://domian'), False)
+        self.assertEqual(is_url('http://'), False)
