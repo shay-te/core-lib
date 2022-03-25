@@ -22,23 +22,9 @@ def generate_cache_template() -> dict:
         cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
         cache_host = input_str(f'Enter your {cache_type_name} server host', 'localhost')
         cache_protocol = None
-        if cache_type_name == CacheTypes.Redis.name:
+        if cache_type == CacheTypes.Redis.value:
             cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
         return _generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol)
-
-
-class CacheTypes(enum.Enum):
-    __order__ = 'Memcached Memory Redis Empty'
-    Memcached = 1
-    Memory = 2
-    Redis = 3
-    Empty = 4
-
-
-default_cache_ports = {
-    CacheTypes.Memcached.name: 11211,
-    CacheTypes.Redis.name: 6379,
-}
 
 
 def _generate_cache_config(
@@ -78,3 +64,19 @@ def _generate_cache_config(
                 }
             },
         }
+
+
+class CacheTypes(enum.Enum):
+    __order__ = 'Memcached Memory Redis Empty'
+    Memcached = 1
+    Memory = 2
+    Redis = 3
+    Empty = 4
+
+
+default_cache_ports = {
+    CacheTypes.Memcached.name: 11211,
+    CacheTypes.Redis.name: 6379,
+}
+
+print(generate_cache_template())
