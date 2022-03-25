@@ -100,11 +100,9 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     import_str = (
         'from core_lib.data_layers.data.handler.mongodb_data_handler_registry import MongoDBDataHandlerRegistry'
     )
-    print(yaml_data)
     mongo_conn = []
     for db_connection in yaml_data:
         if yaml_data[db_connection]['url']['protocol'] == 'mongodb':
-            print(yaml_data[db_connection])
             conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.self.config.core_lib.{core_lib_name}.data.{db_connection})'
             mongo_conn.append(conn_str.rjust(len(conn_str) + 8))
     if mongo_conn:
