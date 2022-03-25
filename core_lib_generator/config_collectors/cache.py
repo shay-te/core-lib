@@ -22,24 +22,11 @@ def generate_cache_template() -> dict:
         cache_type_name = CacheTypes(cache_type).name
         cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
         cache_host = input_str(f'Enter your {cache_type_name} server host', 'localhost')
-        cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
-        print(f'Cache type {cache_type_name} on {cache_protocol}://{cache_host}:{cache_port}')
-        return {
-            'env': {
-                f'{cache_type_name.upper()}_PORT': cache_port,
-                f'{cache_type_name.upper()}_HOST': cache_host,
-            },
-            'config': {
-                cache_name: {
-                    'type': cache_type_name.lower(),
-                    'url': {
-                        'host': f'${{oc.env:{cache_type_name.upper()}_HOST}}',
-                        'port': f'${{oc.env:{cache_type_name.upper()}_PORT}}',
-                        'protocol': cache_protocol
-                    },
-                }
-            },
-        }
+        cache_protocol = None
+        if cache_type_name == CacheTypes.Redis.name:
+            cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
+        print(f'Cache type {cache_type_name} on {cache_host}:{cache_port}')
+        return _generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol)
 
 
 class CacheTypes(enum.Enum):
@@ -55,4 +42,41 @@ default_cache_ports = {
     CacheTypes.Redis.name: 6379,
 }
 
-print(generate_cache_template())
+
+def _generate_cache_config(
+    cache_name: str, cache_type: int, cache_port: int, cache_host: str, cache_protocol: str = None
+):
+    cache_type_name = CacheTypes(cache_type).name
+    if cache_type == CacheTypes.Redis.value:
+        return {
+            'env': {
+                f'{cache_type_name.upper()}_PORT': cache_port,
+                f'{cache_type_name.upper()}_HOST': cache_host,
+            },
+            'config': {
+                cache_name: {
+                    'type': cache_type_name.lower(),
+                    'url': {
+                        'host': f'${{oc.env:{cache_type_name.upper()}_HOST}}',
+                        'port': f'${{oc.env:{cache_type_name.upper()}_PORT}}',
+                        'protocol': cache_protocol,
+                    },
+                }
+            },
+        }
+    else:
+        return {
+            'env': {
+                f'{cache_type_name.upper()}_PORT': cache_port,
+                f'{cache_type_name.upper()}_HOST': cache_host,
+            },
+            'config': {
+                cache_name: {
+                    'type': cache_type_name.lower(),
+                    'url': {
+                        'host': f'${{oc.env:{cache_type_name.upper()}_HOST}}',
+                        'port': f'${{oc.env:{cache_type_name.upper()}_PORT}}',
+                    },
+                }
+            },
+        }
