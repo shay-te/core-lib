@@ -63,7 +63,12 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         elif cache_type == 'memcached':
             cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
             cache_imports.append('from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached')
-            cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerMemcached(build_url(host=self.config.core_lib.{core_lib_name}.cache.url.host, port=self.config.core_lib.{core_lib_name}.cache.url.port)))'
+            cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerMemcached(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
+            cache_inits.append(cache_str.rjust(len(cache_str) + 8))
+        elif cache_type == 'redis':
+            cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
+            cache_imports.append('from core_lib.cache.cache_handler_redis import CacheHandlerRedis')
+            cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRedis(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
             cache_inits.append(cache_str.rjust(len(cache_str) + 8))
     updated_file = updated_file.replace(
         '# template_cache_handler_imports',

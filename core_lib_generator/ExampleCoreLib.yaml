@@ -10,8 +10,8 @@ ExampleCoreLib:
     SELLERDB_PORT: 5432
     SELLERDB_DB: sellerdb
     SELLERDB_HOST: localhost
-    MEMCACHED_HOST: localhost
-    MEMCACHED_PORT: 11211
+    REDIS_HOST: localhost
+    REDIS_PORT: 6379
   config:
     data:
       userdb:
@@ -42,10 +42,11 @@ ExampleCoreLib:
           file: ${oc.env:SELLERDB_DB}
     cache:
       cache_name:
-        type: memcached
+        type: redis
         url:
-          host: ${oc.env:MEMCACHED_HOST}
-          port: ${oc.env:MEMCACHED_PORT}
+          protocol: redis
+          host: ${oc.env:REDIS_HOST}
+          port: ${oc.env:REDIS_PORT}
     jobs:
       update_seller:
         initial_delay: 0s
