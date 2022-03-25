@@ -1,12 +1,15 @@
-import pymongo
+from omegaconf import DictConfig
+from pymongo import MongoClient
+
+from core_lib.data_layers.data.data_helpers import build_url
+from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
 
 
-class MongoDBDataHandlerRegistry:
+class MongoDBDataHandlerRegistry(DataHandlerRegistry):
+    def __init__(self, config: DictConfig):
+        self._config = config
+        self._mongo_client = MongoClient(build_url(**config.url))
 
-    client = pymongo.MongoClient("mongodb://localhost:27017")
-    db = client.my_db
-    dblist = db.test_collection
-    print(dblist)
-
-
-mongo = MongoDBDataHandlerRegistry()
+    @property
+    def client(self) -> MongoClient:
+        return self._mongo_client
