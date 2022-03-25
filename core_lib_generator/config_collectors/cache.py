@@ -8,6 +8,7 @@ def generate_cache_template() -> dict:
     cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value)
 
     if cache_type == CacheTypes.Memory.value:
+        print(f'Cache type {CacheTypes(cache_type).name}')
         return {
             'config': {
                 cache_name: {
@@ -16,7 +17,7 @@ def generate_cache_template() -> dict:
             }
         }
     elif cache_type == CacheTypes.Empty.value:
-        pass
+        print('No cache set.')
     else:
         cache_type_name = CacheTypes(cache_type).name
         cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
@@ -24,6 +25,7 @@ def generate_cache_template() -> dict:
         cache_protocol = None
         if cache_type == CacheTypes.Redis.value:
             cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
+        print(f'Cache type {cache_type_name} on {cache_host}:{cache_port}')
         return _generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol)
 
 
@@ -78,5 +80,3 @@ default_cache_ports = {
     CacheTypes.Memcached.name: 11211,
     CacheTypes.Redis.name: 6379,
 }
-
-print(generate_cache_template())

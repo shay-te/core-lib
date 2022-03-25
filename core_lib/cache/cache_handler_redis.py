@@ -16,7 +16,6 @@ class CacheHandlerRedis(CacheHandler):
 
     def set(self, key: str, value, expire: timedelta):
         if isinstance(value, (dict, list, int, str)):
-            print(self.redis_client.set(key, json.dumps(value), ex=expire if expire else -1))
             self.redis_client.set(key, json.dumps(value), ex=expire if expire else -1)
         else:
             raise ValueError(f'result must be of type `dict` or `list`. got `{type(value)}`')
