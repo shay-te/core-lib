@@ -24,6 +24,7 @@ def _get_env_variables(data):
 config = {}
 config.setdefault('data', {})
 setup = {}
+setup.setdefault('data', {})
 env = {}
 data_layers = {}
 
@@ -67,7 +68,7 @@ def _get_cache_config():
 
 def _get_setup_details():
     print('\nPlease provide the following information for setup.py')
-    setup.setdefault('data', generate_setup_template())
+    setup['data'] = generate_setup_template()
 
 
 def _get_jobs_config(core_lib_name: str):
