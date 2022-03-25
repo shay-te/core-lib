@@ -10,10 +10,11 @@ def generate_job_template(core_lib_name: str) -> dict:
     )
     frequency = input_timeframe('Please set the frequency of the job (1s, 1m, 1h, 1h30m ...)', '', True)
     print(f'{snake_class_name} job created')
+    snake_core_lib_name = camel_to_snake(core_lib_name)
     return {
         snake_class_name: {
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'handler': {'_target_': f'{camel_to_snake(core_lib_name)}.core_lib.jobs.{snake_class_name}.{class_name}'},
+            'handler': {'_target_': f'{snake_core_lib_name}.{snake_core_lib_name}.jobs.{snake_class_name}.{class_name}'},
         }
     }
