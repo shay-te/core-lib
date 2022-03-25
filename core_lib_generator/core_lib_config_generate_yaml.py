@@ -40,7 +40,7 @@ def _get_data_layers_config():
         want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
         if want_entities:
             print('Please fill out the requested information for creating entities in Database.')
-            db_entity = generate_db_entity_template(list(db.keys()))
+            db_entity = generate_db_entity_template(db)
             data_layers.setdefault('data', {})
             data_layers['data'] = db_entity
             want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)

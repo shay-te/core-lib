@@ -15,6 +15,8 @@ def generate_job_template(core_lib_name: str) -> dict:
         snake_class_name: {
             'initial_delay': initial_delay,
             'frequency': frequency,
-            'handler': {'_target_': f'{snake_core_lib_name}.{snake_core_lib_name}.jobs.{snake_class_name}.{class_name}'},
+            'handler': {
+                '_target_': f'{snake_core_lib_name}.{snake_core_lib_name}.jobs.{snake_class_name}.{class_name}'
+            },
         }
     }

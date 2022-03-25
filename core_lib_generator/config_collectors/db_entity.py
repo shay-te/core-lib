@@ -3,9 +3,11 @@ import enum
 from core_lib.helpers.shell_utils import input_bool, input_str, input_int, input_enum, input_yes_no
 
 
-def generate_db_entity_template(db_conn_list: list) -> dict:
+def generate_db_entity_template(db: dict) -> dict:
     entities = {}
-    for db_conn in db_conn_list:
+    for db_conn in db:
+        if db[db_conn]['config']['url']['protocol'] == 'mongodb':
+            continue
         entities.setdefault(db_conn, {})
 
         def is_exists(user_input: str):

@@ -12,6 +12,8 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
             updated_file = _add_cache(updated_file, yaml_data, core_lib_name)
         if yaml_data['jobs']:
             updated_file = _add_job(updated_file, yaml_data, core_lib_name)
+        if yaml_data['config']:
+            updated_file = _add_mongo(updated_file, yaml_data['config']['data'], core_lib_name)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
@@ -75,7 +77,7 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         '\n'.join(cache_imports),
     )
     updated_file = updated_file.replace(
-        '# template_cache_handler',
+        '# template_cache_handlers',
         '\n'.join(cache_inits),
     )
     return updated_file
@@ -83,7 +85,6 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
 
 def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     updated_file = template_content
-    job_list = list(yaml_data['jobs'].keys())
     job_handler = {}
     job_handler_str = f'jobs_data_handlers = {str(job_handler)}'
     load_jobs_str = f'self.load_jobs(self.config.core_lib.{core_lib_name}.jobs, jobs_data_handlers)'
@@ -91,4 +92,25 @@ def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
         '# template_jobs_data_handlers', job_handler_str.rjust(len(job_handler_str) + 8)
     )
     updated_file = updated_file.replace('# template_load_jobs', load_jobs_str.rjust(len(load_jobs_str) + 8))
+    return updated_file
+
+
+def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    updated_file = template_content
+    import_str = (
+        'from core_lib.data_layers.data.handler.mongodb_data_handler_registry import MongoDBDataHandlerRegistry'
+    )
+    print(yaml_data)
+    mongo_conn = []
+    for db_connection in yaml_data:
+        if yaml_data[db_connection]['url']['protocol'] == 'mongodb':
+            print(yaml_data[db_connection])
+            conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.self.config.core_lib.{core_lib_name}.data.{db_connection})'
+            mongo_conn.append(conn_str.rjust(len(conn_str) + 8))
+    if mongo_conn:
+        updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)
+        updated_file = updated_file.replace(
+            '# template_mongo_handlers',
+            '\n'.join(mongo_conn),
+        )
     return updated_file
