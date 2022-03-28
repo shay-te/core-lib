@@ -9,4 +9,4 @@ class ConfigGenerateTemplate(TemplateGenerator):
         return template_content.replace('template', OmegaConf.to_yaml(config))
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'template_core_lib/template_core_lib/config/template_core_lib.yaml'
+        return 'core_lib_generator/template_core_lib/template_core_lib/config/template_core_lib.yaml'

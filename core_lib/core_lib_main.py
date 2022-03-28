@@ -2,32 +2,36 @@
 import argparse
 import logging
 import os
+from typing import Callable
 
+import hydra
 from omegaconf import DictConfig
 
 from core_lib.alembic.alembic import Alembic
-from hydra.experimental import compose, initialize_config_dir
+from hydra import compose, initialize_config_dir
 
 
 from core_lib.helpers.validation import is_int
-from core_lib_generator.core_lib_generate import CoreLibGenerate
+from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
+from core_lib_generator.core_lib_config_generate_yaml import get_data_from_user
 
 logger = logging.getLogger(__name__)
 
+hydra.core.global_hydra.GlobalHydra.instance().clear()
+
 
 def list_to_string(lst: list) -> str:
-    name = ''
-    for n in lst:
-        name = name + n + ' '
-    return name
+    return ' '.join(lst)
 
 
-def on_create(value):
-    CoreLibGenerate().new(list_to_string(value))
+def on_create():
+    get_data_from_user()
 
 
 def on_generate(value):
-    CoreLibGenerate().generate(list_to_string(value))
+    initialize_config_dir(config_dir=os.getcwd())
+    CoreLibGenerator(compose(list_to_string(value))).run_all()
+    print('Core-Lib Generated!')
 
 
 def on_revision(value):
@@ -65,10 +69,6 @@ def get_rev_options() -> list:
 
 
 def load_config() -> DictConfig:
-    # path_cwd = os.getcwd()
-    # path_folder = os.path.dirname(os.path.abspath(__file__))
-    # path_rel = os.path.relpath(path_cwd, path_folder)
-    # initialize(config_path=os.path.join(path_rel))
     initialize_config_dir(config_dir=os.getcwd())
     return compose('core_lib_config.yaml')
 
@@ -76,12 +76,14 @@ def load_config() -> DictConfig:
 def main():
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('-c', '--create', nargs=1, help='Create new core-lib')
-    g.add_argument('-g', '--generate', nargs=1, help='Generate core-lib classes')
+    g.add_argument(
+        '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
+    )
+    g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
     args = parser.parse_args()
-    if args.create:
-        on_create(args.create)
+    if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
+        args.create[0]()
     elif args.generate:
         on_generate(args.generate)
     elif args.revision:

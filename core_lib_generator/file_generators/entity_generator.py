@@ -12,11 +12,11 @@ class EntityGenerateTemplate(TemplateGenerator):
 
     def get_template_file(self, yaml_data: dict) -> str:
         if yaml_data['is_soft_delete'] and yaml_data['is_soft_delete_token']:
-            return f'template_core_lib/template_core_lib/data_layers/data/db/entities/template_soft_delete_token.py'
+            return f'core_lib_generator/template_core_lib/template_core_lib/data_layers/data/db/entities/template_soft_delete_token.py'
         elif yaml_data['is_soft_delete'] and not yaml_data['is_soft_delete_token']:
-            return f'template_core_lib/template_core_lib/data_layers/data/db/entities/template_soft_delete.py'
+            return f'core_lib_generator/template_core_lib/template_core_lib/data_layers/data/db/entities/template_soft_delete.py'
         else:
-            return f'template_core_lib/template_core_lib/data_layers/data/db/entities/template.py'
+            return f'core_lib_generator/template_core_lib/template_core_lib/data_layers/data/db/entities/template.py'
 
 
 def _add_columns_to_entity(template_content: str, columns: dict) -> str:

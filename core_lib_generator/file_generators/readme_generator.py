@@ -7,4 +7,4 @@ class ReadmeGenerateTemplate(TemplateGenerator):
         return template_content.replace('# Template', f'# {snake_to_camel(core_lib_name)}')
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'template_core_lib/README.md'
+        return 'core_lib_generator/template_core_lib/README.md'

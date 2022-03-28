@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-import hydra
+from omegaconf import DictConfig
 
 from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.file_generators.config_generator import ConfigGenerateTemplate
@@ -21,13 +21,9 @@ from core_lib_generator.file_generators.setup_generator import SetupGenerateTemp
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
-hydra.core.global_hydra.GlobalHydra.instance().clear()
-hydra.initialize()
-
 
 class CoreLibGenerator:
-    def __init__(self, path_to_config: str):
-        config = hydra.compose(path_to_config)
+    def __init__(self, config: DictConfig):
         self.core_lib_name = next(iter(config))
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
         self.core_lib_config = config[self.core_lib_name].config
@@ -144,32 +140,33 @@ class CoreLibGenerator:
         self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate())
 
     def generate_setup(self):
-        self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate())
-        self._generate_template(
-            f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
-            self.core_lib_setup,
-            VersionGenerateTemplate(),
-        )
-        utc_now = datetime.utcnow()
-        self._generate_template(
-            f'{self.snake_core_lib_name}/LICENSE_{utc_now.year}_{utc_now.month}_{utc_now.day}',
-            self.core_lib_setup,
-            LicenseGenerateTemplate(),
-        )
+        if self.core_lib_setup:
+            self._generate_template(
+                f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate()
+            )
+            self._generate_template(
+                f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
+                self.core_lib_setup,
+                VersionGenerateTemplate(),
+            )
+            utc_now = datetime.utcnow()
+            self._generate_template(
+                f'{self.snake_core_lib_name}/LICENSE_{utc_now.year}_{utc_now.month}_{utc_now.day}',
+                self.core_lib_setup,
+                LicenseGenerateTemplate(),
+            )
 
-
-if __name__ == '__main__':
-    generator = CoreLibGenerator('ExampleCoreLib.yaml')
-    generator.generate_data_access()
-    generator.generate_entities()
-    generator.generate_jobs()
-    generator.generate_core_lib_class()
-    generator.generate_config()
-    generator.generate_hydra_plugins()
-    generator.generate_git_ignore()
-    generator.generate_docker_ignore()
-    generator.generate_readme()
-    generator.generate_requirements()
-    generator.generate_default_config()
-    generator.generate_manifest()
-    generator.generate_setup()
+    def run_all(self):
+        self.generate_data_access()
+        self.generate_entities()
+        self.generate_jobs()
+        self.generate_core_lib_class()
+        self.generate_config()
+        self.generate_hydra_plugins()
+        self.generate_git_ignore()
+        self.generate_docker_ignore()
+        self.generate_readme()
+        self.generate_requirements()
+        self.generate_default_config()
+        self.generate_manifest()
+        self.generate_setup()
