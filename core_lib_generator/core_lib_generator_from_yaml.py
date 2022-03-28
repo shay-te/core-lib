@@ -46,7 +46,7 @@ class CoreLibGenerator:
             self.core_lib_setup = config[self.core_lib_name].setup
 
     def _generate_template(
-            self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
+        self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
     ):
         file_dir_path = os.path.dirname(file_path)
         os.makedirs(file_dir_path, exist_ok=True)
@@ -141,7 +141,9 @@ class CoreLibGenerator:
 
     def generate_setup(self):
         if self.core_lib_setup:
-            self._generate_template(f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate())
+            self._generate_template(
+                f'{self.snake_core_lib_name}/setup.py', self.core_lib_setup, SetupGenerateTemplate()
+            )
             self._generate_template(
                 f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/__init__.py',
                 self.core_lib_setup,

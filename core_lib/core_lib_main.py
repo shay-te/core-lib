@@ -75,7 +75,9 @@ def load_config() -> DictConfig:
 def main():
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('-c', '--create', action="append_const", const=get_data_from_user, help='Create new Core-Lib YAML file')
+    g.add_argument(
+        '-c', '--create', action="append_const", const=get_data_from_user, help='Create new Core-Lib YAML file'
+    )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
     args = parser.parse_args()
