@@ -2,6 +2,7 @@
 import argparse
 import logging
 import os
+from typing import Callable
 
 import hydra
 from omegaconf import DictConfig
@@ -76,14 +77,13 @@ def main():
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
     g.add_argument(
-        '-c', '--create', action="append_const", const=get_data_from_user, help='Create new Core-Lib YAML file'
+        '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
     )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
     args = parser.parse_args()
-    if args.create:
-        for func in args.create:
-            func()
+    if len(args.create) > 0 and isinstance(args.create[0], Callable):
+        args.create[0]()
     elif args.generate:
         on_generate(args.generate)
     elif args.revision:
