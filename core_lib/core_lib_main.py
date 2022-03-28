@@ -82,7 +82,7 @@ def main():
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
     args = parser.parse_args()
-    if len(args.create) > 0 and isinstance(args.create[0], Callable):
+    if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
     elif args.generate:
         on_generate(args.generate)
