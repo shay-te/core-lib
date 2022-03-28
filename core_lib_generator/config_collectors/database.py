@@ -89,55 +89,18 @@ def _generate_db_config(
     db_pool_pre_ping: bool = False,
 ) -> dict:
     env = {}
-    config = {}
+    if db_type == DBTypes.MongoDB.value:
+        _get_mongodb_config(db_type, db_name, db_username, db_password, db_port, db_host)
     if db_type == DBTypes.SQLite.value:
         url = {
             'protocol': DBTypes(db_type).name.lower(),
         }
-        config = {
-            'log_queries': db_log_queries,
-            'create_db': db_create,
-            'session': {
-                'pool_recycle': db_pool_recycle,
-                'pool_pre_ping': db_pool_pre_ping,
-            },
-            'url': url,
-        }
-    elif db_type == DBTypes.MongoDB.value:
-        url = {
-            'protocol': DBTypes(db_type).name.lower(),
-            'username': f'${{oc.env:{db_name.upper()}_USER}}',
-            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
-            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
-            'port': f'${{oc.env:{db_name.upper()}_PORT}}',
-            'file': f'${{oc.env:{db_name.upper()}_DB}}',
-        }
-        config = {'url': url}
-        env = {
-            f'{db_name.upper()}_USER': db_username,
-            f'{db_name.upper()}_PASSWORD': db_password,
-            f'{db_name.upper()}_PORT': db_port,
-            f'{db_name.upper()}_DB': db_name,
-            f'{db_name.upper()}_HOST': db_host,
-        }
-
     else:
         url = {
             'protocol': DBTypes(db_type).name.lower(),
             'username': f'${{oc.env:{db_name.upper()}_USER}}',
-            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
-            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
             'port': f'${{oc.env:{db_name.upper()}_PORT}}',
             'file': f'${{oc.env:{db_name.upper()}_DB}}',
-        }
-        config = {
-            'log_queries': db_log_queries,
-            'create_db': db_create,
-            'session': {
-                'pool_recycle': db_pool_recycle,
-                'pool_pre_ping': db_pool_pre_ping,
-            },
-            'url': url,
         }
         env = {
             f'{db_name.upper()}_USER': db_username,
@@ -148,5 +111,37 @@ def _generate_db_config(
         }
     return {
         'env': env,
-        'config': config,
+        'config': {
+            'log_queries': db_log_queries,
+            'create_db': db_create,
+            'session': {
+                'pool_recycle': db_pool_recycle,
+                'pool_pre_ping': db_pool_pre_ping,
+            },
+            'url': url,
+        },
+    }
+
+
+def _get_mongodb_config(
+    db_type: int, db_name: str, db_username: str, db_password: str, db_port: int, db_host: str = 'localhost'
+):
+    url = {
+        'protocol': DBTypes(db_type).name.lower(),
+        'username': f'${{oc.env:{db_name.upper()}_USER}}',
+        'port': f'${{oc.env:{db_name.upper()}_PORT}}',
+        'file': f'${{oc.env:{db_name.upper()}_DB}}',
+    }
+    env = {
+        f'{db_name.upper()}_USER': db_username,
+        f'{db_name.upper()}_PASSWORD': db_password,
+        f'{db_name.upper()}_PORT': db_port,
+        f'{db_name.upper()}_DB': db_name,
+        f'{db_name.upper()}_HOST': db_host,
+    }
+    return {
+        'env': env,
+        'config': {
+            'url': url,
+        },
     }

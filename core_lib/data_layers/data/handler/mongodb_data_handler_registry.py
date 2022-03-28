@@ -7,7 +7,6 @@ from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerR
 
 class MongoDBDataHandlerRegistry(DataHandlerRegistry):
     def __init__(self, config: DictConfig):
-        self._config = config
         self._mongo_client = MongoClient(build_url(**config.url))
 
     @property
