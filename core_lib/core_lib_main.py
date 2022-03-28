@@ -10,7 +10,8 @@ from hydra.experimental import compose, initialize_config_dir
 
 
 from core_lib.helpers.validation import is_int
-from core_lib_generator.core_lib_generate import CoreLibGenerate
+from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
+from core_lib_generator.core_lib_config_generate_yaml import get_data_from_user
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +24,13 @@ def list_to_string(lst: list) -> str:
 
 
 def on_create(value):
-    CoreLibGenerate().new(list_to_string(value))
+    # get_data_from_user()
+    print(value)
 
 
 def on_generate(value):
-    CoreLibGenerate().generate(list_to_string(value))
+    # CoreLibGenerator(yaml_file).run_all()
+    print(value)
 
 
 def on_revision(value):
@@ -80,6 +83,7 @@ def main():
     g.add_argument('-g', '--generate', nargs=1, help='Generate core-lib classes')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
     args = parser.parse_args()
+    print(args)
     if args.create:
         on_create(args.create)
     elif args.generate:
