@@ -16,15 +16,19 @@ def generate_db_template() -> dict:
         db_type = input_enum(
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
         )
-
-        db_log_queries = input_yes_no('Do you want to log queries?', False)
-        db_create = input_yes_no('Do you want create Database?', True)
-        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
-        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
         db_username = None
         db_password = None
         db_port = None
         db_host = None
+        db_log_queries = None
+        db_create = None
+        db_pool_recycle = None
+        db_pool_pre_ping = None
+        if db_type != DBTypes.MongoDB.value:
+            db_log_queries = input_yes_no('Do you want to log queries?', False)
+            db_create = input_yes_no('Do you want create Database?', True)
+            db_pool_recycle = input_int('Enter the pool recycle time', 3200)
+            db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
         if db_type != DBTypes.SQLite.value:
             db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
             db_host = input_str('Enter host of your DB', 'localhost')
@@ -50,7 +54,7 @@ def generate_db_template() -> dict:
 
 
 class DBTypes(enum.Enum):
-    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase'
+    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase MongoDB'
     SQLite = 1
     Postgresql = 2
     MySQL = 3
@@ -58,6 +62,7 @@ class DBTypes(enum.Enum):
     MSSQL = 5
     Firebird = 6
     Sybase = 7
+    MongoDB = 8
 
 
 default_db_ports = {
@@ -67,6 +72,7 @@ default_db_ports = {
     DBTypes.MSSQL.name: 1433,
     DBTypes.Firebird.name: 3050,
     DBTypes.Sybase.name: 5000,
+    DBTypes.MongoDB.name: 27017,
 }
 
 
@@ -82,36 +88,54 @@ def _generate_db_config(
     db_pool_recycle: int = 3200,
     db_pool_pre_ping: bool = False,
 ) -> dict:
-    env = {}
-    if db_type == DBTypes.SQLite.value:
-        url = {
-            'protocol': DBTypes(db_type).name.lower(),
+    config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
+    if db_type == DBTypes.MongoDB.value:
+        return {
+            'env': config['env'],
+            'config': {
+                'url': config['url'],
+            },
         }
     else:
-        url = {
-            'protocol': DBTypes(db_type).name.lower(),
-            'username': f'${{oc.env:{db_name.upper()}_USER}}',
-            'password': f'${{oc.env:{db_name.upper()}_PASSWORD}}',
-            'host': f'${{oc.env:{db_name.upper()}_HOST}}',
-            'port': f'${{oc.env:{db_name.upper()}_PORT}}',
-            'file': f'${{oc.env:{db_name.upper()}_DB}}',
+        return {
+            'env': config['env'],
+            'config': {
+                'log_queries': db_log_queries,
+                'create_db': db_create,
+                'session': {
+                    'pool_recycle': db_pool_recycle,
+                    'pool_pre_ping': db_pool_pre_ping,
+                },
+                'url': config['url'],
+            },
         }
-        env = {
-            f'{db_name.upper()}_USER': db_username,
-            f'{db_name.upper()}_PASSWORD': db_password,
-            f'{db_name.upper()}_PORT': db_port,
-            f'{db_name.upper()}_DB': db_name,
-            f'{db_name.upper()}_HOST': db_host,
-        }
+
+
+def _build_url(
+    db_type: int, db_name: str, db_username: str, db_password: str, db_port: int, db_host: str = 'localhost'
+):
+    url = {}
+    env = {}
+    if db_type != DBTypes.SQLite.value:
+        if db_name:
+            url.setdefault('file', f'${{oc.env:{db_name.upper()}_DB}}')
+            env.setdefault(f'{db_name.upper()}_DB', db_name)
+    if db_type:
+        url.setdefault('protocol', DBTypes(db_type).name.lower())
+    if db_username:
+        url.setdefault('username', f'${{oc.env:{db_name.upper()}_USER}}')
+        env.setdefault(f'{db_name.upper()}_USER', db_username)
+    if db_password:
+        url.setdefault('password', f'${{oc.env:{db_name.upper()}_PASSWORD}}')
+        env.setdefault(f'{db_name.upper()}_PASSWORD', db_password)
+    if db_port:
+        url.setdefault('port', f'${{oc.env:{db_name.upper()}_PORT}}')
+        env.setdefault(f'{db_name.upper()}_PORT', db_port)
+    if db_host:
+        url.setdefault('host', f'${{oc.env:{db_name.upper()}_HOST}}')
+        env.setdefault(f'{db_name.upper()}_HOST', db_host)
+
     return {
         'env': env,
-        'config': {
-            'log_queries': db_log_queries,
-            'create_db': db_create,
-            'session': {
-                'pool_recycle': db_pool_recycle,
-                'pool_pre_ping': db_pool_pre_ping,
-            },
-            'url': url,
-        },
+        'url': url,
     }

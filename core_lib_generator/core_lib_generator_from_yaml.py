@@ -106,6 +106,7 @@ class CoreLibGenerator:
                 'data_access': self.core_lib_data_access,
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
+                'config': self.core_lib_config,
             },
             CoreLibClassGenerateTemplate(),
         )

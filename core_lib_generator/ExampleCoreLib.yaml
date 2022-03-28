@@ -10,6 +10,11 @@ ExampleCoreLib:
     SELLERDB_PORT: 5432
     SELLERDB_DB: sellerdb
     SELLERDB_HOST: localhost
+    MONGODB_USER: user
+    MONGODB_PASSWORD: password
+    MONGODB_PORT: 5432
+    MONGODB_DB: sellerdb
+    MONGODB_HOST: localhost
     REDIS_HOST: localhost
     REDIS_PORT: 6379
   config:
@@ -40,6 +45,14 @@ ExampleCoreLib:
           host: ${oc.env:SELLERDB_HOST}
           port: ${oc.env:SELLERDB_PORT}
           file: ${oc.env:SELLERDB_DB}
+      mongodb:
+        url:
+          protocol: mongodb
+          username: ${oc.env:MONGODB_USER}
+          password: ${oc.env:MONGODB_PASSWORD}
+          host: ${oc.env:MONGODB_HOST}
+          port: ${oc.env:MONGODB_PORT}
+          file: ${oc.env:MONGODB_DB}
     cache:
       cache_name:
         type: redis
