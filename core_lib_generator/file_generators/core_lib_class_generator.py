@@ -17,7 +17,7 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'template_core_lib/template_core_lib/template_core_lib.py'
+        return 'core_lib_generator/template_core_lib/template_core_lib/template_core_lib.py'
 
 
 def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> str:
@@ -103,7 +103,7 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     mongo_conn = []
     for db_connection in yaml_data:
         if yaml_data[db_connection]['url']['protocol'] == 'mongodb':
-            conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.self.config.core_lib.{core_lib_name}.data.{db_connection})'
+            conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
             mongo_conn.append(conn_str.rjust(len(conn_str) + 8))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)

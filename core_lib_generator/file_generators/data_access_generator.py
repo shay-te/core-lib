@@ -16,12 +16,12 @@ class DataAccessGenerateTemplate(TemplateGenerator):
 
     def get_template_file(self, yaml_data: dict) -> str:
         if 'is_crud_soft_delete_token' in yaml_data:
-            return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
+            return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
         elif 'is_crud_soft_delete' in yaml_data:
             return (
-                'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
+                'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
             )
         elif 'is_crud' in yaml_data:
-            return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
+            return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
-            return 'template_core_lib/template_core_lib/data_layers/data_access/template_data_access.py'
+            return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_data_access.py'
