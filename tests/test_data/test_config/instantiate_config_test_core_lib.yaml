@@ -1,0 +1,12 @@
+core_lib:
+  _target_: examples.test_core_lib.core_lib.test_core_lib.TestCoreLib
+  conf:
+    core_lib:
+      db:
+        log_queries: false
+        create_db: true
+        session:
+          pool_recycle: 3600
+          pool_pre_ping: false
+        url:
+          protocol: sqlite
