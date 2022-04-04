@@ -31,7 +31,7 @@ Can be loaded from a YAML file using [hydra](https://hydra.cc/).
 config.yaml
 ```yaml
 config:
-  _target_: path.to.YourClass
+  _target_: path.to.ExampleClass
   conf:
     db:
       log_queries: false
@@ -59,11 +59,10 @@ class ExampleClass:
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize(config_path='./path/to/your/config_dir')
 
-def test_example_class(self):
-    config_file = 'config.yaml'
-    config = hydra.compose(config_file)
-    self.example_class = instantiate_config(config.config)
-    isinstance(self.example_class.db_session, SqlAlchemyDataHandlerRegistry) #True
+config_file = 'config.yaml'
+config = hydra.compose(config_file)
+example_class = instantiate_config(config.config)
+isinstance(example_class.db_session, SqlAlchemyDataHandlerRegistry) #True
 ```
 
 ## Other Functions
