@@ -1,0 +1,13 @@
+.tree-root{
+    width: 30%;
+    margin: 1rem;
+    background-color: bisque;
+    border: 2px black solid;
+    border-radius: 5px;
+    height: 95vh;
+    position: static;
+}
+
+.tree{
+    overflow: auto;
+}

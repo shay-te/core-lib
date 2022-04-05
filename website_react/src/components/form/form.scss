@@ -1,0 +1,76 @@
+@import './../../index.scss';
+
+.form-root{
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-input-div{
+    margin-bottom: 1rem;
+}
+
+.input-label{
+    display: inline-block;
+    align-self: flex-start;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-input{
+    display: inline-block;
+    width: 100%;
+    height: 1.5rem;
+    padding: 1rem;
+    border: 1px rgb(133, 226, 255) solid;
+    border-radius: 5px;
+}
+
+.form-input:focus{
+    border: 1px rgb(0, 0, 0) solid;
+}
+
+.submit-button{
+    background-color: rgb(105, 255, 205);
+    border: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px black solid;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    .form-input-div{
+        width: 100%;
+    }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    .form-input-div{
+        width: 100%;
+    }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+    .form-input-div{
+        width: 75%;
+    }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+    .form-input-div{
+        width: 75%;
+    }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+    .form-input-div{
+        width: 75%;
+    }
+}
