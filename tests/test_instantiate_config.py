@@ -4,6 +4,8 @@ from datetime import date
 import hydra
 from omegaconf import DictConfig
 
+from core_lib.client.client_base import ClientBase
+from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.config_instances import instantiate_config
@@ -23,10 +25,21 @@ user_data = {
 }
 
 
-class ExampleClass:
+class ExampleCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
+        super().__init__()
         self.config = conf
-        self.db_session = SqlAlchemyDataHandlerRegistry(self.config.db)
+        config_file = 'instantiate_sql_alchemy.yaml'
+        config = hydra.compose(config_file)
+        self.db_session = instantiate_config(config.config)
+
+
+class CustomerClient(ClientBase):
+    def __init__(self, target_url):
+        ClientBase.__init__(self, target_url)
+
+    def get(self, customer_id: int):
+        self._get(f'someurl/{customer_id}')
 
 
 class TestInstantiateConfig(unittest.TestCase):

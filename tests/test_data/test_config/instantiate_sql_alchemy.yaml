@@ -1,0 +1,10 @@
+config:
+  _target_: core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry.SqlAlchemyDataHandlerRegistry
+  config:
+    log_queries: false
+    create_db: true
+    session:
+      pool_recycle: 3600
+      pool_pre_ping: false
+    url:
+      protocol: sqlite

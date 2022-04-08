@@ -1,5 +1,5 @@
 config:
-  _target_: tests.test_instantiate_config.ExampleClass
+  _target_: tests.test_instantiate_config.ExampleCoreLib
   conf:
     db:
       log_queries: false
