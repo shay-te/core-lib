@@ -105,13 +105,13 @@ class TestCrud(unittest.TestCase):
             len_append += 4
             self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
             self.assertEqual(data_2['deleted_at'], None)
-            self.assertEqual(data_2['delete_token'], None)
+            self.assertEqual(data_2['deleted_at_token'], None)
         elif is_soft_delete:
             self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
             self.assertEqual(data_2['deleted_at'], None)
             len_append += 3
         elif is_token_delete:
-            self.assertEqual(data_2['delete_token'], None)
+            self.assertEqual(data_2['deleted_at_token'], None)
             len_append += 1
         self.assertEqual(len(src_data) + len_append, len(data_2))
 

@@ -2,5 +2,5 @@ from sqlalchemy import Column, Integer
 
 
 class SoftDeleteTokenMixin(object):
-    delete_token = Column(Integer, default=None)
-    delete_token._creation_order = 9998
+    deleted_at_token = Column(Integer, default=None)
+    deleted_at_token._creation_order = 9998
