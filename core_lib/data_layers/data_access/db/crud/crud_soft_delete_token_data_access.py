@@ -30,7 +30,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
                 .update(
                     {
                         self._db_entity.deleted_at: datetime.utcnow(),
-                        self._db_entity.delete_token: int(datetime.utcnow().timestamp()),
+                        self._db_entity.deleted_at_token: int(datetime.utcnow().timestamp()),
                     }
                 )
             )

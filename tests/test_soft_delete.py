@@ -37,49 +37,49 @@ class TestSoftDelete(unittest.TestCase):
             converted_data = result_to_dict(all_data)
 
             self.assertEqual(converted_data[0]['name'], data_name_1)
-            self.assertEqual(converted_data[0]['delete_token'], None)
+            self.assertEqual(converted_data[0]['deleted_at_token'], None)
             self.assertEqual(converted_data[0]['deleted_at'], None)
             session.query(Data).filter(Data.id == 1).update(
-                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
             )
 
             self.assertEqual(converted_data[1]['name'], data_name_2)
-            self.assertEqual(converted_data[1]['delete_token'], None)
+            self.assertEqual(converted_data[1]['deleted_at_token'], None)
             self.assertEqual(converted_data[1]['deleted_at'], None)
             session.query(Data).filter(Data.id == 2).update(
-                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
             )
 
             self.assertEqual(converted_data[2]['name'], data_name_3)
-            self.assertEqual(converted_data[2]['delete_token'], None)
+            self.assertEqual(converted_data[2]['deleted_at_token'], None)
             self.assertEqual(converted_data[2]['deleted_at'], None)
             session.query(Data).filter(Data.id == 3).update(
-                {'deleted_at': dattime, 'delete_token': int(dattime.timestamp())}
+                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
             )
 
             all_deleted_data = session.query(Data).all()
             convert_deleted_data = result_to_dict(all_deleted_data)
 
-            self.assertNotEqual(convert_deleted_data[0]['delete_token'], None)
+            self.assertNotEqual(convert_deleted_data[0]['deleted_at_token'], None)
             self.assertNotEqual(convert_deleted_data[0]['deleted_at'], None)
             self.assertEqual(convert_deleted_data[0]['name'], data_name_1)
             self.assertEqual(convert_deleted_data[0]['created_at'], converted_data[0]['created_at'])
-            self.assertEqual(convert_deleted_data[0]['delete_token'], int(dattime.timestamp()))
+            self.assertEqual(convert_deleted_data[0]['deleted_at_token'], int(dattime.timestamp()))
             self.assertEqual(convert_deleted_data[0]['deleted_at'], dattime.timestamp())
             self.assertEqual(int(convert_deleted_data[0]['updated_at']), int(dattime.timestamp()))
 
-            self.assertNotEqual(convert_deleted_data[1]['delete_token'], None)
+            self.assertNotEqual(convert_deleted_data[1]['deleted_at_token'], None)
             self.assertNotEqual(convert_deleted_data[1]['deleted_at'], None)
             self.assertEqual(convert_deleted_data[1]['name'], data_name_2)
             self.assertEqual(convert_deleted_data[1]['created_at'], converted_data[1]['created_at'])
-            self.assertEqual(convert_deleted_data[1]['delete_token'], int(dattime.timestamp()))
+            self.assertEqual(convert_deleted_data[1]['deleted_at_token'], int(dattime.timestamp()))
             self.assertEqual(convert_deleted_data[1]['deleted_at'], dattime.timestamp())
             self.assertEqual(int(convert_deleted_data[1]['updated_at']), int(dattime.timestamp()))
 
-            self.assertNotEqual(convert_deleted_data[2]['delete_token'], None)
+            self.assertNotEqual(convert_deleted_data[2]['deleted_at_token'], None)
             self.assertNotEqual(convert_deleted_data[2]['deleted_at'], None)
             self.assertEqual(convert_deleted_data[2]['name'], data_name_3)
             self.assertEqual(convert_deleted_data[2]['created_at'], converted_data[2]['created_at'])
-            self.assertEqual(convert_deleted_data[2]['delete_token'], int(dattime.timestamp()))
+            self.assertEqual(convert_deleted_data[2]['deleted_at_token'], int(dattime.timestamp()))
             self.assertEqual(convert_deleted_data[2]['deleted_at'], dattime.timestamp())
             self.assertEqual(int(convert_deleted_data[2]['updated_at']), int(dattime.timestamp()))

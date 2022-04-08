@@ -246,14 +246,14 @@ customer = CustomerCRUDDataAccess()
 customer.create({'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True})
 
 data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True, 'created_at': 'current_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'delete_token': None}
+print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'abc@def.com', 'active': True, 'created_at': 'current_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'deleted_at_token': None}
 
 customer.update(1, {'email': 'jon@doe.com'})
 
 data = result_to_dict(customer.get(1))
-print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True, 'created_at': 'created_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'delete_token': None}
+print(data) # {'id': 1, 'name': 'Jon Doe', 'email': 'jon@doe.com', 'active': True, 'created_at': 'created_timestamp' , 'updated_at': 'current_timestamp', 'deleted_at': None, 'deleted_at_token': None}
 
-customer.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp and will update the delete_token with timestamp in milliseconds
+customer.delete(1) # will update the updated_at and deleted_at columns in the db with current timestamp and will update the deleted_at_token with timestamp in milliseconds
 
 data = customer.get(1) # will raise StatusCodeException Not found
 ```
