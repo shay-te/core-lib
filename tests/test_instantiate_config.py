@@ -32,6 +32,7 @@ class ExampleCoreLib(CoreLib):
         config_file = 'instantiate_sql_alchemy.yaml'
         config = hydra.compose(config_file)
         self.db_session = instantiate_config(config.config)
+        self.client = instantiate_config(config.client)
 
 
 class CustomerClient(ClientBase):
@@ -39,7 +40,7 @@ class CustomerClient(ClientBase):
         ClientBase.__init__(self, target_url)
 
     def get(self, customer_id: int):
-        self._get(f'someurl/{customer_id}')
+        return {'customer_id': customer_id, 'username': 'Jon'}
 
 
 class TestInstantiateConfig(unittest.TestCase):
