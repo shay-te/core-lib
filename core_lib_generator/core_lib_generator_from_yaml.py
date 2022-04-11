@@ -103,6 +103,7 @@ class CoreLibGenerator:
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
                 'config': self.core_lib_config,
+                'entities': self.core_lib_entities,
             },
             CoreLibClassGenerateTemplate(),
         )

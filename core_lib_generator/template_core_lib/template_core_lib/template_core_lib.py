@@ -1,4 +1,6 @@
 from omegaconf import DictConfig
+# template_alembic_imports
+
 from core_lib.core_lib import CoreLib
 
 # template_cache_handler_imports
@@ -19,3 +21,5 @@ class Template(CoreLib):
 # template_da_instances
 # template_jobs_data_handlers
 # template_load_jobs
+
+# template_alembic_functions

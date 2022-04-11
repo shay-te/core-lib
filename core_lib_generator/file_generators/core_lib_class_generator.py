@@ -14,6 +14,8 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
             updated_file = _add_job(updated_file, yaml_data, core_lib_name)
         if yaml_data['config']:
             updated_file = _add_mongo(updated_file, yaml_data['config']['data'], core_lib_name)
+        if yaml_data['entities']:
+            updated_file = _add_alembic_funcs(updated_file, yaml_data['entities'], core_lib_name)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
@@ -112,3 +114,32 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
             '\n'.join(mongo_conn),
         )
     return updated_file
+
+
+def _add_alembic_funcs(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    updated_file = template_content
+    add_func = False
+    for entity in yaml_data:
+        if yaml_data[entity]['migrate']:
+            add_func = True
+    if add_func:
+        imports_list = ['import os', 'import inspect', 'from core_lib.alembic.alembic import Alembic']
+        func_list = []
+        camel_core_lib = snake_to_camel(core_lib_name)
+        static_method_str = '@staticmethod'
+        install_func_str = 'def install(cfg: DictConfig):'
+        upgrade_alembic_str = f'Alembic(os.path.dirname(inspect.getfile({camel_core_lib})), cfg).upgrade()'
+        func_list.append(static_method_str.rjust(len(static_method_str) + 4))
+        func_list.append(install_func_str.rjust(len(install_func_str) + 4))
+        func_list.append(upgrade_alembic_str.rjust(len(upgrade_alembic_str) + 8))
+        func_list.append('')
+
+        uninstall_func_str = 'def uninstall(cfg: DictConfig):'
+        downgrade_alembic_str = f'Alembic(os.path.dirname(inspect.getfile({camel_core_lib})), cfg).downgrade()'
+        func_list.append(static_method_str.rjust(len(static_method_str) + 4))
+        func_list.append(uninstall_func_str.rjust(len(uninstall_func_str) + 4))
+        func_list.append(downgrade_alembic_str.rjust(len(downgrade_alembic_str) + 8))
+        updated_file = updated_file.replace('# template_alembic_imports', '\n'.join(imports_list))
+        updated_file = updated_file.replace('# template_alembic_functions', '\n'.join(func_list))
+    return updated_file
+
