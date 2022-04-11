@@ -4,9 +4,20 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/core-lib.svg)](https://pypistats.org/packages/core-lib)
 
 # Template
-CoreLib provides basic simple classes for creating a WEB Application as a Library using the Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs)   
+Template is build using [Core-Lib](https://github.com/shay-te/core-lib).
 
-Check the [website](https://core-lib.netlify.com/) for more information
+## Example
+
+```python
+import hydra
+from template_core_lib import Template
+
+hydra.core.global_hydra.GlobalHydra.instance().clear()
+hydra.initialize(config_path='../../template_core_lib/config')
+
+# Create a new Template using hydra (https://hydra.cc/docs/next/advanced/compose_api/) config
+template_core_lib = Template(hydra.compose('template_core_lib.yaml'))
+```
 
 ## License
 Core-Lib in licenced under [MIT](https://github.com/shacoshe/core-lib/blob/master/LICENSE)
