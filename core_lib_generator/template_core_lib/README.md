@@ -3,20 +3,20 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/core-lib)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/core-lib.svg)](https://pypistats.org/packages/core-lib)
 
-# Template
-Template is build using [Core-Lib](https://github.com/shay-te/core-lib).
+# TemplateCoreLib
+TemplateCoreLib is built using [Core-Lib](https://github.com/shay-te/core-lib).
 
 ## Example
 
 ```python
 import hydra
-from template_core_lib import Template
+from template_core_lib import TemplateCoreLib
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize(config_path='../../template_core_lib/config')
 
-# Create a new Template using hydra (https://hydra.cc/docs/next/advanced/compose_api/) config
-template_core_lib = Template(hydra.compose('template_core_lib.yaml'))
+# Create a new TemplateCoreLib using hydra (https://hydra.cc/docs/next/advanced/compose_api/) config
+template_core_lib = TemplateCoreLib(hydra.compose('template_core_lib.yaml'))
 ```
 
 ## License
