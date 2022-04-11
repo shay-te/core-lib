@@ -31,6 +31,7 @@ class DataIndex(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 
 
 class TestSoftDelete(unittest.TestCase):
+    dattime = datetime.utcnow()
     data_name_1 = "test_name_1"
     data_name_2 = "test_name_2"
     data_name_3 = "test_name_3"
@@ -48,29 +49,28 @@ class TestSoftDelete(unittest.TestCase):
             objects = [Data(name=self.data_name_1), Data(name=self.data_name_2), Data(name=self.data_name_3)]
             session.bulk_save_objects(objects)
         with self.db_data_session.get() as session:
-            dattime = datetime.utcnow()
             all_data = session.query(Data).all()
             converted_data = result_to_dict(all_data)
 
             self.assertEqual(converted_data[0]['name'], self.data_name_1)
             self.assertEqual(converted_data[0]['deleted_at_token'], 0)
             self.assertEqual(converted_data[0]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 1).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+            session.query(Data).filter(Data.id == converted_data[0]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
 
             self.assertEqual(converted_data[1]['name'], self.data_name_2)
             self.assertEqual(converted_data[1]['deleted_at_token'], 0)
             self.assertEqual(converted_data[1]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 2).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+            session.query(Data).filter(Data.id == converted_data[1]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
 
             self.assertEqual(converted_data[2]['name'], self.data_name_3)
             self.assertEqual(converted_data[2]['deleted_at_token'], 0)
             self.assertEqual(converted_data[2]['deleted_at'], None)
-            session.query(Data).filter(Data.id == 3).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+            session.query(Data).filter(Data.id == converted_data[2]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
 
             all_deleted_data = session.query(Data).all()
@@ -80,9 +80,9 @@ class TestSoftDelete(unittest.TestCase):
                 self.assertNotEqual(data['deleted_at_token'], 0)
                 self.assertNotEqual(data['deleted_at'], None)
                 self.assertEqual(data['created_at'], data['created_at'])
-                self.assertEqual(data['deleted_at_token'], int(dattime.timestamp()))
-                self.assertEqual(data['deleted_at'], dattime.timestamp())
-                self.assertEqual(int(data['updated_at']), int(dattime.timestamp()))
+                self.assertEqual(data['deleted_at_token'], int(self.dattime.timestamp()))
+                self.assertEqual(data['deleted_at'], self.dattime.timestamp())
+                self.assertEqual(int(data['updated_at']), int(self.dattime.timestamp()))
 
             self.assertEqual(convert_deleted_data[0]['name'], self.data_name_1)
             self.assertEqual(convert_deleted_data[1]['name'], self.data_name_2)
@@ -96,19 +96,21 @@ class TestSoftDelete(unittest.TestCase):
         ]
         session.bulk_save_objects(objects)
 
-    def test_soft_delete_index(self):
-
+    def test_soft_delete_index_bulk(self):
         with self.db_data_session.get() as session:
             self._insert_data_index(session)
-            dattime = datetime.utcnow()
-            session.query(DataIndex).filter(DataIndex.id == 1).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+
+            all_data = session.query(DataIndex).all()
+            converted_data = result_to_dict(all_data)
+
+            session.query(DataIndex).filter(DataIndex.id == converted_data[0]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
-            session.query(DataIndex).filter(DataIndex.id == 2).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+            session.query(DataIndex).filter(DataIndex.id == converted_data[1]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
-            session.query(DataIndex).filter(DataIndex.id == 3).update(
-                {'deleted_at': dattime, 'deleted_at_token': int(dattime.timestamp())}
+            session.query(DataIndex).filter(DataIndex.id == converted_data[2]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
             )
             all_deleted_data = session.query(DataIndex).all()
             deleted_data = result_to_dict(all_deleted_data)
@@ -128,3 +130,25 @@ class TestSoftDelete(unittest.TestCase):
         all_data = session.query(DataIndex).all()
         data = result_to_dict(all_data)
         self.assertEqual(len(data), 6)
+        session.query(DataIndex).delete()
+
+    def test_soft_delete_index_individual(self):
+        with self.db_data_session.get() as session:
+            session.add(DataIndex(name=self.data_name_1, contact=self.contact_1))
+
+            all_data = session.query(DataIndex).all()
+            converted_data = result_to_dict(all_data)
+            self.assertEqual(len(converted_data), 1)
+            session.query(DataIndex).filter(DataIndex.id == converted_data[0]['id']).update(
+                {'deleted_at': self.dattime, 'deleted_at_token': int(self.dattime.timestamp())}
+            )
+
+            session.add(DataIndex(name=self.data_name_1, contact=self.contact_1))
+
+            all_data = session.query(DataIndex).all()
+            data = result_to_dict(all_data)
+            self.assertEqual(len(data), 2)
+
+        with self.assertRaises(Exception):
+            with self.db_data_session.get() as session:
+                session.add(DataIndex(name=self.data_name_1, contact=self.contact_1))
