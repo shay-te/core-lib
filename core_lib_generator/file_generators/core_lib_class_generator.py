@@ -36,7 +36,10 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
     for name in yaml_data['data_access']:
         entity = yaml_data['data_access'][name]['entity']
         db_connection = yaml_data['data_access'][name]['db_connection']
-        inst_str = f'self.{db_connection}_{entity.lower()} = {name}({db_connection}_session)'
+        if yaml_data['data_access'][name].get('is_crud', False):
+            inst_str = f'self.{db_connection}_{entity.lower()} = {name}({db_connection}_session)'
+        else:
+            inst_str = f'self.{db_connection}_{entity.lower()} = {name}()'
         inst_list.append(inst_str.rjust(len(inst_str) + 8))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(handler_str.rjust(len(handler_str) + 8))
