@@ -24,7 +24,7 @@ def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> s
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
+            f'from {core_lib_name}.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
         )
     return '\n'.join(da_imports)
 
