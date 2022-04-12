@@ -4,8 +4,8 @@ import InputInteger from "./../inputs/InputInteger";
 import InputBoolean from "./../inputs/InputBoolean";
 import InputENUM from "./../inputs/InputENUM";
 import InputList from "./../inputs/InputList";
-import DBConnectionForm from "../dataCollectionForms/dbConnectionForm";
-import DBEntityForm from "../dataCollectionForms/dbEntityForm";
+import DBConnectionForm from "../dataCollectionForms/DBConnectionForm";
+import DBEntityForm from "../dataCollectionForms/DBEntityForm";
 const Form = (props) => {
 	const formSubmit = (e) => {
 		e.preventDefault();
