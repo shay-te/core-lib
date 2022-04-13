@@ -114,7 +114,7 @@ function App() {
 	return (
 		<div className='app-root'>
 			<Tree/>
-			<Form fields={data.fields}/>
+			<Form/>
 		</div>
 	);
 }

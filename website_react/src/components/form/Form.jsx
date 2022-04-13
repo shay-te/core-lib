@@ -1,6 +1,6 @@
 import "./form.scss";
 import Fields from "./Fields";
-const Form = (props) => {
+const Form = () => {
 	const formSubmit = (e) => {
 		e.preventDefault();
 		console.log(true);
@@ -9,7 +9,7 @@ const Form = (props) => {
 	return (
 		<div>
 			<form className="form-root" onSubmit={(e) => formSubmit(e)}>
-				<Fields fields={props.fields} />
+				<Fields/>
 				<input type={"submit"} className="submit-button" />
 			</form>
 		</div>

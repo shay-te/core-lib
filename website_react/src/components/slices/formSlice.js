@@ -1,12 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-	status: 'idle',
-	formData: [],
-};
-
 export const formDataSlice = createSlice({
 	name: 'forms',
-	initialState,
-	reducers: {	},
+	initialState: {
+		fields: [],
+	},
+	reducers: {
+		setFields: (state, action) => {
+            state.fields = action.payload
+        },
+	},
 });
+
+export const {setFields} = formDataSlice.actions
+
+export default formDataSlice.reducer

@@ -3,18 +3,24 @@ import InputInteger from '../inputs/InputInteger'
 import InputBoolean from '../inputs/InputBoolean'
 import InputENUM from '../inputs/InputENUM'
 import InputList from '../inputs/InputList'
+import { useSelector } from "react-redux";
 
 const Fields = (props) => {
+    const fields = useSelector((state) => state.formData.fields)
+    
+    console.log(fields)
     return(
+        
         <>
-        {props.fields.map((field, index) => {
-            switch (field.type) {
+        {fields.map((field, index) => {
+            switch (field.type.toLowerCase()) {
                 case "string":
+                case "varchar":
                     return (
                         <InputString
                             formFields={field}
                             index={index}
-                            key={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
                         />
                     );
                 case "integer":
@@ -22,7 +28,7 @@ const Fields = (props) => {
                         <InputInteger
                             formFields={field}
                             index={index}
-                            key={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
                         />
                     );
                 case "boolean":
@@ -30,7 +36,7 @@ const Fields = (props) => {
                         <InputBoolean
                             formFields={field}
                             index={index}
-                            key={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
                         />
                     );
                 case "enum":
@@ -38,7 +44,7 @@ const Fields = (props) => {
                         <InputENUM
                             formFields={field}
                             index={index}
-                            key={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
                         />
                     );
                 case "list":
@@ -46,9 +52,11 @@ const Fields = (props) => {
                         <InputList
                             formFields={field}
                             index={index}
-                            key={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
                         />
                     );
+                default:
+                    return ''
             }
         })}
         </>

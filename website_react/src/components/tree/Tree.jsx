@@ -1,7 +1,21 @@
 import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+	setDataAccess,
+	setEntities,
+	setDBConnections,
+	setSetup,
+	setCoreLibName,
+} from "./../slices/treeSlice";
+import RenderDataAccess from "./RenderDataAccess";
+import RenderEntities from "./RenderEntities";
+import RenderSetup from "./RenderSetup";
 import "./tree.scss";
 
 const Tree = () => {
+	const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
+	const dispatch = useDispatch();
+
 	const data = {
 		ExampleCoreLib: {
 			data_layers: {
@@ -111,80 +125,21 @@ const Tree = () => {
 		},
 	};
 	useEffect(() => {
-		window.onclick = (e) => {
-			document.getElementById(e.target.innerHTML).classList.toggle("hide");
-			console.log(getObject(data, e.target.innerHTML))
-		};
-		renderTree(data, document.getElementById("tree"));
+		for (const clName in data) {
+			dispatch(setDataAccess(data[clName]["data_layers"]["data_access"]));
+			dispatch(setEntities(data[clName]["data_layers"]["data"]));
+			dispatch(setSetup(data[clName]["setup"]));
+			dispatch(setCoreLibName(clName));
+		}
 	}, []);
-
-	const getObject = (obj, key) => {
-		for (var prop in obj) {
-			const sub = obj[prop];
-			if(key == prop){
-				console.log(sub)
-			}
-			if (typeof sub === "object") {
-				getObject(sub, key);
-			}
-		}
-	};
-
-	const renderTree = (data, element) => {
-		for (var key in data) {
-			var newLI = document.createElement("li");
-			if (
-				typeof data[key] === "object" &&
-				key !== "columns" &&
-				key !== "classifiers"
-			) {
-				newLI.innerHTML = key;
-				element.appendChild(newLI);
-				var newUL = document.createElement("ul");
-				newUL.setAttribute("id", key);
-				element.appendChild(newUL);
-				renderTree(data[key], newUL);
-			}
-		}
-	};
-
-	// const renderUL = (data) => {
-	// 	if(typeof data == "object"){
-	// 		return <ul>{render(data)}</ul>
-	// 	}
-	// }
-	// const items = [];
-	// const render = (data) => {
-	// 	for (var key in data) {
-
-	// 		if (typeof data[key] == 'object'){
-	// 			items.push(
-	// 				<li>
-	// 					{key}
-	// 					<ul>{render(data[key])}</ul>
-	// 				</li>
-	// 			)
-	// 		}
-	// 		// return (
-	// 		// 	<>
-	// 		// 	{
-	// 		// 		typeof data[key] == 'object'?
-	// 		// 		render(data[key]):null
-	// 		// 	}
-	// 		// 	</>
-	// 		// );
-	// 	};
-	// };
-
-	// const RenderRTree = () => {
-	// 	render(data);
-	// 	return items
-	// };
 
 	return (
 		<div className="tree-root">
+			<h2>{CoreLibName}</h2>
 			<div className="tree">
-				<ul id="tree"></ul>
+				<RenderDataAccess />
+				<RenderEntities />
+				<RenderSetup />
 			</div>
 		</div>
 	);

@@ -1,3 +1,5 @@
+import { getDefault } from "../utils/commonUtils";
+
 const InputBoolean = (props) => {
     return (
         <div className="form-input-div" key={props.index}>
@@ -8,7 +10,7 @@ const InputBoolean = (props) => {
                     id={"true" + props.index}
                     name={"bool" + props.index}
                     value="true"
-                    defaultChecked={props.formFields.default_value}
+                    defaultChecked={getDefault(props)}
                     required={props.formFields.mandatory}
                 />
                 <label htmlFor={"true" + props.index}>Yes</label>
