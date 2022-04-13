@@ -1,13 +1,50 @@
-.tree-root{
-    width: 30%;
-    margin: 1rem;
-    background-color: bisque;
-    border: 2px black solid;
-    border-radius: 5px;
-    height: 95vh;
-    position: static;
+.tree-root {
+	width: 33%;
+	margin: 1rem;
+	padding: 1rem;
+	background-color: bisque;
+	border: 2px black solid;
+	border-radius: 5px;
+	position: static;
 }
 
-.tree{
-    overflow: auto;
+.tree {
+	overflow: auto;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.tree ul {
+	list-style-type: none;
+	padding-left: 1rem;
+}
+
+.tree li {
+	// background-color: rgb(106, 183, 255);
+	transition: display 1s ease-in;
+    padding: 0.25rem;
+    padding-left: 20px;
+    border-radius: 5px;
+    margin: 0.25rem;
+    // list-style-image:url('./../../assets/arrow.png');
+    // list-style-position: inside;  
+    background-image: url("./../../assets/arrow.png");
+	background-repeat: no-repeat;
+	background-position: left center;
+	background-size: 15px;
+    
+}
+
+.tree li:hover {
+	cursor: pointer;
+    box-shadow: 0px 0px 4px 0px;
+    
+}
+
+.hide {
+	display: none;
 }

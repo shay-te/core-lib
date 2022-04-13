@@ -9,6 +9,7 @@
 
 .form-input-div{
     margin-bottom: 1rem;
+    width: 100%;
 }
 
 .input-label{
@@ -38,39 +39,4 @@
     font-size: 1rem;
     border-radius: 5px;
     border: 1px black solid;
-}
-
-/* Extra small devices (phones, 600px and down) */
-@media only screen and (max-width: 600px) {
-    .form-input-div{
-        width: 100%;
-    }
-}
-
-/* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {
-    .form-input-div{
-        width: 100%;
-    }
-}
-
-/* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
-    .form-input-div{
-        width: 75%;
-    }
-}
-
-/* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
-    .form-input-div{
-        width: 75%;
-    }
-}
-
-/* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
-    .form-input-div{
-        width: 75%;
-    }
 }

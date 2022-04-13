@@ -1,6 +1,6 @@
 import './App.scss';
-import Form from './components/form/form';
-import Tree from './components/tree/tree';
+import Form from './components/form/Form';
+import Tree from './components/tree/Tree';
 
 function App() {
 	const validateFunc = () => {
@@ -17,51 +17,98 @@ function App() {
 				validatorCallback: validateFunc,
 			},
 			// DB CONNECTION
-			
-
-			// // DB Entity
-			// {
-			// 	title: 'Enter the number of columns',
-			// 	type: 'integer',
-			// 	default_value: null,
-			// 	mandatory: true,
-			// 	validatorCallback: validateFunc,
-			// },
-
-			// {
-			// 	title: 'Do you want SoftDelete?',
-			// 	type: 'boolean',
-			// 	default_value: false,
-			// 	mandatory: true,
-			// 	validatorCallback: validateFunc,
-			// },
-			// {
-			// 	title: 'Enter the DataAccess name',
-			// 	type: 'string',
-			// 	default_value: 'UserDataAccess',
-			// 	mandatory: true,
-			// 	validatorCallback: validateFunc,
-			// },
-			// {
-			// 	title: 'Enter entity name',
-			// 	type: 'string',
-			// 	default_value: 'User',
-			// 	mandatory: true,
-			// 	validatorCallback: validateFunc,
-			// },
-			// {
-			// 	title: 'Select classifiers',
-			// 	type: 'list',
-			// 	default_value: 'Environment :: Console',
-			// 	mandatory: true,
-			// 	validatorCallback: validateFunc,
-			// 	multiple_selection: true,
-			// 	options: [
-			// 		'Development Status :: 1 - Planning',
-			// 		'Environment :: GPU',
-			// 		'Environment :: Console',
-			// 	],
-			// },
+			{
+                title: "What is the name of the DB connection?",
+                type: "string",
+                default_value: null,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Select DB connection",
+                type: "enum",
+                mandatory: true,
+                validatorCallback: validateFunc,
+                options: [
+                    "SQLite",
+                    "Postgresql",
+                    "MySQL",
+                    "Oracle",
+                    "MSSQL",
+                    "Firebird",
+                    "Sybase",
+                    "MongoDB",
+                ],
+            },
+            {
+                title: "Do you want to log queries?",
+                type: "boolean",
+                default_value: false,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Do you want create Database?",
+                type: "boolean",
+                default_value: true,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Enter the pool recycle time",
+                type: "integer",
+                default_value: 3200,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Do you want to set pool pre ping?",
+                type: "boolean",
+                default_value: false,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Enter the port no. of your DB",
+                type: "integer",
+                default_value: null,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Enter host of your DB",
+                type: "string",
+                default_value: "localhost",
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Enter your DB username",
+                type: "string",
+                default_value: "user",
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+            {
+                title: "Enter your DB password",
+                type: "string",
+                default_value: null,
+                mandatory: true,
+                validatorCallback: validateFunc,
+            },
+			{
+				title: 'Select classifiers',
+				type: 'list',
+				default_value: 'Environment :: Console',
+				mandatory: true,
+				validatorCallback: validateFunc,
+				multiple_selection: true,
+				options: [
+					'Development Status :: 1 - Planning',
+					'Environment :: GPU',
+					'Environment :: Console',
+				],
+			},
 		],
 	};
 	return (

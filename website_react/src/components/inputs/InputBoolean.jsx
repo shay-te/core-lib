@@ -11,7 +11,7 @@ const InputBoolean = (props) => {
                     defaultChecked={props.formFields.default_value}
                     required={props.formFields.mandatory}
                 />
-                <label htmlFor={"true" + props.index}>True</label>
+                <label htmlFor={"true" + props.index}>Yes</label>
             </div>
 
             <div>
@@ -23,7 +23,7 @@ const InputBoolean = (props) => {
                     defaultChecked={!props.formFields.default_value}
                     required={props.formFields.mandatory}
                 />
-                <label htmlFor={"false" + props.index}>False</label>
+                <label htmlFor={"false" + props.index}>No</label>
             </div>
         </div>
     );
