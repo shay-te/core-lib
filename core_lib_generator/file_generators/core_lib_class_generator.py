@@ -23,9 +23,6 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         return 'core_lib_generator/template_core_lib/template_core_lib/template_core_lib.py'
 
 
-tab_spaces_8 = 8
-
-
 def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> str:
     da_imports = []
     for da_name in data_access_list:
@@ -43,9 +40,9 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
         entity = yaml_data['data_access'][name]['entity']
         db_connection = yaml_data['data_access'][name]['db_connection']
         inst_str = f'self.{entity.lower()} = {name}({db_connection}_session)'
-        inst_list.append(add_tab_spaces(inst_str, tab_spaces_8))
+        inst_list.append(add_tab_spaces(inst_str, 2))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
-        handler_list.append(add_tab_spaces(handler_str, tab_spaces_8))
+        handler_list.append(add_tab_spaces(handler_str, 2))
     updated_file = updated_file.replace(
         '# template_da_imports', _create_data_access_imports(data_access_list, core_lib_name)
     )
@@ -67,17 +64,17 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         if cache_type == 'memory':
             cache_imports.append(f'from core_lib.cache.cache_handler_ram import CacheHandlerRam')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRam())'
-            cache_inits.append(add_tab_spaces(cache_str, tab_spaces_8))
+            cache_inits.append(add_tab_spaces(cache_str, 2))
         elif cache_type == 'memcached':
             cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
             cache_imports.append('from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerMemcached(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
-            cache_inits.append(add_tab_spaces(cache_str, tab_spaces_8))
+            cache_inits.append(add_tab_spaces(cache_str, 2))
         elif cache_type == 'redis':
             cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
             cache_imports.append('from core_lib.cache.cache_handler_redis import CacheHandlerRedis')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRedis(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
-            cache_inits.append(add_tab_spaces(cache_str, tab_spaces_8))
+            cache_inits.append(add_tab_spaces(cache_str, 2))
     updated_file = updated_file.replace(
         '# template_cache_handler_imports',
         '\n'.join(cache_imports),
@@ -95,10 +92,10 @@ def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     job_handler_str = f'jobs_data_handlers = {str(job_handler)}'
     load_jobs_str = f'self.load_jobs(self.config.core_lib.{core_lib_name}.jobs, jobs_data_handlers)'
     updated_file = updated_file.replace(
-        '# template_jobs_data_handlers', add_tab_spaces(job_handler_str, tab_spaces_8)
+        '# template_jobs_data_handlers', add_tab_spaces(job_handler_str, 2)
     )
 
-    updated_file = updated_file.replace('# template_load_jobs', add_tab_spaces(load_jobs_str, tab_spaces_8))
+    updated_file = updated_file.replace('# template_load_jobs', add_tab_spaces(load_jobs_str, 2))
     return updated_file
 
 
@@ -111,7 +108,7 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     for db_connection in yaml_data:
         if yaml_data[db_connection]['url']['protocol'] == 'mongodb':
             conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
-            mongo_conn.append(add_tab_spaces(conn_str, tab_spaces_8))
+            mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)
         updated_file = updated_file.replace(
@@ -136,14 +133,14 @@ def _add_alembic_funcs(template_content: str, yaml_data: dict, core_lib_name: st
         upgrade_alembic_str = f'Alembic(os.path.dirname(inspect.getfile({camel_core_lib})), cfg).upgrade()'
         func_list.append(add_tab_spaces(static_method_str))
         func_list.append(add_tab_spaces(install_func_str))
-        func_list.append(add_tab_spaces(upgrade_alembic_str, tab_spaces_8))
+        func_list.append(add_tab_spaces(upgrade_alembic_str, 2))
         func_list.append('')
 
         uninstall_func_str = 'def uninstall(cfg: DictConfig):'
         downgrade_alembic_str = f'Alembic(os.path.dirname(inspect.getfile({camel_core_lib})), cfg).downgrade()'
         func_list.append(add_tab_spaces(static_method_str))
         func_list.append(add_tab_spaces(uninstall_func_str))
-        func_list.append(add_tab_spaces(downgrade_alembic_str, tab_spaces_8))
+        func_list.append(add_tab_spaces(downgrade_alembic_str, 2))
         updated_file = updated_file.replace('# template_alembic_imports', '\n'.join(imports_list))
         updated_file = updated_file.replace('# template_alembic_functions', '\n'.join(func_list))
     return updated_file
