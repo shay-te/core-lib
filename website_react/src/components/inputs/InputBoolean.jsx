@@ -22,7 +22,7 @@ const InputBoolean = (props) => {
                     id={"false" + props.index}
                     name={"bool" + props.index}
                     value="false"
-                    defaultChecked={!props.formFields.default_value}
+                    defaultChecked={!getDefault(props)}
                     required={props.formFields.mandatory}
                 />
                 <label htmlFor={"false" + props.index}>No</label>

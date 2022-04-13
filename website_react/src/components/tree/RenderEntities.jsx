@@ -11,7 +11,8 @@ const RenderEntities = () => {
         fields.push({
             title: "DB Connection",
             type: "string",
-            default_value: entities[dbConn][entity]['db_connection'],
+            default_value: '',
+            value: entities[dbConn][entity]['db_connection'],
             mandatory: true,
             // validatorCallback: validateFunc,
         })
@@ -20,14 +21,16 @@ const RenderEntities = () => {
                 fields.push({
                     title: "Column Name",
                     type: 'string',
-                    default_value: column,
+                    default_value: '',
+                    value: column,
                     mandatory: true,
                     // validatorCallback: validateFunc,
                 },
                 {
                     title: "Column Type",
                     type: "enum",
-                    default_value: entities[dbConn][entity]['columns'][column]['type'],
+                    default_value: 'VARCHAR',
+                    value: entities[dbConn][entity]['columns'][column]['type'],
                     mandatory: true,
                     options: [
                         "VARCHAR",
@@ -38,7 +41,8 @@ const RenderEntities = () => {
                 {
                     title: "Column Default",
                     type: 'string',
-                    default_value: entities[dbConn][entity]['columns'][column]['default'],
+                    default_value: '',
+                    value: entities[dbConn][entity]['columns'][column]['default'],
                     mandatory: false,
                     // validatorCallback: validateFunc,
                 })
@@ -58,7 +62,8 @@ const RenderEntities = () => {
             fields.push({
                 title: "Is Soft Delete Token",
                 type: "boolean",
-                default_value: entities[dbConn][entity]['is_soft_delete_token'],
+                default_value: true,
+                value: entities[dbConn][entity]['is_soft_delete_token'],
                 mandatory: true,
                 // validatorCallback: validateFunc,
             })

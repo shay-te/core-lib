@@ -11,14 +11,16 @@ const RenderDataAccess = () => {
 		fields.push({
             title: "Data Access Name",
             type: "string",
-            default_value: daName,
+            default_value: '',
+			value: daName,
             mandatory: true,
             // validatorCallback: validateFunc,
         })
 		fields.push({
             title: "DB Connection",
             type: "string",
-            default_value: dataAccess[daName]['db_connection'],
+            default_value: '',
+			value: dataAccess[daName]['db_connection'],
             mandatory: true,
             // validatorCallback: validateFunc,
         })
@@ -26,7 +28,8 @@ const RenderDataAccess = () => {
 			fields.push({
 				title: "Is CRUD?",
 				type: "boolean",
-				default_value: dataAccess[daName]['is_crud'],
+				default_value: false,
+				value: dataAccess[daName]['is_crud'],
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})
@@ -35,7 +38,8 @@ const RenderDataAccess = () => {
 			fields.push({
 				title: "Is CRUD Soft Delete?",
 				type: "boolean",
-				default_value: dataAccess[daName]['is_crud_soft_delete'],
+				default_value: false,
+				value: dataAccess[daName]['is_crud_soft_delete'],
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})
@@ -44,7 +48,8 @@ const RenderDataAccess = () => {
 			fields.push({
 				title: "Is CRUD Soft Delete Token?",
 				type: "boolean",
-				default_value: dataAccess[daName]['is_crud_soft_delete_token'],
+				default_value: false,
+				value: dataAccess[daName]['is_crud_soft_delete_token'],
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})

@@ -1,6 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setFields } from "../slices/formSlice";
-import { hideContents } from "../utils/commonUtils";
 
 const RenderSetup = () => {
 	const setup = useSelector((state) => state.treeData.setup);
@@ -12,21 +11,24 @@ const RenderSetup = () => {
 		fields.push({
             title: "Your Full Name",
             type: "string",
-            default_value: setup.author,
+            default_value: '',
+			value: setup.author,
             mandatory: true,
             // validatorCallback: validateFunc,
         })
 		fields.push({
             title: "Your Email",
             type: "string",
-            default_value: setup.author_email,
+			default_value: '',
+            value: setup.author_email,
             mandatory: true,
             // validatorCallback: validateFunc,
         })
 		fields.push({
 			title: 'Select classifiers',
 			type: 'list',
-			default_value: setup.classifiers,
+			default_value: 'Development Status :: 3 - Alpha',
+			value: setup.classifiers,
 			mandatory: true,
 			// validatorCallback: validateFunc,
 			multiple_selection: true,
@@ -51,14 +53,16 @@ const RenderSetup = () => {
 		fields.push({
             title: "Project Description",
             type: "string",
-            default_value: setup.description,
+			default_value: '',
+            value: setup.description,
             mandatory: true,
             // validatorCallback: validateFunc,
         })
 		fields.push({
             title: "License Type",
             type: "enum",
-            default_value: setup.license,
+            default_value: 'MIT',
+			value: setup.license,
             mandatory: true,
 			options:[
 				'MIT', 
@@ -70,59 +74,19 @@ const RenderSetup = () => {
 		fields.push({
             title: "Project url",
             type: "string",
-            default_value: setup.url,
+			default_value: '',
+            value: setup.url,
             mandatory: false,
             // validatorCallback: validateFunc,
         })
 		fields.push({
             title: "Project version",
             type: "string",
-            default_value: setup.version,
+			default_value: '',
+            value: setup.version,
             mandatory: false,
             // validatorCallback: validateFunc,
         })
-		// fields.push({
-        //     title: "Data Access Name",
-        //     type: "string",
-        //     default_value: daName,
-        //     mandatory: true,
-        //     // validatorCallback: validateFunc,
-        // })
-		// fields.push({
-        //     title: "DB Connection",
-        //     type: "string",
-        //     default_value: dataAccess[daName]['db_connection'],
-        //     mandatory: true,
-        //     // validatorCallback: validateFunc,
-        // })
-		// if(dataAccess[daName].hasOwnProperty('is_crud')){
-		// 	fields.push({
-		// 		title: "Is CRUD?",
-		// 		type: "boolean",
-		// 		default_value: dataAccess[daName]['is_crud'],
-		// 		mandatory: true,
-		// 		// validatorCallback: validateFunc,
-		// 	})
-		// }
-		// if(dataAccess[daName].hasOwnProperty('is_crud_soft_delete')){
-		// 	fields.push({
-		// 		title: "Is CRUD Soft Delete?",
-		// 		type: "boolean",
-		// 		default_value: dataAccess[daName]['is_crud_soft_delete'],
-		// 		mandatory: true,
-		// 		// validatorCallback: validateFunc,
-		// 	})
-		// }
-		// if(dataAccess[daName].hasOwnProperty('is_crud_soft_delete_token')){
-		// 	fields.push({
-		// 		title: "Is CRUD Soft Delete Token?",
-		// 		type: "boolean",
-		// 		default_value: dataAccess[daName]['is_crud_soft_delete_token'],
-		// 		mandatory: true,
-		// 		// validatorCallback: validateFunc,
-		// 	})
-		// }
-
 		dispatch(setFields(fields))
 	}
 

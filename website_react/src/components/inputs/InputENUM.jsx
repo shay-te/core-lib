@@ -1,3 +1,5 @@
+import { getDefault } from "../utils/commonUtils";
+
 const InputENUM = (props) => {
 
     const RenderItems = () => {
@@ -14,7 +16,7 @@ const InputENUM = (props) => {
                         name={"enum" + props.index}
                         value={value}
                         defaultChecked={
-                            value === props.formFields.default_value
+                            value === getDefault(props)
                         }
                     />
                     <label htmlFor={value + props.index}>{value}</label>

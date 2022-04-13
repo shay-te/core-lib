@@ -1,3 +1,5 @@
+import { getDefault } from "../utils/commonUtils";
+
 const InputList = (props) => {
 
     const RenderItems = () => {
@@ -14,7 +16,7 @@ const InputList = (props) => {
                         name={"list" + props.index}
                         value={value}
                         defaultChecked={
-                            value === props.formFields.default_value
+                            value === getDefault(props)
                         }
                     />
                     <label htmlFor={value + props.index}>{value}</label>

@@ -1,3 +1,5 @@
+import { getDefault } from "../utils/commonUtils";
+
 const InputString = (props) => {
     return (
         <div className="form-input-div" key={props.index}>
@@ -8,7 +10,7 @@ const InputString = (props) => {
                 type={"text"}
                 id={"field-" + props.index}
                 className="form-input"
-                defaultValue={props.formFields.default_value}
+                defaultValue={getDefault(props)}
                 required={props.formFields.mandatory}
                 placeholder="Text input"
             />
