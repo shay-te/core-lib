@@ -123,20 +123,19 @@ const RenderDBConn = () => {
 		dispatch(setFields(fields));
 	};
 
-	const handleClick = (e, dbConnName) => {
-		e.stopPropagation()
-		hideContents(e);
-		setFormField(dbConnName);
-	}
-
 	const RenderChildNodes = () => {
 		return Object.keys(dbConnections).map((dbConnName) => {
 			return (
-				<div className="node-title" key={dbConnName} id={dbConnName} onClick={(e) => {
-					handleClick(e, dbConnName)
-				}}>
+				<div className="node-title" key={dbConnName} id={dbConnName}>
+					<span
+						onClick={() => {
+							setFormField(dbConnName);
+						}}
+					>
 						{dbConnName}
-					{dbConnections[dbConnName]["url"]["protocol"] === "mongodb" ? (
+					</span>
+					{dbConnections[dbConnName]["url"]["protocol"] ===
+					"mongodb" ? (
 						""
 					) : (
 						<RenderEntities connection={dbConnName} />
