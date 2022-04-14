@@ -70,13 +70,13 @@ class Data(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(VARCHAR(length=255), nullable=False, default="")
 # creates a table with the column
-# id, name, updated_at, created_at, deleted_at and delete_token
+# id, name, updated_at, created_at, deleted_at and deleted_at_token
 
 .
 .
 .
 def delete_user():
     # to carry out soft delete, once the deleted_at column is set we know the value is deleted from client side.
-    session.query(Data).filter(Data.id == 1).update({'deleted_at': datetime.utcnow(), 'delete_token':  int(datetime.utcnow().timestamp())})
+    session.query(Data).filter(Data.id == 1).update({'deleted_at': datetime.utcnow(), 'deleted_at_token':  int(datetime.utcnow().timestamp())})
 
 ```
