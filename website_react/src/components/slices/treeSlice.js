@@ -7,7 +7,8 @@ export const treeSlice = createSlice({
         dbConnections: {},
         entities: {},
         setup: {},
-        CoreLibName: ''
+        CoreLibName: '',
+        yaml: {},
     },
     reducers: {
         setDataAccess: (state, action) => {
@@ -25,9 +26,12 @@ export const treeSlice = createSlice({
         setCoreLibName: (state, action) => {
             state.CoreLibName = action.payload
         },
+        setYaml: (state, action) => {
+            state.yaml = action.payload
+        },
     },
 })
 
-export const { setDataAccess, setEntities, setDBConnections, setSetup, setCoreLibName} = treeSlice.actions
+export const { setDataAccess, setEntities, setDBConnections, setSetup, setCoreLibName, setYaml} = treeSlice.actions
 
 export default treeSlice.reducer

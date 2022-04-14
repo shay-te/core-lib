@@ -6,6 +6,7 @@ import {
 	setDBConnections,
 	setSetup,
 	setCoreLibName,
+	setYaml,
 } from "./../slices/treeSlice";
 import RenderCoreLibName from "./RenderCoreLibName";
 import RenderDataAccess from "./RenderDataAccess";
@@ -14,7 +15,6 @@ import RenderSetup from "./RenderSetup";
 import "./tree.scss";
 
 const Tree = () => {
-	const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
 	const dispatch = useDispatch();
 
 	const data = {
@@ -32,8 +32,8 @@ const Tree = () => {
 				SELLERDB_HOST: "localhost",
 				MONGODB_USER: "user",
 				MONGODB_PASSWORD: "password",
-				MONGODB_PORT: 5432,
-				MONGODB_DB: "sellerdb",
+				MONGODB_PORT: 11211,
+				MONGODB_DB: "mongo",
 				MONGODB_HOST: "localhost",
 				REDIS_HOST: "localhost",
 				REDIS_PORT: 6379,
@@ -217,6 +217,7 @@ const Tree = () => {
 			dispatch(setSetup(data[clName]["setup"]));
 			dispatch(setDBConnections(data[clName]["config"]["data"]))
 			dispatch(setCoreLibName(clName));
+			dispatch(setYaml(data));
 		}
 	}, []);
 

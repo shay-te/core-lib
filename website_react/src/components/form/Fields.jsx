@@ -13,6 +13,7 @@ const Fields = (props) => {
         
         <>
         {fields.map((field, index) => {
+            const key = `${index}_${Math.floor((Math.random() * 100000) + 1)}`
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
@@ -20,7 +21,7 @@ const Fields = (props) => {
                         <InputString
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 case "integer":
@@ -28,7 +29,7 @@ const Fields = (props) => {
                         <InputInteger
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 case "boolean":
@@ -36,7 +37,7 @@ const Fields = (props) => {
                         <InputBoolean
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 case "enum":
@@ -44,7 +45,7 @@ const Fields = (props) => {
                         <InputENUM
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 case "list":
@@ -52,7 +53,7 @@ const Fields = (props) => {
                         <InputList
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 case "dropdown":
@@ -60,7 +61,7 @@ const Fields = (props) => {
                         <InputDropDown
                             formFields={field}
                             index={index}
-                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                            key={key}
                         />
                     );
                 default:
