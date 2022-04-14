@@ -39,8 +39,8 @@ def on_revision(value):
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
     logging.getLogger('alembic').setLevel(logging.INFO)
 
-    logger.info(f'revision to `{value}`')
     command = value.pop(0)
+    logger.info(f'revision to `{command}`')
 
     if command == 'head':
         alembic.upgrade('head')
@@ -56,6 +56,8 @@ def on_revision(value):
         name = list_to_string(value)
         logger.info('creating new migrating named: `{}`'.format(name))
         alembic.create_migration(name)
+    else:
+        logger.error(f'unknown command `{command}`')
 
 
 def get_rev_options() -> list:
@@ -74,6 +76,7 @@ def load_config() -> DictConfig:
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
     g.add_argument(
