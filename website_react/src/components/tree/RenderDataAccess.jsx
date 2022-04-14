@@ -1,11 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setFields } from "../slices/formSlice";
+import { updateDataAccess } from "../slices/treeSlice"
 import { hideContents } from "../utils/commonUtils";
 
 const RenderDataAccess = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
 	const dbConnections = useSelector((state) => state.treeData.dbConnections);
 	const dispatch = useDispatch()
+
+	const updateDAName = (oldname) => {
+		dispatch(updateDataAccess(oldname))
+	}
 
 	const setFormFields = (daName) => {
 		const fields = []
@@ -15,6 +20,7 @@ const RenderDataAccess = () => {
             default_value: '',
 			value: daName,
             mandatory: true,
+			target: 'updateDataAccessName'
             // validatorCallback: validateFunc,
         })
 		fields.push({

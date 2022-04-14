@@ -11,6 +11,7 @@ export const treeSlice = createSlice({
         yaml: {},
     },
     reducers: {
+        // init function populate all states with class
         setDataAccess: (state, action) => {
             state.dataAccess = action.payload
         },
@@ -29,9 +30,12 @@ export const treeSlice = createSlice({
         setYaml: (state, action) => {
             state.yaml = action.payload
         },
+        updateDataAccess: (state, action) => {
+            console.log(action.payload)
+        }
     },
 })
 
-export const { setDataAccess, setEntities, setDBConnections, setSetup, setCoreLibName, setYaml} = treeSlice.actions
+export const {setDataAccess, setEntities, setDBConnections, setSetup, setCoreLibName, setYaml, updateDataAccess} = treeSlice.actions
 
 export default treeSlice.reducer

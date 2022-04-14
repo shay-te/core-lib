@@ -1,6 +1,6 @@
 export const getDefault = (props) => {
-    if(props.formFields.value===undefined) return props.formFields.default_value
-    else return props.formFields.value
+    if(props.value===undefined) return props.default_value
+    else return props.value
 }
 
 export const hideContents = (e) => {

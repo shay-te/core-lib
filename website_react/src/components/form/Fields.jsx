@@ -10,7 +10,6 @@ const Fields = (props) => {
     const fields = useSelector((state) => state.formData.fields)
 
     return(
-        
         <>
         {fields.map((field, index) => {
             const key = `${index}_${Math.floor((Math.random() * 100000) + 1)}`
@@ -19,41 +18,62 @@ const Fields = (props) => {
                 case "varchar":
                     return (
                         <InputString
-                            formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
+                            target={field.target}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 case "integer":
                     return (
                         <InputInteger
-                            formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
                         />
                     );
                 case "boolean":
                     return (
                         <InputBoolean
-                            formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
                         />
                     );
                 case "enum":
                     return (
                         <InputENUM
-                            formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
+                            multiple_selection={field.multiple_selection}
+                            options={field.options}
                         />
                     );
                 case "list":
                     return (
                         <InputList
-                            formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
+                            multiple_selection={field.multiple_selection}
+                            options={field.options}
                         />
                     );
                 case "dropdown":
@@ -62,6 +82,11 @@ const Fields = (props) => {
                             formFields={field}
                             index={index}
                             key={key}
+                            title={field.title}
+                            mandatory={field.mandatory}
+                            value={field.value}
+                            default_value={field.default_value}
+                            options={field.options}
                         />
                     );
                 default:

@@ -3,12 +3,12 @@ import { getDefault } from "../utils/commonUtils";
 const InputENUM = (props) => {
 
     const RenderItems = () => {
-        return props.formFields.options.map((value, index) => {
+        return props.options.map((value, index) => {
             return (
                 <div key={index}>
                     <input
                         type={
-                            props.formFields.multiple_selection
+                            props.multiple_selection
                                 ? "checkbox"
                                 : "radio"
                         }
@@ -27,7 +27,7 @@ const InputENUM = (props) => {
 
     return (
         <div className="form-input-div" key={props.index}>
-            <label className="input-label">{props.formFields.title}</label>
+            <label className="input-label">{props.title}</label>
             <RenderItems/>
         </div>
     );

@@ -10,6 +10,7 @@ const RenderDBConn = () => {
 	const dispatch = useDispatch();
 
 	const getENVValue = (envVar) => {
+		console.log(yaml)
 		return yaml[CoreLibName]["env"][envVar.split(":")[1].slice(0, -1)];
 	};
 

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { getDataAccessList, YamlData } from "../utils/YamlData";
 import {
 	setDataAccess,
 	setEntities,
@@ -211,12 +212,14 @@ const Tree = () => {
 		},
 	};
 	useEffect(() => {
+		let yamlData = new YamlData(data)
+		// yamlData.updateDataAccess('DetailsDataAccess')
 		for (const clName in data) {
-			dispatch(setDataAccess(data[clName]["data_layers"]["data_access"]));
-			dispatch(setEntities(data[clName]["data_layers"]["data"]));
-			dispatch(setSetup(data[clName]["setup"]));
-			dispatch(setDBConnections(data[clName]["config"]["data"]))
-			dispatch(setCoreLibName(clName));
+			dispatch(setDataAccess(yamlData.getDataAccessList()));
+			dispatch(setEntities(yamlData.getEntitiesList()));
+			dispatch(setSetup(yamlData.getSetup()));
+			dispatch(setDBConnections(yamlData.getDBConnectionsList()))
+			dispatch(setCoreLibName(yamlData.coreLibName));
 			dispatch(setYaml(data));
 		}
 	}, []);

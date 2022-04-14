@@ -1,6 +1,6 @@
 import "./form.scss";
 import Fields from "./Fields";
-const Form = () => {
+const Form = (props) => {
 	const formSubmit = (e) => {
 		e.preventDefault();
 		console.log(true);
@@ -9,7 +9,7 @@ const Form = () => {
 	return (
 		<div>
 			<form className="form-root" onSubmit={(e) => formSubmit(e)}>
-				<Fields/>
+				<Fields onChange={props.onChange}/>
 			</form>
 		</div>
 	);
