@@ -1,11 +1,14 @@
+
+
 .tree-root {
-	width: 33%;
+	width: 25%;
 	margin: 1rem;
 	padding: 1rem;
 	background-color: bisque;
 	border: 2px black solid;
 	border-radius: 5px;
 	position: static;
+	align-items: flex-end;
 }
 
 .tree {

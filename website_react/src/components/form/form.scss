@@ -1,12 +1,11 @@
 @import './../../index.scss';
 
 .form-root{
-    flex: 0 0 100%;
     max-width: 100%;
     padding: 2rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: start;
 }
 
 .form-input-div{

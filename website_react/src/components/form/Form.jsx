@@ -10,7 +10,6 @@ const Form = () => {
 		<div>
 			<form className="form-root" onSubmit={(e) => formSubmit(e)}>
 				<Fields/>
-				<input type={"submit"} className="submit-button" />
 			</form>
 		</div>
 	);

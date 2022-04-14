@@ -4,6 +4,7 @@ import { hideContents } from "../utils/commonUtils";
 
 const RenderDataAccess = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
+	const dbConnections = useSelector((state) => state.treeData.dbConnections);
 	const dispatch = useDispatch()
 
 	const setFormFields = (daName) => {
@@ -18,13 +19,13 @@ const RenderDataAccess = () => {
         })
 		fields.push({
             title: "DB Connection",
-            type: "string",
+            type: "dropdown",
             default_value: '',
 			value: dataAccess[daName]['db_connection'],
             mandatory: true,
+			options: Object.keys(dbConnections)
             // validatorCallback: validateFunc,
         })
-		if(dataAccess[daName].hasOwnProperty('is_crud')){
 			fields.push({
 				title: "Is CRUD?",
 				type: "boolean",
@@ -33,8 +34,6 @@ const RenderDataAccess = () => {
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})
-		}
-		if(dataAccess[daName].hasOwnProperty('is_crud_soft_delete')){
 			fields.push({
 				title: "Is CRUD Soft Delete?",
 				type: "boolean",
@@ -43,8 +42,6 @@ const RenderDataAccess = () => {
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})
-		}
-		if(dataAccess[daName].hasOwnProperty('is_crud_soft_delete_token')){
 			fields.push({
 				title: "Is CRUD Soft Delete Token?",
 				type: "boolean",
@@ -53,7 +50,6 @@ const RenderDataAccess = () => {
 				mandatory: true,
 				// validatorCallback: validateFunc,
 			})
-		}
 
 		dispatch(setFields(fields))
 	}

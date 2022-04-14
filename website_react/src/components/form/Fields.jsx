@@ -4,11 +4,11 @@ import InputBoolean from '../inputs/InputBoolean'
 import InputENUM from '../inputs/InputENUM'
 import InputList from '../inputs/InputList'
 import { useSelector } from "react-redux";
+import InputDropDown from '../inputs/InputDropDown'
 
 const Fields = (props) => {
     const fields = useSelector((state) => state.formData.fields)
-    
-    console.log(fields)
+
     return(
         
         <>
@@ -50,6 +50,14 @@ const Fields = (props) => {
                 case "list":
                     return (
                         <InputList
+                            formFields={field}
+                            index={index}
+                            key={index+Math.floor((Math.random() * 1000) + 1)}
+                        />
+                    );
+                case "dropdown":
+                    return (
+                        <InputDropDown
                             formFields={field}
                             index={index}
                             key={index+Math.floor((Math.random() * 1000) + 1)}
