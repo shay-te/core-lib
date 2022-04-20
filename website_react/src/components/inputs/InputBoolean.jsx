@@ -12,6 +12,7 @@ const InputBoolean = (props) => {
                     value="true"
                     defaultChecked={getDefault(props)}
                     required={props.mandatory}
+                    onChange={props.onChange}
                 />
                 <label htmlFor={"true" + props.index}>Yes</label>
             </div>
@@ -24,6 +25,7 @@ const InputBoolean = (props) => {
                     value="false"
                     defaultChecked={!getDefault(props)}
                     required={props.mandatory}
+                    onChange={props.onChange}
                 />
                 <label htmlFor={"false" + props.index}>No</label>
             </div>

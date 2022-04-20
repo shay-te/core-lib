@@ -19,7 +19,7 @@ const InputDropDown = (props) => {
 		<div className="form-input-div" key={props.index}>
 			<label className="input-label">{props.formFields.title}</label>
 			<br />
-			<select name={props.formFields.title} id={props.index}>
+			<select name={props.formFields.title} id={props.index} onChange={props.onChange}>
 				<RenderItems />
 			</select>
 		</div>

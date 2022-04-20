@@ -13,6 +13,7 @@ const InputInteger = (props) => {
                 defaultValue={getDefault(props)}
                 required={props.mandatory}
                 placeholder="Number input"
+                onChange={props.onChange}
             />
         </div>
     );

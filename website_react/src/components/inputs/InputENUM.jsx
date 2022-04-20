@@ -16,8 +16,9 @@ const InputENUM = (props) => {
                         name={"enum" + props.index}
                         value={value}
                         defaultChecked={
-                            value === getDefault(props)
+                            value.toLowerCase() === getDefault(props).toLowerCase()
                         }
+                        onChange={props.onChange}
                     />
                     <label htmlFor={value + props.index}>{value}</label>
                 </div>

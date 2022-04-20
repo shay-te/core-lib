@@ -16,8 +16,9 @@ const InputList = (props) => {
                         name={"list" + props.index}
                         value={value}
                         defaultChecked={
-                            value === getDefault(props)
+                            getDefault(props).includes(value)
                         }
+                        onChange={props.onChange}
                     />
                     <label htmlFor={value + props.index}>{value}</label>
                 </div>

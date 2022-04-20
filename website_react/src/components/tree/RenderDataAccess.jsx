@@ -6,6 +6,7 @@ import { hideContents } from "../utils/commonUtils";
 const RenderDataAccess = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
 	const dbConnections = useSelector((state) => state.treeData.dbConnections);
+	const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
 	const dispatch = useDispatch()
 
 	const updateDAName = (oldname) => {
@@ -14,48 +15,53 @@ const RenderDataAccess = () => {
 
 	const setFormFields = (daName) => {
 		const fields = []
+		const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName
 		fields.push({
             title: "Data Access Name",
             type: "string",
             default_value: '',
 			value: daName,
             mandatory: true,
-			target: 'updateDataAccessName'
+			target: 'updateDataAccessName',
             // validatorCallback: validateFunc,
-        })
-		fields.push({
+        },
+		{
             title: "DB Connection",
             type: "dropdown",
             default_value: '',
 			value: dataAccess[daName]['db_connection'],
             mandatory: true,
-			options: Object.keys(dbConnections)
+			options: Object.keys(dbConnections),
+			key: keyPrefix + '.db_connection',
             // validatorCallback: validateFunc,
-        })
-			fields.push({
-				title: "Is CRUD?",
-				type: "boolean",
-				default_value: false,
-				value: dataAccess[daName]['is_crud'],
-				mandatory: true,
-				// validatorCallback: validateFunc,
-			})
-			fields.push({
-				title: "Is CRUD Soft Delete?",
-				type: "boolean",
-				default_value: false,
-				value: dataAccess[daName]['is_crud_soft_delete'],
-				mandatory: true,
-				// validatorCallback: validateFunc,
-			})
-			fields.push({
-				title: "Is CRUD Soft Delete Token?",
-				type: "boolean",
-				default_value: false,
-				value: dataAccess[daName]['is_crud_soft_delete_token'],
-				mandatory: true,
-				// validatorCallback: validateFunc,
-			})
+        },
+		{
+			title: "Is CRUD?",
+			type: "boolean",
+			default_value: false,
+			value: dataAccess[daName]['is_crud'],
+			mandatory: true,
+			key: keyPrefix + '.is_crud',
+			// validatorCallback: validateFunc,
+		},
+		{
+			title: "Is CRUD Soft Delete?",
+			type: "boolean",
+			default_value: false,
+			value: dataAccess[daName]['is_crud_soft_delete'],
+			mandatory: true,
+			key: keyPrefix + '.is_crud_soft_delete',
+			// validatorCallback: validateFunc,
+		},
+		{
+			title: "Is CRUD Soft Delete Token?",
+			type: "boolean",
+			default_value: false,
+			value: dataAccess[daName]['is_crud_soft_delete_token'],
+			mandatory: true,
+			key: keyPrefix + '.is_crud_soft_delete_token',
+			// validatorCallback: validateFunc,
+		})
 
 		dispatch(setFields(fields))
 	}

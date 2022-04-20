@@ -37,6 +37,7 @@ const Fields = (props) => {
                             mandatory={field.mandatory}
                             value={field.value}
                             default_value={field.default_value}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 case "boolean":
@@ -48,6 +49,7 @@ const Fields = (props) => {
                             mandatory={field.mandatory}
                             value={field.value}
                             default_value={field.default_value}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 case "enum":
@@ -61,6 +63,7 @@ const Fields = (props) => {
                             default_value={field.default_value}
                             multiple_selection={field.multiple_selection}
                             options={field.options}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 case "list":
@@ -74,6 +77,7 @@ const Fields = (props) => {
                             default_value={field.default_value}
                             multiple_selection={field.multiple_selection}
                             options={field.options}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 case "dropdown":
@@ -87,6 +91,7 @@ const Fields = (props) => {
                             value={field.value}
                             default_value={field.default_value}
                             options={field.options}
+                            onChange={props.onChange.bind(this, field)}
                         />
                     );
                 default:

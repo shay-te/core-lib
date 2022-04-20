@@ -10,12 +10,12 @@ const RenderDBConn = () => {
 	const dispatch = useDispatch();
 
 	const getENVValue = (envVar) => {
-		console.log(yaml)
 		return yaml[CoreLibName]["env"][envVar.split(":")[1].slice(0, -1)];
 	};
 
 	const setFormField = (dbConn) => {
 		const fields = [];
+		const keyPrefix = CoreLibName + '.config.data.' + dbConn
 		fields.push(
 			{
 				title: "What is the name of the DB connection?",
@@ -41,6 +41,7 @@ const RenderDBConn = () => {
 					"Sybase",
 					"MongoDB",
 				],
+				key: keyPrefix + '.url.protocol',
 			}
 		);
 		if (dbConnections[dbConn]["url"]["protocol"] !== "mongodb") {
@@ -51,6 +52,7 @@ const RenderDBConn = () => {
 					default_value: false,
 					value: dbConnections[dbConn]["log_queries"],
 					mandatory: true,
+					key: keyPrefix + '.log_queries',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -59,6 +61,7 @@ const RenderDBConn = () => {
 					default_value: true,
 					value: dbConnections[dbConn]["create_db"],
 					mandatory: true,
+					key: keyPrefix + '.create_db',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -67,6 +70,7 @@ const RenderDBConn = () => {
 					default_value: 3200,
 					value: dbConnections[dbConn]["session"]["pool_recycle"],
 					mandatory: true,
+					key: keyPrefix + '.session.pool_recycle',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -75,6 +79,7 @@ const RenderDBConn = () => {
 					default_value: false,
 					value: dbConnections[dbConn]["session"]["pool_pre_ping"],
 					mandatory: true,
+					key: keyPrefix + '.session.pool_pre_ping',
 					// validatorCallback: validateFunc,
 				}
 			);
@@ -88,6 +93,7 @@ const RenderDBConn = () => {
 					default_value: null,
 					value: getENVValue(dbConnections[dbConn]["url"]["port"]),
 					mandatory: true,
+					key: keyPrefix + '.url.port',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -96,6 +102,7 @@ const RenderDBConn = () => {
 					default_value: "localhost",
 					value: getENVValue(dbConnections[dbConn]["url"]["host"]),
 					mandatory: true,
+					key: keyPrefix + '.url.host',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -106,6 +113,7 @@ const RenderDBConn = () => {
 						dbConnections[dbConn]["url"]["username"]
 					),
 					mandatory: true,
+					key: keyPrefix + '.url.username',
 					// validatorCallback: validateFunc,
 				},
 				{
@@ -116,6 +124,7 @@ const RenderDBConn = () => {
 						dbConnections[dbConn]["url"]["password"]
 					),
 					mandatory: true,
+					key: keyPrefix + '.url.password',
 					// validatorCallback: validateFunc,
 				}
 			);

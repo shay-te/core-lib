@@ -1,4 +1,7 @@
 import { useStore, useDispatch } from "react-redux";
+import {
+	init
+} from "./../slices/treeSlice";
 
 const data = {
     ExampleCoreLib: {
@@ -229,6 +232,15 @@ export class YamlData {
     }
     updateSetup(oldKey){
         console.log(this.yaml[this.coreLibName]['data_layers']['data_access'][oldKey])
+    }
+
+    set(path, value) {
+        var data = JSON.parse(JSON.stringify(this.yaml));
+        var steps = path.split(".");
+        var fieldName = steps.splice(steps.length-1,1);
+        var objField = steps.reduce((key, val) => key && key[val] ? key[val] : '' , data);
+        objField[fieldName]=value;
+        return data
     }
 
     toJSON(){
