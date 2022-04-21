@@ -43,7 +43,7 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
             inst_str = f'self.{db_connection}_{entity.lower()} = {name}({db_connection}_session)'
         else:
             inst_str = f'self.{db_connection}_{entity.lower()} = {name}()'
-        inst_list.append(inst_str.rjust(len(inst_str) + 8))
+        inst_list.append(add_tab_spaces(inst_str, 2))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
     updated_file = updated_file.replace(
