@@ -84,6 +84,12 @@ def main():
     )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
+    subparsers = parser.add_subparsers(help='types of A')
+    g.add_argument("-v", help='Generatedsas from YAML file')
+
+    a_parser = subparsers.add_parser("A")
+    b_parser = subparsers.add_parser("B")
+    a_parser.add_argument("something", choices=['a1', 'a2'])
     args = parser.parse_args()
     if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
