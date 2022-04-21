@@ -47,11 +47,11 @@ follow the rules if you wish
 
 ## The source
 
-[https://github.com/shacoshe/core-lib](https://github.com/shacoshe/core-lib)
+[https://github.com/shay-te/core-lib](https://github.com/shay-te/core-lib)
    
 ## Example project
 
-[https://github.com/shacoshe/core-lib/examples](https://github.com/shacoshe/core-lib/examples)
+[https://github.com/shay-te/core-lib/examples](https://github.com/shay-te/core-lib/examples)
 
 ## Contributing
 
@@ -60,10 +60,10 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-**Shay Tessler**  - [github](https://github.com/shacoshe)
+**Shay Tessler**  - [github](https://github.com/shay-te)
 
 
 ## License
 
-This project is licensed under the MIT - see the [LICENSE](https://github.com/shacoshe/core-lib/blob/master/LICENSE) file for details
+This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE) file for details
 

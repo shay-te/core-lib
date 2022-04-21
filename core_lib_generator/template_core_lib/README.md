@@ -16,4 +16,4 @@ template_core_lib = TemplateCoreLib(hydra.compose('template_core_lib.yaml'))
 ```
 
 ## License
-Core-Lib in licenced under [MIT](https://github.com/shacoshe/core-lib/blob/master/LICENSE)
+Core-Lib in licenced under [MIT](https://github.com/shay-te/core-lib/blob/master/LICENSE)
