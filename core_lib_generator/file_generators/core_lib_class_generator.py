@@ -27,7 +27,7 @@ def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> s
     da_imports = []
     for da_name in data_access_list:
         da_imports.append(
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
+            f'from {core_lib_name}.data_layers.data_access.{camel_to_snake(da_name)} import {da_name}'
         )
     return '\n'.join(da_imports)
 
@@ -39,7 +39,10 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
     for name in yaml_data['data_access']:
         entity = yaml_data['data_access'][name]['entity']
         db_connection = yaml_data['data_access'][name]['db_connection']
-        inst_str = f'self.{entity.lower()} = {name}({db_connection}_session)'
+        if yaml_data['data_access'][name].get('is_crud', False):
+            inst_str = f'self.{db_connection}_{entity.lower()} = {name}({db_connection}_session)'
+        else:
+            inst_str = f'self.{db_connection}_{entity.lower()} = {name}()'
         inst_list.append(add_tab_spaces(inst_str, 2))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
