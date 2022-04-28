@@ -1,5 +1,6 @@
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
+from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
 
 
 class EntityGenerateTemplate(TemplateGenerator):
@@ -22,13 +23,14 @@ class EntityGenerateTemplate(TemplateGenerator):
 def _add_columns_to_entity(template_content: str, columns: dict) -> str:
     import_data_types = ['INTEGER']
     id_str = 'id = Column(INTEGER, primary_key=True, nullable=False)'
-    columns_str = [id_str]
+    columns_list = [id_str]
     for key in columns:
         import_data_types.append(columns[key]['type'])
         column_type = columns[key]['type']
         default = None if not columns[key]['default'] else columns[key]['default']
-        columns_str.append(f'{key:>{len(key) + 4}} = Column({column_type}, nullable=False, default={default})')
-    updated_file = template_content.replace('# template_column', '\n'.join(columns_str))
+        columns_str = f'{key} = Column({column_type}, nullable=False, default={default})'
+        columns_list.append(add_tab_spaces(columns_str))
+    updated_file = template_content.replace('# template_column', '\n'.join(columns_list))
     imports_to_add = ', '.join(set(import_data_types))
     updated_file = updated_file.replace('# template_import', f'from sqlalchemy import Column, {imports_to_add}')
     return updated_file
