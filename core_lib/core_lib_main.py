@@ -10,7 +10,6 @@ from omegaconf import DictConfig
 from core_lib.alembic.alembic import Alembic
 from hydra import compose, initialize_config_dir
 
-
 from core_lib.helpers.validation import is_int
 from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
 from core_lib_generator.core_lib_config_generate_yaml import get_data_from_user
@@ -35,6 +34,10 @@ def on_generate(value):
 
 
 def on_revision(value):
+    rev_options = get_rev_options()
+    if value[0] not in rev_options:
+        logger.error(f'Enter rev_option from following list {rev_options}')
+        return
     config = load_config()
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
     logging.getLogger('alembic').setLevel(logging.INFO)
@@ -83,13 +86,7 @@ def main():
         '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
     )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
-    g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
-    subparsers = parser.add_subparsers(help='types of A')
-    g.add_argument("-v", help='Generatedsas from YAML file')
-
-    a_parser = subparsers.add_parser("A")
-    b_parser = subparsers.add_parser("B")
-    a_parser.add_argument("something", choices=['a1', 'a2'])
+    g.add_argument('-r', '--revision', nargs=2, metavar=('rev_option', 'migration_name'), help=f'Database migration, select rev_options from following list {get_rev_options()}.')
     args = parser.parse_args()
     if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
