@@ -45,12 +45,14 @@ def on_revision(value):
         alembic.upgrade('head')
     elif command == 'base':
         alembic.downgrade('base')
+    elif command == 'list':
+        alembic.history()
     elif is_int(command):
         number = int(command)
         if number >= 0:
-            alembic.upgrade('+{}'.format(number))
+            alembic.upgrade(f'+{number}')
         else:
-            alembic.downgrade(str(number))
+            alembic.downgrade(f'{number}')
     elif command == 'new':
         name = list_to_string(value)
         logger.info('creating new migrating named: `{}`'.format(name))
@@ -93,16 +95,25 @@ def main():
     )
     rev.add_argument(
         '-n',
-        '--new_migrate',
+        '--new',
         help='New migration name to be created',
         nargs=1,
+    )
+    rev.add_argument(
+        '-l',
+        '--list',
+        help='List of revisions',
+        nargs='?',
+        const='list'
     )
     args = parser.parse_args()
     if args.command == 'rev':
         if args.migrate:
             on_revision(args.migrate)
+        elif args.new:
+            on_revision(['new', args.new[0]])
         else:
-            on_revision(['new', args.new_migrate[0]])
+            on_revision(['list'])
     elif args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
     elif args.generate:
