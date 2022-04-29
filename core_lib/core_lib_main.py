@@ -34,10 +34,6 @@ def on_generate(value):
 
 
 def on_revision(value):
-    rev_options = get_rev_options()
-    if value[0] not in rev_options:
-        logger.error(f'Enter rev_option from following list {rev_options}')
-        return
     config = load_config()
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
     logging.getLogger('alembic').setLevel(logging.INFO)
@@ -64,7 +60,7 @@ def on_revision(value):
 
 
 def get_rev_options() -> list:
-    choices = ['head', 'base', 'new']
+    choices = ['head', 'base']
     for i in range(-10, 11):
         if i != 0:
             choices.append(str(i))
@@ -86,9 +82,28 @@ def main():
         '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
     )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
-    g.add_argument('-r', '--revision', nargs=2, metavar=('rev_option', 'migration_name'), help=f'Database migration, select rev_options from following list {get_rev_options()}.')
+    subparsers = parser.add_subparsers(dest='command')
+    rev = subparsers.add_parser('rev', help='migration revision')
+    rev.add_argument(
+        '-m',
+        '--migrate',
+        help='Existing migration select from the list',
+        choices=get_rev_options(),
+        nargs=1,
+    )
+    rev.add_argument(
+        '-n',
+        '--new_migrate',
+        help='New migration name to be created',
+        nargs=1,
+    )
     args = parser.parse_args()
-    if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
+    if args.command == 'rev':
+        if args.migrate:
+            on_revision(args.migrate)
+        else:
+            on_revision(['new', args.new_migrate[0]])
+    elif args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
     elif args.generate:
         on_generate(args.generate)
