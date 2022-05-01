@@ -2,7 +2,6 @@ import datetime
 import inspect
 import logging
 from abc import ABC, abstractmethod
-from contextlib import suppress
 from string import Formatter
 
 logger = logging.getLogger(__name__)
