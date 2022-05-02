@@ -28,16 +28,17 @@ class CoreLibGenerator:
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
         self.core_lib_config = config[self.core_lib_name].config
 
+        self.core_lib_data_layers = config[self.core_lib_name].data_layers
         self.core_lib_entities = {}
         self.core_lib_data_access = {}
         self.core_lib_jobs = {}
         self.core_lib_cache = {}
         self.core_lib_setup = {}
 
-        if 'data' in config[self.core_lib_name].data_layers:
-            self.core_lib_entities = config[self.core_lib_name].data_layers.data
-            if 'data_access' in config[self.core_lib_name].data_layers:
-                self.core_lib_data_access = config[self.core_lib_name].data_layers.data_access
+        if 'data' in self.core_lib_data_layers:
+            self.core_lib_entities = self.core_lib_data_layers.data
+            if 'data_access' in self.core_lib_data_layers:
+                self.core_lib_data_access = self.core_lib_data_layers.data_access
         if 'jobs' in self.core_lib_config:
             self.core_lib_jobs = self.core_lib_config.jobs
         if 'cache' in self.core_lib_config:
@@ -103,6 +104,7 @@ class CoreLibGenerator:
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
                 'config': self.core_lib_config,
+                'entities': self.core_lib_entities,
             },
             CoreLibClassGenerateTemplate(),
         )
@@ -128,7 +130,7 @@ class CoreLibGenerator:
         self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate())
 
     def generate_readme(self):
-        self._generate_template(f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate())
+        self._generate_template(f'{self.snake_core_lib_name}/README.md', self.core_lib_data_layers, ReadmeGenerateTemplate())
 
     def generate_requirements(self):
         self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
