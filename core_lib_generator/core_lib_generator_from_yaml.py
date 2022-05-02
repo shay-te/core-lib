@@ -130,7 +130,9 @@ class CoreLibGenerator:
         self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate())
 
     def generate_readme(self):
-        self._generate_template(f'{self.snake_core_lib_name}/README.md', self.core_lib_data_layers, ReadmeGenerateTemplate())
+        self._generate_template(
+            f'{self.snake_core_lib_name}/README.md', self.core_lib_data_layers, ReadmeGenerateTemplate()
+        )
 
     def generate_requirements(self):
         self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
