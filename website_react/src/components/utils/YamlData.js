@@ -1,8 +1,3 @@
-import { useStore, useDispatch } from "react-redux";
-import {
-	init
-} from "./../slices/treeSlice";
-
 const data = {
     ExampleCoreLib: {
         env: {
@@ -198,52 +193,33 @@ const data = {
 };
 
 export class YamlData {
-    constructor(data){
+    constructor(data) {
         this.yaml = data
         this.coreLibName = Object.keys(data)[0]
-    }
-
-    getDataAccessList(){
-        return this.yaml[this.coreLibName]['data_layers']['data_access']
-    }
-
-    getEntitiesList(){
-        return this.yaml[this.coreLibName]["data_layers"]["data"]
-    }
-
-    getDBConnectionsList(){
-        return this.yaml[this.coreLibName]["config"]["data"]
-    }
-
-    getSetup(){
-        return this.yaml[this.coreLibName]["setup"]
-    }
-
-    updateDataAccess(oldKey){
-        console.log(this.yaml[this.coreLibName]['data_layers']['data_access'][oldKey])
-    }
-
-    updateEntity(oldKey){
-        console.log(this.yaml[this.coreLibName]['data_layers']['data_access'][oldKey])
-    }
-
-    updateDBConnecction(oldKey){
-        console.log(this.yaml[this.coreLibName]['data_layers']['data_access'][oldKey])
-    }
-    updateSetup(oldKey){
-        console.log(this.yaml[this.coreLibName]['data_layers']['data_access'][oldKey])
     }
 
     set(path, value) {
         var data = JSON.parse(JSON.stringify(this.yaml));
         var steps = path.split(".");
-        var fieldName = steps.splice(steps.length-1,1);
-        var objField = steps.reduce((key, val) => key && key[val] ? key[val] : '' , data);
-        objField[fieldName]=value;
+        var fieldName = steps.splice(steps.length - 1, 1);
+        var objField = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+        objField[fieldName] = value;
         return data
     }
 
-    toJSON(){
+    listChildrenUnderPath(path) {
+        const res = []
+        path = this.coreLibName + '.' + path
+        const list = path.split('.').reduce((obj, key) => {
+            return obj && obj[key];
+        }, this.yaml);
+        Object.keys(list).map(item => {
+            res.push({name: item, path: path+'.'+item})
+        })
+        return res
+    }
+
+    toJSON() {
         return this.yaml
     }
 }

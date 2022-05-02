@@ -9,9 +9,6 @@ import {useDispatch, useSelector} from "react-redux";
 import { YamlData } from './components/utils/YamlData';
 
 function App() {
-	const validateFunc = () => {
-        console.log('validate');
-    };
 	const clName = useSelector((state) => state.treeData.CoreLibName);
 	const yamlData = useSelector((state) => state.treeData.yaml);
 	const dispatch = useDispatch();
@@ -214,10 +211,11 @@ function App() {
 		dispatch(init(data))
 	}, []);
 
-	const onFieldChange = (e, field) => {
-		if(e.key){
+	const onFieldChange = (field, e) => {
+		if(field.key){
 			const yamlClass = new YamlData(yamlData)
-			const updatedData = yamlClass.set(e.key, field.target.value)
+			yamlClass.listChildrenUnderPath('data_layers.data_access')
+			const updatedData = yamlClass.set(field.key, e.target.value)
 			// dispatch(init(updatedData))
 			console.log(updatedData) // just to check for now
 		}

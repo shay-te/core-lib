@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { getDataAccessList, YamlData } from "../utils/YamlData";
+import { YamlData } from "../utils/YamlData";
 
 export const treeSlice = createSlice({
     name: 'tree',
@@ -13,18 +13,14 @@ export const treeSlice = createSlice({
         yamlData: '',
     },
     reducers: {
-        // init function populate all states with class
         init: (state, action) => {
             let yamlData = new YamlData(action.payload)
-            // yamlData.updateDataAccess('DetailsDataAccess')
-            for (const clName in action.payload) {
-                state.dataAccess = yamlData.getDataAccessList()
-                state.entities = yamlData.getEntitiesList()
-                state.setup = yamlData.getSetup()
-                state.dbConnections = yamlData.getDBConnectionsList()
-                state.CoreLibName = yamlData.coreLibName
-                state.yaml = action.payload
-            }
+            state.dataAccess = yamlData.listChildrenUnderPath('data_layers.data_access')
+            state.entities = yamlData.listChildrenUnderPath('data_layers.data')
+            state.setup = yamlData.listChildrenUnderPath('setup')
+            state.dbConnections = yamlData.listChildrenUnderPath('config.data')
+            state.CoreLibName = yamlData.coreLibName
+            state.yaml = action.payload
         },
         setDataAccess: (state, action) => {
             state.dataAccess = action.payload
