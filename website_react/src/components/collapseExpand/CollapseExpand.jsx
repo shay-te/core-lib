@@ -1,20 +1,12 @@
-const CollapseExpand = (props) => {
-	const RenderChildren = () => {
-        if( props.data !== {}){
-            return props.data.map((item) => {
-                return (
-                    <div
-                        className={`node-child ${props.hide ? "hide" : ""}`}
-                        key={item.name}
-                    >
-                        {item.name}
-                    </div>
-                );
-            });
-        }
-	};
+import "./CollapseExpand.scss";
 
-	return <RenderChildren />;
+const CollapseExpand = (props) => {
+	return (<div className={["collapse-expand", props.collapsed ? 'collapsed': 'expand']}>{props.children}</div>)
+};
+
+
+CollapseExpand.defaultProps = {
+    collapsed: false,
 };
 
 export default CollapseExpand;

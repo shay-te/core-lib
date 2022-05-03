@@ -1,0 +1,11 @@
+.collapse-expand {
+    transition: max-height 0.15s ease-out;
+
+    .collapsed {
+        max-height: 0;
+    }
+
+    .expand {
+        max-height: 100%;
+    }
+}
