@@ -19,17 +19,18 @@
 }
 
 .node-title{
-	// font-size: 1rem;
+	font-size: 1.25rem;
 	font-weight: bold;
 	padding-left: 1rem;
 }
 
 .node-child{
-	padding-left: 1rem;
+	font-size: 1rem;
+	padding-left: 2rem;
 	margin: 0.5rem;
 	font-weight: normal;
 	border-radius: 5px;
-	padding: 0.25rem;
+	padding: 0.1rem;
 }
 
 .tree .node-title:hover {

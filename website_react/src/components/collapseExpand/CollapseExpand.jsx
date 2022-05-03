@@ -1,12 +1,20 @@
 import "./CollapseExpand.scss";
 
 const CollapseExpand = (props) => {
-	return (<div className={["collapse-expand", props.collapsed ? 'collapsed': 'expand']}>{props.children}</div>)
+	return (
+		<div
+			className={[
+				"collapse-expand",
+				props.collapsed ? "collapsed" : "expand",
+			].join(" ")}
+		>
+            {props.children}
+		</div>
+	);
 };
 
-
 CollapseExpand.defaultProps = {
-    collapsed: false,
+	collapsed: false,
 };
 
 export default CollapseExpand;

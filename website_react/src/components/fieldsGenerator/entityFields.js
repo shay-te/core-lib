@@ -1,6 +1,11 @@
-const EntityFields = (dbConn, entity) => {
-    const fields = [];
-    const keyPrefix = CoreLibName + '.data_layers.data.' + dbConn + '.' + entity
+export const entityFields = (dbConnection, entity, CoreLibName, dbConnections, yamlData) => {
+    const fields = []
+    const dbConn = []
+    const keyPrefix = CoreLibName + '.data_layers.data.' + dbConnection + '.' + entity
+    const entities = yamlData[CoreLibName]['data_layers']['data']
+    dbConnections.map(conn => {
+        dbConn.push(conn.name)
+    })
     fields.push({
         title: "DB Entity Name",
         type: "string",
@@ -13,13 +18,13 @@ const EntityFields = (dbConn, entity) => {
         title: "DB Connection",
         type: "dropdown",
         default_value: "",
-        value: entities[dbConn][entity]["db_connection"],
+        value: entities[dbConnection][entity]["db_connection"],
         mandatory: true,
-        options: Object.keys(dbConnections),
+        options: dbConn,
         key: keyPrefix + '.db_connection',
         // validatorCallback: validateFunc,
     });
-    Object.keys(entities[dbConn][entity]["columns"]).map((column) =>
+    Object.keys(entities[dbConnection][entity]["columns"]).map((column) =>
         fields.push(
             {
                 title: "Column Name",
@@ -34,7 +39,7 @@ const EntityFields = (dbConn, entity) => {
                 title: "Column Type",
                 type: "enum",
                 default_value: "VARCHAR",
-                value: entities[dbConn][entity]["columns"][column]["type"],
+                value: entities[dbConnection][entity]["columns"][column]["type"],
                 mandatory: true,
                 options: ["VARCHAR", "BOOLEAN", "INTEGER"],
                 key: keyPrefix + '.columns.' + column + '.type',
@@ -43,7 +48,7 @@ const EntityFields = (dbConn, entity) => {
                 title: "Column Default",
                 type: "string",
                 default_value: "",
-                value: entities[dbConn][entity]["columns"][column][
+                value: entities[dbConnection][entity]["columns"][column][
                     "default"
                 ],
                 mandatory: false,
@@ -56,7 +61,7 @@ const EntityFields = (dbConn, entity) => {
         title: "Is Soft Delete",
         type: "boolean",
         default_value: true,
-        value: entities[dbConn][entity]["is_soft_delete"],
+        value: entities[dbConnection][entity]["is_soft_delete"],
         mandatory: true,
         key: keyPrefix + '.is_soft_delete',
         // validatorCallback: validateFunc,
@@ -65,7 +70,7 @@ const EntityFields = (dbConn, entity) => {
         title: "Is Soft Delete Token",
         type: "boolean",
         default_value: true,
-        value: entities[dbConn][entity]["is_soft_delete_token"],
+        value: entities[dbConnection][entity]["is_soft_delete_token"],
         mandatory: true,
         key: keyPrefix + '.is_soft_delete_token',
         // validatorCallback: validateFunc,

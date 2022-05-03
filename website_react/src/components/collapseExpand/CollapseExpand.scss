@@ -1,11 +1,12 @@
+@import './../../index.scss';
+
 .collapse-expand {
-    transition: max-height 0.15s ease-out;
-
-    .collapsed {
-        max-height: 0;
+    transition: max-height 0.5s ease-out;
+    &.collapsed {
+        max-height: 0px;
+        overflow: hidden;
     }
-
-    .expand {
+    &.expand {
         max-height: 100%;
     }
 }

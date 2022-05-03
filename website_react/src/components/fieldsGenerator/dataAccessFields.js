@@ -1,7 +1,8 @@
-export const dataAccessFields = (daName, CoreLibName, dbConnections, dataAccess) => {
+export const dataAccessFields = (daName, CoreLibName, dbConnections, yamlData) => {
     const fields = []
     const dbConn = []
     const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName
+    const dataAccess = yamlData[CoreLibName]['data_layers']['data_access'][daName]
     dbConnections.map(conn => {
         dbConn.push(conn.name)
     })
@@ -18,7 +19,7 @@ export const dataAccessFields = (daName, CoreLibName, dbConnections, dataAccess)
         title: "DB Connection",
         type: "dropdown",
         default_value: '',
-        value: dataAccess[daName]['db_connection'],
+        value: dataAccess['db_connection'],
         mandatory: true,
         options: dbConn,
         key: keyPrefix + '.db_connection',
@@ -28,7 +29,7 @@ export const dataAccessFields = (daName, CoreLibName, dbConnections, dataAccess)
         title: "Is CRUD?",
         type: "boolean",
         default_value: false,
-        value: dataAccess[daName]['is_crud'],
+        value: dataAccess['is_crud'],
         mandatory: true,
         key: keyPrefix + '.is_crud',
         // validatorCallback: validateFunc,
@@ -37,7 +38,7 @@ export const dataAccessFields = (daName, CoreLibName, dbConnections, dataAccess)
         title: "Is CRUD Soft Delete?",
         type: "boolean",
         default_value: false,
-        value: dataAccess[daName]['is_crud_soft_delete'],
+        value: dataAccess['is_crud_soft_delete'],
         mandatory: true,
         key: keyPrefix + '.is_crud_soft_delete',
         // validatorCallback: validateFunc,
@@ -46,7 +47,7 @@ export const dataAccessFields = (daName, CoreLibName, dbConnections, dataAccess)
         title: "Is CRUD Soft Delete Token?",
         type: "boolean",
         default_value: false,
-        value: dataAccess[daName]['is_crud_soft_delete_token'],
+        value: dataAccess['is_crud_soft_delete_token'],
         mandatory: true,
         key: keyPrefix + '.is_crud_soft_delete_token',
         // validatorCallback: validateFunc,
