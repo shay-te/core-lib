@@ -1,29 +1,36 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputDropDown = (props) => {
-	const RenderItems = () => {
-		return props.formFields.options.map((value, index) => {
-			return (
-				<option
-					key={index}
-					value={value}
-					selected={value === getDefault(props)}
-				>
-					{value}
-				</option>
-			);
-		});
-	};
+	const items =  props.options.map((value, index) => {
+		return (
+			<option
+				key={index}
+				value={value}
+				selected={value === getDefault(props)}
+			>
+				{value}
+			</option>
+		);
+	});
 
 	return (
-		<div className="form-input-div" key={props.index}>
-			<label className="input-label">{props.formFields.title}</label>
+		<div className="form-input-div">
+			<label className="input-label">{props.title}</label>
 			<br />
-			<select name={props.formFields.title} id={props.index} onChange={props.onChange}>
-				<RenderItems />
+			<select name={props.title} id={props.index} onChange={props.onChange}>
+				{items}
 			</select>
 		</div>
 	);
 };
+
+InputDropDown.defaultProps = {
+	title:'',
+	mandatory:false,
+	value:'',
+	default_value:'',
+	options:[],
+	onChange: () => {},
+}
 
 export default InputDropDown;

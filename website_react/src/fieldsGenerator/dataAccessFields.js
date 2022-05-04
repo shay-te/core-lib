@@ -1,10 +1,14 @@
 export const dataAccessFields = (path, yamlData) => {
+    const path_split = path.split('.')
+    const CoreLibName = path_split.at(0)
+    const daName = path_split.at(-1) 
+    const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
     const fields = []
     const dbConn = []
     const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName
     const dataAccess = yamlData[CoreLibName]['data_layers']['data_access'][daName]
-    dbConnections.map(conn => {
-        dbConn.push(conn.name)
+    dbConnections.forEach(conn => {
+        dbConn.push(conn)
     })
     fields.push({
         title: "Data Access Name",

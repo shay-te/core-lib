@@ -1,5 +1,6 @@
-export const setupFields = (CoreLibName, yamlData) => {
+export const setupFields = (yamlData) => {
     const fields = []
+    const CoreLibName = Object.keys(yamlData)[0]
     const keyPrefix = CoreLibName + '.setup'
     const setup = yamlData[CoreLibName]['setup']
     fields.push({

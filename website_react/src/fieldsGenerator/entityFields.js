@@ -1,10 +1,15 @@
-export const entityFields = (dbConnection, entity, CoreLibName, dbConnections, yamlData) => {
+export const entityFields = (path, yamlData) => {
     const fields = []
     const dbConn = []
+    const path_split = path.split('.')
+    const CoreLibName = path_split.at(0)
+    const entity = path_split.at(-1) 
+    const dbConnection = path_split.at(-2) 
+    const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
     const keyPrefix = CoreLibName + '.data_layers.data.' + dbConnection + '.' + entity
     const entities = yamlData[CoreLibName]['data_layers']['data']
-    dbConnections.map(conn => {
-        dbConn.push(conn.name)
+    dbConnections.forEach(conn => {
+        dbConn.push(conn)
     })
     fields.push({
         title: "DB Entity Name",

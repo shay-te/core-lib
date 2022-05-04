@@ -1,4 +1,4 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputBoolean = (props) => {
     return (
@@ -32,5 +32,13 @@ const InputBoolean = (props) => {
         </div>
     );
 };
+
+InputBoolean.defaultProps = {
+    title:'',
+    mandatory:false,
+    value:false,
+    default_value:false,
+    onChange: () => {},
+}
 
 export default InputBoolean

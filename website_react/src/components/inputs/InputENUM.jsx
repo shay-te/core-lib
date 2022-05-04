@@ -1,4 +1,4 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputENUM = (props) => {
 
@@ -27,8 +27,12 @@ const InputENUM = (props) => {
 };
 
 InputENUM.defaultProps = {
-    title: '',
-    options: {},
+    title:'',
+    mandatory: true,
+    value:'',
+    default_value:'',
+    multiple_selection:false,
+    options:[],
 }
 
 export default InputENUM

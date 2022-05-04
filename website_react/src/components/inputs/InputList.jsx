@@ -1,4 +1,4 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputList = (props) => {
 
@@ -27,11 +27,21 @@ const InputList = (props) => {
     }
 
     return (
-        <div className="form-input-div" key={props.index}>
+        <div className="form-input-div">
             <label className="input-label">{props.title}</label>
             <RenderItems/>
         </div>
     );
 };
+
+InputList.defaultProps = {
+    title:'',
+    mandatory:false,
+    value:'',
+    default_value:'',
+    options: [],
+    multiple_selection: false,
+    onChange: () => {},
+}
 
 export default InputList

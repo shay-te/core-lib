@@ -25,17 +25,19 @@ export class YamlData {
         const list = this.get(new_path)
         if(path === 'data_layers.data'){
             const entity_res = []
-            Object.keys(list).map((dbConn, index) => {
+            Object.keys(list).forEach((dbConn, index) => {
                 const entity_dbconn_path = new_path+'.'+dbConn
                 const entity_list = this.get(entity_dbconn_path)
                 entity_res.push({[dbConn]: []})
-                Object.keys(entity_list).map(entity => {
-                    entity_res[index][dbConn].push({name: entity, path: entity_dbconn_path+'.'+entity, dbConnection: dbConn})
+                Object.keys(entity_list).forEach(entity => {
+                    if(entity !== 'migrate'){
+                        entity_res[index][dbConn].push({name: entity, path: entity_dbconn_path+'.'+entity, dbConnection: dbConn})
+                    }
                 })
             })
             return entity_res
         }
-        Object.keys(list).map(item => {
+        Object.keys(list).forEach(item => {
             res.push({name: item, path: new_path+'.'+item})
         })
         return res

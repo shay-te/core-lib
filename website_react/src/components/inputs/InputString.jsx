@@ -1,4 +1,4 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputString = (props) => {
 
@@ -19,5 +19,14 @@ const InputString = (props) => {
         </div>
     );
 };
+
+InputString.defaultProps = {
+    key:'',
+    title:'',
+    mandatory:'',
+    value:'',
+    default_value:'',
+    onChange: () => {},
+}
 
 export default InputString

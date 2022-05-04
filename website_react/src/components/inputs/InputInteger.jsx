@@ -1,8 +1,8 @@
-import { getDefault } from "../utils/commonUtils";
+import { getDefault } from "./../../utils/commonUtils";
 
 const InputInteger = (props) => {
     return (
-        <div className="form-input-div" key={props.index}>
+        <div className="form-input-div">
             <label htmlFor={"field-" + props.index} className="input-label">
                 {props.title}
             </label>
@@ -18,5 +18,13 @@ const InputInteger = (props) => {
         </div>
     );
 };
+
+InputInteger.defaultProps = {
+    title:'',
+    mandatory:false,
+    value:'',
+    default_value:'',
+    onChange: () => {},
+}
 
 export default InputInteger
