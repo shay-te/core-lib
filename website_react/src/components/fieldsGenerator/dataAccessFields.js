@@ -1,4 +1,4 @@
-export const dataAccessFields = (daName, CoreLibName, dbConnections, yamlData) => {
+export const dataAccessFields = (path, yamlData) => {
     const fields = []
     const dbConn = []
     const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName

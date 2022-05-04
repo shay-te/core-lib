@@ -1,4 +1,4 @@
-export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
+export const dbConnectionFields = (path, yamlData) => {
     const getENVValue = (envVar) => {
 		return yamlData[CoreLibName]["env"][envVar.split(":")[1].slice(0, -1)];
 	};

@@ -1,6 +1,6 @@
-export const coreLibField = (CoreLibName) => {
+export const coreLibField = (yamelData) => {
     const fields = [];
-
+    
     fields.push({
         title: 'Enter Core-Lib name',
         type: 'string',
