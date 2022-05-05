@@ -57,9 +57,10 @@ export const treeSlice = createSlice({
             state.fields = pathToFields(action.payload, current(state.yaml))
         },
         updateFields: (state, action) => {
-            yamlData.set(action.payload.path, action.payload.value)
+            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value)
             state.yaml = yamlData.toJSON()
             state.fields = pathToFields(state.fieldsPath, state.yaml)
+            setTreeState(state, yamlData)
         }
     },
 })

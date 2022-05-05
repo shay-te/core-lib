@@ -23,16 +23,18 @@ export class YamlData {
             if (isObject(objField)) {
                 const oldKeyName = steps[steps.length - 1]
                 const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
-                
                 parent[value] = parent[oldKeyName];
                 delete parent[oldKeyName]
                 this.yaml = data
+                steps[steps.length - 1] = value
+                return steps.join('.')
             } else {
                 const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
                 parent[fieldName] = value;
                 this.yaml = data
             }
         }
+        return path
     }
 
     get(path) {
