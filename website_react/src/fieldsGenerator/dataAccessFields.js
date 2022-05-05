@@ -3,7 +3,7 @@ import { getBoolean } from "../utils/commonUtils";
 export const dataAccessFields = (path, yamlData) => {
     const path_split = path.split('.')
     const CoreLibName = path_split.at(0)
-    const daName = path_split.at(-2) 
+    const daName = path_split.at(path_split.indexOf('data_access')+1) 
     const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
     const fields = []
     const dbConn = []

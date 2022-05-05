@@ -19,7 +19,6 @@ export class YamlData {
         else{
             const objField = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
             const fieldName = steps[steps.length - 1]
-            console.log(isObject(objField))
             if (isObject(objField)) {
                 const oldKeyName = steps[steps.length - 1]
                 const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
