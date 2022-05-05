@@ -12,14 +12,13 @@ export const dataAccessFields = (path, yamlData) => {
     dbConnections.forEach(conn => {
         dbConn.push(conn)
     })
-
     fields.push({
         title: "Data Access Name",
         type: "string",
         default_value: '',
         value: daName,
         mandatory: true,
-        key: keyPrefix + '.dataAccessName',
+        key: keyPrefix,
         // validatorCallback: validateFunc,
     },
     {
