@@ -1,3 +1,5 @@
+import { getBoolean } from "../utils/commonUtils";
+
 export const dataAccessFields = (path, yamlData) => {
     const path_split = path.split('.')
     const CoreLibName = path_split.at(0)
@@ -10,6 +12,7 @@ export const dataAccessFields = (path, yamlData) => {
     dbConnections.forEach(conn => {
         dbConn.push(conn)
     })
+
     fields.push({
         title: "Data Access Name",
         type: "string",
@@ -33,7 +36,7 @@ export const dataAccessFields = (path, yamlData) => {
         title: "Is CRUD?",
         type: "boolean",
         default_value: false,
-        value: dataAccess['is_crud'],
+        value: getBoolean(dataAccess['is_crud']),
         mandatory: true,
         key: keyPrefix + '.is_crud',
         // validatorCallback: validateFunc,
@@ -42,7 +45,7 @@ export const dataAccessFields = (path, yamlData) => {
         title: "Is CRUD Soft Delete?",
         type: "boolean",
         default_value: false,
-        value: dataAccess['is_crud_soft_delete'],
+        value: getBoolean(dataAccess['is_crud_soft_delete']),
         mandatory: true,
         key: keyPrefix + '.is_crud_soft_delete',
         // validatorCallback: validateFunc,
@@ -51,7 +54,7 @@ export const dataAccessFields = (path, yamlData) => {
         title: "Is CRUD Soft Delete Token?",
         type: "boolean",
         default_value: false,
-        value: dataAccess['is_crud_soft_delete_token'],
+        value: getBoolean(dataAccess['is_crud_soft_delete_token']),
         mandatory: true,
         key: keyPrefix + '.is_crud_soft_delete_token',
         // validatorCallback: validateFunc,

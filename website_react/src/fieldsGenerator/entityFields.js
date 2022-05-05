@@ -1,3 +1,5 @@
+import { getBoolean } from '../utils/commonUtils';
+
 export const entityFields = (path, yamlData) => {
     const fields = []
     const dbConn = []
@@ -37,7 +39,7 @@ export const entityFields = (path, yamlData) => {
                 default_value: "",
                 value: column,
                 mandatory: true,
-                key: path + '.columns.' + column + '.entityColumnName',
+                key: path + '.columns.' + column,
                 // validatorCallback: validateFunc,
             },
             {
@@ -66,7 +68,7 @@ export const entityFields = (path, yamlData) => {
         title: "Is Soft Delete",
         type: "boolean",
         default_value: true,
-        value: entities[dbConnection][entity]["is_soft_delete"],
+        value: getBoolean(entities[dbConnection][entity]["is_soft_delete"]),
         mandatory: true,
         key: path + '.is_soft_delete',
         // validatorCallback: validateFunc,
@@ -75,7 +77,7 @@ export const entityFields = (path, yamlData) => {
         title: "Is Soft Delete Token",
         type: "boolean",
         default_value: true,
-        value: entities[dbConnection][entity]["is_soft_delete_token"],
+        value: getBoolean(entities[dbConnection][entity]["is_soft_delete_token"]),
         mandatory: true,
         key: path + '.is_soft_delete_token',
         // validatorCallback: validateFunc,

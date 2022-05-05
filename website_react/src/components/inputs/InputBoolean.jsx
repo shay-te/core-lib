@@ -9,7 +9,7 @@ const InputBoolean = (props) => {
                     type="radio"
                     id={"true" + props.index}
                     name={"bool" + props.index}
-                    value="true"
+                    value={true}
                     defaultChecked={getDefault(props)}
                     required={props.mandatory}
                     onChange={props.onChange}
@@ -22,7 +22,7 @@ const InputBoolean = (props) => {
                     type="radio"
                     id={"false" + props.index}
                     name={"bool" + props.index}
-                    value="false"
+                    value={false}
                     defaultChecked={!getDefault(props)}
                     required={props.mandatory}
                     onChange={props.onChange}

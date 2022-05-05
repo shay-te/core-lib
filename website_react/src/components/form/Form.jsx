@@ -9,7 +9,6 @@ import InputDropDown from '../inputs/InputDropDown'
 
 const Form = (props) => {
     const fields = useSelector((state) => state.treeData.fields)
-
     return(
         <div className="form-root">
         {fields.map((field, index) => {

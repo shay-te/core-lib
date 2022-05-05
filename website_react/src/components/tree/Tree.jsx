@@ -1,39 +1,30 @@
 import { useDispatch, useSelector } from "react-redux";
 import "./tree.scss";
 import TreeSection from "../TreeSection/TreeSection";
-import { dataAccessFields } from "./../../fieldsGenerator/dataAccessFields";
 import { setFields } from "../slices/treeSlice";
-import { entityFields } from "./../../fieldsGenerator/entityFields";
-import { coreLibField } from "./../../fieldsGenerator/coreLibField";
-import { setupFields } from "./../../fieldsGenerator/setupFields";
-import { dbConnectionFields } from "./../../fieldsGenerator/dbConnectionFields";
-import { useEffect } from "react";
 
 const Tree = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
 	const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
 	const dbConnections = useSelector((state) => state.treeData.dbConnections);
 	const entities = useSelector((state) => state.treeData.entities);
-	const yamlData = useSelector((state) => state.treeData.yaml);
 	const dispatch = useDispatch()
-	useEffect(() => {
-
-	}, [yamlData])
 
 	const onDataAccessClick = (item, event) => {
-		dispatch(setFields(dataAccessFields(item.path, yamlData)))
+		console.log('item.path', item.path)
+		dispatch(setFields(item.path))
 	}
-	const onCoreLibClick = () => {
-		dispatch(setFields(coreLibField(yamlData)))
+	const onCoreLibClick = (item) => {
+		dispatch(setFields(item.path))
 	}
-	const onSetupClick = () => {
-		dispatch(setFields(setupFields(yamlData)))
+	const onSetupClick = (item) => {
+		dispatch(setFields('setup'))
 	}
 	const onEntityClick = (item, event) => {
-		dispatch(setFields(entityFields(item.path, yamlData)))
+		dispatch(setFields(item.path))
 	}
 	const onItemClick = (item, event) => {
-		dispatch(setFields(dbConnectionFields(item, CoreLibName, yamlData)))
+		dispatch(setFields(item.path))
     };
 
 

@@ -1,3 +1,5 @@
+import { isObject } from "./commonUtils"
+
 export class YamlData {
 
     init(data) {
@@ -11,27 +13,34 @@ export class YamlData {
         if(steps.length === 1 && steps[0] === 'CoreLibName'){
             data[value] = data[this.coreLibName]
             delete data[this.coreLibName]
-            console.log(data[value])
             this.yaml = data
             this.coreLibName = value
         }
         else{
-            const fieldName = steps[steps.length - 1]
-            if(fieldName === 'entityName' || fieldName === 'entityColumnName' || fieldName === 'dataAccessName'){
-                const newSteps = steps.slice(0, -2) 
-                const oldKeyName = steps[steps.length - 2]
-                const objField = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
-                objField[value] = objField[oldKeyName];
-                delete objField[oldKeyName]
-                this.yaml = data
-            }
-            else{
-                const newSteps = steps.slice(0, -1)
-                const objField = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
-                console.log(fieldName)
+            const objField = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+            console.log('objField', path, steps, objField)
+            if (isObject(objField)) {
+                const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
                 objField[fieldName] = value;
-                this.yaml = data
+
+            } else {
+                /// update the beanch     
             }
+            // const fieldName = steps[steps.length - 1]
+            // if(fieldName === 'entityName' || fieldName === 'entityColumnName' || fieldName === 'dataAccessName'){
+            //     const newSteps = steps.slice(0, -2) 
+            //     const oldKeyName = steps[steps.length - 2]
+            //     const objField = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+            //     objField[value] = objField[oldKeyName];
+            //     delete objField[oldKeyName]
+            //     this.yaml = data
+            // }
+            // else{
+            //     const newSteps = steps.slice(0, -1)
+            //     const objField = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+            //     objField[fieldName] = value;
+            //     this.yaml = data
+            // }
         }
     }
 

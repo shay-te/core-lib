@@ -1,3 +1,5 @@
+import { getBoolean } from '../utils/commonUtils';
+
 export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
     const getENVValue = (envVar) => {
 		return yamlData[CoreLibName]["env"][envVar.split(":")[1].slice(0, -1)];
@@ -5,7 +7,6 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
     const fields = [];
     const keyPrefix = CoreLibName + '.config.data.' + dbConn
     const dbConnections =  yamlData[CoreLibName]['config']['data']
-    console.log(dbConn)
     fields.push(
         {
             title: "What is the name of the DB connection?",
@@ -67,7 +68,7 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
                 title: "Do you want to set pool pre ping?",
                 type: "boolean",
                 default_value: false,
-                value: dbConnections[dbConn]["session"]["pool_pre_ping"],
+                value: getBoolean(dbConnections[dbConn]["session"]["pool_pre_ping"]),
                 mandatory: true,
                 key: keyPrefix + '.session.pool_pre_ping',
                 // validatorCallback: validateFunc,
