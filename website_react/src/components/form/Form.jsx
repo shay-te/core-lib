@@ -8,7 +8,7 @@ import { useSelector } from "react-redux";
 import InputDropDown from '../inputs/InputDropDown'
 
 const Form = (props) => {
-    const fields = useSelector((state) => state.formData.fields)
+    const fields = useSelector((state) => state.treeData.fields)
 
     return(
         <div className="form-root">

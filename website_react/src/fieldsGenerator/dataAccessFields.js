@@ -16,7 +16,7 @@ export const dataAccessFields = (path, yamlData) => {
         default_value: '',
         value: daName,
         mandatory: true,
-        target: 'updateDataAccessName',
+        key: keyPrefix + '.dataAccessName',
         // validatorCallback: validateFunc,
     },
     {

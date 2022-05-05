@@ -6,7 +6,6 @@ export const entityFields = (path, yamlData) => {
     const entity = path_split.at(-1) 
     const dbConnection = path_split.at(-2) 
     const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
-    const keyPrefix = CoreLibName + '.data_layers.data.' + dbConnection + '.' + entity
     const entities = yamlData[CoreLibName]['data_layers']['data']
     dbConnections.forEach(conn => {
         dbConn.push(conn)
@@ -17,6 +16,7 @@ export const entityFields = (path, yamlData) => {
         default_value: "",
         value: entity,
         mandatory: true,
+        key: path + '.entityName',
         // validatorCallback: validateFunc,
     },
     {
@@ -26,7 +26,7 @@ export const entityFields = (path, yamlData) => {
         value: entities[dbConnection][entity]["db_connection"],
         mandatory: true,
         options: dbConn,
-        key: keyPrefix + '.db_connection',
+        key: path + '.db_connection',
         // validatorCallback: validateFunc,
     });
     Object.keys(entities[dbConnection][entity]["columns"]).map((column) =>
@@ -37,7 +37,7 @@ export const entityFields = (path, yamlData) => {
                 default_value: "",
                 value: column,
                 mandatory: true,
-                key: keyPrefix + '.columns',
+                key: path + '.columns.' + column + '.entityColumnName',
                 // validatorCallback: validateFunc,
             },
             {
@@ -47,7 +47,7 @@ export const entityFields = (path, yamlData) => {
                 value: entities[dbConnection][entity]["columns"][column]["type"],
                 mandatory: true,
                 options: ["VARCHAR", "BOOLEAN", "INTEGER"],
-                key: keyPrefix + '.columns.' + column + '.type',
+                key: path + '.columns.' + column + '.type',
             },
             {
                 title: "Column Default",
@@ -57,7 +57,7 @@ export const entityFields = (path, yamlData) => {
                     "default"
                 ],
                 mandatory: false,
-                key: keyPrefix + '.columns.' + column + '.default',
+                key: path + '.columns.' + column + '.default',
                 // validatorCallback: validateFunc,
             }
         )
@@ -68,7 +68,7 @@ export const entityFields = (path, yamlData) => {
         default_value: true,
         value: entities[dbConnection][entity]["is_soft_delete"],
         mandatory: true,
-        key: keyPrefix + '.is_soft_delete',
+        key: path + '.is_soft_delete',
         // validatorCallback: validateFunc,
     },
     {
@@ -77,7 +77,7 @@ export const entityFields = (path, yamlData) => {
         default_value: true,
         value: entities[dbConnection][entity]["is_soft_delete_token"],
         mandatory: true,
-        key: keyPrefix + '.is_soft_delete_token',
+        key: path + '.is_soft_delete_token',
         // validatorCallback: validateFunc,
     });
     return fields

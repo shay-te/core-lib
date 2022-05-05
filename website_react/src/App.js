@@ -3,18 +3,20 @@ import Form from './components/form/Form';
 import Tree from './components/tree/Tree';
 import {
 	init,
-	updateField
+	updateTree
 } from "./components/slices/treeSlice";
 import {useDispatch, useSelector} from "react-redux";
-import { YamlData } from './utils/YamlData';
 
 import { testInput } from './testInput';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
+import { setFields } from './components/slices/treeSlice';
 
 function App() {
 	const yamlData = useSelector((state) => state.treeData.yaml);
+	const formFields = useSelector((state) => state.treeData.fields);
 	const dispatch = useDispatch()
-	useMemo(() => {
+
+	useEffect(() => {
 		if(JSON.stringify(yamlData) === '{}'){
 			dispatch(init(testInput))
 		}
@@ -22,15 +24,21 @@ function App() {
 			dispatch(init(yamlData))
 		}
 		
-	})
+	}, [])
 
 	const onFieldChange = (field, e) => {
 		if(field.key){
-			console.log(field)
-			const yamlClass = new YamlData(yamlData)
-			const updatedData = yamlClass.set(field.key, e.target.value)
-			dispatch(updateField(updatedData))
-			console.log(updatedData) // just to check for now
+			// dispatch(updateTree({path: field.key, value: e.target.value}))
+			formFields.forEach((formField, index) => {
+				if(formField.key === field.key){
+					const tempField = JSON.parse(JSON.stringify(field))
+					const tempFormFields = JSON.parse(JSON.stringify(formFields))
+					tempField.value = e.target.value
+					tempFormFields.splice(index, 1)
+					tempFormFields.splice(index, 0, tempField)
+					dispatch(setFields(tempFormFields))
+				}
+			})
 		}
     }
 	return (

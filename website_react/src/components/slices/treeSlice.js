@@ -1,40 +1,43 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { YamlData } from "./../../utils/YamlData";
 
-const getData = (state, yamlData) => {
+const setTreeState = (state, yamlData) => {
     state.dataAccess = yamlData.listChildrenUnderPath('data_layers.data_access')
     state.entities = yamlData.listChildrenUnderPath('data_layers.data')
     state.setup = yamlData.listChildrenUnderPath('setup')
     state.dbConnections = yamlData.listChildrenUnderPath('config.data')
     state.CoreLibName = yamlData.coreLibName
 }
-
+const yamlData = new YamlData()
 export const treeSlice = createSlice({
     name: 'tree',
     initialState: {
-        dataAccess: {},
-        dbConnections: {},
-        entities: {},
-        setup: {},
+        dataAccess: [],
+        dbConnections: [],
+        entities: [],
+        setup: [],
         CoreLibName: '',
         yaml: {},
-        yamlData: '',
+        fields: [],
     },
     reducers: {
         init: (state, action) => {
-            let yamlData = new YamlData(action.payload)
-            getData(state, yamlData)
+            yamlData.init(action.payload)
+            setTreeState(state, yamlData)
             state.yaml = yamlData.toJSON()
         },
-        updateField: (state, action) => {   
-            let yamlData = new YamlData(action.payload)
-            getData(state, yamlData)
+        updateTree: (state, action) => {
+            yamlData.set(action.payload.path, action.payload.value)
+            setTreeState(state, yamlData)
             state.yaml = yamlData.toJSON()
-
-        }
+        },
+        setFields: (state, action) => {
+            state.fields = action.payload
+            
+        },
     },
 })
 
-export const {init, updateField} = treeSlice.actions
+export const {init, updateTree, setFields} = treeSlice.actions
 
 export default treeSlice.reducer

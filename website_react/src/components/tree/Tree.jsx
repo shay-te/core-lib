@@ -2,16 +2,12 @@ import { useDispatch, useSelector } from "react-redux";
 import "./tree.scss";
 import TreeSection from "../TreeSection/TreeSection";
 import { dataAccessFields } from "./../../fieldsGenerator/dataAccessFields";
-import { setFields } from "../slices/formSlice";
+import { setFields } from "../slices/treeSlice";
 import { entityFields } from "./../../fieldsGenerator/entityFields";
 import { coreLibField } from "./../../fieldsGenerator/coreLibField";
 import { setupFields } from "./../../fieldsGenerator/setupFields";
 import { dbConnectionFields } from "./../../fieldsGenerator/dbConnectionFields";
 import { useEffect } from "react";
-import { testInput } from './../../testInput';
-import {
-	init
-} from "../../components/slices/treeSlice";
 
 const Tree = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
@@ -20,6 +16,9 @@ const Tree = () => {
 	const entities = useSelector((state) => state.treeData.entities);
 	const yamlData = useSelector((state) => state.treeData.yaml);
 	const dispatch = useDispatch()
+	useEffect(() => {
+
+	}, [yamlData])
 
 	const onDataAccessClick = (item, event) => {
 		dispatch(setFields(dataAccessFields(item.path, yamlData)))
