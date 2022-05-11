@@ -1,18 +1,21 @@
 import './App.scss';
-import Form from './components/form/Form';
-import Tree from './components/tree/Tree';
 import {
-	init,
-	updateFields
+	init
 } from "./components/slices/treeSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 import { testInput } from './testInput';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route
+} from "react-router-dom";
+import Editor from './pages/Editor';
+import Document from './pages/Document'
 
 function App() {
 	const yamlData = useSelector((state) => state.treeData.yaml);
-	const formFields = useSelector((state) => state.treeData.fields);
 	const dispatch = useDispatch()
 
 	useEffect(() => {
@@ -25,16 +28,14 @@ function App() {
 
 	}, [])
 
-	const onFieldChange = (field, e) => {
-		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env }))
-		}
-	}
+
 	return (
-		<div className='app-root'>
-			<Tree key={'tree'}/>
-			<Form onChange={onFieldChange} />
-		</div>
+		<Router>
+			<Routes>
+				<Route exact path="/doc" element={<Document />}/>
+				<Route exact path="/" element={<Editor />}/>
+			</Routes>
+		</Router>
 	);
 }
 
