@@ -1,10 +1,8 @@
 .tree-root {
-	width: 25%;
-	margin: 1rem;
+	width: 30%;
 	padding: 1rem;
-	background-color: bisque;
-	border: 2px black solid;
-	border-radius: 5px;
+	background-color: #f5f9fc;
+	border-right: 2px black solid;
 	position: static;
 	align-items: flex-end;
 }
@@ -16,6 +14,7 @@
 	-ms-user-select: none;
 	-o-user-select: none;
 	user-select: none;
+	
 }
 
 .node-title{
@@ -26,20 +25,28 @@
 
 .node-child{
 	font-size: 1rem;
-	padding-left: 2rem;
+	padding-left: 1rem;
 	margin: 0.5rem;
 	font-weight: normal;
 	border-radius: 5px;
-	padding: 0.1rem;
 }
 
-.tree .node-title:hover {
-	cursor: pointer;
-    
+.node-child .delete-img{
+	height: auto;
+	width: 1rem;
 }
 
-.tree .node-child:hover {
+.node-title .add-img{
+	height: auto;
+	width: 1rem;
+}
+
+.export-button{
+	width: 100%;
+	border: 0px;
+	background-color: #878787;
+	color: #f5f9fc;
+	padding: 0.5rem;
+	border-radius: 3px;
 	cursor: pointer;
-    box-shadow: 0px 0px 4px 0px;
-    
 }

@@ -1,12 +1,13 @@
-import { getBoolean } from '../utils/commonUtils';
+import { getBoolean, getENVValue } from '../utils/commonUtils';
 
-export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
-    const getENVValue = (envVar) => {
-		return yamlData[CoreLibName]["env"][envVar.split(":")[1].slice(0, -1)];
-	};
+export const dbConnectionFields = (path, yamlData) => {
     const fields = [];
+    const pathSplit = path.split('.')
+    const CoreLibName = pathSplit.at(0)
+    const dbConn = pathSplit.at(pathSplit.indexOf('data')+1) 
     const keyPrefix = CoreLibName + '.config.data.' + dbConn
     const dbConnections =  yamlData[CoreLibName]['config']['data']
+    const dbConnList = Object.keys(dbConnections)
     fields.push(
         {
             title: "What is the name of the DB connection?",
@@ -14,6 +15,7 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
             default_value: null,
             value: dbConn,
             mandatory: true,
+            key: keyPrefix,
             // validatorCallback: validateFunc,
         },
         {
@@ -35,7 +37,7 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
             key: keyPrefix + '.url.protocol',
         }
     );
-    if (dbConnections[dbConn]["url"]["protocol"] !== "mongodb") {
+    if (dbConnections[dbConn]["url"]["protocol"].toLowerCase() !== "mongodb") {
         fields.push(
             {
                 title: "Do you want to log queries?",
@@ -76,24 +78,27 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
         );
     }
 
-    if (dbConnections[dbConn]["url"]["protocol"] !== "sqlite") {
+    if (dbConnections[dbConn]["url"]["protocol"].toLowerCase() !== "sqlite" ) {
+        const envPrefix =  CoreLibName+'.env.'+dbConn.toUpperCase()
         fields.push(
             {
                 title: "Enter the port no. of your DB",
                 type: "integer",
                 default_value: null,
-                value: getENVValue(dbConnections[dbConn]["url"]["port"]),
+                value: getENVValue(dbConnections[dbConn]["url"]["port"], yamlData),
                 mandatory: true,
-                key: keyPrefix + '.url.port',
+                key: `${keyPrefix}.url.port`,
+                env: `${envPrefix}_PORT`,
                 // validatorCallback: validateFunc,
             },
             {
                 title: "Enter host of your DB",
                 type: "string",
                 default_value: "localhost",
-                value: getENVValue(dbConnections[dbConn]["url"]["host"]),
+                value: getENVValue(dbConnections[dbConn]["url"]["host"], yamlData),
                 mandatory: true,
-                key: keyPrefix + '.url.host',
+                key: `${keyPrefix}.url.host`,
+                env: `${envPrefix}_HOST`,
                 // validatorCallback: validateFunc,
             },
             {
@@ -101,10 +106,11 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
                 type: "string",
                 default_value: "user",
                 value: getENVValue(
-                    dbConnections[dbConn]["url"]["username"]
+                    dbConnections[dbConn]["url"]["username"], yamlData
                 ),
                 mandatory: true,
-                key: keyPrefix + '.url.username',
+                key: `${keyPrefix}.url.username`,
+                env: `${envPrefix}_USER`,
                 // validatorCallback: validateFunc,
             },
             {
@@ -112,10 +118,11 @@ export const dbConnectionFields = (dbConn, CoreLibName, yamlData) => {
                 type: "string",
                 default_value: null,
                 value: getENVValue(
-                    dbConnections[dbConn]["url"]["password"]
+                    dbConnections[dbConn]["url"]["password"], yamlData
                 ),
                 mandatory: true,
-                key: keyPrefix + '.url.password',
+                key: `${keyPrefix}.url.password`,
+                env: `${envPrefix}_PASSWORD`,
                 // validatorCallback: validateFunc,
             }
         );

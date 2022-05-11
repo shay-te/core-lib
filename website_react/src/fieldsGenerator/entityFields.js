@@ -3,13 +3,14 @@ import { getBoolean } from '../utils/commonUtils';
 export const entityFields = (path, yamlData) => {
     const fields = []
     const dbConn = []
-    const path_split = path.split('.')
-    const CoreLibName = path_split.at(0)
-    const entity = path_split.at(path_split.indexOf('data')+2) 
-    const dbConnection = path_split.at(path_split.indexOf('data')+1) 
+    const pathSplit = path.split('.')
+    const CoreLibName = pathSplit.at(0)
+    const entity = pathSplit.at(pathSplit.indexOf('data') + 2)
+    const dbConnection = pathSplit.at(pathSplit.indexOf('data') + 1)
     const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
     const keyPrefix = CoreLibName + '.data_layers.data.' + dbConnection + '.' + entity
     const entities = yamlData[CoreLibName]['data_layers']['data']
+    const entityList = Object.keys(entities[dbConnection])
     dbConnections.forEach(conn => {
         dbConn.push(conn)
     })
@@ -20,68 +21,64 @@ export const entityFields = (path, yamlData) => {
         value: entity,
         mandatory: true,
         key: keyPrefix,
-        // validatorCallback: validateFunc,
-    },
-    {
-        title: "DB Connection",
-        type: "dropdown",
-        default_value: "",
-        value: entities[dbConnection][entity]["db_connection"],
-        mandatory: true,
-        options: dbConn,
-        key: keyPrefix + '.db_connection',
+        id: `entityName_${dbConnection}_${entityList.indexOf(entity)}`
         // validatorCallback: validateFunc,
     });
-    Object.keys(entities[dbConnection][entity]["columns"]).map((column) =>
-        fields.push(
-            {
-                title: "Column Name",
-                type: "string",
-                default_value: "",
-                value: column,
-                mandatory: true,
-                key: keyPrefix + '.columns.' + column,
-                // validatorCallback: validateFunc,
-            },
-            {
-                title: "Column Type",
-                type: "enum",
-                default_value: "VARCHAR",
-                value: entities[dbConnection][entity]["columns"][column]["type"],
-                mandatory: true,
-                options: ["VARCHAR", "BOOLEAN", "INTEGER"],
-                key: keyPrefix + '.columns.' + column + '.type',
-            },
-            {
-                title: "Column Default",
-                type: "string",
-                default_value: "",
-                value: entities[dbConnection][entity]["columns"][column][
-                    "default"
-                ],
-                mandatory: false,
-                key: keyPrefix + '.columns.' + column + '.default',
-                // validatorCallback: validateFunc,
-            }
-        )
-    );
-    fields.push({
-        title: "Is Soft Delete",
-        type: "boolean",
-        default_value: true,
-        value: getBoolean(entities[dbConnection][entity]["is_soft_delete"]),
-        mandatory: true,
-        key: keyPrefix + '.is_soft_delete',
-        // validatorCallback: validateFunc,
-    },
-    {
-        title: "Is Soft Delete Token",
-        type: "boolean",
-        default_value: true,
-        value: getBoolean(entities[dbConnection][entity]["is_soft_delete_token"]),
-        mandatory: true,
-        key: keyPrefix + '.is_soft_delete_token',
-        // validatorCallback: validateFunc,
-    });
+    if (entities[dbConnection][entity]["columns"]) {
+        Object.keys(entities[dbConnection][entity]["columns"]).map((column, index) =>
+            fields.push(
+                {
+                    title: "Column Name",
+                    type: "string",
+                    default_value: "",
+                    value: column,
+                    mandatory: true,
+                    key: keyPrefix + '.columns.' + column,
+                    id: `column_${entity}_${index}`
+                    // validatorCallback: validateFunc,
+                },
+                {
+                    title: "Column Type",
+                    type: "enum",
+                    default_value: "VARCHAR",
+                    value: entities[dbConnection][entity]["columns"][column]["type"],
+                    mandatory: true,
+                    options: ["VARCHAR", "BOOLEAN", "INTEGER"],
+                    key: keyPrefix + '.columns.' + column + '.type',
+                },
+                {
+                    title: "Column Default",
+                    type: "string",
+                    default_value: "",
+                    value: entities[dbConnection][entity]["columns"][column][
+                        "default"
+                    ],
+                    mandatory: false,
+                    key: keyPrefix + '.columns.' + column + '.default',
+                    // validatorCallback: validateFunc,
+                }
+            )
+        );
+    }
+    if(entities[dbConnection][entity]["is_soft_delete"]){
+        fields.push({
+            title: "Is Soft Delete",
+            type: "boolean",
+            default_value: true,
+            value: getBoolean(entities[dbConnection][entity]["is_soft_delete"]),
+            mandatory: true,
+            key: keyPrefix + '.is_soft_delete',
+            // validatorCallback: validateFunc,
+        },
+        {
+            title: "Is Soft Delete Token",
+            type: "boolean",
+            default_value: true,
+            value: getBoolean(entities[dbConnection][entity]["is_soft_delete_token"]),
+            mandatory: true,
+            key: keyPrefix + '.is_soft_delete_token',
+            // validatorCallback: validateFunc,
+        });
+    }
     return fields
 };

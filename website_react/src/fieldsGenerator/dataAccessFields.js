@@ -1,14 +1,15 @@
 import { getBoolean } from "../utils/commonUtils";
 
 export const dataAccessFields = (path, yamlData) => {
-    const path_split = path.split('.')
-    const CoreLibName = path_split.at(0)
-    const daName = path_split.at(path_split.indexOf('data_access')+1) 
+    const pathSplit = path.split('.')
+    const CoreLibName = pathSplit.at(0)
+    const daName = pathSplit.at(pathSplit.indexOf('data_access')+1) 
     const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
     const fields = []
     const dbConn = []
     const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName
     const dataAccess = yamlData[CoreLibName]['data_layers']['data_access'][daName]
+    const daList = Object.keys(yamlData[CoreLibName]['data_layers']['data_access'])
     dbConnections.forEach(conn => {
         dbConn.push(conn)
     })
@@ -19,12 +20,13 @@ export const dataAccessFields = (path, yamlData) => {
         value: daName,
         mandatory: true,
         key: keyPrefix,
-        // validatorCallback: validateFunc,
+        id: `dataAccess_${daList.indexOf(daName)}`
+        // validatorCallback: validateFunc, onchange validator, predefined validation func for each types
     },
     {
         title: "DB Connection",
         type: "dropdown",
-        default_value: '',
+        default_value: dbConn[0],
         value: dataAccess['db_connection'],
         mandatory: true,
         options: dbConn,

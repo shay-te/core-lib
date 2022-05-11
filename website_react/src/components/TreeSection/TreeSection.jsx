@@ -1,43 +1,66 @@
 import { useState } from "react";
 
 import CollapseExpand from "../collapseExpand/CollapseExpand";
+import HoverVisible from "../hoverVisible/HoverVisible";
 import "./TreeSection.scss";
 
 const TreeSection = (props) => {
 	const [collapse, setCollapse] = useState(false);
 
-	const items = [];
-    if(props.isNested){
-        items.push(props.items)
-    }
-    else{
-        for (const item of props.items) {
-            items.push(
-                <div
-                    key={item.name}
-                    onClick={props.onClick.bind(this, item)}
-                    className={"node-child"}
-                >
-                    {item.name}
-                </div>
-            );
-            
-        }
-    }
+	const handleCollapse = () => {
+		setCollapse(!collapse);
+	};
 
- 	return (
+	const items = [];
+
+	if (props.isNested) {
+		items.push(props.items);
+	} else {
+		for (const [i, item] of props.items.entries()) {
+			items.push(
+				<div key={item.name} className={"node-child"}>
+					<HoverVisible
+						path={item.path}
+						onTitleClick={props.onClick}
+						onImageClick={props.onDeleteClick}
+						title={item.name}
+						image={require("../../assets/delete.png")}
+						key={item.name}
+					/>
+				</div>
+			);
+		}
+	}
+	return (
 		<div className={["tree-section"]}>
-            <div className={["node-title"]} onClick={() => {setCollapse(!collapse)}}> {props.title} </div>
-            <CollapseExpand collapsed={collapse}>{items}</CollapseExpand>
+			<div className={["node-title"]}>
+				<HoverVisible
+					onTitleClick={props.onTitleClick}
+					onClick={props.onClick.bind(this, props.items)}
+					path={props.path}
+					onImageClick={props.onAddClick}
+					title={props.title}
+					image={require("../../assets/add.png")}
+					icon={props.icon}
+					key={props.title}
+				/>
+			</div>
+			<CollapseExpand key={props.title} collapsed={props.collapse}>{items}</CollapseExpand>
 		</div>
 	);
 };
 
 TreeSection.defaultProps = {
 	title: "",
+	path: "",
 	items: [],
-    isNested: false,
-	onClick: (item, e) => {}, //Fire the path
+	icon: "",
+	isNested: false,
+	collapse: false,
+	onClick: (item, e) => {},
+	onDeleteClick: (item, e) => {},
+	onAddClick: (item, e) => {},
+	onTitleClick: (path) => {}
 };
 
 export default TreeSection;

@@ -1,0 +1,23 @@
+.hover-img{
+    height: auto;
+	width: 1rem;
+
+    &.visible{
+        opacity: 1;
+    }
+
+    &.hidden{
+        opacity: 0;
+    }
+}
+
+.hover-root{
+    display: flex;
+	justify-content: space-between;
+    padding: 0.25rem;
+    &:hover{
+        cursor: pointer;
+        box-shadow: 0px 0px 4px 0px;
+        border-radius: 5px;
+    }
+}

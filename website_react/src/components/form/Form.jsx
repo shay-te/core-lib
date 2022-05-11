@@ -9,10 +9,10 @@ import InputDropDown from '../inputs/InputDropDown'
 
 const Form = (props) => {
     const fields = useSelector((state) => state.treeData.fields)
-    return(
-        <div className="form-root">
-        {fields.map((field, index) => {
-            const key = `${index}_${Math.floor((Math.random() * 100000) + 1)}`
+    const form = []
+    form.push(
+        fields.map((field, index) => {
+            const key = `${field.id ? field.id : index}`
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
@@ -94,7 +94,12 @@ const Form = (props) => {
                 default:
                     return ''
             }
-        })}
+        })
+    )
+
+    return(
+        <div className="form-root">
+            {form}
         </div>
     )
 }
