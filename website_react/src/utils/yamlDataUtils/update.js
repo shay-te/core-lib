@@ -6,7 +6,7 @@ export const updateEnv = (path, value, yamlData) => {
     return data
 }
 
-export const updateCache = (path, value, yamlData) => {
+export const updateCache = (path, value, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
@@ -24,11 +24,11 @@ export const updateCache = (path, value, yamlData) => {
 
             if(!target['url'].hasOwnProperty('host')){
                 target['url']['host'] = '${oc.env:MEMCACHED_HOST}'
-                data[this.coreLibName]['env']['MEMCACHED_HOST'] = 'localhost'
+                data[coreLibName]['env']['MEMCACHED_HOST'] = 'localhost'
             }
             if(!target['url'].hasOwnProperty('port')){
                 target['url']['port'] = '${oc.env:MEMCACHED_PORT}'
-                data[this.coreLibName]['env']['MEMCACHED_PORT'] = 11211
+                data[coreLibName]['env']['MEMCACHED_PORT'] = 11211
             }
         }
         if(target.type === 'redis'){
@@ -41,11 +41,11 @@ export const updateCache = (path, value, yamlData) => {
 
             if(!target['url'].hasOwnProperty('host')){
                 target['url']['host'] = '${oc.env:REDIS_HOST}'
-                data[this.coreLibName]['env']['REDIS_HOST'] = 'localhost'
+                data[coreLibName]['env']['REDIS_HOST'] = 'localhost'
             }
             if(!target['url'].hasOwnProperty('port')){
                 target['url']['port'] = '${oc.env:REDIS_PORT}'
-                data[this.coreLibName]['env']['REDIS_PORT'] = 6379
+                data[coreLibName]['env']['REDIS_PORT'] = 6379
             }
             if(!target['url'].hasOwnProperty('protocol')){
                 target['url']['protocol'] = 'redis'
@@ -55,7 +55,7 @@ export const updateCache = (path, value, yamlData) => {
     return data
 }
 
-export const updateDBConn = (path, value, yamlData) => {
+export const updateDBConn = (path, value, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const dbConn = steps.at(-3)
@@ -83,15 +83,15 @@ export const updateDBConn = (path, value, yamlData) => {
             target['session'] = session
         }
         delete target['url']['username']
-        delete data[this.coreLibName]['env'][dbConn.toUpperCase() +'_USER']
+        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_USER']
         delete target['url']['password']
-        delete data[this.coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD']
+        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD']
         delete target['url']['host']
-        delete data[this.coreLibName]['env'][dbConn.toUpperCase() +'_HOST']
+        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_HOST']
         delete target['url']['port']
-        delete data[this.coreLibName]['env'][dbConn.toUpperCase() +'_PORT']
+        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_PORT']
         delete target['url']['file']
-        delete data[this.coreLibName]['env'][dbConn.toUpperCase() +'_DB']
+        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_DB']
     }
     else{
         target['url']['protocol'] = value.toLowerCase()
@@ -102,7 +102,6 @@ export const updateDBConn = (path, value, yamlData) => {
             target['log_queries'] = false
         }
         if(!target.hasOwnProperty('session')){
-            console.log('ad')
             const session = {
                 pool_recycle: 3200,
                 pool_pre_ping: false
@@ -111,33 +110,33 @@ export const updateDBConn = (path, value, yamlData) => {
         }
         if(!target['url'].hasOwnProperty('username')){
             target['url']['username'] = '${oc.env:'+ dbConn.toUpperCase() +'_USER}'
-            data[this.coreLibName]['env'][dbConn.toUpperCase() +'_USER'] = 'username'
+            data[coreLibName]['env'][dbConn.toUpperCase() +'_USER'] = 'username'
         }
         if(!target['url'].hasOwnProperty('password')){
             target['url']['password'] = '${oc.env:'+ dbConn.toUpperCase() +'_PASSWORD}'
-            data[this.coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD'] = ''
+            data[coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD'] = ''
         }
         if(!target['url'].hasOwnProperty('host')){
             target['url']['host'] = '${oc.env:'+ dbConn.toUpperCase() +'_HOST}'
-            data[this.coreLibName]['env'][dbConn.toUpperCase() +'_HOST'] = 'localhost'
+            data[coreLibName]['env'][dbConn.toUpperCase() +'_HOST'] = 'localhost'
         }
         if(!target['url'].hasOwnProperty('port')){
             target['url']['port'] = '${oc.env:'+ dbConn.toUpperCase() +'_PORT}'
-            data[this.coreLibName]['env'][dbConn.toUpperCase() +'_PORT'] = 1234
+            data[coreLibName]['env'][dbConn.toUpperCase() +'_PORT'] = 1234
         }
         if(!target['url'].hasOwnProperty('file')){
             target['url']['file'] = '${oc.env:'+ dbConn.toUpperCase() +'_DB}'
-            data[this.coreLibName]['env'][dbConn.toUpperCase() +'_DB'] = dbConn
+            data[coreLibName]['env'][dbConn.toUpperCase() +'_DB'] = dbConn
         }
     }
     return data
 }
 
-export const updateMongoEntities = (path, value, yamlData) => {
+export const updateMongoEntities = (path, value, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const pathSplit = path.split(".")
     const dbConn = pathSplit.at(pathSplit.indexOf('data') + 1)
-    const entitySteps = [this.coreLibName, 'data_layers', 'data', dbConn]
+    const entitySteps = [coreLibName, 'data_layers', 'data', dbConn]
     const target = entitySteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
     Object.keys(target).forEach(entity => {
         if (entity !== 'migrate') {

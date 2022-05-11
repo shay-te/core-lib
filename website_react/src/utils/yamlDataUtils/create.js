@@ -1,7 +1,7 @@
 import { toCamelCase, toSnakeCase } from "../commonUtils"
 
 export const entity = (dbConn, yamlData, coreLibName) => {
-    const newEntity = {
+    const newNormalEntity = {
         db_connection: dbConn,
         columns: {
             column_name: {
@@ -12,14 +12,30 @@ export const entity = (dbConn, yamlData, coreLibName) => {
         is_soft_delete: true,
         is_soft_delete_token: true,
     }
+
+    const newMongoEntity = {
+        db_connection: dbConn,
+    }
+
+    let newEntity = {}
+
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'data_layers', 'data', dbConn]
     const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const dbConnSteps = [coreLibName, 'config', 'data']
+    const dbConns = dbConnSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+
+    if(dbConns[dbConn]['url']['protocol'] === 'mongodb'){
+        newEntity = Object.assign({}, newMongoEntity)
+    }else{
+        newEntity = Object.assign({}, newNormalEntity)
+    }
+
     if (!target) {
         const newSteps = [coreLibName, 'data_layers', 'data']
         const newTarget = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
         newTarget[dbConn] = { [`new_entity`]: newEntity }
-        newTarget[dbConn] = { [`migrate`]: false }
+        newTarget[dbConn][`migrate`] = false
     }
     else {
         target[`new_entity_${Object.keys(target).length}`] = newEntity

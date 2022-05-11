@@ -48,12 +48,12 @@ export class YamlData {
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('config.data')) {
                     if(value.toLowerCase() === 'mongodb'){
-                        this.yaml = update.updateMongoEntities(path, value, this.yaml)
+                        this.yaml = update.updateMongoEntities(path, value, this.yaml, this.coreLibName)
                     }
-                    this.yaml = update.updateDBConn(path, value, this.yaml)
+                    this.yaml = update.updateDBConn(path, value, this.yaml, this.coreLibName)
                 }
                 if (path.includes('cache')){
-                    this.yaml = update.updateCache(path, value, this.yaml)
+                    this.yaml = update.updateCache(path, value, this.yaml, this.coreLibName)
                 }
                 return steps.join('.')
             }
