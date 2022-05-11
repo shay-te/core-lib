@@ -1,0 +1,19 @@
+.document-root{
+    padding: 2rem;
+    line-height: 1.6rem;
+}
+
+.document-root code{
+    background-color: #f6f7f8;
+    padding: 0.1rem;
+    border-radius: 5px;
+    border: 0.1rem solid rgba(0,0,0,.1);
+}
+
+.document-root blockquote{
+    padding: 1rem;
+    border-radius: 5px;
+    background-color: rgba(255,229,100,.3);
+    border-left: 8px solid #ffe564;
+}
+

@@ -12,7 +12,8 @@ import {
 	Route
 } from "react-router-dom";
 import Editor from './pages/Editor';
-import Document from './pages/Document'
+import Document from './pages/document/Document'
+import DocumentIndex from './pages/docIndex/DocumentIndex'
 
 function App() {
 	const yamlData = useSelector((state) => state.treeData.yaml);
@@ -32,7 +33,8 @@ function App() {
 	return (
 		<Router>
 			<Routes>
-				<Route exact path="/doc" element={<Document />}/>
+				<Route exact path="/doc" element={<DocumentIndex/>}/>
+				<Route exact path="/doc/:doc" element={<Document />}/>
 				<Route exact path="/" element={<Editor />}/>
 			</Routes>
 		</Router>
