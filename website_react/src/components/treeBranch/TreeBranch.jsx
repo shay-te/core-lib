@@ -4,7 +4,6 @@ import HoverVisible from '../hoverVisible/HoverVisible'
 
 const TreeBranch = (props) => {
 	const [visible, setVisible] = useState(false);
-	const [active, setActive] = useState(false);
 
 	return (
 		<div
