@@ -1,7 +1,9 @@
+import { getValueAtPath } from "../commonUtils"
+
 export const updateEnv = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
-    const target = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps.slice(0, -1))
     target[steps.at(-1)] = value;
     return data
 }
@@ -9,7 +11,7 @@ export const updateEnv = (path, value, yamlData) => {
 export const updateCache = (path, value, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
-    const target = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps.slice(0, -1))
     if(path.includes('type')){
         if(target.type === 'memory'){
             delete target['url']
@@ -59,7 +61,7 @@ export const updateDBConn = (path, value, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const dbConn = steps.at(-3)
-    const target = steps.slice(0, -2).reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps.slice(0, -2))
     if(value.toLowerCase() === 'mongodb'){
         target['url']['protocol'] = value.toLowerCase()
         delete target['create_db']
@@ -137,7 +139,7 @@ export const updateMongoEntities = (path, value, yamlData, coreLibName) => {
     const pathSplit = path.split(".")
     const dbConn = pathSplit.at(pathSplit.indexOf('data') + 1)
     const entitySteps = [coreLibName, 'data_layers', 'data', dbConn]
-    const target = entitySteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, entitySteps)
     Object.keys(target).forEach(entity => {
         if (entity !== 'migrate') {
             delete target[entity]['columns']

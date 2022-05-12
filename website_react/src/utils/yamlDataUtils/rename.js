@@ -1,4 +1,4 @@
-import { toCamelCase, toSnakeCase } from "../commonUtils"
+import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
 export const rename = (path, value, yamlData, coreLibName) => {
     const pathSplit = path.split('.')
     if (path.includes('config.data')) {
@@ -15,7 +15,7 @@ export const rename = (path, value, yamlData, coreLibName) => {
 const renameJobEvents = (oldValue, newValue, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'config', 'jobs', newValue]
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     const snakeCoreLib = toSnakeCase(coreLibName)
     target['handler']['_target_'] = `${snakeCoreLib}.${snakeCoreLib}.jobs.${newValue}.${toCamelCase(newValue)}`
     return data
@@ -25,7 +25,7 @@ const renameEntityEvents = (oldValue, newValue, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     // Data access
     const daSteps = [coreLibName, 'data_layers', 'data_access']
-    const daTarget = daSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const daTarget = getValueAtPath(data, daSteps)
     Object.keys(daTarget).forEach(dataAccess => {
         if (daTarget[dataAccess]['entity'] === oldValue) {
             daTarget[dataAccess]['entity'] = newValue
@@ -38,7 +38,7 @@ const renameDBConnEvents = (oldValue, newValue, yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     // Environment varibales
     const envSteps = [coreLibName, 'env']
-    const envTarget = envSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const envTarget = getValueAtPath(data, envSteps)
     const newHost = `${newValue.toUpperCase()}_HOST`
     const newPort = `${newValue.toUpperCase()}_PORT`
     const newPassword = `${newValue.toUpperCase()}_PASSWORD`
@@ -57,7 +57,7 @@ const renameDBConnEvents = (oldValue, newValue, yamlData, coreLibName) => {
     delete envTarget[`${oldValue.toUpperCase()}_DB`]
     // DB Connection
     const connSteps = [coreLibName, 'config', 'data', newValue, 'url']
-    const connTarget = connSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const connTarget = getValueAtPath(data, connSteps)
     connTarget['host'] = '${oc.env:' + newHost + '}'
     connTarget['port'] = '${oc.env:' + newPort + '}'
     connTarget['password'] = '${oc.env:' + newPassword + '}'
@@ -65,7 +65,7 @@ const renameDBConnEvents = (oldValue, newValue, yamlData, coreLibName) => {
     connTarget['file'] = '${oc.env:' + newDB + '}'
     // Entity group
     const entitySteps = [coreLibName, 'data_layers', 'data']
-    const entityTarget = entitySteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const entityTarget = getValueAtPath(data, entitySteps)
     if (entityTarget.hasOwnProperty(oldValue)) {
         entityTarget[newValue] = entityTarget[oldValue]
         delete entityTarget[oldValue]
@@ -79,7 +79,7 @@ const renameDBConnEvents = (oldValue, newValue, yamlData, coreLibName) => {
 
     // Data access
     const daSteps = [coreLibName, 'data_layers', 'data_access']
-    const daTarget = daSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const daTarget = getValueAtPath(data, daSteps)
     Object.keys(daTarget).forEach(dataAccess => {
         if (daTarget[dataAccess]['db_connection'] === oldValue) {
             daTarget[dataAccess]['db_connection'] = newValue

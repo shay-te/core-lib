@@ -6,15 +6,15 @@ const InputENUM = (props) => {
         return (<div key={value}>
             <input
                 type={props.multiple_selection ? "checkbox" : "radio"}
-                id={value + props.index}
-                name={"enum" + props.index}
+                id={value + props.fieldKey}
+                name={"enum" + props.fieldKey}
                 value={value}
                 defaultChecked={
                     value.toLowerCase() === getDefault(props).toLowerCase()
                 }
                 onChange={props.onChange}
             />
-            <label htmlFor={value + props.index}>{value}</label>
+            <label htmlFor={value + props.fieldKey}>{value}</label>
         </div>);
     });
 
@@ -27,6 +27,7 @@ const InputENUM = (props) => {
 };
 
 InputENUM.defaultProps = {
+    fieldKey:'',
     title:'',
     mandatory: true,
     value:'',

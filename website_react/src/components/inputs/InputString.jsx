@@ -3,13 +3,13 @@ import { getDefault } from "./../../utils/commonUtils";
 const InputString = (props) => {
 
     return (
-        <div className="form-input-div" key={props.index}>
-            <label htmlFor={"field-" + props.index} className="input-label">
+        <div className="form-input-div" key={props.fieldKey}>
+            <label htmlFor={"field-" + props.fieldKey} className="input-label">
                 {props.title}
             </label>
             <input
                 type={"text"}
-                id={"field-" + props.index}
+                id={"field-" + props.fieldKey}
                 className="form-input"
                 defaultValue={getDefault(props)}
                 required={props.mandatory}
@@ -21,7 +21,7 @@ const InputString = (props) => {
 };
 
 InputString.defaultProps = {
-    key:'',
+    fieldKey:'',
     title:'',
     mandatory:'',
     value:'',

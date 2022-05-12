@@ -1,4 +1,4 @@
-import { toCamelCase, toSnakeCase } from "../commonUtils"
+import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
 
 export const entity = (dbConn, yamlData, coreLibName) => {
     const newNormalEntity = {
@@ -21,9 +21,9 @@ export const entity = (dbConn, yamlData, coreLibName) => {
 
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'data_layers', 'data', dbConn]
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     const dbConnSteps = [coreLibName, 'config', 'data']
-    const dbConns = dbConnSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const dbConns = getValueAtPath(data, dbConnSteps)
 
     if(dbConns[dbConn]['url']['protocol'] === 'mongodb'){
         newEntity = Object.assign({}, newMongoEntity)
@@ -33,7 +33,7 @@ export const entity = (dbConn, yamlData, coreLibName) => {
 
     if (!target) {
         const newSteps = [coreLibName, 'data_layers', 'data']
-        const newTarget = newSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+        const newTarget = getValueAtPath(data, newSteps)
         newTarget[dbConn] = { [`new_entity`]: newEntity }
         newTarget[dbConn][`migrate`] = false
     }
@@ -54,7 +54,7 @@ export const dataAccess = (yamlData, coreLibName) => {
     }
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'data_layers', 'data_access']
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     target['NewDataAccess' + (Object.keys(target).length + 1)] = newDataAccess
     return data
 }
@@ -62,10 +62,10 @@ export const dataAccess = (yamlData, coreLibName) => {
 export const dbConnection = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'config', 'data']
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     const dbConnName = `newdb${(Object.keys(target).length + 1)}`
     const envSteps = [coreLibName, 'env']
-    const envTarget = envSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const envTarget = getValueAtPath(data, envSteps)
 
     const newDbConn = {
         log_queries: false,
@@ -104,11 +104,11 @@ export const cache = (yamlData, coreLibName) => {
     }
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'config', 'cache']
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     target[`new_cache_${(Object.keys(target).length + 1)}`] = newCache
 
     const envSteps = [coreLibName, 'env']
-    const envTarget = envSteps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const envTarget = getValueAtPath(data, envSteps)
     envTarget['MEMCACHED_HOST'] = 'localhost'
     envTarget['MEMCACHED_PORT'] = 11211
 
@@ -119,7 +119,7 @@ export const cache = (yamlData, coreLibName) => {
 export const job = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = [coreLibName, 'config', 'jobs']
-    const target = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+    const target = getValueAtPath(data, steps)
     const newName = `new_job_${(Object.keys(target).length + 1)}`
     const snakeCoreLib = toSnakeCase(coreLibName)
     const newJob = {

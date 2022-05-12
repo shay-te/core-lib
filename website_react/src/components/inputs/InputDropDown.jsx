@@ -17,7 +17,7 @@ const InputDropDown = (props) => {
 		<div className="form-input-div">
 			<label className="input-label">{props.title}</label>
 			<br />
-			<select name={props.title} id={props.index} onChange={props.onChange}>
+			<select name={props.title} id={props.fieldKey} onChange={props.onChange}>
 				{items}
 			</select>
 		</div>
@@ -25,6 +25,7 @@ const InputDropDown = (props) => {
 };
 
 InputDropDown.defaultProps = {
+	fieldKey:'',
 	title:'',
 	mandatory:false,
 	value:'',

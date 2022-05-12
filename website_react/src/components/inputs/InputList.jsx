@@ -12,15 +12,15 @@ const InputList = (props) => {
                                 ? "checkbox"
                                 : "radio"
                         }
-                        id={value + props.index}
-                        name={"list" + props.index}
+                        id={value + props.fieldKey}
+                        name={"list" + props.fieldKey}
                         value={value}
                         defaultChecked={
                             getDefault(props).includes(value)
                         }
                         onChange={props.onChange}
                     />
-                    <label htmlFor={value + props.index}>{value}</label>
+                    <label htmlFor={value + props.fieldKey}>{value}</label>
                 </div>
             );
         })
@@ -35,6 +35,7 @@ const InputList = (props) => {
 };
 
 InputList.defaultProps = {
+    fieldKey:'',
     title:'',
     mandatory:false,
     value:'',

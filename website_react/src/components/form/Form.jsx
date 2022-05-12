@@ -12,18 +12,20 @@ const Form = (props) => {
     const form = []
     form.push(
         fields.map((field, index) => {
-            const key = `${field.id ? field.id : index}`
+            const key = `${field.id ? field.id : field.key}`
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
                     return (
                         <InputString
+                            index={index}
                             key={key}
                             title={field.title}
                             mandatory={field.mandatory}
                             value={field.value}
                             default_value={field.default_value}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 case "integer":
@@ -36,6 +38,7 @@ const Form = (props) => {
                             value={field.value}
                             default_value={field.default_value}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 case "boolean":
@@ -48,6 +51,7 @@ const Form = (props) => {
                             value={field.value}
                             default_value={field.default_value}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 case "enum":
@@ -62,6 +66,7 @@ const Form = (props) => {
                             multiple_selection={field.multiple_selection}
                             options={field.options}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 case "list":
@@ -76,6 +81,7 @@ const Form = (props) => {
                             multiple_selection={field.multiple_selection}
                             options={field.options}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 case "dropdown":
@@ -89,6 +95,7 @@ const Form = (props) => {
                             default_value={field.default_value}
                             options={field.options}
                             onChange={props.onChange.bind(this, field)}
+                            fieldKey={key}
                         />
                     );
                 default:

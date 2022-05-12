@@ -41,3 +41,7 @@ export const toCamelCase = (str) => {
     const newStr = str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (n, chr) => chr.toUpperCase())
     return newStr.charAt(0).toUpperCase() + newStr.slice(1)
 }
+
+export const getValueAtPath = (obj, path) => {
+    return path.reduce((key, val) => key && key[val] ? key[val] : '', obj);
+}

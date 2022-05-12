@@ -1,4 +1,4 @@
-import { isObject } from "./commonUtils"
+import { isObject, getValueAtPath } from "./commonUtils"
 import {rename} from './yamlDataUtils/rename'
 import * as update from './yamlDataUtils/update'
 import * as create from './yamlDataUtils/create'
@@ -19,11 +19,11 @@ export class YamlData {
             this.coreLibName = value
         }
         else {
-            const objField = steps.reduce((key, val) => key && key[val] ? key[val] : '', data);
+            const objField = getValueAtPath(data, steps)
             const fieldName = steps[steps.length - 1]
             if (isObject(objField)) {
                 const oldKeyName = steps[steps.length - 1]
-                const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
+                const parent = getValueAtPath(data, steps.slice(0, -1))
                 parent[value] = parent[oldKeyName];
                 delete parent[oldKeyName]
                 this.yaml = data
@@ -43,7 +43,7 @@ export class YamlData {
                     this.yaml = update.updateEnv(isEnv, value, this.yaml)
                     return path
                 }
-                const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
+                const parent = getValueAtPath(data, steps.slice(0, -1));
                 parent[fieldName] = value;
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('config.data')) {
@@ -85,7 +85,7 @@ export class YamlData {
         const data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         const oldKeyName = steps[steps.length - 1]
-        const parent = steps.slice(0, -1).reduce((key, val) => key && key[val] ? key[val] : '', data);
+        const parent = getValueAtPath(data, steps.slice(0, -1));
         delete parent[oldKeyName]
         this.yaml = data
     }

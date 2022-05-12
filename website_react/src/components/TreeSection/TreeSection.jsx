@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import CollapseExpand from "../collapseExpand/CollapseExpand";
-import HoverVisible from "../hoverVisible/HoverVisible";
+import TreeBranch from "../treeBranch/TreeBranch";
 import "./TreeSection.scss";
 
 const TreeSection = (props) => {
@@ -19,7 +19,7 @@ const TreeSection = (props) => {
 		for (const [i, item] of props.items.entries()) {
 			items.push(
 				<div key={item.name} className={"node-child"}>
-					<HoverVisible
+					<TreeBranch
 						path={item.path}
 						onTitleClick={props.onClick}
 						onImageClick={props.onDeleteClick}
@@ -34,7 +34,7 @@ const TreeSection = (props) => {
 	return (
 		<div className={["tree-section"]}>
 			<div className={["node-title"]}>
-				<HoverVisible
+				<TreeBranch
 					onTitleClick={props.onTitleClick}
 					onClick={props.onClick.bind(this, props.items)}
 					path={props.path}

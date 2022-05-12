@@ -1,42 +1,16 @@
-import { useState } from "react";
-import "./HoverVisible.scss";
+import './HoverVisible.scss'
 
-const HoverVisible = (props) => {
-	const [visible, setVisible] = useState(false);
-	const [active, setActive] = useState(false)
+const HoverVisible = (props) =>{
 
-	return (
-		<div
-			onMouseEnter={() => setVisible(true)}
-			onMouseLeave={() => setVisible(false)}
-			onMouseOver={() => setVisible(true)}
-			className={["hover-root", active ? "active" : ""].join(' ')}
-		>
-			<div onClick={props.onTitleClick.bind(this, props.path)}>
-				{props.icon} {props.title}
-			</div>
-			<div onClick={props.onImageClick.bind(this, props.path)}>
-				<img
-					alt={"hover img"}
-					src={props.image}
-					className={[
-						"hover-img",
-						visible ? "visible" : "hidden",
-					].join(" ")}
-				/>
-			</div>
-		</div>
-	);
-};
+    return(
+        <div className={['hover-visible', props.isVisible ? 'visible' : ''].join(' ')}>
+            {props.children}
+        </div>
+    )
+}
 
 HoverVisible.defaultProps = {
-	title: "",
-	image: "",
-	path: "",
-	icon: "",
-	onClick: () => {},
-	onImageClick: () => {},
-	onTitleClick: () => {},
-};
+    isVisible: false,
+}
 
 export default HoverVisible;
