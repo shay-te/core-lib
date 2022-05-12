@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import gfm from 'remark-gfm'
-import CodeBlock from "../../components/codeBlock/CodeBlock";
+import CodeBlock from "../../components/markdown/codeBlock/CodeBlock";
 
 import "./Document.scss";
 import { useParams } from "react-router-dom";
