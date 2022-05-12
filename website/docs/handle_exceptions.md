@@ -1,5 +1,5 @@
 ---
-id: handle_exception
+id: handle_exceptions
 title: HandleException Decorator
 sidebar_label: handle_exception Decorator
 ---
