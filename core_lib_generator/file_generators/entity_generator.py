@@ -25,11 +25,12 @@ def _add_columns_to_entity(template_content: str, columns: dict) -> str:
     import_data_types = ['INTEGER']
     id_str = 'id = Column(INTEGER, primary_key=True, nullable=False)'
     columns_list = [id_str]
-    for key in columns:
-        import_data_types.append(get_dict_attr(columns, f'{key}.type'))
-        column_type = columns[key]['type']
-        default = None if not get_dict_attr(columns, f'{key}.default') else get_dict_attr(columns, f'{key}.default')
-        columns_str = f'{key} = Column({column_type}, nullable=False, default={default})'
+    for column in columns:
+        import_data_types.append(get_dict_attr(column, 'type'))
+        column_type = column['type']
+        column_name = get_dict_attr(column, 'key')
+        default = None if not get_dict_attr(column, 'default') else get_dict_attr(column, 'default')
+        columns_str = f'{column_name} = Column({column_type}, nullable=False, default={default})'
         columns_list.append(add_tab_spaces(columns_str))
     updated_file = template_content.replace('# template_column', '\n'.join(columns_list))
     imports_to_add = ', '.join(set(import_data_types))

@@ -1,32 +1,37 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_enum, input_int, input_str
+from core_lib.helpers.shell_utils import input_enum, input_int, input_str, input_yes_no
 
 
-def generate_cache_template() -> dict:
-    cache_name = input_str('Enter name for your cache')
-    cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?', CacheTypes.Memory.value)
+def generate_cache_template() -> list:
+    cache_list = []
 
-    if cache_type == CacheTypes.Memory.value:
-        print(f'Cache type {CacheTypes(cache_type).name}')
-        return {
-            'config': {
-                cache_name: {
+    add_cache = True
+    while add_cache:
+        cache_name = input_str('Enter name for your cache')
+        cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?',
+                                CacheTypes.Memory.value)
+        if cache_type == CacheTypes.Memory.value:
+            print(f'Cache type {CacheTypes(cache_type).name}')
+            cache_list.append({
+                'config': {
+                    'key': cache_name,
                     'type': CacheTypes(cache_type).name.lower(),
                 }
-            }
-        }
-    elif cache_type == CacheTypes.Empty.value:
-        print('No cache set.')
-    else:
-        cache_type_name = CacheTypes(cache_type).name
-        cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
-        cache_host = input_str(f'Enter your {cache_type_name} server host', 'localhost')
-        cache_protocol = None
-        if cache_type == CacheTypes.Redis.value:
-            cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
-        print(f'Cache type {cache_type_name} on {cache_host}:{cache_port}')
-        return _generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol)
+            })
+        elif cache_type == CacheTypes.Empty.value:
+            print('No cache set.')
+        else:
+            cache_type_name = CacheTypes(cache_type).name
+            cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
+            cache_host = input_str(f'Enter your {cache_type_name} server host', 'localhost')
+            cache_protocol = None
+            if cache_type == CacheTypes.Redis.value:
+                cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
+            print(f'Cache type {cache_type_name} on {cache_host}:{cache_port}')
+            cache_list.append(_generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol))
+        add_cache = input_yes_no('Do you want to add another cache', False)
+    return cache_list
 
 
 def _generate_cache_config(
@@ -36,34 +41,32 @@ def _generate_cache_config(
     if cache_type == CacheTypes.Redis.value:
         return {
             'env': {
-                f'{cache_type_name.upper()}_PORT': cache_port,
-                f'{cache_type_name.upper()}_HOST': cache_host,
+                f'{cache_name.upper()}_PORT': cache_port,
+                f'{cache_name.upper()}_HOST': cache_host,
             },
             'config': {
-                cache_name: {
-                    'type': cache_type_name.lower(),
-                    'url': {
-                        'host': f'${{oc.env:{cache_type_name.upper()}_HOST}}',
-                        'port': f'${{oc.env:{cache_type_name.upper()}_PORT}}',
-                        'protocol': cache_protocol,
-                    },
-                }
+                'key': cache_name,
+                'type': cache_type_name.lower(),
+                'url': {
+                    'host': f'${{oc.env:{cache_name.upper()}_HOST}}',
+                    'port': f'${{oc.env:{cache_name.upper()}_PORT}}',
+                    'protocol': cache_protocol,
+                },
             },
         }
     else:
         return {
             'env': {
-                f'{cache_type_name.upper()}_PORT': cache_port,
-                f'{cache_type_name.upper()}_HOST': cache_host,
+                f'{cache_name.upper()}_PORT': cache_port,
+                f'{cache_name.upper()}_HOST': cache_host,
             },
             'config': {
-                cache_name: {
-                    'type': cache_type_name.lower(),
-                    'url': {
-                        'host': f'${{oc.env:{cache_type_name.upper()}_HOST}}',
-                        'port': f'${{oc.env:{cache_type_name.upper()}_PORT}}',
-                    },
-                }
+                'key': cache_name,
+                'type': cache_type_name.lower(),
+                'url': {
+                    'host': f'${{oc.env:{cache_name.upper()}_HOST}}',
+                    'port': f'${{oc.env:{cache_name.upper()}_PORT}}',
+                },
             },
         }
 

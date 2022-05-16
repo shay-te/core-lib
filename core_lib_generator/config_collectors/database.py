@@ -24,11 +24,13 @@ def generate_db_template() -> dict:
         db_create = None
         db_pool_recycle = None
         db_pool_pre_ping = None
+        migrate = False
         if db_type != DBTypes.MongoDB.value:
             db_log_queries = input_yes_no('Do you want to log queries?', False)
             db_create = input_yes_no('Do you want create Database?', True)
             db_pool_recycle = input_int('Enter the pool recycle time', 3200)
             db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+            migrate = input_yes_no(f'Do you want to create a migration?', False)
         if db_type != DBTypes.SQLite.value:
             db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
             db_host = input_str('Enter host of your DB', 'localhost')
@@ -49,6 +51,7 @@ def generate_db_template() -> dict:
             db_create,
             db_pool_recycle,
             db_pool_pre_ping,
+            migrate
         )
     return db_template
 
@@ -87,12 +90,15 @@ def _generate_db_config(
     db_create: bool = True,
     db_pool_recycle: int = 3200,
     db_pool_pre_ping: bool = False,
+    migrate: bool = False
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
     if db_type == DBTypes.MongoDB.value:
         return {
             'env': config['env'],
             'config': {
+                'key': db_name,
+                'migrate': migrate,
                 'url': config['url'],
             },
         }
@@ -100,6 +106,8 @@ def _generate_db_config(
         return {
             'env': config['env'],
             'config': {
+                'key': db_name,
+                'migrate': migrate,
                 'log_queries': db_log_queries,
                 'create_db': db_create,
                 'session': {

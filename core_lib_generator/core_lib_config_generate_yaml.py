@@ -22,11 +22,15 @@ def _get_env_variables(data):
 
 
 config = {}
-config.setdefault('data', {})
+config.setdefault('data', [])
+config.setdefault('cache', [])
+config.setdefault('jobs', [])
 setup = {}
 setup.setdefault('data', {})
 env = {}
 data_layers = {}
+data_layers.setdefault('data', [])
+data_layers.setdefault('data_access', [])
 
 
 def _get_data_layers_config():
@@ -36,7 +40,7 @@ def _get_data_layers_config():
         db = generate_db_template()
         env.update(_get_env_variables(db))
         for db_name in db:
-            config['data'][db_name] = db[db_name]['config']
+            config['data'].append(db[db_name]['config'])
         want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
         if want_entities:
             print('Please fill out the requested information for creating entities in Database.')
@@ -60,10 +64,11 @@ def _get_solr_config():
 
 def _get_cache_config():
     print('Please fill out the requested Cache information.')
-    cache = generate_cache_template()
-    if 'env' in cache:
-        env.update(_get_env_variables(cache))
-    config['cache'] = cache['config']
+    cache_list = generate_cache_template()
+    for cache in cache_list:
+        if 'env' in cache:
+            env.update(_get_env_variables(cache))
+        config['cache'].append(cache['config'])
 
 
 def _get_setup_details():
@@ -80,10 +85,14 @@ def _get_jobs_config(core_lib_name: str):
 def create_yaml_file(core_lib_name: str):
     conf = OmegaConf.create(
         {
-            core_lib_name: {
+            'core_lib': {
+                'name': core_lib_name,
                 'env': env,
-                'config': config,
-                'data_layers': data_layers,
+                'connections': config['data'],
+                'caches': config['cache'],
+                'jobs': config['jobs'],
+                'entities': data_layers['data'],
+                'data_accesses': data_layers['data_access'],
                 'setup': setup['data'],
             }
         }
