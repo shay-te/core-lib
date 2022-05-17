@@ -8,7 +8,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import { testInput } from './testInput';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 function App() {
 	const yamlData = useSelector((state) => state.treeData.yaml);
@@ -27,7 +27,7 @@ function App() {
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env }))
+			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, checked: e.target.checked}))
 		}
 	}
 	return (

@@ -46,6 +46,7 @@ export const setupFields = (yamlData) => {
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Typing :: Typed',
         ],
+        key: keyPrefix + '.classifiers',
     },
     {
         title: "Project Description",

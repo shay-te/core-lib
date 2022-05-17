@@ -3,26 +3,26 @@ import { getBoolean, getENVValue } from '../utils/commonUtils';
 export const dbConnectionFields = (path, yamlData) => {
     const fields = [];
     const pathSplit = path.split('.')
-    const CoreLibName = pathSplit.at(0)
-    const dbConn = pathSplit.at(pathSplit.indexOf('data')+1) 
-    const keyPrefix = CoreLibName + '.config.data.' + dbConn
-    const dbConnections =  yamlData[CoreLibName]['config']['data']
+    const dbConnections =  yamlData.core_lib.connections
+    const index = pathSplit.at(pathSplit.indexOf('connections')+1)
+    const dbConn = dbConnections[index] 
+    const keyPrefix = `core_lib.connections.${index}`
     const dbConnList = Object.keys(dbConnections)
     fields.push(
         {
             title: "What is the name of the DB connection?",
             type: "string",
             default_value: null,
-            value: dbConn,
+            value: dbConn.key,
             mandatory: true,
-            key: keyPrefix,
+            key: keyPrefix + '.key',
             // validatorCallback: validateFunc,
         },
         {
             title: "Select DB connection",
             type: "enum",
             mandatory: true,
-            value: dbConnections[dbConn]["url"]["protocol"],
+            value: dbConn["url"]["protocol"],
             // validatorCallback: validateFunc,
             options: [
                 "SQLite",
@@ -32,18 +32,17 @@ export const dbConnectionFields = (path, yamlData) => {
                 "MSSQL",
                 "Firebird",
                 "Sybase",
-                "MongoDB",
             ],
             key: keyPrefix + '.url.protocol',
         }
     );
-    if (dbConnections[dbConn]["url"]["protocol"].toLowerCase() !== "mongodb") {
+    if (dbConn["url"]["protocol"].toLowerCase() !== "mongodb") {
         fields.push(
             {
                 title: "Do you want to log queries?",
                 type: "boolean",
                 default_value: false,
-                value: dbConnections[dbConn]["log_queries"],
+                value: dbConn["log_queries"],
                 mandatory: true,
                 key: keyPrefix + '.log_queries',
                 // validatorCallback: validateFunc,
@@ -52,7 +51,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 title: "Do you want create Database?",
                 type: "boolean",
                 default_value: true,
-                value: dbConnections[dbConn]["create_db"],
+                value: dbConn["create_db"],
                 mandatory: true,
                 key: keyPrefix + '.create_db',
                 // validatorCallback: validateFunc,
@@ -61,7 +60,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 title: "Enter the pool recycle time",
                 type: "integer",
                 default_value: 3200,
-                value: dbConnections[dbConn]["session"]["pool_recycle"],
+                value: dbConn["session"]["pool_recycle"],
                 mandatory: true,
                 key: keyPrefix + '.session.pool_recycle',
                 // validatorCallback: validateFunc,
@@ -70,7 +69,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 title: "Do you want to set pool pre ping?",
                 type: "boolean",
                 default_value: false,
-                value: getBoolean(dbConnections[dbConn]["session"]["pool_pre_ping"]),
+                value: getBoolean(dbConn["session"]["pool_pre_ping"]),
                 mandatory: true,
                 key: keyPrefix + '.session.pool_pre_ping',
                 // validatorCallback: validateFunc,
@@ -78,14 +77,14 @@ export const dbConnectionFields = (path, yamlData) => {
         );
     }
 
-    if (dbConnections[dbConn]["url"]["protocol"].toLowerCase() !== "sqlite" ) {
-        const envPrefix =  CoreLibName+'.env.'+dbConn.toUpperCase()
+    if (dbConn["url"]["protocol"].toLowerCase() !== "sqlite" ) {
+        const envPrefix = `core_lib.env.${dbConn.key.toUpperCase()}`
         fields.push(
             {
                 title: "Enter the port no. of your DB",
                 type: "integer",
                 default_value: null,
-                value: getENVValue(dbConnections[dbConn]["url"]["port"], yamlData),
+                value: getENVValue(dbConn["url"]["port"], yamlData),
                 mandatory: true,
                 key: `${keyPrefix}.url.port`,
                 env: `${envPrefix}_PORT`,
@@ -95,7 +94,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 title: "Enter host of your DB",
                 type: "string",
                 default_value: "localhost",
-                value: getENVValue(dbConnections[dbConn]["url"]["host"], yamlData),
+                value: getENVValue(dbConn["url"]["host"], yamlData),
                 mandatory: true,
                 key: `${keyPrefix}.url.host`,
                 env: `${envPrefix}_HOST`,
@@ -106,7 +105,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 type: "string",
                 default_value: "user",
                 value: getENVValue(
-                    dbConnections[dbConn]["url"]["username"], yamlData
+                    dbConn["url"]["username"], yamlData
                 ),
                 mandatory: true,
                 key: `${keyPrefix}.url.username`,
@@ -118,7 +117,7 @@ export const dbConnectionFields = (path, yamlData) => {
                 type: "string",
                 default_value: null,
                 value: getENVValue(
-                    dbConnections[dbConn]["url"]["password"], yamlData
+                    dbConn["url"]["password"], yamlData
                 ),
                 mandatory: true,
                 key: `${keyPrefix}.url.password`,

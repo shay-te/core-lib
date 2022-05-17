@@ -12,7 +12,6 @@ const TreeSection = (props) => {
 	};
 
 	const items = [];
-
 	if (props.isNested) {
 		items.push(props.items);
 	} else {

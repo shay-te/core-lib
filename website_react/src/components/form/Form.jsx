@@ -4,6 +4,7 @@ import InputInteger from '../inputs/InputInteger'
 import InputBoolean from '../inputs/InputBoolean'
 import InputENUM from '../inputs/InputENUM'
 import InputList from '../inputs/InputList'
+import ColumnsTable from "../columnsTable/ColumnsTable";
 import { useSelector } from "react-redux";
 import InputDropDown from '../inputs/InputDropDown'
 
@@ -12,7 +13,7 @@ const Form = (props) => {
     const form = []
     form.push(
         fields.map((field, index) => {
-            const key = `${field.id ? field.id : field.key}`
+            const key = `${field.key}`
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
@@ -93,11 +94,21 @@ const Form = (props) => {
                             mandatory={field.mandatory}
                             value={field.value}
                             default_value={field.default_value}
-                            options={field.options}
                             onChange={props.onChange.bind(this, field)}
                             fieldKey={key}
                         />
                     );
+                case "columns":
+                    return(
+                        <ColumnsTable
+                            index={index}
+                            key={key}
+                            title={field.title}
+                            value={field.value}
+                            onChange={props.onChange}
+                            fieldKey={key}
+                        />
+                    )
                 default:
                     return ''
             }
