@@ -80,4 +80,5 @@ class DBDatatypes(enum.Enum):
 #     print(generate_db_entity_template({'userdb': {'db_connection': 'sql'}}))
 
 if __name__ == '__main__':
-    print({'db': input_str(f'Enter the default value of column', None, True, None, '', True)})
+    from omegaconf import OmegaConf
+    print(OmegaConf.to_yaml(OmegaConf.create({'db': input_str(f'Enter the default value of column', None, True, None, '', True)})))

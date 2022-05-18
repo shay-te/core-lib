@@ -30,7 +30,6 @@ def input_str(
     while result is None:
         new_title = title if is_result_valid else title_validate_value_fail
         user_input = _input(f'{new_title} {_print_default(default_value, allow_none)}: ')
-        print(user_input)
         user_input = _get_value(user_input, default_value)
         if allow_none and str(user_input) == '':
             break
