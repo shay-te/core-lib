@@ -150,7 +150,6 @@ def input_url(title: str, default_value: str = None, allow_empty: bool = False) 
 def _input(print_str: str) -> str:
     user_input = input(print_str)
     return user_input.strip()
-    # .strip('"').strip("'")
 
 
 def _get_value(value, default_value=None):
