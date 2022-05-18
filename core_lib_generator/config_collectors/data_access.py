@@ -2,16 +2,14 @@ import enum
 
 from core_lib.helpers.shell_utils import input_str, input_yes_no
 from core_lib.helpers.string import any_to_pascal
+from core_lib_generator.generator_utils.helpers import is_exists
 
 
 def generate_data_access_template(db_entities: list) -> list:
     data_access = []
 
-    def is_exists(user_input: str):
-        for da in data_access:
-            if da['key'] == user_input:
-                return False
-        return True
+    def is_exists_data_access(user_input: str):
+        return is_exists(user_input, data_access)
 
     if db_entities:
         for entity in db_entities:
@@ -19,7 +17,7 @@ def generate_data_access_template(db_entities: list) -> list:
             db_conn = entity['db_connection']
             default = (
                 f'{any_to_pascal(entity_name)}DataAccess'
-                if is_exists(f'{any_to_pascal(entity_name)}DataAccess')
+                if is_exists_data_access(f'{any_to_pascal(entity_name)}DataAccess')
                 else None
             )
             data_access_name = any_to_pascal(
@@ -27,7 +25,7 @@ def generate_data_access_template(db_entities: list) -> list:
                     f'What is the name of the data access? (Database connection: {db_conn}, Entity: {entity_name})',
                     default,
                     False,
-                    is_exists,
+                    is_exists_data_access,
                 )
             )
             is_crud_soft_delete_token = False
