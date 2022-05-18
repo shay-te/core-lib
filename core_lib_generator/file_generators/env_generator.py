@@ -4,8 +4,8 @@ from core_lib_generator.file_generators.template_generator import TemplateGenera
 class EnvGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         env_list = []
-        for env in yaml_data:
-            env_list.append(f'{env}={yaml_data[env]}')
+        for key, value in yaml_data.items():
+            env_list.append(f'{key}={value}')
         updated_file = template_content.replace('#template', '\n'.join(env_list))
         return updated_file
 
