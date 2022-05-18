@@ -32,13 +32,13 @@ def generate_data_access_template(db_entities: list) -> list:
             )
             is_crud_soft_delete_token = False
             is_crud_soft_delete = False
-            if entity['is_soft_delete'] and entity['is_soft_delete_token']:
+            if entity.get('is_soft_delete') and entity.get('is_soft_delete_token'):
                 is_crud_soft_delete_token = input_yes_no(
                     'Do you want to implement CRUD Soft Delete Token on your data access?', False
                 )
                 is_crud_soft_delete = is_crud_soft_delete_token
                 is_crud = is_crud_soft_delete_token
-            elif entity['is_soft_delete'] and not entity['is_soft_delete_token']:
+            elif entity.get('is_soft_delete') and not entity.get('is_soft_delete_token'):
                 is_crud_soft_delete = input_yes_no(
                     'Do you want to implement CRUD Soft Delete on your data access?', False
                 )

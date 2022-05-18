@@ -1,16 +1,15 @@
 import enum
 
+from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.shell_utils import input_bool, input_str, input_int, input_enum, input_yes_no
 
 
 def generate_db_entity_template(db: dict) -> list:
     entities = []
     for db_conn in db:
-        # entities.setdefault(db_conn, {})
-
         def is_exists(user_input: str):
             for entity in entities:
-                if entity['key'] == user_input and entity['db_connection'] == db_conn:
+                if entity.get('key') == user_input and entity.get('db_connection') == db_conn:
                     return False
             return True
 
@@ -22,16 +21,17 @@ def generate_db_entity_template(db: dict) -> list:
                 'Enter the name of the database entity you\'d like to create', None, False, is_exists
             )
             columns = []
-            if db[db_conn]['config']['url']['protocol'] != 'mongodb':
+            print(f'{db_conn}.config.url.protocol')
+            if get_dict_attr(db, f'{db_conn}.config.url.protocol') != 'mongodb':
                 add_columns = input_yes_no(f'Do you want to add columns to `{entity_name}` entity?', True)
 
-                def is_exists_column(user_input: str):
+                def is_exists_(user_input: str, items: list) -> bool:
                     for column in columns:
                         if column['key'] == user_input:
                             return False
                     return True
                 while add_columns:
-                    column_name = input_str(f'Enter the name of column', None, False, is_exists_column)
+                    column_name = input_str(f'Enter the name of column', None, False, is_exists)
                     column_type = input_enum(
                         DBDatatypes,
                         f'From the following list, select the relevant number for datatype',
