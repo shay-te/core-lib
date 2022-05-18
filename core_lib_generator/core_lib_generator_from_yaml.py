@@ -9,6 +9,7 @@ from core_lib_generator.file_generators.config_generator import ConfigGenerateTe
 from core_lib_generator.file_generators.core_lib_class_generator import CoreLibClassGenerateTemplate
 from core_lib_generator.file_generators.default_config_generator import DefaultConfigGenerateTemplate
 from core_lib_generator.file_generators.dockerignore_generator import DockerIgnoreGenerateTemplate
+from core_lib_generator.file_generators.env_generator import EnvGenerateTemplate
 from core_lib_generator.file_generators.gitignore_generator import GitIgnoreGenerateTemplate
 from core_lib_generator.file_generators.hydra_plugins_generator import HydraPluginsGenerateTemplate
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate
@@ -28,6 +29,7 @@ class CoreLibGenerator:
         self.core_lib_name = config.core_lib.name
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
 
+        self.core_lib_env = get_dict_attr(config['core_lib'], 'env')
         self.core_lib_data_conn = get_dict_attr(config['core_lib'], 'connections')
         self.core_lib_entities = get_dict_attr(config['core_lib'], 'entities')
         self.core_lib_data_access = get_dict_attr(config['core_lib'], 'data_accesses')
@@ -137,6 +139,9 @@ class CoreLibGenerator:
     def generate_manifest(self):
         self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate())
 
+    def generate_env(self):
+        self._generate_template(f'{self.snake_core_lib_name}/.env', self.core_lib_env, EnvGenerateTemplate())
+
     def generate_setup(self):
         if self.core_lib_setup:
             self._generate_template(
@@ -167,4 +172,5 @@ class CoreLibGenerator:
         self.generate_requirements()
         self.generate_default_config()
         self.generate_manifest()
+        self.generate_env()
         self.generate_setup()
