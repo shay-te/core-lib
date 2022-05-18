@@ -6,12 +6,12 @@ from core_lib.helpers.shell_utils import input_str, input_enum, input_yes_no, in
 def generate_db_template() -> dict:
     db_template = {}
 
-    def is_exists(user_input: str):
+    def is_exists_conn(user_input: str):
         return False if user_input in db_template else True
 
     add_db = True
     while add_db:
-        db_name = input_str('What is the name of the DB connection?', None, False, is_exists)
+        db_name = input_str('What is the name of the DB connection?', None, False, is_exists_conn)
 
         db_type = input_enum(
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value

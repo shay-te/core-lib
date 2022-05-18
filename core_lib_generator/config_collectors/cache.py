@@ -1,14 +1,21 @@
 import enum
 
+from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.shell_utils import input_enum, input_int, input_str, input_yes_no
 
 
 def generate_cache_template() -> list:
     cache_list = []
 
+    def is_exists_cache(user_input: str) -> bool:
+        for cache in cache_list:
+            if get_dict_attr(cache, 'config.key') == user_input:
+                return False
+        return True
+
     add_cache = True
     while add_cache:
-        cache_name = input_str('Enter name for your cache')
+        cache_name = input_str('Enter name for your cache', None, False, is_exists_cache)
         cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?',
                                 CacheTypes.Memory.value)
         if cache_type == CacheTypes.Memory.value:
@@ -83,3 +90,6 @@ default_cache_ports = {
     CacheTypes.Memcached.name: 11211,
     CacheTypes.Redis.name: 6379,
 }
+
+if __name__ == '__main__':
+    generate_cache_template()
