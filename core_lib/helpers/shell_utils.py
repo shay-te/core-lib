@@ -18,21 +18,25 @@ def input_yes_no(title: str, default_value: bool = None) -> bool:
 
 
 def input_str(
-    title: str,
-    default_value: str = None,
-    allow_empty: bool = False,
-    validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
-    title_validate_value_fail: str = 'Result value invalid',
+        title: str,
+        default_value: str = None,
+        allow_empty: bool = False,
+        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+        title_validate_value_fail: str = 'Result value invalid',
+        allow_none: bool = False
 ) -> str:
     result = None
     is_result_valid = True
     while result is None:
         new_title = title if is_result_valid else title_validate_value_fail
-        user_input = _input(f'{new_title} {_print_default(default_value)}: ')
+        user_input = _input(f'{new_title} {_print_default(default_value, allow_none)}: ')
+        print(user_input)
         user_input = _get_value(user_input, default_value)
-        if allow_empty and str(user_input) == '':
+        if allow_none and str(user_input) == '':
+            break
+        if allow_empty and str(user_input) == "''":
             result = str(user_input)
-        if str(user_input):
+        if str(user_input) and user_input is not None:
             if validate_value_callback and not validate_value_callback(user_input):
                 result = None
                 is_result_valid = False
@@ -42,23 +46,27 @@ def input_str(
     return result
 
 
-def input_int(title: str, default_value: int = None) -> int:
+def input_int(title: str, default_value: int = None, allow_none: bool = False) -> int:
     result = None
     while result is None:
-        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        user_input = _input(f'{title} {_print_default(default_value, allow_none)}: ')
         user_input = _get_value(user_input, default_value)
         if is_int(user_input):
             result = int(user_input)
+        if allow_none and result is None:
+            break
     return result
 
 
-def input_bool(title: str, default_value: str = None) -> bool:
+def input_bool(title: str, default_value: str = None, allow_none: bool = False) -> bool:
     result = None
     while result is None:
-        user_input = _input(f'{title} {_print_default(default_value)}: ')
+        user_input = _input(f'{title} {_print_default(default_value, allow_none)}: ')
         user_input = _get_value(user_input, default_value)
         if user_input.lower() in ['true', 'false', '0', '1']:
             result = True if user_input.lower in ['true', '1'] else False
+        if allow_none and result is None:
+            break
     return result
 
 
@@ -77,9 +85,9 @@ def input_timeframe(title: str, default_value: str = None, allow_empty: bool = F
 
 
 def input_enum(
-    enum_class: enum,
-    title: str,
-    default_value: int = None,
+        enum_class: enum,
+        title: str,
+        default_value: int = None,
 ) -> int:
     enum_values = set()
     for item in enum_class:
@@ -95,11 +103,11 @@ def input_enum(
 
 
 def input_list(
-    list_value: list,
-    title: str,
-    default_value: int = None,
-    validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
-    title_validate_value_fail: str = 'Value already present',
+        list_value: list,
+        title: str,
+        default_value: int = None,
+        validate_value_callback: Callable[[dict], Awaitable[dict]] = None,
+        title_validate_value_fail: str = 'Value already present',
 ):
     [print(f'{list_value.index(i) + 1}-{i}') for i in list_value]
     result = None
@@ -142,7 +150,8 @@ def input_url(title: str, default_value: str = None, allow_empty: bool = False) 
 
 def _input(print_str: str) -> str:
     user_input = input(print_str)
-    return user_input.strip().strip('"').strip("'")
+    return user_input.strip()
+    # .strip('"').strip("'")
 
 
 def _get_value(value, default_value=None):
@@ -152,9 +161,11 @@ def _get_value(value, default_value=None):
         return value
 
 
-def _print_default(default_value) -> str:
+def _print_default(default_value, allow_none: bool = False) -> str:
     if default_value is not None:
         return f'[default: {default_value}]'
+    elif default_value is None and allow_none:
+        return '[None]'
     else:
         return '[Mandatory Input]'
 

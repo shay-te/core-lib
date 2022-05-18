@@ -1,0 +1,46 @@
+core_lib:
+  name: MyCoreLib
+  env:
+    UPDATE_PORT: 6379
+    UPDATE_HOST: localhost
+  connections:
+  - key: userdb
+    migrate: false
+    log_queries: false
+    create_db: true
+    session:
+      pool_recycle: 3200
+      pool_pre_ping: false
+    url:
+      protocol: sqlite
+  caches:
+  - key: update
+    type: redis
+    url:
+      host: ${oc.env:UPDATE_HOST}
+      port: ${oc.env:UPDATE_PORT}
+      protocol: redis
+  jobs: []
+  entities:
+  - key: details
+    db_connection: userdb
+    columns:
+    - key: name
+      type: VARCHAR
+      default: null
+      nullable: true
+    - key: active
+      type: BOOLEAN
+      default: null
+      nullable: true
+    - key: address
+      type: VARCHAR
+      default: null
+      nullable: true
+    is_soft_delete: false
+    is_soft_delete_token: false
+  data_accesses:
+  - key: DetailsDataAccess
+    entity: details
+    db_connection: userdb
+  setup: {}

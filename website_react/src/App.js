@@ -27,6 +27,7 @@ function App() {
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
+			console.log({ path: field.key, value: e.target.value, env: field.env, checked: e.target.checked})
 			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, checked: e.target.checked}))
 		}
 	}

@@ -37,6 +37,10 @@ export class YamlData {
                     this.yaml = update.updateSetup(path, value, this.yaml, checked)
                     return path
                 }
+                if(path.includes('core_lib.entities') && path.includes('nullable')){
+                    this.yaml = update.updateNullable(path, value, this.yaml, checked)
+                    return path
+                }
                 const parent = getValueAtPath(data, steps.slice(0, -1));
                 parent[fieldName] = value;
                 data = rename(path, value, data, this.yaml)

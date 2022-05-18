@@ -93,17 +93,20 @@ module.exports.testInput = {
             {
               "key": "username",
               "type": "VARCHAR",
-              "default": ""
+              "default": null,
+              "nullable": true
             },
             {
               "key": "password",
               "type": "VARCHAR",
-              "default": ""
+              "default": "",
+              "nullable": true
             },
             {
               "key": "active",
               "type": "BOOLEAN",
-              "default": false
+              "default": false,
+              "nullable": true
             }
           ],
           "is_soft_delete": true,
@@ -116,17 +119,20 @@ module.exports.testInput = {
             {
               "key": "username",
               "type": "VARCHAR",
-              "default": ""
+              "default": "",
+              "nullable": true
             },
             {
               "key": "password",
               "type": "VARCHAR",
-              "default": ""
+              "default": "",
+              "nullable": true
             },
             {
               "key": "active",
               "type": "BOOLEAN",
-              "default": false
+              "default": false,
+              "nullable": true
             }
           ],
           "is_soft_delete": true,
