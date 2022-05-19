@@ -148,3 +148,12 @@ export const updateSetup = (path, value, yamlData, addOrRemove) =>{
     }
     return data
 }
+
+export const updateNullable = (path, value, yamlData, checked) =>{
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const pathSplit = path.split(".")
+    const target = getValueAtPath(data, pathSplit.slice(0, -1))
+    target.nullable = checked
+    return data
+}
+

@@ -67,13 +67,16 @@ core_lib:
     columns:
     - key: username
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: true
     - key: password
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: true
     - key: active
       type: BOOLEAN
       default: false
+      nullable: true
     is_soft_delete: true
     is_soft_delete_token: true
   - key: details
@@ -81,13 +84,16 @@ core_lib:
     columns:
     - key: username
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: false
     - key: password
       type: VARCHAR
-      default: ''
+      default: null
+      nullable: true
     - key: active
       type: BOOLEAN
       default: false
+      nullable: false
     is_soft_delete: true
     is_soft_delete_token: false
   - key: data
@@ -95,7 +101,8 @@ core_lib:
     columns:
     - key: address
       type: VARCHAR
-      default: ''
+      default: null
+      nullable: true
     is_soft_delete: false
     is_soft_delete_token: false
   - key: post_data

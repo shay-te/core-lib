@@ -1,5 +1,6 @@
 import InputDropDown from "../inputs/InputDropDown";
 import InputString from "../inputs/InputString";
+import InputCheckbox from "../inputs/InputCheckbox";
 
 import { useDispatch } from "react-redux";
 import { deleteFormField, addNewEntry } from "../slices/treeSlice";
@@ -67,6 +68,17 @@ const ColumnsTable = (props) => {
 							})}
 						/>
 					</td>
+					<td key={`${props.fieldKey}.${index}.nullable`}>
+						<InputCheckbox
+							key={`${props.fieldKey}.${index}.nullable`}
+							mandatory={true}
+							value={column.nullable}
+							fieldKey={`${props.fieldKey}.${index}.nullable`}
+							onChange={props.onChange.bind(this, {
+								key: `${props.fieldKey}.${index}.nullable`,
+							})}
+						/>
+					</td>
 					<HoverVisible isVisible={visible}>
 						<td>
 							<button
@@ -92,6 +104,7 @@ const ColumnsTable = (props) => {
 						<th>Name</th>
 						<th>Type</th>
 						<th>Default</th>
+						<th>Nullable</th>
 					</tr>
 					<tbody>{items}</tbody>
 				</table>

@@ -35,19 +35,21 @@ def generate_db_entity_template(db: dict) -> list:
                         DBDatatypes.VARCHAR.value,
                     )
                     if column_type == DBDatatypes.INTEGER.value:
-                        column_default = input_int(f'Enter the default value of column', 0)
+                        column_default = input_int(f'Enter the default value of column', None, True)
                     elif column_type == DBDatatypes.VARCHAR.value:
-                        column_default = input_str(f'Enter the default value of column', '', True)
+                        column_default = input_str(f'Enter the default value of column', None, True, None, '', True)
                     else:
                         column_default = input_bool(
-                            f'Enter the default value of column (true, false, 0(false), 1(true))', 'true'
+                            f'Enter the default value of column (true, false, 0(false), 1(true))', None, True
                         )
+                    nullable = input_yes_no('Do you want the column to be nullable', False)
 
                     columns.append(
                         {
                             'key': column_name,
                             'type': DBDatatypes(column_type).name,
                             'default': column_default,
+                            'nullable': nullable,
                         }
                     )
                     add_columns = input_yes_no(f'Do you want to add another column to `{entity_name}` entity?', True)
