@@ -37,7 +37,7 @@ export class YamlData {
                     this.yaml = update.updateSetup(path, value, this.yaml, checked)
                     return path
                 }
-                if(path.includes('core_lib.entities') && path.includes('nullable')){
+                if(path.includes('core_lib.entities') && path.endsWith('nullable')){
                     this.yaml = update.updateNullable(path, value, this.yaml, checked)
                     return path
                 }
