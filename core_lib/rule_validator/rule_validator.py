@@ -98,7 +98,7 @@ class RuleValidator(object):
                     f'only ISO format is accepted'
                 ) from ex
 
-        elif value and rule.value_type is not type(parsed_value):
+        elif value and not isinstance(parsed_value, rule.value_type):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}`')
 
         try:
