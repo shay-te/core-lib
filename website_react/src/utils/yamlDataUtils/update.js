@@ -135,28 +135,11 @@ export const updateDBConn = (path, value, yamlData, coreLibName) => {
     return data
 }
 
-export const updateMongoEntities = (path, value, yamlData, coreLibName) => {
-    const data = JSON.parse(JSON.stringify(yamlData))
-    const pathSplit = path.split(".")
-    const dbConn = pathSplit.at(pathSplit.indexOf('data') + 1)
-    const entitySteps = [coreLibName, 'data_layers', 'data', dbConn]
-    const target = getValueAtPath(data, entitySteps)
-    Object.keys(target).forEach(entity => {
-        if (entity !== 'migrate') {
-            delete target[entity]['columns']
-            delete target[entity]['is_soft_delete']
-            delete target[entity]['is_soft_delete_token']
-        }
-    })
-
-    return data
-}
-
-export const updateSetup = (path, value, yamlData, checked) =>{
+export const updateSetup = (path, value, yamlData, addOrRemove) =>{
     const data = JSON.parse(JSON.stringify(yamlData))
     const pathSplit = path.split(".")
     const target = getValueAtPath(data, pathSplit)
-    if(checked){
+    if(addOrRemove){
         target.push(value)
     }
     else{

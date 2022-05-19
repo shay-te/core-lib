@@ -12,7 +12,7 @@ import YAML from "yaml";
 
 const Tree = () => {
 	const dataAccess = useSelector((state) => state.treeData.dataAccess);
-	const dbConnections = useSelector((state) => state.treeData.dbConnections);
+	const connections = useSelector((state) => state.treeData.connections);
 	const entities = useSelector((state) => state.treeData.entities);
 	const jobs = useSelector((state) => state.treeData.jobs);
 	const cache = useSelector((state) => state.treeData.cache);
@@ -33,7 +33,7 @@ const Tree = () => {
 	const onEntityClick = (path) => {
 		dispatch(setFields(path));
 	};
-	const onDbConnClick = (path) => {
+	const onConnectionClick = (path) => {
 		dispatch(setFields(path));
 	};
 
@@ -52,7 +52,7 @@ const Tree = () => {
 	const onAddDataAccess = (path) => {
 		dispatch(addNewEntry("data_accesses"));
 	};
-	const onAddDBConnection = (path) => {
+	const onAddConnection = (path) => {
 		dispatch(addNewEntry("connections"));
 	};
 	const onAddCache = (path) => {
@@ -71,26 +71,26 @@ const Tree = () => {
 		download(doc.toString(), `${CoreLibName}.yaml`);
 	};
 
-	const dbConnectionElements = [];
-	dbConnections.forEach((dbConn) => {
-		if (dbConn.hasEntity) {
+	const connectionElements = [];
+	connections.forEach((connection) => {
+		if (connection.hasEntity) {
 			let entityList = [];
 			entities.forEach((connectionEntity) => {
-				if (dbConn.name == connectionEntity.dbConnection) {
+				if (connection.name === connectionEntity.dbConnection) {
 					entityList.push(connectionEntity);
 				}
 			});
-			dbConnectionElements.push(
+			connectionElements.push(
 				<TreeSection
-					path={`db_entity.${dbConn.name}`}
-					key={dbConn.name}
-					title={dbConn.name}
+					path={`db_entity.${connection.name}`}
+					key={connection.name}
+					title={connection.name}
 					items={entityList}
 					onClick={onEntityClick}
 					onDeleteClick={onDeleteClick}
 					onAddClick={onAddEntity}
 					onTitleClick={onCollapseExpand}
-					collapse={treeState[`db_entity.${dbConn.name}`]}
+					collapse={treeState[`db_entity.${connection.name}`]}
 				/>
 			);
 		}
@@ -120,16 +120,16 @@ const Tree = () => {
 						icon={<i className="fa-solid fa-list fa-sm"></i>}
 					/>
 					<TreeSection
-						key={"db_connections"}
-						path={"db_connections"}
-						title="DB Connections"
-						items={dbConnections}
+						key={"connections"}
+						path={"connections"}
+						title="Connections"
+						items={connections}
 						onDeleteClick={onDeleteClick}
-						onClick={onDbConnClick}
+						onClick={onConnectionClick}
 						isNested={false}
-						onAddClick={onAddDBConnection}
+						onAddClick={onAddConnection}
 						onTitleClick={onCollapseExpand}
-						collapse={treeState["db_connections"]}
+						collapse={treeState["connections"]}
 						icon={
 							<i className="fa-solid fa-circle-nodes fa-sm"></i>
 						}
@@ -138,7 +138,7 @@ const Tree = () => {
 						key={"db_entities"}
 						path={"db_entities"}
 						title="DB Entities"
-						items={dbConnectionElements}
+						items={connectionElements}
 						onDeleteClick={onDeleteClick}
 						onTitleClick={onCollapseExpand}
 						isNested={true}

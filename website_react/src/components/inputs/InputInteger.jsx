@@ -1,5 +1,3 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputInteger = (props) => {
     return (
         <div className="form-input-div">
@@ -10,7 +8,7 @@ const InputInteger = (props) => {
                 type={"number"}
                 id={"field-" + props.fieldKey}
                 className="form-input"
-                defaultValue={getDefault(props)}
+                defaultValue={props.value || props.default_value}
                 required={props.mandatory}
                 placeholder="Number input"
                 onChange={props.onChange}

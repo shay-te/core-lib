@@ -5,7 +5,7 @@ import { YamlData } from "./../../utils/YamlData";
 import { dataAccessFields } from '../../fieldsGenerator/dataAccessFields';
 import { setupFields } from '../../fieldsGenerator/setupFields';
 import { entityFields } from '../../fieldsGenerator/entityFields';
-import { dbConnectionFields } from '../../fieldsGenerator/dbConnectionFields';
+import { connectionFields } from '../../fieldsGenerator/connectionFields';
 import { cacheFields } from '../../fieldsGenerator/cacheFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
@@ -14,7 +14,7 @@ const setTreeState = (state, yamlData) => {
     state.dataAccess = yamlData.listChildrenUnderPath('core_lib.data_accesses')
     state.entities = yamlData.listChildrenUnderPath('core_lib.entities')
     state.setup = yamlData.listChildrenUnderPath('core_lib.setup')
-    state.dbConnections = yamlData.listChildrenUnderPath('core_lib.connections')
+    state.connections = yamlData.listChildrenUnderPath('core_lib.connections')
     state.jobs = yamlData.listChildrenUnderPath('core_lib.jobs')
     state.cache = yamlData.listChildrenUnderPath('core_lib.caches')
     state.CoreLibName = yamlData.coreLibName
@@ -24,7 +24,7 @@ const pathToFields = (path, yaml) => {
     if (path.includes('data_accesses')){ return dataAccessFields(path, yaml); }
     if (path.includes('entities')){ return entityFields(path, yaml); }
     if (path.includes('setup')){ return setupFields(yaml); }
-    if (path.includes('connections') || path.includes('env')){ return dbConnectionFields(path, yaml); }
+    if (path.includes('connections') || path.includes('env')){ return connectionFields(path, yaml); }
     if (path.includes('caches') || path.includes('env')){ return cacheFields(path, yaml); }
     if (path.includes('jobs')){ return jobFields(path, yaml); }
     if (path.includes('name')){ return coreLibField(yaml); }
@@ -46,7 +46,7 @@ export const treeSlice = createSlice({
     name: 'tree',
     initialState: {
         dataAccess: [],
-        dbConnections: [],
+        connections: [],
         entities: [],
         jobs: [],
         cache: [],
@@ -72,7 +72,7 @@ export const treeSlice = createSlice({
             state.fields = pathToFields(action.payload, current(state.yaml))
         },
         updateFields: (state, action) => {
-            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.checked)
+            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.addOrRemove)
             state.yaml = yamlData.toJSON()
             state.fields = pathToFields(state.fieldsPath, state.yaml)
             setTreeState(state, yamlData)

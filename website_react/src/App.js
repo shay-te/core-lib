@@ -12,7 +12,6 @@ import { useEffect } from 'react';
 
 function App() {
 	const yamlData = useSelector((state) => state.treeData.yaml);
-	const formFields = useSelector((state) => state.treeData.fields);
 	const dispatch = useDispatch()
 
 	useEffect(() => {
@@ -27,7 +26,7 @@ function App() {
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, checked: e.target.checked}))
+			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked}))
 		}
 	}
 	return (

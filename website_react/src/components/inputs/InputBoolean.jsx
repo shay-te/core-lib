@@ -1,5 +1,3 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputBoolean = (props) => {
     return (
         <div className="form-input-div" key={props.fieldKey}>
@@ -10,7 +8,7 @@ const InputBoolean = (props) => {
                     id={"true" + props.fieldKey}
                     name={"bool" + props.fieldKey}
                     value={true}
-                    defaultChecked={getDefault(props)}
+                    defaultChecked={props.value || props.default_value}
                     required={props.mandatory}
                     onChange={props.onChange}
                 />
@@ -23,7 +21,7 @@ const InputBoolean = (props) => {
                     id={"false" + props.fieldKey}
                     name={"bool" + props.fieldKey}
                     value={false}
-                    defaultChecked={!getDefault(props)}
+                    defaultChecked={!props.value || props.default_value}
                     required={props.mandatory}
                     onChange={props.onChange}
                 />

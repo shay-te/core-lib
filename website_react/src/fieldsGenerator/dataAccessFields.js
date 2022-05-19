@@ -5,12 +5,12 @@ export const dataAccessFields = (path, yamlData) => {
     const dataAccessList = yamlData.core_lib.data_accesses
     const index = pathSplit.at(pathSplit.indexOf('data_accesses')+1)
     const dataAccess = dataAccessList[index]
-    const dbConnections = yamlData.core_lib.connections
+    const connections = yamlData.core_lib.connections
     const fields = []
-    const dbConn = []
+    const connection = []
     const keyPrefix = `core_lib.data_accesses.${index}`
-    dbConnections.forEach(conn => {
-        dbConn.push(conn.key)
+    connections.forEach(conn => {
+        connection.push(conn.key)
     })
     fields.push({
         title: "Data Access Name",
@@ -24,10 +24,10 @@ export const dataAccessFields = (path, yamlData) => {
     {
         title: "DB Connection",
         type: "dropdown",
-        default_value: dbConn[0],
+        default_value: connection[0],
         value: dataAccess['db_connection'],
         mandatory: true,
-        options: dbConn,
+        options: connection,
         key: keyPrefix + '.db_connection',
         // validatorCallback: validateFunc,
     },

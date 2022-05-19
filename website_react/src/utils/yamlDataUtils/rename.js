@@ -38,7 +38,6 @@ const renameEntityEvents = (oldValue, newValue, yamlData) => {
 
 const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
-    const coreLibName = yamlData.core_lib.name
     // Environment varibales
     const envSteps = ['core_lib', 'env']
     const envTarget = getValueAtPath(data, envSteps)

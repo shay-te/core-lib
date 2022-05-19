@@ -2,10 +2,7 @@ import InputDropDown from "../inputs/InputDropDown";
 import InputString from "../inputs/InputString";
 
 import { useDispatch } from "react-redux";
-import {
-	deleteFormField,
-	addNewEntry,
-} from "../slices/treeSlice";
+import { deleteFormField, addNewEntry } from "../slices/treeSlice";
 
 import "./ColumnsTable.scss";
 import HoverVisible from "../hoverVisible/HoverVisible";

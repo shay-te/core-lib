@@ -9,7 +9,7 @@ export class YamlData {
         this.coreLibName = data.core_lib.name
     }
 
-    set(path, value, isEnv, checked) {
+    set(path, value, isEnv, addOrRemove) {
         let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         if (path === 'core_lib.name') {
@@ -34,7 +34,7 @@ export class YamlData {
                     return path
                 }
                 if(path.includes('setup.classifiers')){
-                    this.yaml = update.updateSetup(path, value, this.yaml, checked)
+                    this.yaml = update.updateSetup(path, value, this.yaml, addOrRemove)
                     return path
                 }
                 const parent = getValueAtPath(data, steps.slice(0, -1));
@@ -42,9 +42,6 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    if(value.toLowerCase() === 'mongodb'){
-                        this.yaml = update.updateMongoEntities(path, value, this.yaml, this.coreLibName)
-                    }
                     this.yaml = update.updateDBConn(path, value, this.yaml, this.coreLibName)
                 }
                 if (path.includes('core_lib.caches')){
@@ -106,10 +103,7 @@ export class YamlData {
         }
         if (path === 'core_lib.connections') {
             list.forEach((dbConn, index) => {
-                if (dbConn['url']['protocol'] === 'mongodb')
-                    res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: false })
-                else
-                    res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
+                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
             })
             return res
 

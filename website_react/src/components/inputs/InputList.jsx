@@ -1,5 +1,3 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputList = (props) => {
 
     const RenderItems = () => {
@@ -16,7 +14,7 @@ const InputList = (props) => {
                         name={"list" + props.fieldKey}
                         value={value}
                         defaultChecked={
-                            getDefault(props).includes(value)
+                            props.value.includes(value) || props.default_value.includes(value)
                         }
                         onChange={props.onChange}
                     />

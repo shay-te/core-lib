@@ -94,6 +94,7 @@ const Form = (props) => {
                             mandatory={field.mandatory}
                             value={field.value}
                             default_value={field.default_value}
+                            options={field.options}
                             onChange={props.onChange.bind(this, field)}
                             fieldKey={key}
                         />

@@ -6,10 +6,9 @@ export const entityFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const index = pathSplit.at(pathSplit.indexOf('entities') + 1)
     const entity = yamlData.core_lib.entities[index]
-    const dbConnection = yamlData.core_lib.entities[index].db_connection
-    const dbConnections = yamlData.core_lib.connections
+    const connections = yamlData.core_lib.connections
     const keyPrefix = `core_lib.entities.${index}`
-    dbConnections.forEach(conn => {
+    connections.forEach(conn => {
         dbConn.push(conn.key)
     })
     fields.push({
