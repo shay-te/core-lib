@@ -26,4 +26,3 @@ dist/
 
 # WEBSIRE
 /website/yarn.lock
-/website_react/node_modules
