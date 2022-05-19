@@ -161,7 +161,7 @@ export const updateColumnDefault= (path, value, yamlData) =>{
     const data = JSON.parse(JSON.stringify(yamlData))
     const pathSplit = path.split(".")
     const target = getValueAtPath(data, pathSplit.slice(0, -1))
-    if(value == ''){
+    if(value === ''){
         target.default = null
         console.log(target)
     }

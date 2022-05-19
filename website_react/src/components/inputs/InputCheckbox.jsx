@@ -1,5 +1,3 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputCheckbox = (props) => {
 
     return (
