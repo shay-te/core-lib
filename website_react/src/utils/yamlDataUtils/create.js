@@ -94,7 +94,6 @@ export const cache = (yamlData, coreLibName) => {
     const steps = ['core_lib', 'caches']
     const target = getValueAtPath(data, steps)
     const newCacheName = `new_cache_${target.length + 1}`
-    console.log(target)
     const newCache = {
         key: newCacheName,
         type: "memcached",
