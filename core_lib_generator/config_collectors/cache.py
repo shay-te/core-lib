@@ -9,7 +9,7 @@ def generate_cache_template() -> list:
 
     def is_exists_cache(user_input: str) -> bool:
         for cache in cache_list:
-            if get_dict_attr(cache, 'config.key') == user_input:
+            if get_dict_attr(cache, 'cache.key') == user_input:
                 return False
         return True
 
@@ -21,13 +21,11 @@ def generate_cache_template() -> list:
         if cache_type == CacheTypes.Memory.value:
             print(f'Cache type {CacheTypes(cache_type).name}')
             cache_list.append({
-                'config': {
+                'cache': {
                     'key': cache_name,
                     'type': CacheTypes(cache_type).name.lower(),
                 }
             })
-        elif cache_type == CacheTypes.Empty.value:
-            print('No cache set.')
         else:
             cache_type_name = CacheTypes(cache_type).name
             cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
@@ -51,7 +49,7 @@ def _generate_cache_config(
                 f'{cache_name.upper()}_PORT': cache_port,
                 f'{cache_name.upper()}_HOST': cache_host,
             },
-            'config': {
+            'cache': {
                 'key': cache_name,
                 'type': cache_type_name.lower(),
                 'url': {
@@ -67,7 +65,7 @@ def _generate_cache_config(
                 f'{cache_name.upper()}_PORT': cache_port,
                 f'{cache_name.upper()}_HOST': cache_host,
             },
-            'config': {
+            'cache': {
                 'key': cache_name,
                 'type': cache_type_name.lower(),
                 'url': {
@@ -79,17 +77,13 @@ def _generate_cache_config(
 
 
 class CacheTypes(enum.Enum):
-    __order__ = 'Memcached Memory Redis Empty'
+    __order__ = 'Memcached Memory Redis'
     Memcached = 1
     Memory = 2
     Redis = 3
-    Empty = 4
 
 
 default_cache_ports = {
     CacheTypes.Memcached.name: 11211,
     CacheTypes.Redis.name: 6379,
 }
-
-if __name__ == '__main__':
-    generate_cache_template()

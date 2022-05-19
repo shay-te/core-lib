@@ -8,7 +8,6 @@ from core_lib_generator.config_collectors.database import generate_db_template
 from core_lib_generator.config_collectors.db_entity import generate_db_entity_template
 from core_lib_generator.config_collectors.job import generate_job_template
 from core_lib_generator.config_collectors.setup_collector import generate_setup_template
-from core_lib_generator.config_collectors.solr import generate_solr_template
 
 
 def _get_env_variables(data):
@@ -40,7 +39,7 @@ def _get_data_layers_config():
         db = generate_db_template()
         env.update(_get_env_variables(db))
         for db_name in db:
-            config['data'].append(db[db_name]['config'])
+            config['data'].append(db[db_name]['connection'])
         want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
         if want_entities:
             print('Please fill out the requested information for creating entities in Database.')
@@ -55,20 +54,13 @@ def _get_data_layers_config():
                 data_layers['data_access'] = data_access
 
 
-def _get_solr_config():
-    print('Please fill out the requested solr information.')
-    solr = generate_solr_template()
-    env.update(_get_env_variables(solr))
-    config['data']['solr'] = solr['config']
-
-
 def _get_cache_config():
     print('Please fill out the requested Cache information.')
     cache_list = generate_cache_template()
     for cache in cache_list:
         if 'env' in cache:
             env.update(_get_env_variables(cache))
-        config['cache'].append(cache['config'])
+        config['cache'].append(cache['cache'])
 
 
 def _get_setup_details():

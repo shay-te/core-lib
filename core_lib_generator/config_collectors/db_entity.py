@@ -22,35 +22,35 @@ def generate_db_entity_template(db: dict) -> list:
                 'Enter the name of the database entity you\'d like to create', None, False, is_exists_entity
             )
             columns = []
-            if get_dict_attr(db, f'{db_conn}.config.url.protocol') != 'mongodb':
-                add_columns = input_yes_no(f'Do you want to add columns to `{entity_name}` entity?', True)
 
-                def is_exists_columns(user_input: str) -> bool:
-                    return is_exists(user_input, columns)
-                while add_columns:
-                    column_name = input_str(f'Enter the name of column', None, False, is_exists_columns)
-                    column_type = input_enum(
-                        DBDatatypes,
-                        f'From the following list, select the relevant number for datatype',
-                        DBDatatypes.VARCHAR.value,
-                    )
-                    if column_type == DBDatatypes.INTEGER.value:
-                        column_default = input_int(f'Enter the default value of column', 0)
-                    elif column_type == DBDatatypes.VARCHAR.value:
-                        column_default = input_str(f'Enter the default value of column', '', True)
-                    else:
-                        column_default = input_bool(
-                            f'Enter the default value of column (true, false, 0(false), 1(true))', 'true'
-                        )
+            add_columns = input_yes_no(f'Do you want to add columns to `{entity_name}` entity?', True)
 
-                    columns.append(
-                        {
-                            'key': column_name,
-                            'type': DBDatatypes(column_type).name,
-                            'default': column_default,
-                        }
+            def is_exists_columns(user_input: str) -> bool:
+                return is_exists(user_input, columns)
+            while add_columns:
+                column_name = input_str(f'Enter the name of column', None, False, is_exists_columns)
+                column_type = input_enum(
+                    DBDatatypes,
+                    f'From the following list, select the relevant number for datatype',
+                    DBDatatypes.VARCHAR.value,
+                )
+                if column_type == DBDatatypes.INTEGER.value:
+                    column_default = input_int(f'Enter the default value of column', 0)
+                elif column_type == DBDatatypes.VARCHAR.value:
+                    column_default = input_str(f'Enter the default value of column', '', True)
+                else:
+                    column_default = input_bool(
+                        f'Enter the default value of column (true, false, 0(false), 1(true))', 'true'
                     )
-                    add_columns = input_yes_no(f'Do you want to add another column to `{entity_name}` entity?', True)
+
+                columns.append(
+                    {
+                        'key': column_name,
+                        'type': DBDatatypes(column_type).name,
+                        'default': column_default,
+                    }
+                )
+                add_columns = input_yes_no(f'Do you want to add another column to `{entity_name}` entity?', True)
             is_soft_delete = input_yes_no('Do you want to implement Soft Delete?', False)
             if is_soft_delete:
                 is_soft_delete_token = input_yes_no('Do you want to implement Soft Delete Token?', False)

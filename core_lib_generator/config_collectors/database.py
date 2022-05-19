@@ -57,7 +57,7 @@ def generate_db_template() -> dict:
 
 
 class DBTypes(enum.Enum):
-    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase MongoDB'
+    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase'
     SQLite = 1
     Postgresql = 2
     MySQL = 3
@@ -65,7 +65,6 @@ class DBTypes(enum.Enum):
     MSSQL = 5
     Firebird = 6
     Sybase = 7
-    MongoDB = 8
 
 
 default_db_ports = {
@@ -75,7 +74,6 @@ default_db_ports = {
     DBTypes.MSSQL.name: 1433,
     DBTypes.Firebird.name: 3050,
     DBTypes.Sybase.name: 5000,
-    DBTypes.MongoDB.name: 27017,
 }
 
 
@@ -93,30 +91,20 @@ def _generate_db_config(
     migrate: bool = False
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
-    if db_type == DBTypes.MongoDB.value:
-        return {
-            'env': config['env'],
-            'config': {
-                'key': db_name,
-                'migrate': migrate,
-                'url': config['url'],
+    return {
+        'env': config['env'],
+        'connection': {
+            'key': db_name,
+            'migrate': migrate,
+            'log_queries': db_log_queries,
+            'create_db': db_create,
+            'session': {
+                'pool_recycle': db_pool_recycle,
+                'pool_pre_ping': db_pool_pre_ping,
             },
-        }
-    else:
-        return {
-            'env': config['env'],
-            'config': {
-                'key': db_name,
-                'migrate': migrate,
-                'log_queries': db_log_queries,
-                'create_db': db_create,
-                'session': {
-                    'pool_recycle': db_pool_recycle,
-                    'pool_pre_ping': db_pool_pre_ping,
-                },
-                'url': config['url'],
-            },
-        }
+            'url': config['url'],
+        },
+    }
 
 
 def _build_url(
