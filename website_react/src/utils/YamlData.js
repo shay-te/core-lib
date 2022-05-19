@@ -50,10 +50,10 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    this.yaml = update.updateDBConn(path, value, this.yaml, this.coreLibName)
+                    this.yaml = update.updateDBConn(path, value, this.yaml)
                 }
                 if (path.includes('core_lib.caches')){
-                    this.yaml = update.updateCache(path, value, this.yaml, this.coreLibName)
+                    this.yaml = update.updateCache(path, this.yaml)
                 }
                 return steps.join('.')
             }
@@ -62,19 +62,19 @@ export class YamlData {
     }
 
     createEntity(dbConn) {
-        this.yaml = create.entity(dbConn, this.yaml, this.coreLibName)
+        this.yaml = create.entity(dbConn, this.yaml)
     }
 
     createDataAccess() {
-        this.yaml = create.dataAccess(this.yaml, this.coreLibName)
+        this.yaml = create.dataAccess(this.yaml)
     }
 
     createDBConnection() {
-        this.yaml = create.dbConnection(this.yaml, this.coreLibName)
+        this.yaml = create.dbConnection(this.yaml)
     }
 
     createCache() {
-        this.yaml = create.cache(this.yaml, this.coreLibName)
+        this.yaml = create.cache(this.yaml)
     }
 
     createJob() {
@@ -82,7 +82,7 @@ export class YamlData {
     }
 
     createColumn(path) {
-        this.yaml = create.columns(path, this.yaml, this.coreLibName)
+        this.yaml = create.columns(path, this.yaml)
     }
 
     delete(path) {

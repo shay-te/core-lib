@@ -1,6 +1,6 @@
 import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
 
-export const entity = (dbConn, yamlData, coreLibName) => {
+export const entity = (dbConn, yamlData) => {
     const newNormalEntity = {
         db_connection: dbConn,
         columns: [
@@ -35,7 +35,7 @@ export const entity = (dbConn, yamlData, coreLibName) => {
     return data
 }
 
-export const dataAccess = (yamlData, coreLibName) => {
+export const dataAccess = (yamlData) => {
     const dbConn = yamlData.core_lib.connections[0].key
    
     const data = JSON.parse(JSON.stringify(yamlData))
@@ -53,7 +53,7 @@ export const dataAccess = (yamlData, coreLibName) => {
     return data
 }
 
-export const dbConnection = (yamlData, coreLibName) => {
+export const dbConnection = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'connections']
     const target = getValueAtPath(data, steps)
@@ -89,7 +89,7 @@ export const dbConnection = (yamlData, coreLibName) => {
     return data
 }
 
-export const cache = (yamlData, coreLibName) => {
+export const cache = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'caches']
     const target = getValueAtPath(data, steps)
@@ -132,7 +132,7 @@ export const job = (yamlData, coreLibName) => {
     return data
 }
 
-export const columns = (path, yamlData, coreLibName) => {
+export const columns = (path, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split('.')
     const target = getValueAtPath(data, steps)

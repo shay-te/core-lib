@@ -8,7 +8,7 @@ export const updateEnv = (path, value, yamlData) => {
     return data
 }
 
-export const updateCache = (path, value, yamlData, coreLibName) => {
+export const updateCache = (path, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.slice(0, -1))
@@ -57,7 +57,7 @@ export const updateCache = (path, value, yamlData, coreLibName) => {
     return data
 }
 
-export const updateDBConn = (path, value, yamlData, coreLibName) => {
+export const updateDBConn = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.slice(0, -2))
