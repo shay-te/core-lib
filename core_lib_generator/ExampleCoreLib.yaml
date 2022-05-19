@@ -6,11 +6,6 @@ core_lib:
     USERDB_PASSWORD: password
     USERDB_PORT: 5432
     USERDB_HOST: localhost
-    MONGODB_DB: mongodb
-    MONGODB_USER: user
-    MONGODB_PASSWORD: password
-    MONGODB_PORT: 27017
-    MONGODB_HOST: localhost
     REDISCACHE_PORT: 6379
     REDISCACHE_HOST: localhost
   connections:
@@ -37,15 +32,6 @@ core_lib:
       pool_pre_ping: false
     url:
       protocol: sqlite
-  - key: mongodb
-    migrate: false
-    url:
-      file: ${oc.env:MONGODB_DB}
-      protocol: mongodb
-      username: ${oc.env:MONGODB_USER}
-      password: ${oc.env:MONGODB_PASSWORD}
-      port: ${oc.env:MONGODB_PORT}
-      host: ${oc.env:MONGODB_HOST}
   caches:
   - key: memorycache
     type: memory
@@ -67,13 +53,16 @@ core_lib:
     columns:
     - key: username
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: true
     - key: password
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: true
     - key: active
       type: BOOLEAN
       default: false
+      nullable: true
     is_soft_delete: true
     is_soft_delete_token: true
   - key: details
@@ -81,13 +70,16 @@ core_lib:
     columns:
     - key: username
       type: VARCHAR
-      default: ''
+      default: ''''''
+      nullable: false
     - key: password
       type: VARCHAR
-      default: ''
+      default: null
+      nullable: true
     - key: active
       type: BOOLEAN
       default: false
+      nullable: false
     is_soft_delete: true
     is_soft_delete_token: false
   - key: data
@@ -95,12 +87,8 @@ core_lib:
     columns:
     - key: address
       type: VARCHAR
-      default: ''
-    is_soft_delete: false
-    is_soft_delete_token: false
-  - key: post_data
-    db_connection: mongodb
-    columns: []
+      default: null
+      nullable: true
     is_soft_delete: false
     is_soft_delete_token: false
   data_accesses:
@@ -118,11 +106,8 @@ core_lib:
   - key: DataDataAccess
     entity: data
     db_connection: sellerdb
-  - key: PostDataDataAccess
-    entity: post_data
-    db_connection: mongodb
   setup:
-    author: nam
+    author: name
     author_email: name@name.com
     description: Project
     url: ''

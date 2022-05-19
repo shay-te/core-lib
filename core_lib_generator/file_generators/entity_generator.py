@@ -30,7 +30,8 @@ def _add_columns_to_entity(template_content: str, columns: dict) -> str:
         column_type = column['type']
         column_name = get_dict_attr(column, 'key')
         default = None if not get_dict_attr(column, 'default') else get_dict_attr(column, 'default')
-        columns_str = f'{column_name} = Column({column_type}, nullable=False, default={default})'
+        nullable = get_dict_attr(column, 'nullable')
+        columns_str = f'{column_name} = Column({column_type}, nullable={nullable}, default={default})'
         columns_list.append(add_tab_spaces(columns_str))
     updated_file = template_content.replace('# template_column', '\n'.join(columns_list))
     imports_to_add = ', '.join(set(import_data_types))

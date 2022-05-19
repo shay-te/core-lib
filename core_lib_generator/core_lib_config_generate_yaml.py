@@ -99,10 +99,6 @@ def get_data_from_user():
 
     _get_data_layers_config()
 
-    want_solr = input_yes_no('\nWill you be using Solr?', False)
-    if want_solr:
-        _get_solr_config()
-
     want_cache = input_yes_no('\nWould you like to use cache?', True)
     if want_cache:
         _get_cache_config()

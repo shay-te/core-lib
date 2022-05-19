@@ -1,7 +1,8 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputString = (props) => {
-
+    const getDefault = () => {
+        if(props.value===undefined) return props.default_value
+        else return props.value
+    }
     return (
         <div className="form-input-div" key={props.fieldKey}>
             <label htmlFor={"field-" + props.fieldKey} className="input-label">
@@ -11,7 +12,7 @@ const InputString = (props) => {
                 type={"text"}
                 id={"field-" + props.fieldKey}
                 className="form-input"
-                defaultValue={getDefault(props)}
+                defaultValue={getDefault()}
                 required={props.mandatory}
                 placeholder="Text input"
                 onChange={props.onChange}

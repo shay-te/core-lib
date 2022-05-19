@@ -5,9 +5,9 @@ export const coreLibField = (yamlData) => {
         title: 'Enter Core-Lib name',
         type: 'string',
         default_value: 'UserCoreLib',
-        value: Object.keys(yamlData)[0],
+        value: yamlData.core_lib.name,
         mandatory: true,
-        key: 'CoreLibName'
+        key: 'core_lib.name'
         // validatorCallback: validateFunc,
     })
     return fields

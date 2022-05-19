@@ -114,7 +114,7 @@ class CoreLibGenerator:
 
     def generate_hydra_plugins(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}/{self.snake_core_lib_name}_sourcepath.py',
+            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}/{self.snake_core_lib_name}_searchpath.py',
             {},
             HydraPluginsGenerateTemplate(),
         )

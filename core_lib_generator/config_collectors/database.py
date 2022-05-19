@@ -20,17 +20,11 @@ def generate_db_template() -> dict:
         db_password = None
         db_port = None
         db_host = None
-        db_log_queries = None
-        db_create = None
-        db_pool_recycle = None
-        db_pool_pre_ping = None
-        migrate = False
-        if db_type != DBTypes.MongoDB.value:
-            db_log_queries = input_yes_no('Do you want to log queries?', False)
-            db_create = input_yes_no('Do you want create Database?', True)
-            db_pool_recycle = input_int('Enter the pool recycle time', 3200)
-            db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-            migrate = input_yes_no(f'Do you want to create a migration?', False)
+        db_log_queries = input_yes_no('Do you want to log queries?', False)
+        db_create = input_yes_no('Do you want create Database?', True)
+        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
+        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+        migrate = input_yes_no(f'Do you want to create a migration?', False)
         if db_type != DBTypes.SQLite.value:
             db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
             db_host = input_str('Enter host of your DB', 'localhost')
@@ -38,7 +32,7 @@ def generate_db_template() -> dict:
             db_password = input_str(
                 'Enter your DB password',
             )
-        print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
+        print(f'Database type {DBTypes(db_type).name}')
         add_db = input_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name}'] = _generate_db_config(
             db_type,
