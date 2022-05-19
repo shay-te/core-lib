@@ -1,5 +1,3 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputENUM = (props) => {
 
     const items = props.options.map((value, index) => {
@@ -10,7 +8,7 @@ const InputENUM = (props) => {
                 name={"enum" + props.fieldKey}
                 value={value}
                 defaultChecked={
-                    value.toLowerCase() === getDefault(props).toLowerCase()
+                    value.toLowerCase() === (props.value.toLowerCase() || props.default_value.toLowerCase())
                 }
                 onChange={props.onChange}
             />

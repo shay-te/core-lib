@@ -2,34 +2,32 @@ import { getBoolean } from "../utils/commonUtils";
 
 export const dataAccessFields = (path, yamlData) => {
     const pathSplit = path.split('.')
-    const CoreLibName = pathSplit.at(0)
-    const daName = pathSplit.at(pathSplit.indexOf('data_access')+1) 
-    const dbConnections = Object.keys(yamlData[CoreLibName]['config']['data'])
+    const dataAccessList = yamlData.core_lib.data_accesses
+    const index = pathSplit.at(pathSplit.indexOf('data_accesses')+1)
+    const dataAccess = dataAccessList[index]
+    const connections = yamlData.core_lib.connections
     const fields = []
-    const dbConn = []
-    const keyPrefix = CoreLibName + '.data_layers.data_access.' + daName
-    const dataAccess = yamlData[CoreLibName]['data_layers']['data_access'][daName]
-    const daList = Object.keys(yamlData[CoreLibName]['data_layers']['data_access'])
-    dbConnections.forEach(conn => {
-        dbConn.push(conn)
+    const connection = []
+    const keyPrefix = `core_lib.data_accesses.${index}`
+    connections.forEach(conn => {
+        connection.push(conn.key)
     })
     fields.push({
         title: "Data Access Name",
         type: "string",
         default_value: '',
-        value: daName,
+        value: dataAccess.key,
         mandatory: true,
-        key: keyPrefix,
-        id: `dataAccess_${daList.indexOf(daName)}`
+        key: keyPrefix + '.key',
         // validatorCallback: validateFunc, onchange validator, predefined validation func for each types
     },
     {
         title: "DB Connection",
         type: "dropdown",
-        default_value: dbConn[0],
+        default_value: connection[0],
         value: dataAccess['db_connection'],
         mandatory: true,
-        options: dbConn,
+        options: connection,
         key: keyPrefix + '.db_connection',
         // validatorCallback: validateFunc,
     },

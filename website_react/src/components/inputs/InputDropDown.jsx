@@ -1,12 +1,10 @@
-import { getDefault } from "./../../utils/commonUtils";
-
 const InputDropDown = (props) => {
 	const items =  props.options.map((value, index) => {
 		return (
 			<option
 				key={index}
 				value={value}
-				selected={value === getDefault(props)}
+				selected={value === props.value || props.default_value}
 			>
 				{value}
 			</option>
