@@ -6,7 +6,8 @@ from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
 
 class CoreLibClassGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
-        data_access_list = list(yaml_data['data_access'].keys())
+        data_access_list = []
+        [data_access_list.append(get_dict_attr(da, 'key')) for da in get_dict_attr(yaml_data, 'data_access')]
         updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))
         if data_access_list:
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
@@ -14,10 +15,9 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
             updated_file = _add_cache(updated_file, yaml_data, core_lib_name)
         if get_dict_attr(yaml_data, 'jobs'):
             updated_file = _add_job(updated_file, yaml_data, core_lib_name)
-        if get_dict_attr(yaml_data, 'config'):
-            updated_file = _add_mongo(updated_file, get_dict_attr(yaml_data, 'config.data'), core_lib_name)
-        if get_dict_attr(yaml_data, 'entities'):
-            updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'entities'), core_lib_name)
+        if get_dict_attr(yaml_data, 'connections'):
+            updated_file = _add_mongo(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
+            updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
@@ -36,16 +36,18 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
     handler_list = []
     updated_file = template_content
     yaml_data_dataaccess = get_dict_attr(yaml_data, 'data_access')
-    for name in yaml_data_dataaccess:
-        entity = get_dict_attr(yaml_data_dataaccess, f'{name}.entity')
-        db_connection = get_dict_attr(yaml_data_dataaccess, f'{name}.db_connection')
-        if yaml_data_dataaccess[name].get('is_crud', False):
-            inst_str = f'self.{db_connection}_{entity.lower()} = {name}({db_connection}_session)'
+    for data_access in yaml_data_dataaccess:
+        entity = get_dict_attr(data_access, 'entity')
+        db_connection = get_dict_attr(data_access, 'db_connection')
+        da_name = get_dict_attr(data_access, 'key')
+        if data_access.get('is_crud', False):
+            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection}_session)'
         else:
-            inst_str = f'self.{db_connection}_{entity.lower()} = {name}()'
+            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}()'
         inst_list.append(add_tab_spaces(inst_str, 2))
         handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
+
     updated_file = updated_file.replace(
         '# template_da_imports', _create_data_access_imports(data_access_list, core_lib_name)
     )
@@ -63,8 +65,9 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     cache_imports = []
     cache_inits = []
     yaml_data_cache = get_dict_attr(yaml_data, 'cache')
-    for name in yaml_data_cache:
-        cache_type = get_dict_attr(yaml_data_cache, f'{name}.type')
+    for cache in yaml_data_cache:
+        name = get_dict_attr(cache, 'key')
+        cache_type = get_dict_attr(cache, 'type')
         if cache_type == 'memory':
             cache_imports.append(f'from core_lib.cache.cache_handler_ram import CacheHandlerRam')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRam())'
@@ -108,8 +111,9 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     )
     mongo_conn = []
     for db_connection in yaml_data:
-        if get_dict_attr(yaml_data, f'{db_connection}.url.protocol') == 'mongodb':
-            conn_str = f'self.{db_connection}_session = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
+        db_conn_name = get_dict_attr(db_connection, 'key')
+        if get_dict_attr(db_connection, 'url.protocol') == 'mongodb':
+            conn_str = f'self.{db_conn_name}_session = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
             mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)
@@ -117,14 +121,15 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
             '# template_mongo_handlers',
             '\n'.join(mongo_conn),
         )
+
     return updated_file
 
 
 def _add_alembic_funcs(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     updated_file = template_content
     add_func = False
-    for entity in yaml_data:
-        if get_dict_attr(yaml_data, f'{entity}.migrate'):
+    for connection in yaml_data:
+        if get_dict_attr(connection, 'migrate'):
             add_func = True
     if add_func:
         imports_list = ['import os', 'import inspect', 'from core_lib.alembic.alembic import Alembic']

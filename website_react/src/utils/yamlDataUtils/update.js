@@ -8,7 +8,7 @@ export const updateEnv = (path, value, yamlData) => {
     return data
 }
 
-export const updateCache = (path, value, yamlData, coreLibName) => {
+export const updateCache = (path, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.slice(0, -1))
@@ -25,12 +25,12 @@ export const updateCache = (path, value, yamlData, coreLibName) => {
             }
 
             if(!target['url'].hasOwnProperty('host')){
-                target['url']['host'] = '${oc.env:MEMCACHED_HOST}'
-                data[coreLibName]['env']['MEMCACHED_HOST'] = 'localhost'
+                target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
+                data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
             }
             if(!target['url'].hasOwnProperty('port')){
-                target['url']['port'] = '${oc.env:MEMCACHED_PORT}'
-                data[coreLibName]['env']['MEMCACHED_PORT'] = 11211
+                target['url']['port'] = '${oc.env:' + target.key.toUpperCase() + '_PORT}'
+                data.core_lib.env[`${target.key.toUpperCase()}_PORT`] = 11211
             }
         }
         if(target.type === 'redis'){
@@ -42,12 +42,12 @@ export const updateCache = (path, value, yamlData, coreLibName) => {
             }
 
             if(!target['url'].hasOwnProperty('host')){
-                target['url']['host'] = '${oc.env:REDIS_HOST}'
-                data[coreLibName]['env']['REDIS_HOST'] = 'localhost'
+                target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
+                data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
             }
             if(!target['url'].hasOwnProperty('port')){
-                target['url']['port'] = '${oc.env:REDIS_PORT}'
-                data[coreLibName]['env']['REDIS_PORT'] = 6379
+                target['url']['port'] = '${oc.env:' + target.key.toUpperCase() + '_PORT}'
+                data.core_lib.env[`${target.key.toUpperCase()}_PORT`] = 6379
             }
             if(!target['url'].hasOwnProperty('protocol')){
                 target['url']['protocol'] = 'redis'
@@ -57,11 +57,12 @@ export const updateCache = (path, value, yamlData, coreLibName) => {
     return data
 }
 
-export const updateDBConn = (path, value, yamlData, coreLibName) => {
+export const updateDBConn = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
-    const dbConn = steps.at(-3)
     const target = getValueAtPath(data, steps.slice(0, -2))
+    const dbConn = target.key
+    // debugger
     if(value.toLowerCase() === 'mongodb'){
         target['url']['protocol'] = value.toLowerCase()
         delete target['create_db']
@@ -85,15 +86,15 @@ export const updateDBConn = (path, value, yamlData, coreLibName) => {
             target['session'] = session
         }
         delete target['url']['username']
-        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_USER']
+        delete data.core_lib.env[dbConn.toUpperCase() +'_USER']
         delete target['url']['password']
-        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD']
+        delete data.core_lib.env[dbConn.toUpperCase() +'_PASSWORD']
         delete target['url']['host']
-        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_HOST']
+        delete data.core_lib.env[dbConn.toUpperCase() +'_HOST']
         delete target['url']['port']
-        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_PORT']
+        delete data.core_lib.env[dbConn.toUpperCase() +'_PORT']
         delete target['url']['file']
-        delete data[coreLibName]['env'][dbConn.toUpperCase() +'_DB']
+        delete data.core_lib.env[dbConn.toUpperCase() +'_DB']
     }
     else{
         target['url']['protocol'] = value.toLowerCase()
@@ -112,41 +113,57 @@ export const updateDBConn = (path, value, yamlData, coreLibName) => {
         }
         if(!target['url'].hasOwnProperty('username')){
             target['url']['username'] = '${oc.env:'+ dbConn.toUpperCase() +'_USER}'
-            data[coreLibName]['env'][dbConn.toUpperCase() +'_USER'] = 'username'
+            data.core_lib.env[dbConn.toUpperCase() +'_USER'] = 'username'
         }
         if(!target['url'].hasOwnProperty('password')){
             target['url']['password'] = '${oc.env:'+ dbConn.toUpperCase() +'_PASSWORD}'
-            data[coreLibName]['env'][dbConn.toUpperCase() +'_PASSWORD'] = ''
+            data.core_lib.env[dbConn.toUpperCase() +'_PASSWORD'] = ''
         }
         if(!target['url'].hasOwnProperty('host')){
             target['url']['host'] = '${oc.env:'+ dbConn.toUpperCase() +'_HOST}'
-            data[coreLibName]['env'][dbConn.toUpperCase() +'_HOST'] = 'localhost'
+            data.core_lib.env[dbConn.toUpperCase() +'_HOST'] = 'localhost'
         }
         if(!target['url'].hasOwnProperty('port')){
             target['url']['port'] = '${oc.env:'+ dbConn.toUpperCase() +'_PORT}'
-            data[coreLibName]['env'][dbConn.toUpperCase() +'_PORT'] = 1234
+            data.core_lib.env[dbConn.toUpperCase() +'_PORT'] = 1234
         }
         if(!target['url'].hasOwnProperty('file')){
             target['url']['file'] = '${oc.env:'+ dbConn.toUpperCase() +'_DB}'
-            data[coreLibName]['env'][dbConn.toUpperCase() +'_DB'] = dbConn
+            data.core_lib.env[dbConn.toUpperCase() +'_DB'] = dbConn
         }
     }
     return data
 }
 
-export const updateMongoEntities = (path, value, yamlData, coreLibName) => {
+export const updateSetup = (path, value, yamlData, addOrRemove) =>{
     const data = JSON.parse(JSON.stringify(yamlData))
     const pathSplit = path.split(".")
-    const dbConn = pathSplit.at(pathSplit.indexOf('data') + 1)
-    const entitySteps = [coreLibName, 'data_layers', 'data', dbConn]
-    const target = getValueAtPath(data, entitySteps)
-    Object.keys(target).forEach(entity => {
-        if (entity !== 'migrate') {
-            delete target[entity]['columns']
-            delete target[entity]['is_soft_delete']
-            delete target[entity]['is_soft_delete_token']
-        }
-    })
+    const target = getValueAtPath(data, pathSplit)
+    if(addOrRemove){
+        target.push(value)
+    }
+    else{
+        const index = target.indexOf(value)
+        target.splice(index, 1);
+    }
+    return data
+}
 
+export const updateNullable = (path, yamlData, addOrRemove) =>{
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const pathSplit = path.split(".")
+    const target = getValueAtPath(data, pathSplit.slice(0, -1))
+    target.nullable = addOrRemove
+    return data
+}
+
+export const updateColumnDefault= (path, value, yamlData) =>{
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const pathSplit = path.split(".")
+    const target = getValueAtPath(data, pathSplit.slice(0, -1))
+    if(value === ''){
+        target.default = null
+        console.log(target)
+    }
     return data
 }

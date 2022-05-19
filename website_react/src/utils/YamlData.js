@@ -6,15 +6,14 @@ export class YamlData {
 
     init(data) {
         this.yaml = data
-        this.coreLibName = Object.keys(data)[0]
+        this.coreLibName = data.core_lib.name
     }
 
-    set(path, value, isEnv) {
-        const data = JSON.parse(JSON.stringify(this.yaml))
+    set(path, value, isEnv, addOrRemove) {
+        let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
-        if (steps.length === 1) {
-            data[value] = data[this.coreLibName]
-            delete data[this.coreLibName]
+        if (path === 'core_lib.name') {
+            data.core_lib.name = value
             this.yaml = data
             this.coreLibName = value
         }
@@ -28,32 +27,33 @@ export class YamlData {
                 delete parent[oldKeyName]
                 this.yaml = data
                 steps[steps.length - 1] = value
-                if (path.includes('config.data') && steps.length === 4) {
-                    this.yaml = rename(path, value, this.yaml, this.coreLibName)
-                }
-                if (path.includes('data_layers.data') && steps.length === 5) {
-                    this.yaml = rename(path, value, this.yaml, this.coreLibName)
-                }
-                if (path.includes('jobs') && steps.length === 4){
-                    this.yaml = rename(path, value, this.yaml, this.coreLibName)
-                }
                 return steps.join('.')
             } else {
                 if (isEnv) {
                     this.yaml = update.updateEnv(isEnv, value, this.yaml)
                     return path
                 }
+                if(path.includes('setup.classifiers')){
+                    this.yaml = update.updateSetup(path, value, this.yaml, addOrRemove)
+                    return path
+                }
+                if(path.includes('core_lib.entities') && path.endsWith('nullable')){
+                    this.yaml = update.updateNullable(path, this.yaml, addOrRemove)
+                    return path
+                }
+                if(path.includes('columns') && path.endsWith('default')){
+                    this.yaml = update.updateColumnDefault(path, value, this.yaml)
+                    return path
+                }
                 const parent = getValueAtPath(data, steps.slice(0, -1));
                 parent[fieldName] = value;
+                data = rename(path, value, data, this.yaml)
                 this.yaml = data
-                if (path.includes('url.protocol') && path.includes('config.data')) {
-                    if(value.toLowerCase() === 'mongodb'){
-                        this.yaml = update.updateMongoEntities(path, value, this.yaml, this.coreLibName)
-                    }
-                    this.yaml = update.updateDBConn(path, value, this.yaml, this.coreLibName)
+                if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
+                    this.yaml = update.updateDBConn(path, value, this.yaml)
                 }
-                if (path.includes('cache')){
-                    this.yaml = update.updateCache(path, value, this.yaml, this.coreLibName)
+                if (path.includes('core_lib.caches')){
+                    this.yaml = update.updateCache(path, this.yaml)
                 }
                 return steps.join('.')
             }
@@ -62,31 +62,34 @@ export class YamlData {
     }
 
     createEntity(dbConn) {
-        this.yaml = create.entity(dbConn, this.yaml, this.coreLibName)
+        this.yaml = create.entity(dbConn, this.yaml)
     }
 
     createDataAccess() {
-        this.yaml = create.dataAccess(this.yaml, this.coreLibName)
+        this.yaml = create.dataAccess(this.yaml)
     }
 
     createDBConnection() {
-        this.yaml = create.dbConnection(this.yaml, this.coreLibName)
+        this.yaml = create.dbConnection(this.yaml)
     }
 
     createCache() {
-        this.yaml = create.cache(this.yaml, this.coreLibName)
+        this.yaml = create.cache(this.yaml)
     }
 
     createJob() {
         this.yaml = create.job(this.yaml, this.coreLibName)
     }
 
+    createColumn(path) {
+        this.yaml = create.columns(path, this.yaml)
+    }
+
     delete(path) {
         const data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
-        const oldKeyName = steps[steps.length - 1]
         const parent = getValueAtPath(data, steps.slice(0, -1));
-        delete parent[oldKeyName]
+        parent.splice(steps.at(-1), 1);
         this.yaml = data
     }
 
@@ -98,35 +101,26 @@ export class YamlData {
 
     listChildrenUnderPath(path) {
         const res = []
-        const newPath = this.coreLibName + '.' + path
-        const list = this.get(newPath)
-        if (path === 'data_layers.data') {
+        const list = this.get(path) 
+        if (path === 'core_lib.entities') {
             const entityRes = []
-            Object.keys(list).forEach((dbConn, index) => {
-                const entityDbconnPath = newPath + '.' + dbConn
-                const entityList = this.get(entityDbconnPath)
-                entityRes.push({ [dbConn]: [] })
-                Object.keys(entityList).forEach(entity => {
-                    if (entity !== 'migrate') {
-                        entityRes[index][dbConn].push({ name: entity, path: entityDbconnPath + '.' + entity, dbConnection: dbConn })
-                    }
-                })
+            list.forEach((entity, index) => {
+                entityRes.push({ name: entity.key, path: path + '.' + index, dbConnection: entity.db_connection })
             })
             return entityRes
         }
-        if (path === 'config.data') {
-            Object.keys(list).forEach(dbConn => {
-                if (list[dbConn]['url']['protocol'] === 'mongodb')
-                    res.push({ name: dbConn, path: newPath + '.' + dbConn, hasEntity: false })
-                else
-                    res.push({ name: dbConn, path: newPath + '.' + dbConn, hasEntity: true })
+        if (path === 'core_lib.connections') {
+            list.forEach((dbConn, index) => {
+                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
             })
             return res
 
         }
-        Object.keys(list).forEach(item => {
-            res.push({ name: item, path: newPath + '.' + item })
-        })
+        if(list instanceof Array){
+            list.forEach((item, index )=> {
+                res.push({ name: item.key, path: path + '.' + index })
+            })
+        }
         return res
     }
 

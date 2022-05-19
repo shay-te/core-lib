@@ -1,14 +1,15 @@
 import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
 
-export const entity = (dbConn, yamlData, coreLibName) => {
+export const entity = (dbConn, yamlData) => {
     const newNormalEntity = {
         db_connection: dbConn,
-        columns: {
-            column_name: {
+        columns: [
+            {
+                key: 'column_name',
                 type: "VARCHAR",
-                default: "",
+                default: null,
             },
-        },
+        ],
         is_soft_delete: true,
         is_soft_delete_token: true,
     }
@@ -17,57 +18,51 @@ export const entity = (dbConn, yamlData, coreLibName) => {
         db_connection: dbConn,
     }
 
-    let newEntity = {}
-
     const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = [coreLibName, 'data_layers', 'data', dbConn]
+    const steps = ['core_lib', 'entities']
     const target = getValueAtPath(data, steps)
-    const dbConnSteps = [coreLibName, 'config', 'data']
+    const dbConnSteps = ['core_lib', 'connections']
     const dbConns = getValueAtPath(data, dbConnSteps)
-
-    if(dbConns[dbConn]['url']['protocol'] === 'mongodb'){
-        newEntity = Object.assign({}, newMongoEntity)
-    }else{
-        newEntity = Object.assign({}, newNormalEntity)
-    }
-
-    if (!target) {
-        const newSteps = [coreLibName, 'data_layers', 'data']
-        const newTarget = getValueAtPath(data, newSteps)
-        newTarget[dbConn] = { [`new_entity`]: newEntity }
-        newTarget[dbConn][`migrate`] = false
-    }
-    else {
-        target[`new_entity_${Object.keys(target).length}`] = newEntity
-    }
+    let newEntity = {key: `new_entity_${target.length}`}
+    dbConns.forEach(connection => {
+        if(connection.key === dbConn && connection['url']['protocol'] === 'mongodb'){
+            newEntity = Object.assign(newEntity, newMongoEntity)
+        }else{
+            newEntity = Object.assign(newEntity, newNormalEntity)
+        }
+    })
+    target.push(newEntity)
     return data
 }
 
-export const dataAccess = (yamlData, coreLibName) => {
-    const dbConns = Object.keys(yamlData[coreLibName]['config']['data'])
+export const dataAccess = (yamlData) => {
+    const dbConn = yamlData.core_lib.connections[0].key
+   
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = ['core_lib', 'data_accesses']
+    const target = getValueAtPath(data, steps)
     const newDataAccess = {
+        key: 'NewDataAccess' + (target.length + 1),
         entity: "details",
-        db_connection: dbConns[0],
+        db_connection: dbConn,
         is_crud: true,
         is_crud_soft_delete: true,
         is_crud_soft_delete_token: true,
     }
-    const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = [coreLibName, 'data_layers', 'data_access']
-    const target = getValueAtPath(data, steps)
-    target['NewDataAccess' + (Object.keys(target).length + 1)] = newDataAccess
+    target.push(newDataAccess)
     return data
 }
 
-export const dbConnection = (yamlData, coreLibName) => {
+export const dbConnection = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = [coreLibName, 'config', 'data']
+    const steps = ['core_lib', 'connections']
     const target = getValueAtPath(data, steps)
-    const dbConnName = `newdb${(Object.keys(target).length + 1)}`
-    const envSteps = [coreLibName, 'env']
+    const dbConnName = `newdb${target.length + 1}`
+    const envSteps = ['core_lib', 'env']
     const envTarget = getValueAtPath(data, envSteps)
 
     const newDbConn = {
+        key: dbConnName,
         log_queries: false,
         create_db: true,
         session: {
@@ -89,28 +84,30 @@ export const dbConnection = (yamlData, coreLibName) => {
     envTarget[`${dbConnName.toUpperCase()}_HOST`] = 'localhost'
     envTarget[`${dbConnName.toUpperCase()}_PORT`] = 5432
     envTarget[`${dbConnName.toUpperCase()}_DB`] = dbConnName
-    target[dbConnName] = newDbConn
+    target.push(newDbConn)
 
     return data
 }
 
-export const cache = (yamlData, coreLibName) => {
+export const cache = (yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = ['core_lib', 'caches']
+    const target = getValueAtPath(data, steps)
+    const newCacheName = `new_cache_${target.length + 1}`
     const newCache = {
+        key: newCacheName,
         type: "memcached",
         url: {
-            host: "${oc.env:MEMCACHED_HOST}",
-            port: "${oc.env:MEMCACHED_PORT}",
+            host: "${oc.env:" + newCacheName.toUpperCase() + "_HOST}",
+            port: "${oc.env:" + newCacheName.toUpperCase() + "_PORT}",
         },
     }
-    const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = [coreLibName, 'config', 'cache']
-    const target = getValueAtPath(data, steps)
-    target[`new_cache_${(Object.keys(target).length + 1)}`] = newCache
+    target.push(newCache)
 
-    const envSteps = [coreLibName, 'env']
+    const envSteps = ['core_lib', 'env']
     const envTarget = getValueAtPath(data, envSteps)
-    envTarget['MEMCACHED_HOST'] = 'localhost'
-    envTarget['MEMCACHED_PORT'] = 11211
+    envTarget[`${newCacheName.toUpperCase()}_HOST`] = 'localhost'
+    envTarget[`${newCacheName.toUpperCase()}_PORT`] = 11211
 
     return data
 
@@ -118,11 +115,12 @@ export const cache = (yamlData, coreLibName) => {
 
 export const job = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = [coreLibName, 'config', 'jobs']
+    const steps = ['core_lib', 'jobs']
     const target = getValueAtPath(data, steps)
-    const newName = `new_job_${(Object.keys(target).length + 1)}`
+    const newName = `new_job_${target.length + 1}`
     const snakeCoreLib = toSnakeCase(coreLibName)
     const newJob = {
+        key: newName,
         initial_delay: "0s",
         frequency: "",
         handler: {
@@ -130,6 +128,19 @@ export const job = (yamlData, coreLibName) => {
                 `${snakeCoreLib}.${snakeCoreLib}.jobs.${newName}.${toCamelCase(newName)}`,
         },
     }
-    target[`new_job_${(Object.keys(target).length + 1)}`] = newJob
+    target.push(newJob)
+    return data
+}
+
+export const columns = (path, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = path.split('.')
+    const target = getValueAtPath(data, steps)
+    const newColumn = {
+        key: `column_${target.length + 1}`,
+        type: 'VARCHAR',
+        default: '',
+    }
+    target.push(newColumn)
     return data
 }

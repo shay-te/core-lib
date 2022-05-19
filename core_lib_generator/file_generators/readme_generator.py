@@ -15,10 +15,10 @@ class ReadmeGenerateTemplate(TemplateGenerator):
 def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):
     updated_file = file_content
     func_call_list = []
-    if 'data_access' in yaml_data:
-        for data_access in yaml_data['data_access']:
-            db_conn = yaml_data['data_access'][data_access]['db_connection']
-            db_entity = yaml_data['data_access'][data_access]['entity']
+    if yaml_data:
+        for data_access in yaml_data:
+            db_conn = data_access['db_connection']
+            db_entity = data_access['entity']
             func_call_list.append(f'{core_lib_name}.{db_conn}_{db_entity}.your_function()')
         updated_file = updated_file.replace('# function_call', '\n'.join(func_call_list))
     else:

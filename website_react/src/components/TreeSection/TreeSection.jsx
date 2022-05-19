@@ -1,22 +1,13 @@
-import { useState } from "react";
-
 import CollapseExpand from "../collapseExpand/CollapseExpand";
 import TreeBranch from "../treeBranch/TreeBranch";
 import "./TreeSection.scss";
 
 const TreeSection = (props) => {
-	const [collapse, setCollapse] = useState(false);
-
-	const handleCollapse = () => {
-		setCollapse(!collapse);
-	};
-
 	const items = [];
-
 	if (props.isNested) {
 		items.push(props.items);
 	} else {
-		for (const [i, item] of props.items.entries()) {
+		for (const item of props.items) {
 			items.push(
 				<div key={item.name} className={"node-child"}>
 					<TreeBranch
