@@ -1,15 +1,38 @@
 $primary-color: #01011d;
 $secondary-color: #0aa2f8;
 
-
 .App {
-  text-align: center;
-}
-
-.app-root{
-  display: flex;
+	text-align: center;
 }
 
 .hide {
 	display: none;
+}
+
+.generator-wrap {
+	height: 100vh;
+	overflow: hidden;
+	.main-wrapper {
+		height: calc(100% - 50px);
+		.app-root {
+			height: 100%;
+		}
+	}
+	.footer {
+		display: none;
+	}
+}
+
+.custom-scrollbar {
+	&::-webkit-scrollbar {
+		width: 5px;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-radius: 10px;
+		background-color: rgb(113, 113, 113);
+		width: 5px;
+	}
+	&::-webkit-scrollbar-thumb:hover {
+		background: rgb(71, 71, 71);
+	}
 }

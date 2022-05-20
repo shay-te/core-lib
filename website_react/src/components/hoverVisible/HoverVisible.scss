@@ -1,9 +1,0 @@
-.hover-visible {
-	transition: opacity 0.5s ease-in-out;
-    opacity: 0;
-    cursor: pointer;
-
-    &.visible{
-        opacity: 1;
-    }
-}

@@ -21,23 +21,23 @@ const setTreeState = (state, yamlData) => {
 }
 
 const pathToFields = (path, yaml) => {
-    if (path.includes('data_accesses')){ return dataAccessFields(path, yaml); }
-    if (path.includes('entities')){ return entityFields(path, yaml); }
-    if (path.includes('setup')){ return setupFields(yaml); }
-    if (path.includes('connections') || path.includes('env')){ return connectionFields(path, yaml); }
-    if (path.includes('caches') || path.includes('env')){ return cacheFields(path, yaml); }
-    if (path.includes('jobs')){ return jobFields(path, yaml); }
-    if (path.includes('name')){ return coreLibField(yaml); }
+    if (path.includes('data_accesses')) { return dataAccessFields(path, yaml); }
+    if (path.includes('entities')) { return entityFields(path, yaml); }
+    if (path.includes('setup')) { return setupFields(yaml); }
+    if (path.includes('connections') || path.includes('env')) { return connectionFields(path, yaml); }
+    if (path.includes('caches') || path.includes('env')) { return cacheFields(path, yaml); }
+    if (path.includes('jobs')) { return jobFields(path, yaml); }
+    if (path.includes('name')) { return coreLibField(yaml); }
     return [];
 }
 
 const createNewEntry = (path, yamlData) => {
-    if (path.includes('db_entity')){ return yamlData.createEntity(path.split('.')[1])}
-    if (path.includes('data_accesses')){ return yamlData.createDataAccess()}
-    if (path.includes('connections')){ return yamlData.createDBConnection()}
-    if (path.includes('caches')){ return yamlData.createCache()}
-    if (path.includes('jobs')){ return yamlData.createJob()}
-    if (path.includes('columns')){ return yamlData.createColumn(path)}
+    if (path.includes('db_entity')) { return yamlData.createEntity(path.split('.')[1]) }
+    if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
+    if (path.includes('connections')) { return yamlData.createDBConnection() }
+    if (path.includes('caches')) { return yamlData.createCache() }
+    if (path.includes('jobs')) { return yamlData.createJob() }
+    if (path.includes('columns')) { return yamlData.createColumn(path) }
     return [];
 }
 
@@ -56,6 +56,7 @@ export const treeSlice = createSlice({
         fields: [],
         fieldsTitle: '',
         fieldsPath: '',
+        treeSelected: {},
         treeState: {},
     },
     reducers: {
@@ -96,18 +97,22 @@ export const treeSlice = createSlice({
             state.fields = pathToFields(state.fieldsPath, state.yaml)
         },
         toggleCollapseExpand: (state, action) => {
-            // if actionpath in tree state toggle else create path 
-            if(!state.treeState.hasOwnProperty(action.payload)){
+            if (!state.treeState.hasOwnProperty(action.payload)) {
                 state.treeState[action.payload] = true
             }
-            else{
+            else {
                 state.treeState[action.payload] = !state.treeState[action.payload]
             }
-            
-        }
+
+        },
+        toggleSelected: (state, action) => {
+            state.treeSelected = {}
+            state.treeSelected[action.payload] = true
+
+        },
     },
 })
 
-export const { init, updateTree, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField } = treeSlice.actions
+export const { init, updateTree, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected } = treeSlice.actions
 
 export default treeSlice.reducer

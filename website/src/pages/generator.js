@@ -1,5 +1,8 @@
 import React from 'react';
 import Head from '@docusaurus/Head';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Layout from "@theme/Layout";
+import clsx from "clsx";
 
 import './generator.scss';
 import Form from './../components/form/Form';
@@ -14,9 +17,12 @@ import { useEffect } from 'react';
 import { store } from './../components/store/store';
 import { Provider } from 'react-redux';
 
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from "@theme/Layout";
-import clsx from "clsx";
+import {
+	ReflexContainer,
+	ReflexSplitter,
+	ReflexElement
+} from 'react-reflex'
+import 'react-reflex/styles.css'
 
 function Generator() {
 	const { siteConfig } = useDocusaurusContext();
@@ -40,8 +46,15 @@ function Generator() {
 	}
 	return (
 		<div className='app-root'>
-			<Tree key={'tree'} />
-			<Form onChange={onFieldChange} />
+			<ReflexContainer orientation="vertical">
+				<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
+					<Tree key={'tree'} />
+				</ReflexElement>
+				<ReflexSplitter/>
+				<ReflexElement className="right-pane custom-scrollbar" minSize={200}>
+					<Form onChange={onFieldChange} />
+				</ReflexElement>
+			</ReflexContainer>
 		</div>
 	);
 }
@@ -50,12 +63,14 @@ function App() {
 	const { siteConfig } = useDocusaurusContext();
 	return (
 		<Provider store={store}>
-			<Layout>
-				<Head>
-					<script src="https://kit.fontawesome.com/9ff5ab3bcf.js" crossorigin="anonymous"></script>
-				</Head>
-				<Generator />
-			</Layout>
+			<div className='generator-wrap'>
+				<Layout>
+					<Head>
+						<script src="https://kit.fontawesome.com/9ff5ab3bcf.js" crossorigin="anonymous"></script>
+					</Head>
+					<Generator />
+				</Layout>
+			</div>
 		</Provider>
 	)
 }

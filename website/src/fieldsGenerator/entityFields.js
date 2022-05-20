@@ -12,7 +12,7 @@ export const entityFields = (path, yamlData) => {
         dbConn.push(conn.key)
     })
     fields.push({
-        title: "DB Entity Name",
+        title: "Enter DB Entity Name",
         type: "string",
         default_value: "",
         value: entity.key,

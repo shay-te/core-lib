@@ -9,7 +9,7 @@ export const cacheFields = (path, yamlData) => {
     const cacheName = yamlData.core_lib.caches[index].key
     const envPrefix =  `core_lib.env.${cacheName.toUpperCase()}`
     fields.push({
-        title: "Cache Name",
+        title: "Enter Cache Name",
         type: "string",
         default_value: '',
         value: cacheName,
@@ -18,7 +18,7 @@ export const cacheFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
-        title: "Cache Type",
+        title: "Select Cache Type",
         type: "dropdown",
         default_value: 'Memory',
         value: cache.type,

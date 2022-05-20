@@ -1,12 +1,10 @@
 .collapse-expand {
-    transition: max-height 0.5s ease;
-    
+    transition: max-height 1s cubic-bezier(0, 1, 0, 1);
     &.collapsed {
-        max-height: 0;
+        max-height: 0 !important;
         overflow: hidden;
     }
     &.expand {
-        max-height: 100%;
-        overflow: auto;
+        max-height: 100% !important;
     }
 }

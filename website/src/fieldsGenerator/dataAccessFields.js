@@ -13,7 +13,7 @@ export const dataAccessFields = (path, yamlData) => {
         connection.push(conn.key)
     })
     fields.push({
-        title: "Data Access Name",
+        title: "Enter Data Access Name",
         type: "string",
         default_value: '',
         value: dataAccess.key,

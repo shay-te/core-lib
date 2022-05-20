@@ -1,11 +1,17 @@
 import React from 'react'
+import { useDispatch } from "react-redux";
+import { toggleSelected } from "../slices/treeSlice";
 import CollapseExpand from "../collapseExpand/CollapseExpand";
 import TreeBranch from "../treeBranch/TreeBranch";
 import "./TreeSection.scss";
-import Delete from '@site/assets/delete.png';
-import Add from '@site/assets/add.png';
 
 const TreeSection = (props) => {
+	const dispatch = useDispatch();
+	
+	const onBranchClick = (path, event) => {
+		dispatch(toggleSelected(path))
+	}
+
 	const items = [];
 	if (props.isNested) {
 		items.push(props.items);
@@ -14,11 +20,12 @@ const TreeSection = (props) => {
 			items.push(
 				<div key={item.name} className={"node-child"}>
 					<TreeBranch
+						onBranchClick={onBranchClick}
 						path={item.path}
 						onTitleClick={props.onClick}
 						onImageClick={props.onDeleteClick}
 						title={item.name}
-						image={Delete}
+						image={<i className="fa-solid fa-trash-can"></i>}
 						key={item.name}
 					/>
 				</div>
@@ -34,7 +41,7 @@ const TreeSection = (props) => {
 					path={props.path}
 					onImageClick={props.onAddClick}
 					title={props.title}
-					image={Add}
+					image={<i className="fa-solid fa-plus"></i>}
 					icon={props.icon}
 					key={props.title}
 				/>

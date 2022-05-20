@@ -12,7 +12,7 @@ const InputInteger = (props) => {
                 className="form-input"
                 defaultValue={props.value || props.default_value}
                 required={props.mandatory}
-                placeholder="Number input"
+                placeholder={props.title}
                 onChange={props.onChange}
             />
         </div>

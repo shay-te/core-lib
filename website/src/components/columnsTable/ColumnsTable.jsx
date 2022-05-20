@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import InputDropDown from "../inputs/InputDropDown";
 import InputString from "../inputs/InputString";
 import InputCheckbox from "../inputs/InputCheckbox";
@@ -31,58 +31,67 @@ const ColumnsTable = (props) => {
 					onMouseEnter={() => setVisible(true)}
 					onMouseLeave={() => setVisible(false)}
 					onMouseOver={() => setVisible(true)}
-					className='tr'
+					className="tr"
 				>
-					<td key={`${props.fieldKey}.${index}.key`} className='td'>
-						<InputString
-							key={`${props.fieldKey}.${index}.key`}
-							mandatory={true}
-							value={column.key}
-							default_value={""}
-							fieldKey={`${props.fieldKey}.${index}.key`}
+					<td key={`${props.fieldKey}.${index}.key`} className="td">
+						<input
+							type={"text"}
+							id={`field-${props.fieldKey}.${index}.key`}
+							className="form-input"
+							defaultValue={column.key}
+							required={true}
+							placeholder="Column Name"
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.key`,
 							})}
 						/>
 					</td>
-					<td key={`${props.fieldKey}.${index}.type`} className='td'>
-						<InputDropDown
-							key={`${props.fieldKey}.${index}.type`}
-							mandatory={true}
-							value={column.type}
-							default_value={""}
-							fieldKey={`${props.fieldKey}.${index}.type`}
-							options={["VARCHAR", "BOOLEAN", "INTEGER"]}
+					<td key={`${props.fieldKey}.${index}.type`} className="td">
+						<select
+							id={`${props.fieldKey}.${index}.type`}
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.type`,
 							})}
-						/>
+							value={column.type}
+						>
+							<option value="VARCHAR">VARCHAR</option>
+							<option value="BOOLEAN">BOOLEAN</option>
+							<option value="INTEGER">INTEGER</option>
+						</select>
 					</td>
-					<td key={`${props.fieldKey}.${index}.default`} className='td'>
-						<InputString
-							key={`${props.fieldKey}.${index}.default`}
-							mandatory={true}
-							value={column.default}
-							default_value={""}
-							fieldKey={`${props.fieldKey}.${index}.default`}
+					<td
+						key={`${props.fieldKey}.${index}.default`}
+						className="td"
+					>
+						<input
+							type={"text"}
+							id={`field-${props.fieldKey}.${index}.default`}
+							className="form-input"
+							defaultValue={column.default}
+							required={true}
+							placeholder="Column Default Value"
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.default`,
 							})}
 						/>
 					</td>
-					<td key={`${props.fieldKey}.${index}.nullable`} className='td'>
-						<InputCheckbox
-							key={`${props.fieldKey}.${index}.nullable`}
-							mandatory={true}
+					<td
+						key={`${props.fieldKey}.${index}.nullable`}
+						className="td"
+					>
+						<input
+							type="checkbox"
+							id={`${props.fieldKey}.${index}.nullable`}
+							name={"list" + props.fieldKey}
 							value={column.nullable}
-							fieldKey={`${props.fieldKey}.${index}.nullable`}
+							defaultChecked={column.nullable}
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.nullable`,
 							})}
 						/>
 					</td>
-					
-						<td className='td'>
+
+					<td className="td">
 						<HoverVisible isVisible={visible}>
 							<button
 								className="column-del-btn"
@@ -92,9 +101,8 @@ const ColumnsTable = (props) => {
 							>
 								<i className="fa-solid fa-trash-can"></i>
 							</button>
-							</HoverVisible>
-						</td>
-					
+						</HoverVisible>
+					</td>
 				</tr>
 			);
 		})
@@ -103,13 +111,13 @@ const ColumnsTable = (props) => {
 		<div className="columns-root">
 			<label className="input-label">Columns</label>
 			<div>
-				<table className='table'>
+				<table className="table">
 					<thead>
-						<tr className='tr'>
-							<th className='th'>Name</th>
-							<th className='th'>Type</th>
-							<th className='th'>Default</th>
-							<th className='th'>Nullable</th>
+						<tr className="tr">
+							<th className="th">Name</th>
+							<th className="th">Type</th>
+							<th className="th">Default</th>
+							<th className="th">Nullable</th>
 						</tr>
 					</thead>
 					<tbody>{items}</tbody>

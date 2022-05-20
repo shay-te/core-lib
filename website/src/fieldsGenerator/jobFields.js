@@ -5,7 +5,7 @@ export const jobFields = (path, yamlData) => {
     const keyPrefix = `core_lib.jobs.${index}`
     const job = yamlData.core_lib.jobs[index]
     fields.push({
-        title: "Job Name",
+        title: "Enter Job Name",
         type: "string",
         default_value: '',
         value: job.key,
@@ -14,7 +14,7 @@ export const jobFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
-        title: "Initial Dealy",
+        title: "Enter Initial Dealy",
         type: "string",
         default_value: '',
         value: job.initial_delay,
@@ -23,7 +23,7 @@ export const jobFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
-        title: "Frequency",
+        title: "Enter Frequency for Job",
         type: "string",
         default_value: '',
         value: job.frequency,

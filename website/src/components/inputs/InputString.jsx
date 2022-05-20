@@ -16,7 +16,7 @@ const InputString = (props) => {
                 className="form-input"
                 defaultValue={getDefault()}
                 required={props.mandatory}
-                placeholder="Text input"
+                placeholder={props.title}
                 onChange={props.onChange}
             />
         </div>

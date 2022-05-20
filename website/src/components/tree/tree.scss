@@ -1,23 +1,7 @@
 .tree-root {
-	width: 30%;
 	padding: 1rem;
 	background-color: #f5f9fc;
-	border-right: 1px rgb(77, 77, 77) solid;
-	position: static;
 	align-items: flex-end;
-	overflow-y: scroll;
-	position: static;
-	&::-webkit-scrollbar {
-		width: 12px;
-	}
-	&::-webkit-scrollbar-track {
-		-webkit-box-shadow: inset 0 0 3px rgba(0,0,0,0.3); 
-		border-radius: 5px;
-	}
-	&::-webkit-scrollbar-thumb {
-		border-radius: 10px;
-		-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-	}
 }
 
 .tree {
@@ -31,8 +15,9 @@
 }
 
 .node-title{
-	font-size: 1.25rem;
+	font-size: 1rem;
 	font-weight: bold;
+	margin: 0.1rem;
 }
 
 .node-child{
