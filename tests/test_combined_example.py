@@ -141,7 +141,7 @@ class TestCombinedExample(unittest.TestCase):
         user = self.combined_core_lib.test.customer.create(user_data_crud)
         db_data = self.combined_core_lib.test.customer.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
-
+        sleep(0.1)
         self.combined_core_lib.test.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
         db_data = self.combined_core_lib.test.customer.get(user[User.id.key])
         self.assertEqual(db_data[User.email.key], 'jon@doe.com')
