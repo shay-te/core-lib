@@ -29,10 +29,7 @@ class ExampleCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
         self.config = conf
-        config_file = 'instantiate_sql_alchemy.yaml'
-        config = hydra.compose(config_file)
-        self.db_session = instantiate_config(config.config)
-        self.client = instantiate_config(config.client)
+        self.db_session = instantiate_config(self.config.core_lib.config.db)
 
 
 class CustomerClient(ClientBase):
@@ -50,11 +47,11 @@ class TestInstantiateConfig(unittest.TestCase):
         hydra.core.global_hydra.GlobalHydra.instance().clear()
         hydra.initialize(config_path='./test_data/test_config')
 
-    def test_example_class(self):
+    def test_example_core_lib(self):
         config_file = 'instantiate_config_example.yaml'
         config = hydra.compose(config_file)
-        self.example_class = instantiate_config(config.config)
-        self.assertTrue(isinstance(self.example_class.db_session, SqlAlchemyDataHandlerRegistry))
+        self.example_core_lib = ExampleCoreLib(config)
+        self.assertTrue(isinstance(self.example_core_lib.db_session, SqlAlchemyDataHandlerRegistry))
 
     def test_core_lib(self):
         config_file = 'instantiate_config_test_core_lib.yaml'
