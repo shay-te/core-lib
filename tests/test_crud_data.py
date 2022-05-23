@@ -1,4 +1,5 @@
 import unittest
+from time import sleep
 
 from sqlalchemy import Column, Integer, VARCHAR, Boolean
 
@@ -105,7 +106,7 @@ class TestCrud(unittest.TestCase):
             len_append += 4
             self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
             self.assertEqual(data_2['deleted_at'], None)
-            self.assertEqual(data_2['deleted_at_token'], None)
+            self.assertEqual(data_2['deleted_at_token'], 0)
         elif is_soft_delete:
             self.assertEqual(int(data_2['created_at']), int(data_2['updated_at']))
             self.assertEqual(data_2['deleted_at'], None)
@@ -136,7 +137,7 @@ class TestCrud(unittest.TestCase):
 
         crud_data_access.update(1, {'active': False})
         self.assertEqual(result_to_dict(crud_data_access.get(1))['active'], False)
-
+        sleep(0.1)
         crud_data_access.update(5, {'name': 'Rosita', 'email': 'rosita@def.com'})
         data_5 = result_to_dict(crud_data_access.get(5))
         self.assertEqual(data_5['name'], 'Rosita')

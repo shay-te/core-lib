@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime
+from time import sleep
 
 from sqlalchemy import Integer, Column, VARCHAR, Index
 
@@ -51,7 +52,7 @@ class TestSoftDelete(unittest.TestCase):
         with self.db_data_session.get() as session:
             all_data = session.query(Data).all()
             converted_data = result_to_dict(all_data)
-
+            sleep(0.1)
             self.assertEqual(converted_data[0]['name'], self.data_name_1)
             self.assertEqual(converted_data[0]['deleted_at_token'], 0)
             self.assertEqual(converted_data[0]['deleted_at'], None)
@@ -82,7 +83,7 @@ class TestSoftDelete(unittest.TestCase):
                 self.assertEqual(data['created_at'], data['created_at'])
                 self.assertEqual(data['deleted_at_token'], int(self.dattime.timestamp()))
                 self.assertEqual(data['deleted_at'], self.dattime.timestamp())
-                self.assertEqual(int(data['updated_at']), int(self.dattime.timestamp()))
+                self.assertGreater(int(data['updated_at']), int(self.dattime.timestamp()))
 
             self.assertEqual(convert_deleted_data[0]['name'], self.data_name_1)
             self.assertEqual(convert_deleted_data[1]['name'], self.data_name_2)

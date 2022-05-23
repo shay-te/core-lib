@@ -1,10 +1,7 @@
 import unittest
-from datetime import datetime, date
+from datetime import date
 from time import sleep
 
-import hydra
-
-from core_lib.core_lib import CoreLib
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 from examples.test_core_lib.core_lib.test_core_lib import TestCoreLib
@@ -34,7 +31,7 @@ class TestExamples(unittest.TestCase):
         user = self.test_core_lib.customer.create(user_data)
         db_data = self.test_core_lib.customer.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
-
+        sleep(0.1)
         self.test_core_lib.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
         db_data = self.test_core_lib.customer.get(user[User.id.key])
         self.assertEqual(db_data[User.email.key], 'jon@doe.com')
@@ -48,7 +45,7 @@ class TestExamples(unittest.TestCase):
         user = self.test_core_lib.user.create(user_data)
         db_data = self.test_core_lib.user.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
-
+        sleep(0.1)
         self.test_core_lib.user.update(user[User.id.key], {'gender': User.Gender.FEMALE.value})
         db_data = self.test_core_lib.user.get(user[User.id.key])
         self.assertEqual(db_data[User.gender.key], User.Gender.FEMALE.value)
