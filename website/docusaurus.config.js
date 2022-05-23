@@ -71,7 +71,7 @@ const config = {
             label: 'Tutorial',
           },
           // {to: '/blog', label: 'Blog', position: 'left'},
-          {to: '/generator', label: 'Generator', position: 'left'},
+          {to: '/generate', label: 'Generate', position: 'left'},
           {
             href: 'https://github.com/shay-te/core-lib',
             label: 'GitHub',
@@ -128,7 +128,12 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
       },
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: true,
+      },
     }),
+    
 };
 
 module.exports = config;

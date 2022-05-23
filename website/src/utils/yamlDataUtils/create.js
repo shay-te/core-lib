@@ -23,7 +23,7 @@ export const entity = (dbConn, yamlData) => {
     const target = getValueAtPath(data, steps)
     const dbConnSteps = ['core_lib', 'connections']
     const dbConns = getValueAtPath(data, dbConnSteps)
-    let newEntity = {key: `new_entity_${target.length}`}
+    let newEntity = {key: `new_entity_${target.length + 1}`}
     dbConns.forEach(connection => {
         if(connection.key === dbConn && connection['url']['protocol'] === 'mongodb'){
             newEntity = Object.assign(newEntity, newMongoEntity)
@@ -36,14 +36,27 @@ export const entity = (dbConn, yamlData) => {
 }
 
 export const dataAccess = (yamlData) => {
+    if(yamlData.core_lib.connections.length === 0){
+        yamlData = dbConnection(yamlData)
+    }
     const dbConn = yamlData.core_lib.connections[0].key
-   
+    if(yamlData.core_lib.entities.length === 0){
+        yamlData = entity(dbConn, yamlData)
+    }
     const data = JSON.parse(JSON.stringify(yamlData))
+    const dbEntitySteps =  ['core_lib', 'entities']
+    const dbEntities = getValueAtPath(data, dbEntitySteps)
+    let dbEntitiesList = []
+    dbEntities.forEach(entity => {
+        if(entity.db_connection === dbConn){
+            dbEntitiesList.push(entity.key)
+        }
+    })
     const steps = ['core_lib', 'data_accesses']
     const target = getValueAtPath(data, steps)
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
-        entity: "details",
+        entity: dbEntitiesList[0],
         db_connection: dbConn,
         is_crud: true,
         is_crud_soft_delete: true,

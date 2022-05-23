@@ -23,6 +23,15 @@ $secondary-color: #0aa2f8;
 	}
 }
 
+.close-generator-btn{
+	z-index: 1;
+	position: absolute;
+	font-size: 2rem;
+	color: #ff7948;
+	top: 10%;
+	right: 5%;
+}
+
 .custom-scrollbar {
 	&::-webkit-scrollbar {
 		width: 5px;

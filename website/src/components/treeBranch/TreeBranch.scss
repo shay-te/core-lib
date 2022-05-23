@@ -14,7 +14,12 @@
 		display: flex;
 
 		.branch-title {
+			width: inherit;
 			margin-left: 0.75rem;
+			
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 		}
 	}
 	&:hover{

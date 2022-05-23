@@ -2,7 +2,6 @@ import React from 'react';
 import Head from '@docusaurus/Head';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from "@theme/Layout";
-import clsx from "clsx";
 
 import './generator.scss';
 import Form from './../components/form/Form';
@@ -11,9 +10,7 @@ import {
 	init,
 	updateFields
 } from "./../components/slices/treeSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { testInput } from './../testInput';
-import { useEffect } from 'react';
+import { useDispatch } from "react-redux";
 import { store } from './../components/store/store';
 import { Provider } from 'react-redux';
 
@@ -23,21 +20,10 @@ import {
 	ReflexElement
 } from 'react-reflex'
 import 'react-reflex/styles.css'
+import Link from '@docusaurus/Link';
 
 function Generator() {
-	const { siteConfig } = useDocusaurusContext();
-	const yamlData = useSelector((state) => state.treeData.yaml);
 	const dispatch = useDispatch()
-
-	useEffect(() => {
-		if (JSON.stringify(yamlData) === '{}') {
-			dispatch(init(testInput))
-		}
-		else {
-			dispatch(init(yamlData))
-		}
-
-	}, [])
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
@@ -45,17 +31,25 @@ function Generator() {
 		}
 	}
 	return (
-		<div className='app-root'>
-			<ReflexContainer orientation="vertical">
-				<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
-					<Tree key={'tree'} />
-				</ReflexElement>
-				<ReflexSplitter/>
-				<ReflexElement className="right-pane custom-scrollbar" minSize={200}>
-					<Form onChange={onFieldChange} />
-				</ReflexElement>
-			</ReflexContainer>
-		</div>
+		<>
+			<div className='close-generator-btn'>
+				<Link to='/generate'>
+					<i className="fa-solid fa-xmark"></i>
+				</Link>
+			</div>
+			<div className='app-root'>
+				<ReflexContainer orientation="vertical">
+					<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
+						<Tree key={'tree'} />
+					</ReflexElement>
+					<ReflexSplitter />
+					<ReflexElement className="right-pane custom-scrollbar" minSize={200}>
+						<Form onChange={onFieldChange} />
+					</ReflexElement>
+				</ReflexContainer>
+			</div>
+		</>
+
 	);
 }
 

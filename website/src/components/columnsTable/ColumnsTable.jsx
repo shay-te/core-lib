@@ -1,7 +1,4 @@
 import React from "react";
-import InputDropDown from "../inputs/InputDropDown";
-import InputString from "../inputs/InputString";
-import InputCheckbox from "../inputs/InputCheckbox";
 
 import { useDispatch } from "react-redux";
 import { deleteFormField, addNewEntry } from "../slices/treeSlice";
@@ -107,28 +104,44 @@ const ColumnsTable = (props) => {
 			);
 		})
 	);
+
+	const RenderItems = (props) => {
+		console.log(props.value)
+		return (
+			<>
+				{props.value.length !== 0 ? (
+					<table className="table">
+						<thead>
+							<tr className="tr">
+								<th className="th">Name</th>
+								<th className="th">Type</th>
+								<th className="th">Default</th>
+								<th className="th">Nullable</th>
+							</tr>
+						</thead>
+						<tbody>{items}</tbody>
+					</table>
+				) : (
+					""
+				)}
+			</>
+		);
+	};
 	return (
 		<div className="columns-root">
-			<label className="input-label">Columns</label>
-			<div>
-				<table className="table">
-					<thead>
-						<tr className="tr">
-							<th className="th">Name</th>
-							<th className="th">Type</th>
-							<th className="th">Default</th>
-							<th className="th">Nullable</th>
-						</tr>
-					</thead>
-					<tbody>{items}</tbody>
-				</table>
+			<div className="columns-title-div">
+				<div className="columns-title">Columns</div>
+				<button
+					className="column-add-btn"
+					onClick={() => onAddClick(`${props.fieldKey}`)}
+				>
+					<i className="fa-solid fa-plus fa-xl"></i>
+				</button>
 			</div>
-			<button
-				className="column-add-btn"
-				onClick={() => onAddClick(`${props.fieldKey}`)}
-			>
-				<i className="fa-solid fa-plus fa-2xl"></i>
-			</button>
+
+			<div>
+				<RenderItems value={props.value} />
+			</div>
 		</div>
 	);
 };

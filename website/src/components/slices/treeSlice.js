@@ -10,6 +10,13 @@ import { cacheFields } from '../../fieldsGenerator/cacheFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
 
+const updateLocalStorage = (state) => {
+    const recentCoreLibs = (JSON.parse(localStorage.getItem('core_libs')) === null ? [] : JSON.parse(localStorage.getItem('core_libs')))
+    recentCoreLibs.splice(state.localStorageIndex, 1);
+    recentCoreLibs.splice(state.localStorageIndex, 0, state.yaml);
+    localStorage.setItem('core_libs', JSON.stringify(recentCoreLibs));
+}
+
 const setTreeState = (state, yamlData) => {
     state.dataAccess = yamlData.listChildrenUnderPath('core_lib.data_accesses')
     state.entities = yamlData.listChildrenUnderPath('core_lib.entities')
@@ -18,6 +25,7 @@ const setTreeState = (state, yamlData) => {
     state.jobs = yamlData.listChildrenUnderPath('core_lib.jobs')
     state.cache = yamlData.listChildrenUnderPath('core_lib.caches')
     state.CoreLibName = yamlData.coreLibName
+    updateLocalStorage(state)
 }
 
 const pathToFields = (path, yaml) => {
@@ -58,16 +66,20 @@ export const treeSlice = createSlice({
         fieldsPath: '',
         treeSelected: {},
         treeState: {},
+        localStorageIndex: 0,
     },
     reducers: {
         init: (state, action) => {
             yamlData.init(action.payload)
-            setTreeState(state, yamlData)
             state.yaml = yamlData.toJSON()
+            state.fields = [],
+            state.fieldsPath = '',
+            state.fieldsTitle = '',
+            setTreeState(state, yamlData)
         },
         updateTree: (state, action) => {
-            setTreeState(state, yamlData)
             state.yaml = yamlData.toJSON()
+            setTreeState(state, yamlData)
         },
         setFields: (state, action) => {
             state.fieldsPath = action.payload.path;
@@ -89,6 +101,7 @@ export const treeSlice = createSlice({
             yamlData.delete(action.payload)
             state.yaml = yamlData.toJSON()
             state.fields = pathToFields(state.fieldsPath, state.yaml)
+            updateLocalStorage(state)
         },
         addNewEntry: (state, action) => {
             createNewEntry(action.payload, yamlData)
@@ -108,11 +121,13 @@ export const treeSlice = createSlice({
         toggleSelected: (state, action) => {
             state.treeSelected = {}
             state.treeSelected[action.payload] = true
-
         },
+        setStorageIndex: (state, action) => {
+            state.localStorageIndex = action.payload;
+        }
     },
 })
 
-export const { init, updateTree, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected } = treeSlice.actions
+export const { init, updateTree, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected, setStorageIndex } = treeSlice.actions
 
 export default treeSlice.reducer

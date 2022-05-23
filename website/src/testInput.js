@@ -125,12 +125,6 @@ module.exports.testInput = {
         "key": "data",
         "db_connection": "sellerdb",
         "columns": [
-          {
-            "key": "address",
-            "type": "VARCHAR",
-            "default": null,
-            "nullable": true
-          }
         ],
         "is_soft_delete": false,
         "is_soft_delete_token": false
