@@ -8,7 +8,6 @@ from core_lib_generator.config_collectors.database import generate_db_template
 from core_lib_generator.config_collectors.db_entity import generate_db_entity_template
 from core_lib_generator.config_collectors.job import generate_job_template
 from core_lib_generator.config_collectors.setup_collector import generate_setup_template
-from core_lib_generator.config_collectors.solr import generate_solr_template
 
 
 def _get_env_variables(data):
@@ -22,11 +21,15 @@ def _get_env_variables(data):
 
 
 config = {}
-config.setdefault('data', {})
+config.setdefault('data', [])
+config.setdefault('cache', [])
+config.setdefault('jobs', [])
 setup = {}
 setup.setdefault('data', {})
 env = {}
 data_layers = {}
+data_layers.setdefault('data', [])
+data_layers.setdefault('data_access', [])
 
 
 def _get_data_layers_config():
@@ -36,7 +39,7 @@ def _get_data_layers_config():
         db = generate_db_template()
         env.update(_get_env_variables(db))
         for db_name in db:
-            config['data'][db_name] = db[db_name]['config']
+            config['data'].append(db[db_name]['connection'])
         want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
         if want_entities:
             print('Please fill out the requested information for creating entities in Database.')
@@ -51,19 +54,13 @@ def _get_data_layers_config():
                 data_layers['data_access'] = data_access
 
 
-def _get_solr_config():
-    print('Please fill out the requested solr information.')
-    solr = generate_solr_template()
-    env.update(_get_env_variables(solr))
-    config['data']['solr'] = solr['config']
-
-
 def _get_cache_config():
     print('Please fill out the requested Cache information.')
-    cache = generate_cache_template()
-    if 'env' in cache:
-        env.update(_get_env_variables(cache))
-    config['cache'] = cache['config']
+    cache_list = generate_cache_template()
+    for cache in cache_list:
+        if 'env' in cache:
+            env.update(_get_env_variables(cache))
+        config['cache'].append(cache['cache'])
 
 
 def _get_setup_details():
@@ -80,10 +77,14 @@ def _get_jobs_config(core_lib_name: str):
 def create_yaml_file(core_lib_name: str):
     conf = OmegaConf.create(
         {
-            core_lib_name: {
+            'core_lib': {
+                'name': core_lib_name,
                 'env': env,
-                'config': config,
-                'data_layers': data_layers,
+                'connections': config['data'],
+                'caches': config['cache'],
+                'jobs': config['jobs'],
+                'entities': data_layers['data'],
+                'data_accesses': data_layers['data_access'],
                 'setup': setup['data'],
             }
         }
@@ -97,10 +98,6 @@ def get_data_from_user():
     core_lib_name = any_to_pascal(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
 
     _get_data_layers_config()
-
-    want_solr = input_yes_no('\nWill you be using Solr?', False)
-    if want_solr:
-        _get_solr_config()
 
     want_cache = input_yes_no('\nWould you like to use cache?', True)
     if want_cache:

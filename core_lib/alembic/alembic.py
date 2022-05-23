@@ -75,6 +75,9 @@ class Alembic(object):
     def downgrade(self, revision: str = "base"):
         self.__migrate_to_revision(revision, False)
 
+    def history(self):
+        return command.history(self.alembic_cfg)
+
     def create_migration(self, migration_name):
         if not migration_name:
             raise ValueError("Migration name must be set")

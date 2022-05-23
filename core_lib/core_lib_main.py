@@ -10,7 +10,6 @@ from omegaconf import DictConfig
 from core_lib.alembic.alembic import Alembic
 from hydra import compose, initialize_config_dir
 
-
 from core_lib.helpers.validation import is_int
 from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
 from core_lib_generator.core_lib_config_generate_yaml import get_data_from_user
@@ -39,27 +38,31 @@ def on_revision(value):
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
     logging.getLogger('alembic').setLevel(logging.INFO)
 
-    logger.info(f'revision to `{value}`')
     command = value.pop(0)
+    logger.info(f'revision to `{command}`')
 
     if command == 'head':
         alembic.upgrade('head')
     elif command == 'base':
         alembic.downgrade('base')
+    elif command == 'list':
+        alembic.history()
     elif is_int(command):
         number = int(command)
         if number >= 0:
-            alembic.upgrade('+{}'.format(number))
+            alembic.upgrade(f'+{number}')
         else:
-            alembic.downgrade(str(number))
+            alembic.downgrade(f'{number}')
     elif command == 'new':
         name = list_to_string(value)
         logger.info('creating new migrating named: `{}`'.format(name))
         alembic.create_migration(name)
+    else:
+        logger.error(f'unknown command `{command}`')
 
 
 def get_rev_options() -> list:
-    choices = ['head', 'base', 'new']
+    choices = ['head', 'base']
     for i in range(-10, 11):
         if i != 0:
             choices.append(str(i))
@@ -74,15 +77,44 @@ def load_config() -> DictConfig:
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
     g.add_argument(
         '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
     )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
-    g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help='Database migration.')
+    subparsers = parser.add_subparsers(dest='command')
+    rev = subparsers.add_parser('rev', help='migration revision')
+    rev.add_argument(
+        '-m',
+        '--migrate',
+        help='Existing migration select from the list',
+        choices=get_rev_options(),
+        nargs=1,
+    )
+    rev.add_argument(
+        '-n',
+        '--new',
+        help='New migration name to be created',
+        nargs=1,
+    )
+    rev.add_argument(
+        '-l',
+        '--list',
+        help='List of revisions',
+        nargs='?',
+        const='list'
+    )
     args = parser.parse_args()
-    if args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
+    if args.command == 'rev':
+        if args.migrate:
+            on_revision(args.migrate)
+        elif args.new:
+            on_revision(['new', args.new[0]])
+        else:
+            on_revision(['list'])
+    elif args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
         args.create[0]()
     elif args.generate:
         on_generate(args.generate)

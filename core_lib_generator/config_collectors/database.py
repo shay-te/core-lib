@@ -6,12 +6,12 @@ from core_lib.helpers.shell_utils import input_str, input_enum, input_yes_no, in
 def generate_db_template() -> dict:
     db_template = {}
 
-    def is_exists(user_input: str):
+    def is_exists_conn(user_input: str):
         return False if user_input in db_template else True
 
     add_db = True
     while add_db:
-        db_name = input_str('What is the name of the DB connection?', None, False, is_exists)
+        db_name = input_str('What is the name of the DB connection?', None, False, is_exists_conn)
 
         db_type = input_enum(
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
@@ -20,15 +20,11 @@ def generate_db_template() -> dict:
         db_password = None
         db_port = None
         db_host = None
-        db_log_queries = None
-        db_create = None
-        db_pool_recycle = None
-        db_pool_pre_ping = None
-        if db_type != DBTypes.MongoDB.value:
-            db_log_queries = input_yes_no('Do you want to log queries?', False)
-            db_create = input_yes_no('Do you want create Database?', True)
-            db_pool_recycle = input_int('Enter the pool recycle time', 3200)
-            db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+        db_log_queries = input_yes_no('Do you want to log queries?', False)
+        db_create = input_yes_no('Do you want create Database?', True)
+        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
+        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
+        migrate = input_yes_no(f'Do you want to create a migration?', False)
         if db_type != DBTypes.SQLite.value:
             db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
             db_host = input_str('Enter host of your DB', 'localhost')
@@ -36,7 +32,7 @@ def generate_db_template() -> dict:
             db_password = input_str(
                 'Enter your DB password',
             )
-        print(f'Database type {DBTypes(db_type).name} on {db_host}:{db_port}')
+        print(f'Database type {DBTypes(db_type).name}')
         add_db = input_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name}'] = _generate_db_config(
             db_type,
@@ -49,12 +45,13 @@ def generate_db_template() -> dict:
             db_create,
             db_pool_recycle,
             db_pool_pre_ping,
+            migrate
         )
     return db_template
 
 
 class DBTypes(enum.Enum):
-    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase MongoDB'
+    __order__ = 'SQLite Postgresql MySQL Oracle MSSQL Firebird Sybase'
     SQLite = 1
     Postgresql = 2
     MySQL = 3
@@ -62,7 +59,6 @@ class DBTypes(enum.Enum):
     MSSQL = 5
     Firebird = 6
     Sybase = 7
-    MongoDB = 8
 
 
 default_db_ports = {
@@ -72,7 +68,6 @@ default_db_ports = {
     DBTypes.MSSQL.name: 1433,
     DBTypes.Firebird.name: 3050,
     DBTypes.Sybase.name: 5000,
-    DBTypes.MongoDB.name: 27017,
 }
 
 
@@ -87,28 +82,23 @@ def _generate_db_config(
     db_create: bool = True,
     db_pool_recycle: int = 3200,
     db_pool_pre_ping: bool = False,
+    migrate: bool = False
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
-    if db_type == DBTypes.MongoDB.value:
-        return {
-            'env': config['env'],
-            'config': {
-                'url': config['url'],
+    return {
+        'env': config['env'],
+        'connection': {
+            'key': db_name,
+            'migrate': migrate,
+            'log_queries': db_log_queries,
+            'create_db': db_create,
+            'session': {
+                'pool_recycle': db_pool_recycle,
+                'pool_pre_ping': db_pool_pre_ping,
             },
-        }
-    else:
-        return {
-            'env': config['env'],
-            'config': {
-                'log_queries': db_log_queries,
-                'create_db': db_create,
-                'session': {
-                    'pool_recycle': db_pool_recycle,
-                    'pool_pre_ping': db_pool_pre_ping,
-                },
-                'url': config['url'],
-            },
-        }
+            'url': config['url'],
+        },
+    }
 
 
 def _build_url(

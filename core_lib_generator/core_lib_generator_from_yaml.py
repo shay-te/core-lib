@@ -3,11 +3,13 @@ from datetime import datetime
 
 from omegaconf import DictConfig
 
+from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.file_generators.config_generator import ConfigGenerateTemplate
 from core_lib_generator.file_generators.core_lib_class_generator import CoreLibClassGenerateTemplate
 from core_lib_generator.file_generators.default_config_generator import DefaultConfigGenerateTemplate
 from core_lib_generator.file_generators.dockerignore_generator import DockerIgnoreGenerateTemplate
+from core_lib_generator.file_generators.env_generator import EnvGenerateTemplate
 from core_lib_generator.file_generators.gitignore_generator import GitIgnoreGenerateTemplate
 from core_lib_generator.file_generators.hydra_plugins_generator import HydraPluginsGenerateTemplate
 from core_lib_generator.file_generators.data_access_generator import DataAccessGenerateTemplate
@@ -24,26 +26,16 @@ from core_lib_generator.file_generators.version_generator import VersionGenerate
 
 class CoreLibGenerator:
     def __init__(self, config: DictConfig):
-        self.core_lib_name = next(iter(config))
+        self.core_lib_name = config.core_lib.name
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
-        self.core_lib_config = config[self.core_lib_name].config
 
-        self.core_lib_entities = {}
-        self.core_lib_data_access = {}
-        self.core_lib_jobs = {}
-        self.core_lib_cache = {}
-        self.core_lib_setup = {}
-
-        if 'data' in config[self.core_lib_name].data_layers:
-            self.core_lib_entities = config[self.core_lib_name].data_layers.data
-            if 'data_access' in config[self.core_lib_name].data_layers:
-                self.core_lib_data_access = config[self.core_lib_name].data_layers.data_access
-        if 'jobs' in self.core_lib_config:
-            self.core_lib_jobs = self.core_lib_config.jobs
-        if 'cache' in self.core_lib_config:
-            self.core_lib_cache = self.core_lib_config.cache
-        if 'setup' in config[self.core_lib_name]:
-            self.core_lib_setup = config[self.core_lib_name].setup
+        self.core_lib_env = get_dict_attr(config['core_lib'], 'env')
+        self.core_lib_data_conn = get_dict_attr(config['core_lib'], 'connections')
+        self.core_lib_entities = get_dict_attr(config['core_lib'], 'entities')
+        self.core_lib_data_access = get_dict_attr(config['core_lib'], 'data_accesses')
+        self.core_lib_jobs = get_dict_attr(config['core_lib'], 'jobs')
+        self.core_lib_cache = get_dict_attr(config['core_lib'], 'caches')
+        self.core_lib_setup = get_dict_attr(config['core_lib'], 'setup')
 
     def _generate_template(
         self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
@@ -65,33 +57,34 @@ class CoreLibGenerator:
 
     def generate_data_access(self):
         if self.core_lib_data_access:
-            for da_name in self.core_lib_data_access:
+            for da in self.core_lib_data_access:
+                da_name = da['key']
                 self._generate_template(
                     f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data_access/{camel_to_snake(da_name)}.py',
-                    self.core_lib_data_access[da_name],
+                    da,
                     DataAccessGenerateTemplate(),
                     da_name,
                 )
 
     def generate_entities(self):
         if self.core_lib_entities:
-            for db_conn_name in self.core_lib_entities:
-                for entity_name in self.core_lib_entities[db_conn_name]:
-                    if entity_name == 'migrate':
-                        continue
-                    self._generate_template(
-                        f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
-                        self.core_lib_entities[db_conn_name][entity_name],
-                        EntityGenerateTemplate(),
-                        entity_name,
-                    )
+            for entity in self.core_lib_entities:
+                entity_name = entity['key']
+                db_conn_name = entity['db_connection']
+                self._generate_template(
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
+                    entity,
+                    EntityGenerateTemplate(),
+                    entity_name,
+                )
 
     def generate_jobs(self):
         if self.core_lib_jobs:
-            for name in self.core_lib_jobs:
+            for job in self.core_lib_jobs:
+                job_name = job['key']
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/jobs/{name}.py',
-                    self.core_lib_jobs[name],
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/jobs/{job_name}.py',
+                    job,
                     JobsGenerateTemplate(),
                 )
 
@@ -102,7 +95,8 @@ class CoreLibGenerator:
                 'data_access': self.core_lib_data_access,
                 'jobs': self.core_lib_jobs,
                 'cache': self.core_lib_cache,
-                'config': self.core_lib_config,
+                'connections': self.core_lib_data_conn,
+                'entities': self.core_lib_entities,
             },
             CoreLibClassGenerateTemplate(),
         )
@@ -110,13 +104,17 @@ class CoreLibGenerator:
     def generate_config(self):
         self._generate_template(
             f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/config/{self.snake_core_lib_name}.yaml',
-            self.core_lib_config,
+            {
+                'jobs': self.core_lib_jobs,
+                'cache': self.core_lib_cache,
+                'connections': self.core_lib_data_conn,
+            },
             ConfigGenerateTemplate(),
         )
 
     def generate_hydra_plugins(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}/{self.snake_core_lib_name}_sourcepath.py',
+            f'{self.snake_core_lib_name}/hydra_plugins/{self.snake_core_lib_name}/{self.snake_core_lib_name}_searchpath.py',
             {},
             HydraPluginsGenerateTemplate(),
         )
@@ -128,7 +126,9 @@ class CoreLibGenerator:
         self._generate_template(f'{self.snake_core_lib_name}/.dockerignore', {}, DockerIgnoreGenerateTemplate())
 
     def generate_readme(self):
-        self._generate_template(f'{self.snake_core_lib_name}/README.md', {}, ReadmeGenerateTemplate())
+        self._generate_template(
+            f'{self.snake_core_lib_name}/README.md', self.core_lib_data_access, ReadmeGenerateTemplate()
+        )
 
     def generate_requirements(self):
         self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
@@ -138,6 +138,9 @@ class CoreLibGenerator:
 
     def generate_manifest(self):
         self._generate_template(f'{self.snake_core_lib_name}/MANIFEST.in', {}, ManifestGenerateTemplate())
+
+    def generate_env(self):
+        self._generate_template(f'{self.snake_core_lib_name}/.env', self.core_lib_env, EnvGenerateTemplate())
 
     def generate_setup(self):
         if self.core_lib_setup:
@@ -169,4 +172,5 @@ class CoreLibGenerator:
         self.generate_requirements()
         self.generate_default_config()
         self.generate_manifest()
+        self.generate_env()
         self.generate_setup()

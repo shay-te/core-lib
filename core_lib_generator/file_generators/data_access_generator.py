@@ -1,3 +1,4 @@
+from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
@@ -5,11 +6,11 @@ from core_lib_generator.file_generators.template_generator import TemplateGenera
 class DataAccessGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         updated_file = template_content.replace('Template', file_name)
-        db_conn = yaml_data['db_connection']
-        entity = yaml_data['entity']
+        db_conn = get_dict_attr(yaml_data, 'db_connection')
+        entity = get_dict_attr(yaml_data, 'entity')
         updated_file = updated_file.replace(
             '# template_entity_imports',
-            f'from {core_lib_name}.{core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
+            f'from {core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
         )
         updated_file = updated_file.replace('db_entity', any_to_pascal(entity))
         return updated_file
