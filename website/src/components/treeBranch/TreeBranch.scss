@@ -1,0 +1,35 @@
+.tree-branch {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.25rem;
+	cursor: pointer;
+	transition: 0.5s;
+	img {
+		height: auto;
+		width: 1rem;
+	}
+
+	.branch-title-icon {
+		display: flex;
+
+		.branch-title {
+			width: inherit;
+			margin-left: 0.75rem;
+			
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+		}
+	}
+	&:hover{
+		border-radius: 5px;
+		box-shadow: 0px 0px 4px 0px rgb(157 157 157);
+		background-color: #ffffff;
+	}
+	&.selected{
+		border-radius: 5px;
+		box-shadow: 0px 0px 4px 0px rgb(157 157 157);
+		background-color: #ffffff;
+	}
+}

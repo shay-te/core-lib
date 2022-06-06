@@ -16,8 +16,17 @@
   }
 }
 
-.buttons {
+.buttonsDiv{
+  width: 30%;
+}
+
+.button {
   display: flex;
   align-items: center;
   justify-content: center;
+  
+}
+
+.mainButton{
+  width: 200px;
 }
