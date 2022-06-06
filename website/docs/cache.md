@@ -38,24 +38,24 @@ By default `Core-Lib` provides two `CacheHandler` implementation.
 3. `core_lib.cache.cache_client_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_handler_redis.py#L9)
 
 
-## CacheClientFactory
+## CacheRegistry
 
-*core_lib.cache.cache_registry.CacheClientFactory* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_registry.py#L5)
+*core_lib.cache.cache_registry.CacheRegistry* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_registry.py#L5)
 
-`CacheClientFactory` class holds all instances of `CacheHandler` classes and provides two main functions.
+`CacheRegistry` class holds all instances of `CacheHandler` classes and provides two main functions.
 
 ```python
-from core_lib.cache.cache_client_factory import CacheClientFactory
+from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
 
-cache_client_factory = CacheClientFactory()
-cache_client_factory.register("mem", CacheHandlerRam())
+cache_registry = CacheRegistry()
+cache_registry.register("mem", CacheHandlerRam())
 ...
-cache_client_factory.get("mem") # returns registered `CacheHandlerRam`
-cache_client_factory.get() # returns registered `CacheHandlerRam`. Only when a single client is registered, 
+cache_registry.get("mem") # returns registered `CacheHandlerRam`
+cache_registry.get() # returns registered `CacheHandlerRam`. Only when a single client is registered, 
 
-cache_client_factory.register("mem2", CacheHandlerRam())
-cache_client_factory.get() # returns None. Multiple client registered.
+cache_registry.register("mem2", CacheHandlerRam())
+cache_registry.get() # returns None. Multiple client registered.
 ``` 
 
 
@@ -93,7 +93,7 @@ class Cache(object):
 
 ## Cache Initialization
 
-The `Cache` decorator is using the `CacheClientFactory` to get the designated `CacheHandler`   
+The `Cache` decorator is using the `CacheRegistry` to get the designated `CacheHandler`   
 Initializing `Core-Lib` with `Cache` example: 
 
 ```python
@@ -106,9 +106,8 @@ class DemoCoreLib(CoreLib):
         self.config = conf
 
         cache_client_memcached = CacheHandlerMemcached(Client([build_url(**self.config.memcached)]))
-        cache_factory = CacheClientFactory()
-        cache_factory.register("memcached", cache_client_memcached)
-        Cache.set_cache_factory(cache_factory)
+        cache_registry = CacheRegistry()
+        cache_registry.register("memcached", cache_client_memcached)
         ...
 ``` 
 

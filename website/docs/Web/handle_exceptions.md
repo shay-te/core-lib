@@ -18,9 +18,9 @@ class HandleException(object):
 
 Can handle exceptions for:
 - `StatusCodeException` a part of `Core-Lib`'s `error_handling` class, raises a `StatusCodeException` with the given `status_code` if the user wants to return a different status code.
-- `AssertionError` returns response with `Status Code 500` when an assertion fails.
-- `BaseException` returns response with `Status Code 500` when any other exceptions are raised.
-- `ExpiredSignatureError` returns response with `Status Code 401` while attempting to decode a jwt expired token using the `JWTTokenHandler`.
+- `AssertionError` returns a response with `Status Code 500` when an assertion fails.
+- `BaseException` returns a response with `Status Code 500` when any other exceptions are raised.
+- `ExpiredSignatureError` returns a response with `Status Code 401` while attempting to decode a jwt expired token using the `JWTTokenHandler`.
 
 
 **Example**
@@ -65,8 +65,8 @@ def handle_exception(func, *args, **kwargs):
 ```
 **Arguments**
 
-`func`: the function on which we need to handle exceptions.  
-`*args`, `**kwargs`: the args and kwargs of the function.
+- **`func`**: The function on which we need to handle exceptions.  
+- __`*args, **kwargs`__: The args and kwargs of the function.
 
 **Example**
 ```python

@@ -16,8 +16,8 @@ class Logging(object):
 ```
 **Arguments**
 
-**`message`** *`(str)`*: The message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.  
-**`level`** *`(int)`*: Default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
+- **`message`** *`(str)`*: The message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.  
+- **`level`** *`(int)`*: Default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
 to know about the logger values [click here](https://docs.python.org/3/library/logging.html#logging-levels).
 
 

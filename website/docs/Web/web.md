@@ -4,13 +4,13 @@ title: Web Helpers
 sidebar_label: Web Helpers
 ---
 
-Web Helpers provides various response functions that help the users return data over an `Django` or `Flask` API.
+Web Helpers provides various response functions that help the users return data over a `Django` or `Flask` API.
 
 # WebHelpersUtils
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/web_helpers/web_helprs_utils.py#L4)
 
-This class is used to set the type of web framework that will be utilised in the application i.e. `Django` or `Flask`.
+This class is used to set the type of web framework that will be utilized in the application i.e. `Django` or `Flask`.
 
 ## Functions
 
