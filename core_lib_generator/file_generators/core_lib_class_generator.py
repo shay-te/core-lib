@@ -84,7 +84,7 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
             cache_inits.append(add_tab_spaces(cache_str, 2))
     updated_file = updated_file.replace(
         '# template_cache_handler_imports',
-        '\n'.join(cache_imports),
+        '\n'.join(set(cache_imports)),
     )
     updated_file = updated_file.replace(
         '# template_cache_handlers',
