@@ -4,39 +4,37 @@ title: Data Layers
 sidebar_label: Data Layers
 ---
 
-Data is moving and transforming in a single direction. from the physical disk until it meets the user's screen.
-braking down the data flow into layers with an agreement up front on a set of rules and responsibilities may help us manage our code more easily.
+Data is moving and transforming in a single direction. From the physical disk until it meets the user's screen.
+Breaking down the data flow into layers with an agreement up front on a set of rules and responsibilities may help us manage our code more easily.
 
 
-####  “Complexity is the enemy of execution”. Tony Robbins
+**“Complexity is the enemy of execution”. Tony Robbins**
 
-To make our application more resilient is to make it more simple to pay.   
-by simply handling fewer responsibilities. 
+To make our application more resilient is to make it more simple to pay by simply handling fewer responsibilities. 
 Simply means less complexity in our code.
 
 The best way to solve this is by delegating responsibilities into different categories.
   
 
-### Layer Rules:
+### Layer Rules
 
 To make sure that the responsibilities of each layer are done only by the designated layer. 
 We will decide upfront of some rules:
 
 
-[!POINT] When writing any type of `data-layer` try to put on the hat of one that will pay your data-layer APIs.  
+> When writing any type of `data-layer` try to put on the hat of one that will pay your data-layer APIs.  
 
 1. Data layer will get data internally only from layers beside or below it.    
-2. Each layer will be agnostic and will handle error/create custom exceptions/logging/etc.. internally   
-   To make our layers independent and portable
+2. Each layer will be agnostic and will handle error/create custom exceptions/logging/etc.. internally to make our layers independent and portable.
 3. Keep code/classes/variable/constants where they need to be (WEB container code only in the web layer, DB queries in the DataAccess etc....)   
 
 
-shay rules to keep code clean. 
-1. when you have to add logic to extrnal service. wrap it with your own service. 
-2. when there is logic that not related to the critteria of the query. put it in the service
+Shay rules to keep code clean. 
+1. When you have to add logic to external service, wrap it with your own service. 
+2. When there is logic that not related to the criteria of the query put it in the service.
 
 
-## Data Layer:
+## Data Layer
 <table><tr>
         <td><b>Input</b></td>
         <td>Data Sources/Configuration</td>
@@ -49,7 +47,7 @@ shay rules to keep code clean.
 </tr></table>
 
 
-## Data-Access Layer:
+## Data-Access Layer
 
 <table><tr>
         <td><b>Input</b></td>
@@ -67,15 +65,15 @@ shay rules to keep code clean.
 </tr></table>
 
 
-data-access layers are the way we access the data of our application. thus layers are the single source of truth for data fetching.
+Data-Access layers are the way we access the data of our application. thus, layers are the single source of truth for data fetching.
 
-here we will optimize queries, cache data, work with multiple data sources and more.
+Here we will optimize queries, cache data, work with multiple data sources and more.
 
-this layer single responsibility is to fetch data from the previous layer and expose them as APIs of the application.
+This layer single responsibility is to fetch data from the previous layer and expose them as APIs of the application.
 
-* using native queries/ORM is less important for the data flow as long that we keep layer rule number 1.
+* Using native queries/ORM is less important for the data flow as long that we keep layer rule number 1.
 
-## Service Layer:
+## Service Layer
 
 <table><tr>
         <td><b>Input</b></td>
@@ -93,7 +91,7 @@ this layer single responsibility is to fetch data from the previous layer and ex
     </tr><tr><td></td><td>4. Caching</td>
 </tr></table>
 
-### Application layer:
+## Application layer
 
 <table><tr>
         <td><b>Input</b></td>
@@ -112,13 +110,13 @@ this layer single responsibility is to fetch data from the previous layer and ex
 </tr></table>
 
 
-here we will have custom implementation for each interface (web/mobile/pager/etc..)
-And this layer we will handle our users and session
+Here we will have custom implementation for each interface (web/mobile/pager/etc..).  
+And this layer we will handle our users and session.
 
-## WEB layer:
-receive: data using the application layer
-expose: rest API
+## Web layer
+Receive: Data using the Application Layer  
+Expose: REST API
 
-each layer act as an interface to the layer below it.
+Each layer act as an interface to the layer below it.
 
 

@@ -24,9 +24,9 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 Formatted data provided to the function.  
 For e.g., will return tuple as a tuple, dict as a dict
 
-Datatypes supported:
+### Datatypes supported
 
-SQLAlchemy
+**SQLAlchemy**
  - Varchar
  - ENUM
  - Integer
@@ -39,7 +39,7 @@ SQLAlchemy
  - Date ( converted to `timestamp` )
  - Datetime ( converted to `timestamp` )
 
-Python
+**Python**
  - WKBElement / WKTElement (Geographical point) ( converted to Point )
  - Float
  - Tuple

@@ -5,10 +5,16 @@ sidebar_label: Instantiate Config
 ---
 
 # Instantiate Config
+
+### instantiate_config()
+
+*core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/helpers/config_instances.py#L62)
+
 `instantiate_config` produces a class object instance with the configuration specified in a yaml [link](https://github.com/facebookresearch/hydra/blob/740f1446189e26d3e4a3d8c6222a50560a521820/hydra/_internal/instantiate/_instantiate2.py#L148).
 It is a wrapper for the hydra's `instantiate()` for creating objects, with added capabilities of checking the 
 subtype and instantiating multiple instances using the `instantiate_config_group_generator_list()` , `instantiate_config_group_generator_dict()`. 
 For more info about hydra's `instantiate()` [click here](https://hydra.cc/docs/advanced/instantiate_objects/overview/)
+
 ```python
 def instantiate_config(
     settings: dict,
@@ -18,19 +24,21 @@ def instantiate_config(
     params: dict = {},
 ):
 ```
-`settings` (*dict*): a dictionary with the key `_target_` that contains the class package path and the configuration for the `_target_` class.
+**Arguments**
+
+- **`settings`** *`(dict)`*: A dictionary with the key `_target_` that contains the class package path and the configuration for the `_target_` class.
 Can be loaded from a YAML file using [hydra compose](https://hydra.cc/docs/1.0/experimental/compose_api/).
 
-`instance_base_class` (*object*): An abstract class object (if any) used to validate if the `_target_` is a subclass of this type.
+- **`instance_base_class`** *`(object)`*: An abstract class object (if any) used to validate if the `_target_` is a subclass of this type.
 
-`class_config_base_path` (*str*): If the `_target_` key is under a nested `dict` the path needs to be specified here for the function to discover it.
+- **`class_config_base_path`** *`(str)`*: If the `_target_` key is under a nested `dict` the path needs to be specified here for the function to discover it.
 
-`raise_class_config_base_path_error` (*bool*): If true raise an error if `_target_` was not found in `class_config_base_path`.
+- **`raise_class_config_base_path_error`** *`(bool)`*: If true raise an error if `_target_` was not found in `class_config_base_path`.
 
-`params` (*dict*): Additional parameters, these parameters will be merged with the yaml parameters..
+- **`params`** *`(dict)`*: Additional parameters, these parameters will be merged with the yaml parameters..
 
 
-## Examples
+### Examples
 
 ### Core-Lib Yaml with target
 customer_core_lib.yaml
@@ -119,7 +127,12 @@ isinstance(customer_core_lib.db_session, SqlAlchemyDataHandlerRegistry) #True
 
 
 ## Other Functions
-### `instantiate_config_group_generator_dict`
+
+### instantiate_config_group_generator_dict()
+
+*core_lib.helpers.config_instances.instantiate_config_group_generator_dict()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/helpers/config_instances.py#L5)
+
+Similar to `instantiate_config` used for creating multiple instances for multiple classes.
 
 ```python
 def instantiate_config_group_generator_dict(
@@ -130,10 +143,12 @@ def instantiate_config_group_generator_dict(
     params: dict = {},
 ):
 ```
-Similar to `instantiate_config` used for creating multiple instances for multiple classes.
 
+### instantiate_config_group_generator_list()
 
-### `instantiate_config_group_generator_list`
+*core_lib.helpers.config_instances.instantiate_config_group_generator_list()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/helpers/config_instances.py#L20)
+
+Similar to `instantiate_config_group_generator_dict`, gets a `ListConfig` instead of `DictConfig` for multiple set
 
 ```python
 def instantiate_config_group_generator_list(
@@ -144,5 +159,3 @@ def instantiate_config_group_generator_list(
     params: dict = {},
 ):
 ```
-
-Similar to `instantiate_config_group_generator_dict`, gets a `ListConfig` instead of `DictConfig` for multiple sett

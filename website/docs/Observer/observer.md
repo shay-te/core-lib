@@ -10,7 +10,7 @@ sidebar_label: Observer
 
 Using the `Oserver` class to `attach`, `detache`, `notify` to register events. 
 
-## ObserverListner
+## ObserverListener
 
 *core_lib.observer.observer_listener.ObserverListener* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer_listener.py#L4)
 
@@ -52,7 +52,7 @@ class MyCoreLib(CoreLib):
 ```
 
 
-## Observe decorator
+## Observe Decorator
 
 *core_lib.observer.observer_decorator.Observe* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer_decorator.py#L7)
 

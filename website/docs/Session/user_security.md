@@ -8,102 +8,182 @@ sidebar_label: User Security
 These classes function together, and the user must implement them in order for `User Security` to work as expected.
 
 Classes that handle `User Security`
-## UserSecurity
+
+# UserSecurity
+
+*core_lib.session.user_security.UserSecurity* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L6)
+
 `UserSecurity` is an abstract class that provides security functions to be implemented by the user as per their needs. Must be extended in the class where we will implement the abstract methods.
 
 ```python
 class UserSecurity(ABC):
     def __init__(self, cookie_name: str, token_handler: TokenHandler):
 ```
-`cookie_name` (*str*) : name of the cookie in which the token is passed
 
-`token_handler` : expects a `TokenHandler` class that implements the `encode` and `decode` functions.
+**Arguments**
+
+- **`cookie_name`** *`(str)`*: Name of the cookie in which the token is passed
+- **`token_handler`** *`(TokenHandler)`*: Expects a `TokenHandler` class that implements the `encode` and `decode` functions.
 
 >`UserSecurity` token handler uses the `JWTTokenHandler` in `Core-Lib` which handles the [jwt](https://jwt.io) tokens. 
 
 
 
-###Function provides by UserSecurity
+## Functions
 
-- `secure_entry` is an abstract method that the user must implement, it can be customized to perform actions according 
+### secure_entry()
+
+*core_lib.session.user_security.UserSecurity.secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L14)
+
+Is an abstract method that the user must implement, it can be customized to perform actions according 
 to the `policies` supplied to the `RequireLogin` decorator.
 
 ```python
 def secure_entry(self, request, session_obj, policies: list):
 ```
-`request` :  the received request object.
 
-`session_obj` : decoded and formatted session data.
+**Arguments**
 
-`policies` (*list*) : list of policies that will be required for further authentication or authorization.
+- **`request`**: The received request object.
+- **`session_obj`**: Decoded and formatted session data.
+- **`policies`** *`(list)`*: List of policies that will be required for further authentication or authorization.
 
-- `from_session_data` also an abstract method to be implemented by the user, takes care of the formatting and 
+### from_session_data()
+
+*core_lib.session.user_security.UserSecurity.from_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L19)
+
+Also an abstract method to be implemented by the user, takes care of the formatting and 
 cleaning of the decoded session data.
 
 ```python
 def from_session_data(self, session_data: dict):
 ```
-`session_data` (*dict*) : decoded session data received from `_secure_entry()`.
 
-- `generate_session_data` also an abstract method to be implemented by user, returns a structured `dict` with the received data that will be used in the response object.
+**Arguments**
+
+- **`session_data`** *`(dict)`*: Decoded session data received from `_secure_entry()`.
+
+### generate_session_data()
+
+*core_lib.session.user_security.UserSecurity.generate_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L23)
+
+Also an abstract method to be implemented by user, returns a structured `dict` with the received data that will be used in the response object.
 
 ```python
 def generate_session_data(self, obj) -> dict:
 ```
-`obj` : data that must be structured and returned.
 
-- `generate_session_data_token` is a method that will encode the data returned by `generate_session_data()` and return the encoded token.
+**Arguments**
+
+- **`obj`**: Data that must be structured and returned.
+
+**Returns**
+
+*`(dict)`*: Returns session data dictionary.
+
+
+### generate_session_data_token()
+
+*core_lib.session.user_security.UserSecurity.generate_session_data_token()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L26)
+
+Is a method that will encode the data returned by `generate_session_data()` and return the encoded token.
 
 ```python
 def generate_session_data_token(self, obj):
 ```
-`obj` that is being passed to `generate_session_data` in order to create a structured `dict`.
 
-- `_secure_entry` is being called in the `@RequireLogin` decorator and is responsible for calling the `secure_entry` 
+**Arguments**
+
+- **`obj`**: That is being passed to `generate_session_data` in order to create a structured `dict`.
+
+**Returns**
+
+Returns encoded token.
+
+### _secure_entry()
+
+*core_lib.session.user_security.UserSecurity._secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/user_security.py#L38)
+
+Is being called in the `@RequireLogin` decorator and is responsible for calling the `secure_entry` 
 method that is implemented.
 
 ```python
 def _secure_entry(self, request, policies):
 ```
-`request` : request object that is received by the decorator containing the cookie with token.
 
-`policies` : list of policies that will be passed to `secure_entry()`
+**Arguments**
+
+- **`request`**: Request object that is received by the decorator containing the cookie with token.
+
+- **`policies`**: List of policies that will be passed to `secure_entry()`
+
+**Returns**
+
+Returns the data returned implemented `secure_entry()` function.
 
 
-## SecurityHandler
+# SecurityHandler
+
+*core_lib.session.security_handler.SecurityHandler* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/security_handler.py#L4)
+
 `SecurityHandler` class registers our `UserSecurity` implemented class and is used to call `UserSecurity` methods using `get()`.
 
 ```python
 class SecurityHandler(object):
 ```
 
-###Function provides by SecurityHandler
+## Functions
 
-- `register` this function registers our `UserSecurity` implemented class.
+### register()
+
+*core_lib.session.security_handler.SecurityHandler.register()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/security_handler.py#L8)
+
+This function registers our `UserSecurity` implemented class.
 
 ```python
 def register(user_security: UserSecurity):
 ```
-`user_security` : `UserSecurity` implemented class.
 
-- `get` this function returns the `UserSecurity` functions.
+**Arguments**
+
+- **`user_security`** *`(UserSecurity)`*: `UserSecurity` implemented class.
+
+### get()
+
+*core_lib.session.security_handler.SecurityHandler.get()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/session/security_handler.py#L14)
+
+This function returns the `UserSecurity` functions.
 
 ```python
 def get() -> UserSecurity:
 ```
 
+**Returns**
 
-## RequireLogin Decorator
+*`(UserSecurity)`*: Returns `UserSecurity` class object.
+
+
+# RequireLogin Decorator
+
+*core_lib.web_helpers.django.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/web_helpers/django/require_login.py#L10)
+
 This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
 It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+
 ```python
 class RequireLogin(object):
     def __init__(self, policies: list = []):
 ```
-`policies` (*list*) : list of policies which will be further passed on the the `UserSecurity` functions.
+
+**Arguments**
+
+- **`policies`** *`(list)`* : List of policies which will be further passed on the the `UserSecurity` functions.
 
 
-## UserAuthMiddleware
+# UserAuthMiddleware
+
+*core_lib.web_helpers.django.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/web_helpers/django/user_auth_middleware.py#L7)
+
 This middleware can be configured in the `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
 the specified cookie is present in the request, turn it to a `Session Object`, and append it to the `request.user` variable.
 
@@ -111,7 +191,7 @@ the specified cookie is present in the request, turn it to a `Session Object`, a
 class UserAuthMiddleware(MiddlewareMixin):
 ```
 
-##Example
+## Example
 
 ```python
 import enum
