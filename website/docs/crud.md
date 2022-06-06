@@ -4,14 +4,15 @@ title: CRUD Handler
 sidebar_label: CRUD Handler
 ---
 
-## CRUD
+# CRUD
 `Core-Lib` provides `CRUD ( Create, Read, Update, Delete )` `DataAccess` classes as boilerplate code.
 
 They are as follows
 
+## CRUD
 
+*core_lib.data_layers.data_access.db.crud.Crud* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud.py#L7)
 
-### CRUD
 This class is used to initialize `CRUD` with database objects, rule validators and database handlers. `CRUD` is an abstract base class for all types of `CRUDDataAccess` in `Core-Lib`.
 ```python
 class CRUD(ABC):
@@ -21,37 +22,75 @@ class CRUD(ABC):
         self._db = db
         self._rule_validator = rule_validator
 ```
-`db_entity` the database entity used by this `DataAccesss`.
 
-`db` instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.
+**Arguments**
 
-`rule_validator` uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
+- **`db_entity`**: The database entity used by this `DataAccesss`.  
+- **`db`** *`(SqlAlchemyDataHandlerRegistry)`*: Instance of the `SqlAlchemyDataHandlerRegistry` used to connect to the database.  
+- **`rule_validator`** *`(RuleValidator)`*: Uses the `RuleValidator` instance to validate data passed into `create()` and `update()` methods (optional).
 
-#### Functions provided by `CRUD`
+### Functions provided by `CRUD`
 
-- `get(id: int)` an abstract method to be implemented with `DataAccess` subclasses
+### get()
 
+*core_lib.data_layers.data_access.db.crud.Crud.get()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud.py#L14)
 
-- `delete(id: int)` an abstract method to be implemented with `DataAccess` subclasses.
+An abstract method to be implemented with `DataAccess` subclasses
 
+```python
+def get(self, id: int):
+```
 
-- `create(data: dict)` is used to add a new entry into the database, this function takes a `dict` with the data to be added to the database.
+**Arguments**
+
+- **`id`** *`(int)`*: Id of the column.
+
+### delete()
+
+*core_lib.data_layers.data_access.db.crud.Crud.delete()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud.py#L40)
+
+An abstract method to be implemented with `DataAccess` subclasses
+
+```python
+def delete(self, id: int):
+```
+
+**Arguments**
+
+- **`id`** *`(int)`*: Id of the column.
+
+### create()
+
+*core_lib.data_layers.data_access.db.crud.Crud.create()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud.py#L24)
+
+Is used to add a new entry into the database, this function takes a `dict` with the data to be added to the database.
+
 ```python
 def create(self, data: dict):
 ```
-`data` is type `dict`, key-values pair where key is the column name and value is the entry to be added to the column.
+**Arguments**
 
+- **`data`**  *`(dict)`*: Key-values pair where key is the column name and value is the entry to be added to the column.
 
-- `update(id: int, data: dict)` used to update data in the database. This function takes a `dict` that contains the data to be updated 
-as well as the `id` of the column that needs to be updated.
+### update()
+
+*core_lib.data_layers.data_access.db.crud.Crud.update()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud.py#L24)
+
+Used to update data in the database. This function takes a `dict` that contains the data to be updated  as well as the `id` of the column that needs to be updated.
+
 ```python
 def update(self, id: int, data: dict):
 ```
-`id` is type `int`, takes the id of the column to be updated.
 
-`data` is type `dict`, key-values pair where key is the column name and value is the entry to be updated.
+**Arguments**
 
-### CRUDDataAccess
+- **`id`** *`(int)`*: Takes the id of the column to be updated.  
+- **`data`**  *`(dict)`*: Key-values pair where key is the column name and value is the entry to be updated.
+
+## CRUDDataAccess
+
+*core_lib.data_layers.data_access.db.crud.CRUDDataAccess* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_data_access.py#L8)
+
 Extends the class `CRUD` and implements the `get()` and `delete()` methods
 
 ```python
@@ -62,22 +101,37 @@ class CRUDDataAccess(DataAccess, CRUD):
 ```
 
 
-#### Functions provided by `CRUDDataAccess`
+### Functions provided by `CRUDDataAccess`
 
-- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id`.
+### get()
+
+*core_lib.data_layers.data_access.db.crud.CRUDDataAccess.get()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_data_access.py#L13)
+
+Overrides the function in `CRUD` class, used to get data from database for a given `id`.
+
 ```python
 def get(self, id: int):
 ```
-`id` is the id of the column we want to query.
 
+**Arguments**
 
-- `delete(id: int)` overrides the function in `CRUD` class, deletes the data for the given `id`.
+- **`id`** *`(int)`*: The id of the column we want to query.
+
+### delete()
+
+*core_lib.data_layers.data_access.db.crud.CRUDDataAccess.delete()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_data_access.py#L18)
+
+Overrides the function in `CRUD` class, deletes the data for the given `id`.
+
 ```python
 def delete(self, id: int):
 ```
-`id` is the id of the column to be deleted.
 
-#### Usage
+**Arguments**
+
+- **`id`** *`(int)`*: The id of the column to be deleted.
+
+**Usage**
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
@@ -100,8 +154,10 @@ class CustomerCRUDDataAccess(CRUDDataAccess):
 
 ```
 
-
 ### CRUDSoftDeleteDataAccess
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteDataAccess* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_data_access.py#L10)
+
 Similar to `CRUDDataAccess` but is used to access and handle soft delete.
 For this to work the database object class must extend `SoftDeleteMixin` to create the required columns for soft delete.
 
@@ -113,22 +169,38 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 ```
 
 
-#### Functions provided by `CRUDSoftDeleteDataAccess`
+### Functions provided by `CRUDSoftDeleteDataAccess`
 
-- `get(id: int)` overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
+### get()
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteDataAccess.get()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_data_access.py#L15)
+
+Overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
+
 ```python
 def get(self, id: int):
 ```
-`id` is the id of the column we want to query.
+
+**Arguments**
+
+- **`id`** *`(int)`*: The id of the column we want to query.
 
 
-- `delete(id: int)` overrides the function in `CRUD` class, soft deletes the data for the given `id`, `SoftDeleteMixin` will set the `deleted_at` to current timestamp.
+### delete()
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteDataAccess.delete()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_data_access.py#L24)
+
+Overrides the function in `CRUD` class, soft deletes the data for the given `id`, `SoftDeleteMixin` will set the `deleted_at` to current timestamp.
+
 ```python
 def delete(self, id: int):
 ```
-`id` is the id of the column to be soft deleted.
 
-#### Usage
+**Arguments**
+
+- **`id`** *`(int)`*: The id of the column to be deleted.
+
+**Usage**
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
@@ -155,6 +227,9 @@ class CustomerCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
 
 
 ### CRUDSoftDeleteWithTokenDataAccess
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteWithTokenDataAccess* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_delete_token_data_access.py#L10)
+
 This class is similar to `CRUDSoftDeleteDataAccess` but is uses `SoftDeleteMixin` as well as `SoftDeleteTokenMixin` which
 creates the `delete_token` column, because indexing a `DateTime` column is slow, adding the `delete_token` allows us to index the columns that have been deleted.
 
@@ -166,23 +241,38 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 ```
 
 
-#### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
+### Functions provided by `CRUDSoftDeleteWithTokenDataAccess`
 
-- `get()` overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
+### get()
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteWithTokenDataAccess.get()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_delete_token_data_access.py#L15)
+
+Overrides the function in `CRUD` class, used to get data from database for a given `id` where `deleted_at` is `None`.
+
 ```python
 def get(self, id: int):
 ```
-`id` is the id of the column we want to query.
 
+**Arguments**
 
-- `delete()` overrides the function in `CRUD` class, soft deletes the data for the given `id`, 
+- **`id`** *`(int)`*: The id of the column we want to query.
+
+### delete()
+
+*core_lib.data_layers.data_access.db.crud.CRUDSoftDeleteWithTokenDataAccess.delete()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_layers/data_access/db/crud/crud_soft_delete_token_data_access.py#L24)
+
+Overrides the function in `CRUD` class, soft deletes the data for the given `id`, 
 `SoftDeleteMixin` will set the `deleted_at` to current timestamp and `SoftDeleteTokenMixin` will set the `delete_token` to `int` value of current timestamp.
+
 ```python
 def delete(self, id: int):
 ```
-`id` is the id of the column to be soft deleted and also will update the `delete_token` with the current `milliseconds`.
 
-#### Usage
+**Arguments**
+
+- **`id`** *`(int)`*: The id of the column to be soft deleted and also will update the `delete_token` with the current `milliseconds`.
+
+**Usage**
 ```python
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access import CRUDSoftDeleteWithTokenDataAccess

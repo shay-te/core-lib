@@ -5,11 +5,14 @@ sidebar_label: handle_exception Decorator
 ---
 
 ## HandleException Decorator
+
+*core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/web_helpers/decorators.py#L34)
+
 `Core-Lib`'s `web_helpers` provides `HandleException` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
 with error message and appropriate status code.
 
 ```python
-def HandleException(func):
+class HandleException(object):
 ```
 >Can be configured with `Flask` and `Django` with the help of `Core-Lib`'s `WebHelpersUtils`.
 
@@ -19,7 +22,9 @@ Can handle exceptions for:
 - `BaseException` returns response with `Status Code 500` when any other exceptions are raised.
 - `ExpiredSignatureError` returns response with `Status Code 401` while attempting to decode a jwt expired token using the `JWTTokenHandler`.
 
-### Usage
+
+**Example**
+
 ```python
 from http import HTTPStatus
 
@@ -50,18 +55,20 @@ def validate_user(user_id):
 
 ## handle_exception Function
 
+*core_lib.web_helpers.decorators.handle_exception()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/web_helpers/decorators.py#L13)
+
 `handle_exception` function is also being used by the `HandleException` decorator, this function is responsible for
 returning HTTP response for the raised exception.
 
 ```python
 def handle_exception(func, *args, **kwargs):
 ```
+**Arguments**
 
-`func`: the function on which we need to handle exceptions.
-
+`func`: the function on which we need to handle exceptions.  
 `*args`, `**kwargs`: the args and kwargs of the function.
 
-### Usage
+**Example**
 ```python
 from http import HTTPStatus
 

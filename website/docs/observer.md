@@ -4,9 +4,19 @@ title: Observer
 sidebar_label: Observer
 ---
 
+# Observer
+
+*core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer.py#L10)
+
 Using the `Oserver` class to `attach`, `detache`, `notify` to register events. 
 
+## ObserverListner
+
+*core_lib.observer.observer_listener.ObserverListener* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer_listener.py#L4)
+
+
 `ObserverListener` listener class to be implemented by the user. 
+
 ```python
 from core_lib.observer.observer_listener import ObserverListener
 
@@ -21,7 +31,7 @@ class UserObserverListener(ObserverListener):
 ```
 
 
-# Settings up the observer
+## Settings up the observer
 
 ```python
 from core_lib.core_lib import CoreLib
@@ -42,7 +52,27 @@ class MyCoreLib(CoreLib):
 ```
 
 
-# Observe decorator
+## Observe decorator
+
+*core_lib.observer.observer_decorator.Observe* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer_decorator.py#L7)
+
+
+```python
+class Observe(object):
+
+    def __init__(
+        self, event_key: str, value_param_name: str = None, observer_name: str = None, notify_before: bool = False
+    ):
+```
+
+**Arguments**
+
+- **`event_key`** *`(str)`*: Event key to notify.
+- **`value_param_name`** *`(str)`*: Default `None`, Event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as dictionary.
+- **`observer_name`** *`(str)`*: Default `None`, When multiple observers register to the `ObserverRegistry`.
+- **`notify_before`** *`(bool)`*: Default `False`, When to send the event before the func call or after.
+
+**Example**
 
 ```python
 class UserDataAccess(DataAccess):
@@ -56,16 +86,3 @@ class UserDataAccess(DataAccess):
             session.query(User).filter(User.id == user_id).update(update)
 
 ```
-
-
-### Observe.\_\_init\_\_
-`value_rule_validators` a list of `ValueRuleValidator` objects. 
-
-`event_key` event key to notify  (type: `str`, default: `None`)
-
-`value_param_name` event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as `dict` (type: `str`, default: `None`)
-  
-`observer_name` when multiple observers register to the `ObserverRegistry`. (type: `str`, default: `None`)
- 
-`notify_before` when to send the event before the func call or after (type: `bool`, default: `False`)
-

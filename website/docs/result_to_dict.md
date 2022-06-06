@@ -4,7 +4,24 @@ title: Result to Dictionary
 sidebar_label: Result to Dictionary
 ---
 ## result_to_dict() Function
+
+*core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_transform/result_to_dict.py#L74)
+
 Will format any value a function returns.
+
+```python 
+def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
+```
+
+**Arguments**
+
+- **`return_val`** *`(any)`*: Value to format.
+- **`properties_as_dict`** *`(bool)`*: Optional argument.
+- **`callback`** *`(Callable[[dict], Awaitable[dict]])`*: A custom callback for formatting nested objects.
+
+**Returns**
+
+Formatted data provided to the function.  
 For e.g., will return tuple as a tuple, dict as a dict
 
 Datatypes supported:
@@ -40,7 +57,7 @@ Python
  - Objects ( converted to `dict` )
 
  
-### Usage
+### Example
 
 >For custom conversion, the `callback` function has to be implemented by the user for handling different types of data nested inside the given object.
 > Also if the callback is not returning a new value, or it does not find any data to format it will return the original data.
@@ -103,6 +120,8 @@ print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data
 
 ## ResultToDict Decorator
 
+*core_lib.data_transform.result_to_dict.ResultToDict* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_transform/result_to_dict.py#L116)
+
 The `ResultToDict` decorator uses `result_to_dict` function to carry out the formatting.
 
 ```python
@@ -114,14 +133,12 @@ class ResultToDict(object):
     def __call__(self, func, *args, **kwargs):
         ...
 ```
-`func`: the decorated function that's returning the data.
+**Arguments**
 
-`*args`, `**kwargs`: the args and kwargs of the decorated function.
+- **`func`**: The decorated function that's returning the data.
+- __`*args, **kwargs`__: the args and kwargs of the decorated function.
 
-`result_to_dict`: used by the decorator class to format the data
-
- 
-### Usage
+### Example
 ```python
 from core_lib.data_transform.result_to_dict import ResultToDict
 

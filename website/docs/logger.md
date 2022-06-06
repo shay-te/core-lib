@@ -5,21 +5,26 @@ sidebar_label: Logging
 ---
 
 # Logging
+
+*core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/logging.py#L7)
+
 `Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
 
 ```python
 class Logging(object):
     def __init__(self, message: str = '', level: int = logging.INFO):
 ```
-`message` type `str`, the message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.
+**Arguments**
 
-`level` type `int`, default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
+**`message`** *`(str)`*: The message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.  
+**`level`** *`(int)`*: Default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
 to know about the logger values [click here](https://docs.python.org/3/library/logging.html#logging-levels).
+
 
 >**Warning** If you wish to log data, keep in mind that there's a potential that the data might include sensitive information, we recommend to use `Keyable` class implementation.
 
 
-##Usage
+**Example**
 
 ```python
 import logging

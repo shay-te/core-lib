@@ -7,36 +7,28 @@ sidebar_label: Data Transform Helpers
 # Data Transform Helpers
 Provides functions for reading and manipulating `dict`.
 
-## Functions
+## Function
+### get_dict_attr()
 
-#### get_dict_attr()
+*core_lib.data_transform.helpers.get_dict_attr()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_transform/helpers.py#L6)
+
 From the dictionary, returns the value for the given path.
 
 ```python
 def get_dict_attr(obj: dict, path: str):
 ```
+**Arguments**
 
-`obj` (*dict*): `dict` to read.
+**`obj`** *`(dict)`*: Dictionary to read.  
+**`path`** *`(str)`*: The path to read the value from.
 
-`path` (*str*): The path to read the value from.
+**Returns**
 
-#### set_dict_attr()
-Sets the value of a path-described object. It will be created if any section of the object path does not exist.
+*`(any)`*: Returns any value present at the target path  
 
+**Example**
 ```python
-def set_dict_attr(obj: dict, path: str, value) -> dict:
-```
-
-`obj` (*dict*): `dict` to update.
-
-`path` (*str*): The path to which the value should be set.
-
-`value` (*value*): The value to be set at the target path.
-
-## Example
-
-```python
-from core_lib.data_transform.helpers import get_dict_attr, set_dict_attr
+from core_lib.data_transform.helpers import get_dict_attr
 
 data = {'name': 'Jon', 'education':{'school': 'Public School'}}
 
@@ -45,6 +37,34 @@ print(value)  # Public School
 
 value = get_dict_attr(data, 'name')
 print(value)  # Jon
+```
+<br/>
+
+
+### set_dict_attr()
+*core_lib.data_transform.helpers.set_dict_attr()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/data_transform/helpers.py#L17)
+
+Sets the value of a path-described object. It will be created if any section of the object path does not exist.
+
+```python
+def set_dict_attr(obj: dict, path: str, value) -> dict:
+```
+**Arguments**
+
+**`obj`** *`(dict)`*: Dictionary to update.  
+**`path`** *`(str)`*: The path to which the value should be set.  
+**`value`** *`(value)`*: The value to be set at the target path.
+
+**Returns**
+
+*`(dict)`*: Returns the updated dictionary with the new values.
+
+**Example**
+
+```python
+from core_lib.data_transform.helpers import set_dict_attr
+
+data = {'name': 'Jon', 'education':{'school': 'Public School'}}
 
 set_dict_attr(data, 'education.school', 'International School')
 print(get_dict_attr(data, 'education.school')) # International School

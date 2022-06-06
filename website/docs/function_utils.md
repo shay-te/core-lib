@@ -4,26 +4,38 @@ title: Function Utilities
 sidebar_label: Function Utilities
 ---
 
-## Function Utils
+# Function Utils
 
 These functions provide a unified way to retrieve or format a function's parameters
 or get the calling module of a function.
 
-### Functions and Usage
+## Functions
 
-- `build_function_key` format a new string by merging a unique message with the function parameters and custom parameter.
+### build_function_key()
+
+*core_lib.helpers.func_utils.build_function_key()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L65)
+
+Will validate if the passed string is a valid `email` or not. 
+
+Format a new string by merging a unique message with the function parameters and custom parameter.
 
 ```python
 def build_function_key(key: str, func, *args, **kwargs) -> str:
     ....
 ```
-`key`: base string for formatting the parameter, when not set the func.__qualname__ is used
 
-`func`: the function to extract it parameter.
+**Arguments**
 
-`*args`, `**kwargs`: the function args/kwargs for building the result string
+- **`key`** *`(str)`*: Base string for formatting the parameter, when not set the func.__qualname__ is used.
+- **`func`**: Function from which we wish to extract the parameters.
+- __`*args, **kwargs`__: The function's args/kwargs for building the result string.
 
-#### Usage
+
+**Returns**
+
+*`(str)`*: Returns a formatted key.
+
+**Example**
 
 ```python
 from core_lib.helpers.func_utils import build_function_key
@@ -41,19 +53,28 @@ print(formatted_parameters)  # key_1_!Eparam_2E!_hello
 ```
 > **Note:** Will return `None` if the parameter's value is missing.
 
+### get_func_parameters_as_dict()
 
+*core_lib.helpers.func_utils.get_func_parameters_as_dict()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L48)
 
-- `get_func_parameters_as_dict` extracts a function's parameters to `dict`, where key of the dictionary will be the parameter's name and value will be the value of the parameter.
+Extracts a function's parameters to `dict`, where key of the dictionary will be the parameter's name and value will be the value of the parameter.
 
 ```python
 def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
     ....
 ```
-`func`: the function to extract all of its parameters.
 
-`*args`, `**kwargs`: the actual function args, kwargs.
+**Arguments**
 
-#### Usage
+- **`func`**: Function from which we wish to extract a parameter.
+- __`*args, **kwargs`__: The function's args/kwargs for building the result string.
+
+
+**Returns**
+
+*`(dict)`*: Returns a dictionary with the parameter's name and value as key-value pair.
+
+**Example**
 
 ```python
 from core_lib.helpers.func_utils import get_func_parameters_as_dict
@@ -71,18 +92,29 @@ print(extracted_dict)# {'param_1':'1', 'param_2':'hello', 'param_3':'world'}
 > **Note:** Will return the value as `None` if the parameter's value is missing.
 
 
+### get_func_parameter_index_by_name()
 
-- `get_func_parameter_index_by_name` takes in a single parameter and function name and will return the parameter's index
+*core_lib.helpers.func_utils.get_func_parameter_index_by_name()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L10)
+
+Takes in a single parameter and function name and will return the parameter's index
 
 ```python
 def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
     ....
 ```
-`func`: the function to which the parameters belong.
 
-`parameter_name`: the name of the parameter from the function.
+**Arguments**
 
-#### Usage
+- **`func`**: Function to which the parameter belongs.
+- **`parameter_name`** *`(str)`*: The parameter's name from the function.
+
+
+**Returns**
+
+*`(int)`*: Returns the index of the parameter.
+
+**Example**
+
 ```python
 from core_lib.helpers.func_utils import get_func_parameter_index_by_name
 
@@ -97,10 +129,26 @@ print(function_to_get_param_index) # 1
 ```
 > **Note:** Will raise an exception if the parameter passed is not valid
 
+### reset_datetime()
 
-- `reset_datetime` will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
-    
-    #### Usage
+*core_lib.helpers.func_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L73)
+
+Will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
+
+```python
+def reset_datetime(date: datetime):
+```
+
+**Arguments**
+
+- **`date`** *`(datetime)`*: The datetime to convert.
+
+
+**Returns**
+
+*`(datetime)`*: Returns the datetime with `hour`, `minute`, `second` and `microsecond` as  `0`.
+
+**Example**
 
 ```python
 import datetime
@@ -113,10 +161,12 @@ print(formatted_datetime) #2022-02-07 00:00:00
 
 ### Keyable Class
 
+*core_lib.helpers.func_utils.Keyable* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L20)
+
 The `Keyable` class allows users to create a custom representation of their data, which is generated by `build function key`.
 The user should implement the abstract function `key()` to return the custom string of formatted data.
 
-#### Usage
+**Example**
 ```python
 from core_lib.helpers.func_utils import Keyable, build_function_key
 

@@ -8,6 +8,8 @@ sidebar_label: Cache
 
 ## CacheHandler
 
+*core_lib.cache.cache_handler.CacheHandler* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_handler.py#L5)
+
 `CacheHandler` base class provides the basic API functions used by `Core-Lib`.
 
 ```python
@@ -31,11 +33,14 @@ class CacheHandler(ABC):
 ```
 
 By default `Core-Lib` provides two `CacheHandler` implementation.   
-1. `core_lib.cache.cache_client_ram.CacheHandlerRam`
-2. `core_lib.cache.cache_client_memcached.CacheHandlerMemcached`
+1. `core_lib.cache.cache_client_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_handler_ram.py#L6)
+2. `core_lib.cache.cache_client_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_handler_memcached.py#L8)
+3. `core_lib.cache.cache_client_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_handler_redis.py#L9)
 
 
 ## CacheClientFactory
+
+*core_lib.cache.cache_registry.CacheClientFactory* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_registry.py#L5)
 
 `CacheClientFactory` class holds all instances of `CacheHandler` classes and provides two main functions.
 
@@ -56,6 +61,8 @@ cache_client_factory.get() # returns None. Multiple client registered.
 
 ## Cache
 
+*core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/cache/cache_decorator.py#L34)
+
 `Cache` decorator. cache's the return value of the decorated method. And accept the following parameters.
 
 ```python
@@ -71,20 +78,20 @@ class Cache(object):
         cache_empty_result: bool = True,
     ):
 ```
-* `key` The key used to store the value. possible values are:
-   
+**Arguments**
+
+- **`key`** *`(str)`*: The key used to store the value. possible values are:
     `None`: the decorated  `function.__qualname__` is used.     
     
     `some_key{param_1}{param_2}`: will build a key with the `param_1` and `param_2` values.     
     when a parameter is optional and empty `_` is used. 
-* `max_key_length` default `250`, the maximum length of key string to be accepted by decorator.
-* `expire` Period of time when the value is expired.
-* `invalidate` Remove the value from the cache using the key.
-* `handler_name` name of the handler, will specify what `CacheHandler` to use, using the `CoreLib.cache_registry`.
-* `cache_empty_result` type `bool`, default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
+- **`max_key_length`** *`(int)`*: Default `250`, the maximum length of key string to be accepted by decorator.
+- **`expire`** *`(timedelta)`*: Period of time when the value is expired.
+- **`invalidate`** *`(bool)`*: Remove the value from the cache using the key.
+- **`handler_name`** *`(str)`*: Name of the handler, will specify what `CacheHandler` to use, using the `CoreLib.cache_registry`.
+- **`cache_empty_result`** *`(bool)`*: Default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
 
-
-### Cache Initialization
+## Cache Initialization
 
 The `Cache` decorator is using the `CacheClientFactory` to get the designated `CacheHandler`   
 Initializing `Core-Lib` with `Cache` example: 
@@ -105,7 +112,7 @@ class DemoCoreLib(CoreLib):
         ...
 ``` 
 
-### Using The Cache decorator.
+## Using The Cache decorator.
 
 ```python
 
