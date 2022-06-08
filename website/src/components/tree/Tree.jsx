@@ -17,6 +17,7 @@ const Tree = () => {
 	const entities = useSelector((state) => state.treeData.entities);
 	const jobs = useSelector((state) => state.treeData.jobs);
 	const cache = useSelector((state) => state.treeData.cache);
+	const services = useSelector((state) => state.treeData.services);
 	const yaml = useSelector((state) => state.treeData.yaml);
 	const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
 	const treeState = useSelector((state) => state.treeData.treeState);
@@ -37,10 +38,12 @@ const Tree = () => {
 	const onConnectionClick = (path) => {
 		dispatch(setFields({ title: "Connection", path: path }));
 	};
-
 	const onCacheClick = (path) => {
 		dispatch(setFields({ title: "Cache", path: path }));
 	};
+	const onServiceClick = (path) => {
+		dispatch(setFields({ title: "Service", path: path }));
+	}
 	const onJobClick = (path) => {
 		dispatch(setFields({ title: "Job", path: path }));
 	};
@@ -62,6 +65,10 @@ const Tree = () => {
 	const onAddJob = (path) => {
 		dispatch(addNewEntry("jobs"));
 	};
+
+	const onAddService = (path) => {
+		dispatch(addNewEntry("services"));
+	}
 
 	const onCollapseExpand = (path) => {
 		dispatch(toggleCollapseExpand(path));
@@ -144,6 +151,19 @@ const Tree = () => {
 						onTitleClick={onCollapseExpand}
 						isNested={true}
 						collapse={treeState["db_entities"]}
+						icon={<i className="fa-solid fa-database fa-sm"></i>}
+					/>
+					<TreeSection
+						key={"services"}
+						path={"services"}
+						title="Services"
+						items={services}
+						onDeleteClick={onDeleteClick}
+						onClick={onServiceClick}
+						isNested={false}
+						onAddClick={onAddService}
+						onTitleClick={onCollapseExpand}
+						collapse={treeState["services"]}
 						icon={<i className="fa-solid fa-database fa-sm"></i>}
 					/>
 					<TreeSection

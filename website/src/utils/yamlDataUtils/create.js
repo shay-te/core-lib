@@ -157,3 +157,35 @@ export const columns = (path, yamlData) => {
     target.push(newColumn)
     return data
 }
+
+export const functions = (path, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = path.split('.')
+    const target = getValueAtPath(data, steps)
+    console.log(target)
+    const newFunc = {
+        key: `func_${target.length + 1}`,
+        return_type: 'dict',
+        result_to_dict: false,
+        cache_key: "CACHE_KEY",
+        cache_invalidate: false,
+    }
+    target.push(newFunc)
+    return data
+}
+
+export const services = (yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = ['core_lib', 'services']
+    const target = getValueAtPath(data, steps)
+    const daSteps = ['core_lib', 'data_accesses']
+    const daTarget = getValueAtPath(data, steps)
+    const newName = `NewService${target.length + 1}`
+    const newJob = {
+        key: newName,
+        data_access: daTarget[0].key,
+        is_crud:true,
+    }
+    target.push(newJob)
+    return data
+}

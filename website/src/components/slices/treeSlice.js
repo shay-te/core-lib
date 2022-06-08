@@ -7,6 +7,7 @@ import { setupFields } from '../../fieldsGenerator/setupFields';
 import { entityFields } from '../../fieldsGenerator/entityFields';
 import { connectionFields } from '../../fieldsGenerator/connectionFields';
 import { cacheFields } from '../../fieldsGenerator/cacheFields';
+import { serviceFields } from '../../fieldsGenerator/serviceFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
 
@@ -24,6 +25,7 @@ const setTreeState = (state, yamlData) => {
     state.connections = yamlData.listChildrenUnderPath('core_lib.connections')
     state.jobs = yamlData.listChildrenUnderPath('core_lib.jobs')
     state.cache = yamlData.listChildrenUnderPath('core_lib.caches')
+    state.services = yamlData.listChildrenUnderPath('core_lib.services')
     state.CoreLibName = yamlData.coreLibName
     updateLocalStorage(state)
 }
@@ -34,18 +36,22 @@ const pathToFields = (path, yaml) => {
     if (path.includes('setup')) { return setupFields(yaml); }
     if (path.includes('connections') || path.includes('env')) { return connectionFields(path, yaml); }
     if (path.includes('caches') || path.includes('env')) { return cacheFields(path, yaml); }
+    if (path.includes('services')) { return serviceFields(path, yaml); }
     if (path.includes('jobs')) { return jobFields(path, yaml); }
     if (path.includes('name')) { return coreLibField(yaml); }
     return [];
 }
 
 const createNewEntry = (path, yamlData) => {
+    console.log(path)
+    if (path.includes('functions')) { return yamlData.createFunction(path) }
     if (path.includes('db_entity')) { return yamlData.createEntity(path.split('.')[1]) }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
     if (path.includes('connections')) { return yamlData.createDBConnection() }
     if (path.includes('caches')) { return yamlData.createCache() }
     if (path.includes('jobs')) { return yamlData.createJob() }
     if (path.includes('columns')) { return yamlData.createColumn(path) }
+    if (path.includes('services')) { return yamlData.createServices() }
     return [];
 }
 
@@ -58,6 +64,7 @@ export const treeSlice = createSlice({
         entities: [],
         jobs: [],
         cache: [],
+        services: [],
         setup: [],
         CoreLibName: '',
         yaml: {},

@@ -58,11 +58,10 @@ function Generate() {
             reader.readAsText(files[0], "UTF-8");
             reader.onload = function (evt) {
                 const obj = yaml.load(evt.target.result)
-                console.log(coreLibs.length)
                 navigateGenerator(obj, coreLibs.length)
             }
             reader.onerror = function (evt) {
-                console.log('error')
+                alert('Some error occured')
             }
         }
     }

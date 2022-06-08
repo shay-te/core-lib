@@ -32,6 +32,15 @@ export const dataAccessFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
+        title: "Functions",
+        type: "functions",
+        default_value: "",
+        value: dataAccess.functions,
+        mandatory: true,
+        key: `${keyPrefix}.functions`,
+        // validatorCallback: validateFunc,
+    },
+    {
         title: "Is CRUD?",
         type: "boolean",
         default_value: false,

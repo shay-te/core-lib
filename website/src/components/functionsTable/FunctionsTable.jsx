@@ -3,11 +3,11 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { deleteFormField, addNewEntry } from "../slices/treeSlice";
 
-import "./ColumnsTable.scss";
+import "./FunctionsTable.scss";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import { useState } from "react";
 
-const ColumnsTable = (props) => {
+const FunctionsTable = (props) => {
 	const dispatch = useDispatch();
 	const [visible, setVisible] = useState(false);
 
@@ -21,7 +21,7 @@ const ColumnsTable = (props) => {
 
 	const items = [];
 	items.push(
-		props.value.map((column, index) => {
+		props.value.map((func, index) => {
 			return (
 				<tr
 					key={index}
@@ -35,55 +35,81 @@ const ColumnsTable = (props) => {
 							type={"text"}
 							id={`field-${props.fieldKey}.${index}.key`}
 							className="form-input"
-							defaultValue={column.key}
+							defaultValue={func.key}
 							required={true}
-							placeholder="Column Name"
+							placeholder="Name"
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.key`,
 							})}
 						/>
 					</td>
-					<td key={`${props.fieldKey}.${index}.type`} className="td">
-						<select
-							id={`${props.fieldKey}.${index}.type`}
-							onChange={props.onChange.bind(this, {
-								key: `${props.fieldKey}.${index}.type`,
-							})}
-							value={column.type}
-						>
-							<option value="VARCHAR">VARCHAR</option>
-							<option value="BOOLEAN">BOOLEAN</option>
-							<option value="INTEGER">INTEGER</option>
-						</select>
-					</td>
 					<td
-						key={`${props.fieldKey}.${index}.default`}
+						key={`${props.fieldKey}.${index}.return_type`}
 						className="td"
 					>
 						<input
 							type={"text"}
-							id={`field-${props.fieldKey}.${index}.default`}
+							id={`field-${props.fieldKey}.${index}.return_type`}
 							className="form-input"
-							defaultValue={column.default}
+							defaultValue={func.return_type}
 							required={true}
-							placeholder="Column Default Value"
+							placeholder="Return Type"
 							onChange={props.onChange.bind(this, {
-								key: `${props.fieldKey}.${index}.default`,
+								key: `${props.fieldKey}.${index}.return_type`,
+							})}
+						/>
+					</td>
+					<td key={`${props.fieldKey}.${index}.result_to_dict`} className="td">
+						<input
+							type="checkbox"
+							id={`${props.fieldKey}.${index}.result_to_dict`}
+							name={"list" + props.fieldKey}
+							value={func.result_to_dict}
+							defaultChecked={func.result_to_dict}
+							onChange={props.onChange.bind(this, {
+								key: `${props.fieldKey}.${index}.result_to_dict`,
 							})}
 						/>
 					</td>
 					<td
-						key={`${props.fieldKey}.${index}.nullable`}
 						className="td"
 					>
 						<input
 							type="checkbox"
-							id={`${props.fieldKey}.${index}.nullable`}
+							id={`cache_toggle`}
 							name={"list" + props.fieldKey}
-							value={column.nullable}
-							defaultChecked={column.nullable}
+							value={func.cache_invalidate}
+							defaultChecked={func.cache_invalidate}
+						/>
+					</td>
+					<td
+						key={`${props.fieldKey}.${index}.cache_key`}
+						className="td"
+					>
+						<input
+							type={"text"}
+							id={`field-${props.fieldKey}.${index}.cache_key`}
+							className="form-input"
+							defaultValue={func.cache_key}
+							required={true}
+							placeholder="Cache key"
 							onChange={props.onChange.bind(this, {
-								key: `${props.fieldKey}.${index}.nullable`,
+								key: `${props.fieldKey}.${index}.cache_key`,
+							})}
+						/>
+					</td>
+					<td
+						key={`${props.fieldKey}.${index}.cache_invalidate`}
+						className="td"
+					>
+						<input
+							type="checkbox"
+							id={`${props.fieldKey}.${index}.cache_invalidate`}
+							name={"list" + props.fieldKey}
+							value={func.cache_invalidate}
+							defaultChecked={func.cache_invalidate}
+							onChange={props.onChange.bind(this, {
+								key: `${props.fieldKey}.${index}.cache_invalidate`,
 							})}
 						/>
 					</td>
@@ -113,9 +139,11 @@ const ColumnsTable = (props) => {
 						<thead>
 							<tr className="tr">
 								<th className="th">Name</th>
-								<th className="th">Type</th>
-								<th className="th">Default</th>
-								<th className="th">Nullable</th>
+								<th className="th">Return Type</th>
+								<th className="th">Result To Dict</th>
+								<th className="th">Cache</th>
+								<th className="th">Cache Key</th>
+								<th className="th">Cache Invalidate</th>
 							</tr>
 						</thead>
 						<tbody>{items}</tbody>
@@ -129,7 +157,7 @@ const ColumnsTable = (props) => {
 	return (
 		<div className="columns-root">
 			<div className="columns-title-div">
-				<div className="columns-title">Columns</div>
+				<div className="columns-title">Functions</div>
 				<button
 					className="column-add-btn"
 					onClick={() => onAddClick(`${props.fieldKey}`)}
@@ -145,12 +173,12 @@ const ColumnsTable = (props) => {
 	);
 };
 
-ColumnsTable.defaultProps = {
+FunctionsTable.defaultProps = {
 	fieldKey: "",
 	index: 1,
-	onChange: ()=> {},
+	onChange: () => {},
 	title: "",
 	value: [],
-}
+};
 
-export default ColumnsTable;
+export default FunctionsTable;
