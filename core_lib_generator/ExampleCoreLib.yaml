@@ -97,12 +97,10 @@ core_lib:
     db_connection: userdb
     functions:
       - key: get_data
-        return_type: dict
         result_to_dict: true
         cache_key: CACHE_DATA
         cache_invalidate: true
       - key: get_user
-        return_type: dict
         result_to_dict: true
     is_crud: true
     is_crud_soft_delete: true
@@ -120,11 +118,9 @@ core_lib:
     data_access: DetailsDataAccess
     functions:
     - key: get_user
-      return_type: dict
       result_to_dict: false
       cache_key: CACHE_DETAILS
       cache_invalidate: false
-    is_crud: true
   setup:
     author: name
     author_email: name@name.com
