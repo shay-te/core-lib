@@ -19,6 +19,7 @@ from core_lib_generator.file_generators.license_generator import LicenseGenerate
 from core_lib_generator.file_generators.manifest_generator import ManifestGenerateTemplate
 from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTemplate
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
+from core_lib_generator.file_generators.service_generator import ServiceGenerateTemplate
 from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
@@ -36,9 +37,10 @@ class CoreLibGenerator:
         self.core_lib_jobs = get_dict_attr(config['core_lib'], 'jobs')
         self.core_lib_cache = get_dict_attr(config['core_lib'], 'caches')
         self.core_lib_setup = get_dict_attr(config['core_lib'], 'setup')
+        self.core_lib_service = get_dict_attr(config['core_lib'], 'services')
 
     def _generate_template(
-        self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
+            self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
     ):
         file_dir_path = os.path.dirname(file_path)
         os.makedirs(file_dir_path, exist_ok=True)
@@ -64,6 +66,17 @@ class CoreLibGenerator:
                     da,
                     DataAccessGenerateTemplate(),
                     da_name,
+                )
+
+    def generate_service(self):
+        if self.core_lib_service:
+            for service in self.core_lib_service:
+                service_name = service['key']
+                self._generate_template(
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/service/{camel_to_snake(service_name)}.py',
+                    service,
+                    ServiceGenerateTemplate(),
+                    service_name,
                 )
 
     def generate_entities(self):
@@ -161,6 +174,7 @@ class CoreLibGenerator:
 
     def run_all(self):
         self.generate_data_access()
+        self.generate_service()
         self.generate_entities()
         self.generate_jobs()
         self.generate_core_lib_class()

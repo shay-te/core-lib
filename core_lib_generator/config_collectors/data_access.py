@@ -1,6 +1,6 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_yes_no
+from core_lib.helpers.shell_utils import input_str, input_yes_no, input_function
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.generator_utils.helpers import is_exists
 
@@ -28,6 +28,17 @@ def generate_data_access_template(db_entities: list) -> list:
                     is_exists_data_access,
                 )
             )
+            functions = []
+
+            def is_exists_function(user_input: str) -> bool:
+                return is_exists(user_input, functions)
+
+            add_function = input_yes_no('Do you want to add a function to your data access?', True)
+            while add_function:
+                functions.append(
+                    input_function(is_exists_function)
+                )
+                add_function = input_yes_no('Do you want to add another function to your data access?', True)
             is_crud_soft_delete_token = False
             is_crud_soft_delete = False
             if entity.get('is_soft_delete') and entity.get('is_soft_delete_token'):
@@ -46,7 +57,7 @@ def generate_data_access_template(db_entities: list) -> list:
 
             data_access.append(
                 _generate_data_access_config(
-                    data_access_name, entity_name, db_conn, is_crud, is_crud_soft_delete, is_crud_soft_delete_token
+                    data_access_name, functions, entity_name, db_conn, is_crud, is_crud_soft_delete, is_crud_soft_delete_token
                 )
             )
     return data_access
@@ -60,40 +71,37 @@ class DataAccessTypes(enum.Enum):
 
 
 def _generate_data_access_config(
-    data_access_name: str,
-    entity_name: str,
-    db_conn: str,
-    crud: bool = False,
-    crud_soft_delete: bool = False,
-    crud_soft_delete_token: bool = False,
+        data_access_name: str,
+        functions: list,
+        entity_name: str,
+        db_conn: str,
+        crud: bool = False,
+        crud_soft_delete: bool = False,
+        crud_soft_delete_token: bool = False,
 ) -> dict:
+    config = {
+        'key': data_access_name,
+        'entity': entity_name,
+        'functions': functions,
+        'db_connection': db_conn,
+    }
     if crud_soft_delete_token:
-        return {
-            'key': data_access_name,
-            'entity': entity_name,
-            'db_connection': db_conn,
+        config.update({
             'is_crud': True,
             'is_crud_soft_delete': True,
             'is_crud_soft_delete_token': True,
-        }
+        })
+        return config
     elif crud_soft_delete:
-        return {
-            'key': data_access_name,
-            'entity': entity_name,
-            'db_connection': db_conn,
+        config.update({
             'is_crud': True,
             'is_crud_soft_delete': True,
-        }
+        })
+        return config
     elif crud:
-        return {
-            'key': data_access_name,
-            'entity': entity_name,
-            'db_connection': db_conn,
+        config.update({
             'is_crud': True,
-        }
+        })
+        return config
     else:
-        return {
-            'key': data_access_name,
-            'entity': entity_name,
-            'db_connection': db_conn,
-        }
+        return config

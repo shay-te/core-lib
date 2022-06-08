@@ -147,6 +147,26 @@ def input_url(title: str, default_value: str = None, allow_empty: bool = False) 
     return result
 
 
+def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
+    function_data = {}
+    function_name = input_str('What is the name of the function?', None, False, validate_value_callback)
+    return_type = input_str('Enter the return type of the function (Python datatypes: str, dict, etc.)', 'dict')
+    result_to_dict = input_yes_no('Do you want the @ResultToDict decorator?', False)
+    function_data.update({
+        'key': function_name,
+        'return_type': return_type,
+        'result_to_dict': result_to_dict,
+    })
+    if input_yes_no('Do you want to cache the data?', True):
+        cache_key = input_str('Enter the name of the cache key')
+        cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
+        function_data.update({
+            'cache_key': cache_key,
+            'cache_invalidate': cache_invalidate,
+        })
+    return function_data
+
+
 def _input(print_str: str) -> str:
     user_input = input(print_str)
     return user_input.strip()

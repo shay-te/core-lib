@@ -7,6 +7,7 @@ from core_lib_generator.config_collectors.data_access import generate_data_acces
 from core_lib_generator.config_collectors.database import generate_db_template
 from core_lib_generator.config_collectors.db_entity import generate_db_entity_template
 from core_lib_generator.config_collectors.job import generate_job_template
+from core_lib_generator.config_collectors.service import generate_service_template
 from core_lib_generator.config_collectors.setup_collector import generate_setup_template
 
 
@@ -30,6 +31,7 @@ env = {}
 data_layers = {}
 data_layers.setdefault('data', [])
 data_layers.setdefault('data_access', [])
+data_layers.setdefault('service', [])
 
 
 def _get_data_layers_config():
@@ -50,8 +52,14 @@ def _get_data_layers_config():
             if want_data_access:
                 print('Please fill out the requested information for creating Data Access for entities.')
                 data_access = generate_data_access_template(db_entity)
-                data_layers.setdefault('data_access', {})
+                data_layers.setdefault('data_access', [])
                 data_layers['data_access'] = data_access
+                want_service = input_yes_no('\nDo you want to create a services for the Data Accesses?', True)
+                if want_service:
+                    print('Please fill out the requested information for creating Service for Data Accesses.')
+                    service = generate_service_template(data_access)
+                    data_layers.setdefault('service', [])
+                    data_layers['service'] = service
 
 
 def _get_cache_config():
@@ -85,6 +93,7 @@ def create_yaml_file(core_lib_name: str):
                 'jobs': config['jobs'],
                 'entities': data_layers['data'],
                 'data_accesses': data_layers['data_access'],
+                'services': data_layers['service'],
                 'setup': setup['data'],
             }
         }

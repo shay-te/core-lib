@@ -1,6 +1,8 @@
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
+from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
+from core_lib_generator.generator_utils.helpers import generate_functions
 
 
 class DataAccessGenerateTemplate(TemplateGenerator):
@@ -13,6 +15,14 @@ class DataAccessGenerateTemplate(TemplateGenerator):
             f'from {core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
         )
         updated_file = updated_file.replace('db_entity', any_to_pascal(entity))
+        functions = get_dict_attr(yaml_data, 'functions')
+        if functions:
+            updated_file = generate_functions(updated_file, functions)
+        else:
+            updated_file = updated_file.replace(
+                '# template_functions',
+                add_tab_spaces('pass', 1)
+            )
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:

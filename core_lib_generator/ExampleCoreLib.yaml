@@ -95,6 +95,15 @@ core_lib:
   - key: DetailsDataAccess
     entity: details
     db_connection: userdb
+    functions:
+      - key: get_data
+        return_type: dict
+        result_to_dict: true
+        cache_key: CACHE_DATA
+        cache_invalidate: true
+      - key: get_user
+        return_type: dict
+        result_to_dict: true
     is_crud: true
     is_crud_soft_delete: true
     is_crud_soft_delete_token: true
@@ -106,6 +115,16 @@ core_lib:
   - key: DataDataAccess
     entity: data
     db_connection: sellerdb
+  services:
+  - key: DetailsService
+    data_access: DetailsDataAccess
+    functions:
+    - key: get_user
+      return_type: dict
+      result_to_dict: false
+      cache_key: CACHE_DETAILS
+      cache_invalidate: false
+    is_crud: true
   setup:
     author: name
     author_email: name@name.com
