@@ -8,7 +8,7 @@ sidebar_label: Observer
 
 *core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/observer/observer.py#L10)
 
-Using the `Oserver` class to `attach`, `detache`, `notify` to register events. 
+Using the `Observer` class to `attach`, `detach`, `notify` to register events. 
 
 ## ObserverListener
 
@@ -68,7 +68,7 @@ class Observe(object):
 **Arguments**
 
 - **`event_key`** *`(str)`*: Event key to notify.
-- **`value_param_name`** *`(str)`*: Default `None`, Event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as dictionary.
+- **`value_param_name`** *`(str)`*: Default `None`, Event value parameter name, when specify will pass the parameter value otherwise will pass all parameters as a dictionary.
 - **`observer_name`** *`(str)`*: Default `None`, When multiple observers register to the `ObserverRegistry`.
 - **`notify_before`** *`(bool)`*: Default `False`, When to send the event before the func call or after.
 

@@ -15,7 +15,7 @@ def generate_random_string(length: int = 10, upper: bool = False, digits: bool =
 
 
 def generate_email(domain: str = 'domain.com') -> str:
-    return '{}@{}'.format(generate_random_string(), domain)
+    return f'{generate_random_string()}@{domain}'
 
 
 def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> datetime:

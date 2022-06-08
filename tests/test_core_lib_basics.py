@@ -1,10 +1,13 @@
 import unittest
+from time import sleep
 
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.data_layers.service.service import Service
 from core_lib.observer.observer_listener import ObserverListener
+
+state = ''
 
 
 class EventsDataAccess(DataAccess, CoreLibListener):
@@ -59,7 +62,7 @@ class EventsCoreLib(CoreLib, CoreLibListener):
         # raise ValueError("Error on core lib ready event")
 
     def on_core_lib_destroy(self):
-        pass
+        self.core_lib_ready_called = False
 
 
 class OtherObserverListener(ObserverListener):
@@ -67,11 +70,27 @@ class OtherObserverListener(ObserverListener):
         pass
 
 
+class Listener(CoreLibListener):
+    state = 'idle'
+
+    def on_core_lib_ready(self):
+        # Do some task here
+        self.state = 'on_core_lib_ready'
+
+    def on_core_lib_destroy(self):
+        # Cleanups here
+        self.state = 'on_core_lib_destroy'
+
+
 class TestCoreLibBasics(unittest.TestCase):
+    listener = Listener()
+
     def test_01_events(self):
         core_lib = EventsCoreLib()
+        self.assertEqual(self.listener.state, 'idle')
+        core_lib.attach_listener(self.listener)
         core_lib.start_core_lib()
-
+        self.assertEqual(self.listener.state, 'on_core_lib_ready')
         self.assertRaises(AssertionError, core_lib.attach_listener, 'ss')
         self.assertRaises(AssertionError, core_lib.attach_listener, OtherObserverListener())
 
