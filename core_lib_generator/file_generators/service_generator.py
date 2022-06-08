@@ -7,7 +7,6 @@ from core_lib_generator.generator_utils.helpers import generate_functions
 
 class ServiceGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
-        print(yaml_data)
         updated_file = template_content.replace('Template', file_name)
         data_access = get_dict_attr(yaml_data, 'data_access')
         updated_file = updated_file.replace(
