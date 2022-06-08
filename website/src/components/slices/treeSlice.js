@@ -43,7 +43,6 @@ const pathToFields = (path, yaml) => {
 }
 
 const createNewEntry = (path, yamlData) => {
-    console.log(path)
     if (path.includes('functions')) { return yamlData.createFunction(path) }
     if (path.includes('db_entity')) { return yamlData.createEntity(path.split('.')[1]) }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }

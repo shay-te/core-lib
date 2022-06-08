@@ -43,22 +43,6 @@ const FunctionsTable = (props) => {
 							})}
 						/>
 					</td>
-					<td
-						key={`${props.fieldKey}.${index}.return_type`}
-						className="td"
-					>
-						<input
-							type={"text"}
-							id={`field-${props.fieldKey}.${index}.return_type`}
-							className="form-input"
-							defaultValue={func.return_type}
-							required={true}
-							placeholder="Return Type"
-							onChange={props.onChange.bind(this, {
-								key: `${props.fieldKey}.${index}.return_type`,
-							})}
-						/>
-					</td>
 					<td key={`${props.fieldKey}.${index}.result_to_dict`} className="td">
 						<input
 							type="checkbox"
@@ -69,17 +53,6 @@ const FunctionsTable = (props) => {
 							onChange={props.onChange.bind(this, {
 								key: `${props.fieldKey}.${index}.result_to_dict`,
 							})}
-						/>
-					</td>
-					<td
-						className="td"
-					>
-						<input
-							type="checkbox"
-							id={`cache_toggle`}
-							name={"list" + props.fieldKey}
-							value={func.cache_invalidate}
-							defaultChecked={func.cache_invalidate}
 						/>
 					</td>
 					<td
@@ -139,9 +112,7 @@ const FunctionsTable = (props) => {
 						<thead>
 							<tr className="tr">
 								<th className="th">Name</th>
-								<th className="th">Return Type</th>
 								<th className="th">Result To Dict</th>
-								<th className="th">Cache</th>
 								<th className="th">Cache Key</th>
 								<th className="th">Cache Invalidate</th>
 							</tr>

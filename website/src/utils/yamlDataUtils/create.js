@@ -58,6 +58,7 @@ export const dataAccess = (yamlData) => {
         key: 'NewDataAccess' + (target.length + 1),
         entity: dbEntitiesList[0],
         db_connection: dbConn,
+        functions: [],
         is_crud: true,
         is_crud_soft_delete: true,
         is_crud_soft_delete_token: true,
@@ -162,7 +163,6 @@ export const functions = (path, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split('.')
     const target = getValueAtPath(data, steps)
-    console.log(target)
     const newFunc = {
         key: `func_${target.length + 1}`,
         return_type: 'dict',
@@ -184,6 +184,7 @@ export const services = (yamlData) => {
     const newJob = {
         key: newName,
         data_access: daTarget[0].key,
+        functions: [],
         is_crud:true,
     }
     target.push(newJob)
