@@ -9,7 +9,7 @@ def is_exists(user_input: str, items: list) -> bool:
     return True
 
 
-def generate_functions(template_content: str, functions: list):
+def generate_functions(template_content: str, functions: list) -> str:
     func_list = []
     imports = []
     for function in functions:
