@@ -33,14 +33,12 @@ def generate_service_template(data_access: list) -> list:
                     input_function(is_exists_function)
                 )
                 add_function = input_yes_no('Do you want to add another function to your data access?', True)
-            is_crud = da.get('is_crud', False)
 
             service.append(
                 {
                     'key': service_name,
                     'data_access': da_name,
                     'functions': functions,
-                    'is_crud': is_crud,
                 }
             )
     return service
