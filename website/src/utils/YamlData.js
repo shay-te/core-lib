@@ -49,6 +49,10 @@ export class YamlData {
                     this.yaml = update.updateFunctionsCheckbox(path, this.yaml, addOrRemove)
                     return path
                 }
+                if(path.includes('functions') && path.endsWith('cache_key')){
+                    this.yaml = update.updateFunctionsCache(path, value, this.yaml)
+                    return path
+                }
                 const parent = getValueAtPath(data, steps.slice(0, -1));
                 parent[fieldName] = value;
                 data = rename(path, value, data, this.yaml)

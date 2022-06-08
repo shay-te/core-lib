@@ -60,6 +60,7 @@ const FunctionsTable = (props) => {
 						className="td"
 					>
 						<input
+							key={`${props.fieldKey}.${index}.cache_key`}
 							type={"text"}
 							id={`field-${props.fieldKey}.${index}.cache_key`}
 							className="form-input"

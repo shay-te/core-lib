@@ -173,3 +173,20 @@ export const updateFunctionsCheckbox = (path, yamlData, addOrRemove) => {
     target[pathSplit.at(-1)] = addOrRemove
     return data
 }
+
+export const updateFunctionsCache = (path, value, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const pathSplit = path.split(".") 
+    const target = getValueAtPath(data, pathSplit.slice(0, -1))
+    if(!value){
+        delete target['cache_key']
+        delete target['cache_invalidate']
+    }
+    else{
+        target.cache_key = value
+        if(!target.hasOwnProperty('cache_invalidate')){
+            target.cache_invalidate = false
+        }
+    }
+    return data
+}
