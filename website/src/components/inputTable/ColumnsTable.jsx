@@ -1,23 +1,10 @@
 import React from "react";
 
-import { useDispatch } from "react-redux";
-import { deleteFormField, addNewEntry } from "../slices/treeSlice";
-
-import "./ColumnsTable.scss";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import { useState } from "react";
 
 const ColumnsTable = (props) => {
-	const dispatch = useDispatch();
 	const [visible, setVisible] = useState(false);
-
-	const onDeleteClick = (path) => {
-		dispatch(deleteFormField(path));
-	};
-
-	const onAddClick = (path) => {
-		dispatch(addNewEntry(path));
-	};
 
 	const items = [];
 	items.push(
@@ -92,9 +79,10 @@ const ColumnsTable = (props) => {
 						<HoverVisible isVisible={visible}>
 							<button
 								className="column-del-btn"
-								onClick={() =>
-									onDeleteClick(`${props.fieldKey}.${index}`)
-								}
+								onClick={props.onDeleteClick.bind(
+									this,
+									`${props.fieldKey}.${index}`
+								)}
 							>
 								<i className="fa-solid fa-trash-can"></i>
 							</button>
@@ -126,29 +114,14 @@ const ColumnsTable = (props) => {
 			</>
 		);
 	};
-	return (
-		<div className="columns-root">
-			<div className="columns-title-div">
-				<div className="columns-title">Columns</div>
-				<button
-					className="column-add-btn"
-					onClick={() => onAddClick(`${props.fieldKey}`)}
-				>
-					<i className="fa-solid fa-plus fa-xl"></i>
-				</button>
-			</div>
-
-			<div>
-				<RenderItems value={props.value} />
-			</div>
-		</div>
-	);
+	return <RenderItems value={props.value} />;
 };
 
 ColumnsTable.defaultProps = {
 	fieldKey: "",
 	index: 1,
 	onChange: ()=> {},
+	onDeleteClick: ()=> {},
 	title: "",
 	value: [],
 }

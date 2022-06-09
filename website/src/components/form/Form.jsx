@@ -5,10 +5,9 @@ import InputInteger from "../inputs/InputInteger";
 import InputBoolean from "../inputs/InputBoolean";
 import InputENUM from "../inputs/InputENUM";
 import InputList from "../inputs/InputList";
-import ColumnsTable from "../columnsTable/ColumnsTable";
 import { useSelector } from "react-redux";
 import InputDropDown from "../inputs/InputDropDown";
-import FunctionsTable from "../functionsTable/FunctionsTable";
+import InputTable from "../inputTable/InputTable";
 
 const Form = (props) => {
 	const fields = useSelector((state) => state.treeData.fields);
@@ -103,19 +102,10 @@ const Form = (props) => {
 						/>
 					);
 				case "columns":
-					return (
-						<ColumnsTable
-							index={index}
-							key={key}
-							title={field.title}
-							value={field.value}
-							onChange={props.onChange}
-							fieldKey={key}
-						/>
-					);
 				case "functions":
 					return (
-						<FunctionsTable
+						<InputTable
+							type={field.type.toLowerCase()}
 							index={index}
 							key={key}
 							title={field.title}

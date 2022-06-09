@@ -21,7 +21,7 @@ export const entityFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
-        title: "Column",
+        title: "Columns",
         type: "columns",
         default_value: "",
         value: entity.columns,
