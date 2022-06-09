@@ -1,8 +1,8 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_yes_no, input_function
+from core_lib.helpers.shell_utils import input_str, input_yes_no
 from core_lib.helpers.string import any_to_pascal
-from core_lib_generator.generator_utils.helpers import is_exists
+from core_lib_generator.generator_utils.helpers import is_exists, input_function
 
 
 def generate_service_template(data_access: list) -> list:

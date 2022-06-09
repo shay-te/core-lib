@@ -110,6 +110,7 @@ class CoreLibGenerator:
                 'cache': self.core_lib_cache,
                 'connections': self.core_lib_data_conn,
                 'entities': self.core_lib_entities,
+                'services': self.core_lib_service,
             },
             CoreLibClassGenerateTemplate(),
         )

@@ -5,4 +5,6 @@ from core_lib.data_layers.service.service import Service
 
 
 class Template(Service):
+# template_init
+
 # template_functions

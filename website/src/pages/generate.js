@@ -41,12 +41,15 @@ function Generate() {
         )
     }
 
-    const navigateGenerator = (data, index) => {
+    const addNew = (data) => {
         if(coreLibs.length >= 10){
             coreLibs.splice(0, 1);
             localStorage.setItem('core_libs', JSON.stringify(coreLibs));
-            index = 10
         }
+        navigateGenerator(data, coreLibs.length)
+    }
+
+    const navigateGenerator = (data, index) => {
         dispatch(setStorageIndex(index))
         dispatch(init(data));
         history.push('/generator')
@@ -58,7 +61,7 @@ function Generate() {
             reader.readAsText(files[0], "UTF-8");
             reader.onload = function (evt) {
                 const obj = yaml.load(evt.target.result)
-                navigateGenerator(obj, coreLibs.length)
+                addNew(obj)
             }
             reader.onerror = function (evt) {
                 alert('Some error occured')
@@ -78,7 +81,7 @@ function Generate() {
                             <h2>
                                 Create
                             </h2>
-                            <div className={`button button--secondary button--lg `} onClick={() => navigateGenerator(newCL, coreLibs.length)}>
+                            <div className={`button button--secondary button--lg `} onClick={() => addNew(newCL)}>
                                 Create New
                             </div>
                         </div>

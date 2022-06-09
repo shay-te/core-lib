@@ -92,38 +92,32 @@ const ColumnsTable = (props) => {
 			);
 		})
 	);
-
-	const RenderItems = (props) => {
-		return (
-			<>
-				{props.value.length !== 0 ? (
-					<table className="table">
-						<thead>
-							<tr className="tr">
-								<th className="th">Name</th>
-								<th className="th">Type</th>
-								<th className="th">Default</th>
-								<th className="th">Nullable</th>
-							</tr>
-						</thead>
-						<tbody>{items}</tbody>
-					</table>
-				) : (
-					""
-				)}
-			</>
+	let render = [];
+	if (props.value.length !== 0) {
+		render.push(
+			<table className="table">
+				<thead>
+					<tr className="tr">
+						<th className="th">Name</th>
+						<th className="th">Type</th>
+						<th className="th">Default</th>
+						<th className="th">Nullable</th>
+					</tr>
+				</thead>
+				<tbody>{items}</tbody>
+			</table>
 		);
-	};
-	return <RenderItems value={props.value} />;
+	}
+	return <>{render}</>;
 };
 
 ColumnsTable.defaultProps = {
 	fieldKey: "",
 	index: 1,
-	onChange: ()=> {},
-	onDeleteClick: ()=> {},
+	onChange: () => {},
+	onDeleteClick: () => {},
 	title: "",
 	value: [],
-}
+};
 
 export default ColumnsTable;

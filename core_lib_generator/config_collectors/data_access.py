@@ -1,6 +1,6 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_yes_no, input_function
+from core_lib.helpers.shell_utils import input_str, input_yes_no
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.generator_utils.helpers import is_exists
 
@@ -35,9 +35,9 @@ def generate_data_access_template(db_entities: list) -> list:
 
             add_function = input_yes_no('Do you want to add a function to your data access?', True)
             while add_function:
-                functions.append(
-                    input_function(is_exists_function)
-                )
+                functions.append({
+                    'key': input_str('What is the name of the function?', None, False, is_exists_function, 'Function with this name already exists')
+                })
                 add_function = input_yes_no('Do you want to add another function to your data access?', True)
             is_crud_soft_delete_token = False
             is_crud_soft_delete = False

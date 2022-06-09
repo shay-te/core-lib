@@ -8,7 +8,6 @@ const FunctionsTable = (props) => {
 	const items = [];
 	items.push(
 		props.value.map((func, index) => {
-			console.log(`${props.fieldKey}.${index}.key`);
 			return (
 				<tr
 					key={index}
@@ -96,29 +95,23 @@ const FunctionsTable = (props) => {
 			);
 		})
 	);
-
-	const RenderItems = () => {
-		return (
-			<>
-				{props.value.length !== 0 ? (
-					<table className="table">
-						<thead>
-							<tr className="tr">
-								<th className="th">Name</th>
-								<th className="th">Result To Dict</th>
-								<th className="th">Cache Key</th>
-								<th className="th">Cache Invalidate</th>
-							</tr>
-						</thead>
-						<tbody>{items}</tbody>
-					</table>
-				) : (
-					""
-				)}
-			</>
+	let render = [];
+	if (props.value.length !== 0) {
+		render.push(
+			<table className="table">
+				<thead>
+					<tr className="tr">
+						<th className="th">Name</th>
+						<th className="th">Result To Dict</th>
+						<th className="th">Cache Key</th>
+						<th className="th">Cache Invalidate</th>
+					</tr>
+				</thead>
+				<tbody>{items}</tbody>
+			</table>
 		);
-	};
-	return <RenderItems />;
+	}
+	return <>{render}</>;
 };
 
 FunctionsTable.defaultProps = {

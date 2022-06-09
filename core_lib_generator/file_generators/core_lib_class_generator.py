@@ -11,12 +11,27 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))
         if data_access_list:
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
+        else:
+            updated_file = updated_file.replace('# template_da_imports', '')
+            updated_file = updated_file.replace('# template_data_handlers_imports', '')
+            updated_file = updated_file.replace('# template_da_instances', '')
+            updated_file = updated_file.replace('# template_data_handlers', '')
+        if get_dict_attr(yaml_data, 'services'):
+            updated_file = _add_service(updated_file, yaml_data, core_lib_name)
+        else:
+            updated_file = updated_file.replace('# template_service_imports', '')
+            updated_file = updated_file.replace('# template_service_instances', '')
         if get_dict_attr(yaml_data, 'cache'):
             updated_file = _add_cache(updated_file, yaml_data, core_lib_name)
+        else:
+            updated_file = updated_file.replace('# template_cache_handler_imports', '')
+            updated_file = updated_file.replace('# template_cache_handlers', '')
         if get_dict_attr(yaml_data, 'jobs'):
             updated_file = _add_job(updated_file, yaml_data, core_lib_name)
+        else:
+            updated_file = updated_file.replace('# template_jobs_data_handlers', '')
+            updated_file = updated_file.replace('# template_load_jobs', '')
         if get_dict_attr(yaml_data, 'connections'):
-            updated_file = _add_mongo(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
             updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
         return updated_file
 
@@ -40,10 +55,7 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
         entity = get_dict_attr(data_access, 'entity')
         db_connection = get_dict_attr(data_access, 'db_connection')
         da_name = get_dict_attr(data_access, 'key')
-        if data_access.get('is_crud', False):
-            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection})'
-        else:
-            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}()'
+        inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection})'
         inst_list.append(add_tab_spaces(inst_str, 2))
         handler_str = f'{db_connection} = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
@@ -57,6 +69,22 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
     )
     updated_file = updated_file.replace('# template_da_instances', '\n'.join(inst_list))
     updated_file = updated_file.replace('# template_data_handlers', '\n'.join(set(handler_list)))
+    return updated_file
+
+
+def _add_service(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    inst_list = []
+    import_list = []
+    updated_file = template_content
+    services_list = get_dict_attr(yaml_data, 'services')
+    for service in services_list:
+        data_access = get_dict_attr(service, 'data_access')
+        service_name = get_dict_attr(service, 'key')
+        inst_str = f'self.{camel_to_snake(service_name)} = {service_name}({data_access})'
+        inst_list.append(add_tab_spaces(inst_str, 2))
+        import_list.append(f'from {core_lib_name}.data_layers.service.{camel_to_snake(service_name)} import {service_name}')
+    updated_file = updated_file.replace('# template_service_imports', '\n'.join(import_list))
+    updated_file = updated_file.replace('# template_service_instances', '\n'.join(inst_list))
     return updated_file
 
 
@@ -99,7 +127,6 @@ def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     job_handler_str = f'jobs_data_handlers = {str(job_handler)}'
     load_jobs_str = f'self.load_jobs(self.config.core_lib.{core_lib_name}.jobs, jobs_data_handlers)'
     updated_file = updated_file.replace('# template_jobs_data_handlers', add_tab_spaces(job_handler_str, 2))
-
     updated_file = updated_file.replace('# template_load_jobs', add_tab_spaces(load_jobs_str, 2))
     return updated_file
 
@@ -150,4 +177,7 @@ def _add_alembic_funcs(template_content: str, yaml_data: dict, core_lib_name: st
         func_list.append(add_tab_spaces(downgrade_alembic_str, 2))
         updated_file = updated_file.replace('# template_alembic_imports', '\n'.join(imports_list))
         updated_file = updated_file.replace('# template_alembic_functions', '\n'.join(func_list))
+    else:
+        updated_file = updated_file.replace('# template_alembic_imports', '')
+        updated_file = updated_file.replace('# template_alembic_functions', '')
     return updated_file

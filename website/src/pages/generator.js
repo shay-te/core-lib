@@ -27,7 +27,6 @@ function Generator() {
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
-			console.log(field.key)
 			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked }))
 		}
 	}

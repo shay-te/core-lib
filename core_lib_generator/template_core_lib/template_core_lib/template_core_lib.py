@@ -6,8 +6,8 @@ from core_lib.core_lib import CoreLib
 
 # template_cache_handler_imports
 # template_data_handlers_imports
-# template_mongo_handler_imports
 # template_da_imports
+# template_service_imports
 
 
 class Template(CoreLib):
@@ -17,9 +17,9 @@ class Template(CoreLib):
 
 
 # template_cache_handlers
-# template_mongo_handlers
 # template_data_handlers
 # template_da_instances
+# template_service_instances
 # template_jobs_data_handlers
 # template_load_jobs
 
