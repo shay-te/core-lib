@@ -33,8 +33,7 @@ class TestHelpers(unittest.TestCase):
         value = get_dict_attr(self.data, 'person.object.person2')
         self.assertDictEqual(value, self.data['person']['object']['person2'])
 
-        with self.assertLogs():
-            get_dict_attr(self.data, 'person.object.person')
+        self.assertIsNone(get_dict_attr(self.data, 'person.object.person'))
 
     def test_set_attr(self):
         test_obj = {'name': 'some_name'}

@@ -23,7 +23,7 @@ function Generate() {
     const recent_core_libs = [];
     if (coreLibs === null || coreLibs.length === 0) {
         recent_core_libs.push(
-            <div>
+            <div key={'placeholder'}>
                 No core-libs yet.
                 Create a new core lib or upload an existing yaml.
             </div>
@@ -32,7 +32,7 @@ function Generate() {
         recent_core_libs.push(
             coreLibs.map((coreLib, index) => {
                 return (
-                    <div className={`cl-btn`} onClick={() => navigateGenerator(coreLib, index)}>
+                    <div className={`cl-btn`} onClick={() => navigateGenerator(coreLib, index)} key={`${coreLib.core_lib.name}-${index}`}>
                         {coreLib.core_lib.name}
                     </div>
 
@@ -41,12 +41,15 @@ function Generate() {
         )
     }
 
-    const navigateGenerator = (data, index) => {
+    const addNew = (data) => {
         if(coreLibs.length >= 10){
             coreLibs.splice(0, 1);
             localStorage.setItem('core_libs', JSON.stringify(coreLibs));
-            index = 10
         }
+        navigateGenerator(data, coreLibs.length)
+    }
+
+    const navigateGenerator = (data, index) => {
         dispatch(setStorageIndex(index))
         dispatch(init(data));
         history.push('/generator')
@@ -58,11 +61,10 @@ function Generate() {
             reader.readAsText(files[0], "UTF-8");
             reader.onload = function (evt) {
                 const obj = yaml.load(evt.target.result)
-                console.log(coreLibs.length)
-                navigateGenerator(obj, coreLibs.length)
+                addNew(obj)
             }
             reader.onerror = function (evt) {
-                console.log('error')
+                alert('Some error occured')
             }
         }
     }
@@ -79,7 +81,7 @@ function Generate() {
                             <h2>
                                 Create
                             </h2>
-                            <div className={`button button--secondary button--lg `} onClick={() => navigateGenerator(newCL, coreLibs.length)}>
+                            <div className={`button button--secondary button--lg `} onClick={() => addNew(newCL)}>
                                 Create New
                             </div>
                         </div>
@@ -87,7 +89,7 @@ function Generate() {
                         <h2>
                             Upload
                         </h2>
-                        <label class="custom-file-upload">
+                        <label className="custom-file-upload">
                             <input type={'file'} accept=".yaml, .yml" className='hide' onChange={(e) => handleYamlInput(e.target.files)} />
                             Yaml Upload
                         </label>

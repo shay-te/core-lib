@@ -16,22 +16,26 @@ class ConfigGenerateTemplate(TemplateGenerator):
                     db_conn = dict(db_conn)
                     db_conn_name = get_dict_attr(db_conn, 'key')
                     db_conn.pop('key', None)
+                    db_conn.pop('migrate', None)
                     data.setdefault(db_conn_name, db_conn)
-                core_lib_config.setdefault('data', data)
+                if data:
+                    core_lib_config.setdefault('data', data)
             if elem == 'cache':
                 for db_conn in get_dict_attr(yaml_data, 'cache'):
                     db_conn = dict(db_conn)
                     db_conn_name = get_dict_attr(db_conn, 'key')
                     db_conn.pop('key', None)
                     cache.setdefault(db_conn_name, db_conn)
-                core_lib_config.setdefault('cache', cache)
+                if cache:
+                    core_lib_config.setdefault('cache', cache)
             if elem == 'jobs':
                 for db_conn in get_dict_attr(yaml_data, 'jobs'):
                     db_conn = dict(db_conn)
                     db_conn_name = get_dict_attr(db_conn, 'key')
                     db_conn.pop('key', None)
                     jobs.setdefault(db_conn_name, db_conn)
-                core_lib_config.setdefault('jobs', jobs)
+                if jobs:
+                    core_lib_config.setdefault('jobs', jobs)
         config = OmegaConf.create({'core_lib': {core_lib_name: core_lib_config}})
         return template_content.replace('template', OmegaConf.to_yaml(config))
 
