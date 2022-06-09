@@ -15,7 +15,6 @@ def generate_functions(template_content: str, functions: list) -> str:
     for function in functions:
         func_str_list = []
         name = get_dict_attr(function, 'key')
-        return_type = get_dict_attr(function, 'return_type')
         if get_dict_attr(function, 'cache_key'):
             imports.append('from core_lib.cache.cache_decorator import Cache')
             cache_key = get_dict_attr(function, 'cache_key')
@@ -25,7 +24,7 @@ def generate_functions(template_content: str, functions: list) -> str:
         if get_dict_attr(function, 'result_to_dict'):
             imports.append('from core_lib.data_transform.result_to_dict import ResultToDict')
             func_str_list.append(add_tab_spaces('@ResultToDict()', 1))
-        func_str_list.append(add_tab_spaces(f'def {name}(self) -> {return_type}:', 1))
+        func_str_list.append(add_tab_spaces(f'def {name}(self):', 1))
         func_str_list.append(add_tab_spaces('pass', 2))
         func_list.append('\n'.join(func_str_list))
     updated_file = template_content.replace('# template_functions', '\n\n'.join(func_list))
