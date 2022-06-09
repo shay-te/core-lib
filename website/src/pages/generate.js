@@ -23,7 +23,7 @@ function Generate() {
     const recent_core_libs = [];
     if (coreLibs === null || coreLibs.length === 0) {
         recent_core_libs.push(
-            <div>
+            <div key={'placeholder'}>
                 No core-libs yet.
                 Create a new core lib or upload an existing yaml.
             </div>
@@ -32,7 +32,7 @@ function Generate() {
         recent_core_libs.push(
             coreLibs.map((coreLib, index) => {
                 return (
-                    <div className={`cl-btn`} onClick={() => navigateGenerator(coreLib, index)}>
+                    <div className={`cl-btn`} onClick={() => navigateGenerator(coreLib, index)} key={`${coreLib.core_lib.name}-${index}`}>
                         {coreLib.core_lib.name}
                     </div>
 
@@ -86,7 +86,7 @@ function Generate() {
                         <h2>
                             Upload
                         </h2>
-                        <label class="custom-file-upload">
+                        <label className="custom-file-upload">
                             <input type={'file'} accept=".yaml, .yml" className='hide' onChange={(e) => handleYamlInput(e.target.files)} />
                             Yaml Upload
                         </label>

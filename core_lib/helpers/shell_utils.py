@@ -149,13 +149,13 @@ def input_url(title: str, default_value: str = None, allow_empty: bool = False) 
 
 def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
     function_data = {}
-    function_name = input_str('What is the name of the function?', None, False, validate_value_callback)
+    function_name = input_str('What is the name of the function?', None, False, validate_value_callback, 'Function with this name already exists')
     result_to_dict = input_yes_no('Do you want the @ResultToDict decorator?', False)
     function_data.update({
         'key': function_name,
         'result_to_dict': result_to_dict,
     })
-    if input_yes_no('Do you want to cache the data?', True):
+    if input_yes_no('Do you want to cache the data?', False):
         cache_key = input_str('Enter the name of the cache key')
         cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
         function_data.update({

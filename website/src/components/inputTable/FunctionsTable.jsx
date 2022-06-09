@@ -5,10 +5,10 @@ import { useState } from "react";
 
 const FunctionsTable = (props) => {
 	const [visible, setVisible] = useState(false);
-
 	const items = [];
 	items.push(
 		props.value.map((func, index) => {
+			console.log(`${props.fieldKey}.${index}.key`);
 			return (
 				<tr
 					key={index}
@@ -35,6 +35,7 @@ const FunctionsTable = (props) => {
 						className="td"
 					>
 						<input
+							key={`${props.fieldKey}.${index}.result_to_dict`}
 							type="checkbox"
 							id={`${props.fieldKey}.${index}.result_to_dict`}
 							name={"list" + props.fieldKey}
@@ -54,7 +55,7 @@ const FunctionsTable = (props) => {
 							type={"text"}
 							id={`field-${props.fieldKey}.${index}.cache_key`}
 							className="form-input"
-							defaultValue={func.cache_key}
+							value={func.cache_key}
 							required={true}
 							placeholder="Cache key"
 							onChange={props.onChange.bind(this, {
@@ -96,7 +97,7 @@ const FunctionsTable = (props) => {
 		})
 	);
 
-	const RenderItems = (props) => {
+	const RenderItems = () => {
 		return (
 			<>
 				{props.value.length !== 0 ? (
@@ -117,7 +118,7 @@ const FunctionsTable = (props) => {
 			</>
 		);
 	};
-	return <RenderItems value={props.value} />;
+	return <RenderItems />;
 };
 
 FunctionsTable.defaultProps = {

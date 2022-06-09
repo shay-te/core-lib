@@ -16,7 +16,7 @@ def generate_service_template(data_access: list) -> list:
             da_name = da['key']
             service_name = any_to_pascal(
                 input_str(
-                    f'What is the name of the service? (DataAccess: {da_name}) [UpdateService]',
+                    f'What is the name of the service? (DataAccess: {da_name}) [Eg. UpdateService]',
                     None,
                     False,
                     is_exists_service,
@@ -32,7 +32,7 @@ def generate_service_template(data_access: list) -> list:
                 functions.append(
                     input_function(is_exists_function)
                 )
-                add_function = input_yes_no('Do you want to add another function to your data access?', True)
+                add_function = input_yes_no('Do you want to add another function to your service?', True)
 
             service.append(
                 {

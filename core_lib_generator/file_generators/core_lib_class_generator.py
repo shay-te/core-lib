@@ -41,11 +41,11 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
         db_connection = get_dict_attr(data_access, 'db_connection')
         da_name = get_dict_attr(data_access, 'key')
         if data_access.get('is_crud', False):
-            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection}_session)'
+            inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection})'
         else:
             inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}()'
         inst_list.append(add_tab_spaces(inst_str, 2))
-        handler_str = f'{db_connection}_session = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
+        handler_str = f'{db_connection} = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
 
     updated_file = updated_file.replace(
@@ -113,7 +113,7 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
     for db_connection in yaml_data:
         db_conn_name = get_dict_attr(db_connection, 'key')
         if get_dict_attr(db_connection, 'url.protocol') == 'mongodb':
-            conn_str = f'self.{db_conn_name}_session = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
+            conn_str = f'self.{db_conn_name} = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
             mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)

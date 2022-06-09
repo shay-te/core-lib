@@ -27,6 +27,7 @@ function Generator() {
 
 	const onFieldChange = (field, e) => {
 		if (field.key) {
+			console.log(field.key)
 			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked }))
 		}
 	}
@@ -37,7 +38,7 @@ function Generator() {
 					<i className="fa-solid fa-xmark"></i>
 				</Link>
 			</div>
-			<div className='app-root'>
+			<div className='app-root' key={'app-root'}>
 				<ReflexContainer orientation="vertical">
 					<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
 						<Tree key={'tree'} />

@@ -17,10 +17,10 @@ const InputTable = (props) => {
 	const onAddClick = (path) => {
 		dispatch(addNewEntry(path));
 	};
-	const items = [];
+	let items = undefined
 
 	if (props.type === "functions") {
-		items.push(
+		items = 
 			<FunctionsTable
 				index={props.index}
 				key={props.fieldKey}
@@ -30,9 +30,9 @@ const InputTable = (props) => {
 				fieldKey={props.fieldKey}
 				onDeleteClick={onDeleteClick}
 			/>
-		);
+		
 	} else if (props.type === "columns") {
-		items.push(
+		items =
 			<ColumnsTable
 				index={props.index}
 				key={props.fieldKey}
@@ -42,7 +42,6 @@ const InputTable = (props) => {
 				fieldKey={props.fieldKey}
 				onDeleteClick={onDeleteClick}
 			/>
-		);
 	}
 
 	return (
