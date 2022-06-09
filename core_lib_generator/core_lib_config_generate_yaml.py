@@ -54,7 +54,7 @@ def _get_data_layers_config():
                 data_access = generate_data_access_template(db_entity)
                 data_layers.setdefault('data_access', [])
                 data_layers['data_access'] = data_access
-                want_service = input_yes_no('\nDo you want to create a services for the Data Accesses?', True)
+                want_service = input_yes_no('\nDo you want to create services?', True)
                 if want_service:
                     print('Please fill out the requested information for creating Service for Data Accesses.')
                     service = generate_service_template(data_access)
