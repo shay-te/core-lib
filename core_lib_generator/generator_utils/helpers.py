@@ -2,7 +2,7 @@ from typing import Callable, Awaitable
 
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.shell_utils import input_str, input_yes_no
-from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
+from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
 
 
 def is_exists(user_input: str, items: list) -> bool:
@@ -31,7 +31,10 @@ def generate_functions(template_content: str, functions: list) -> str:
         func_str_list.append(add_tab_spaces('pass', 2))
         func_list.append('\n'.join(func_str_list))
     updated_file = template_content.replace('# template_functions', '\n\n'.join(func_list))
-    updated_file = updated_file.replace('# template_function_imports', '\n'.join(set(imports)))
+    if not imports:
+        updated_file = remove_line('# template_function_imports', updated_file)
+    else:
+        updated_file = updated_file.replace('# template_function_imports', '\n'.join(set(imports)))
     return updated_file
 
 

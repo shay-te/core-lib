@@ -1,7 +1,7 @@
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake, snake_to_camel
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
-from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
+from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
 
 
 class CoreLibClassGenerateTemplate(TemplateGenerator):
@@ -12,27 +12,30 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         if data_access_list:
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
         else:
-            updated_file = updated_file.replace('# template_da_imports', '')
-            updated_file = updated_file.replace('# template_data_handlers_imports', '')
-            updated_file = updated_file.replace('# template_da_instances', '')
-            updated_file = updated_file.replace('# template_data_handlers', '')
+            updated_file = remove_line('# template_da_imports', updated_file)
+            updated_file = remove_line('# template_data_handlers_imports', updated_file)
+            updated_file = remove_line('# template_da_instances', updated_file)
+            updated_file = remove_line('# template_data_handlers', updated_file)
         if get_dict_attr(yaml_data, 'services'):
             updated_file = _add_service(updated_file, yaml_data, core_lib_name)
         else:
-            updated_file = updated_file.replace('# template_service_imports', '')
-            updated_file = updated_file.replace('# template_service_instances', '')
+            updated_file = remove_line('# template_service_imports', updated_file)
+            updated_file = remove_line('# template_service_instances', updated_file)
         if get_dict_attr(yaml_data, 'cache'):
             updated_file = _add_cache(updated_file, yaml_data, core_lib_name)
         else:
-            updated_file = updated_file.replace('# template_cache_handler_imports', '')
-            updated_file = updated_file.replace('# template_cache_handlers', '')
+            updated_file = remove_line('# template_cache_handler_imports', updated_file)
+            updated_file = remove_line('# template_cache_handlers', updated_file)
         if get_dict_attr(yaml_data, 'jobs'):
             updated_file = _add_job(updated_file, yaml_data, core_lib_name)
         else:
-            updated_file = updated_file.replace('# template_jobs_data_handlers', '')
-            updated_file = updated_file.replace('# template_load_jobs', '')
+            updated_file = remove_line('# template_jobs_data_handlers', updated_file)
+            updated_file = remove_line('# template_load_jobs', updated_file)
         if get_dict_attr(yaml_data, 'connections'):
             updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
+        else:
+            updated_file = remove_line('# template_alembic_imports', updated_file)
+            updated_file = remove_line('# template_alembic_functions', updated_file)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
@@ -176,8 +179,9 @@ def _add_alembic_funcs(template_content: str, yaml_data: dict, core_lib_name: st
         func_list.append(add_tab_spaces(uninstall_func_str))
         func_list.append(add_tab_spaces(downgrade_alembic_str, 2))
         updated_file = updated_file.replace('# template_alembic_imports', '\n'.join(imports_list))
-        updated_file = updated_file.replace('# template_alembic_functions', '\n'.join(func_list))
+        func_list_join = '\n'.join(func_list)
+        updated_file = updated_file.replace('# template_alembic_functions', f'\n{func_list_join}')
     else:
-        updated_file = updated_file.replace('# template_alembic_imports', '')
-        updated_file = updated_file.replace('# template_alembic_functions', '')
+        updated_file = remove_line('# template_alembic_imports', updated_file)
+        updated_file = remove_line('# template_alembic_functions', updated_file)
     return updated_file

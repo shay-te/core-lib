@@ -1,7 +1,7 @@
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import any_to_pascal, camel_to_snake
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
-from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces
+from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
 from core_lib_generator.generator_utils.helpers import generate_functions
 
 
@@ -24,6 +24,7 @@ class ServiceGenerateTemplate(TemplateGenerator):
                 '# template_functions',
                 add_tab_spaces('pass', 1)
             )
+            updated_file = remove_line('# template_function_imports', updated_file)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
