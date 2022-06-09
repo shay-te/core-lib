@@ -170,6 +170,9 @@ export const updateFunctionsCheckbox = (path, yamlData, addOrRemove) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const pathSplit = path.split(".")
     const target = getValueAtPath(data, pathSplit.slice(0, -1))
+    if(path.includes('cache_invalidate') && !target.hasOwnProperty('cache_key')){
+        return data
+    }
     target[pathSplit.at(-1)] = addOrRemove
     return data
 }
