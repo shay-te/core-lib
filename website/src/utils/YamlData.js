@@ -118,6 +118,9 @@ export class YamlData {
     listChildrenUnderPath(path) {
         const res = []
         const list = this.get(path) 
+        if(!list){
+            return res
+        }
         if (path === 'core_lib.entities') {
             const entityRes = []
             list.forEach((entity, index) => {

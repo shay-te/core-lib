@@ -78,11 +78,11 @@ const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     // DB Connection
     const connSteps = ['core_lib', 'connections', path.at(-2)]
     const connTarget = getValueAtPath(data, connSteps)
-    connTarget['host'] = '${oc.env:' + newHost + '}'
-    connTarget['port'] = '${oc.env:' + newPort + '}'
-    connTarget['password'] = '${oc.env:' + newPassword + '}'
-    connTarget['username'] = '${oc.env:' + newUser + '}'
-    connTarget['file'] = '${oc.env:' + newDB + '}'
+    connTarget['url']['host'] = '${oc.env:' + newHost + '}'
+    connTarget['url']['port'] = '${oc.env:' + newPort + '}'
+    connTarget['url']['password'] = '${oc.env:' + newPassword + '}'
+    connTarget['url']['username'] = '${oc.env:' + newUser + '}'
+    connTarget['url']['file'] = '${oc.env:' + newDB + '}'
     // Entity group
     const entitySteps = ['core_lib', 'entities']
     const entityTarget = getValueAtPath(data, entitySteps)

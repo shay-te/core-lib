@@ -1,4 +1,4 @@
-import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
+import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 
 export const entity = (dbConn, yamlData) => {
     const newNormalEntity = {
@@ -20,9 +20,17 @@ export const entity = (dbConn, yamlData) => {
 
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const dbConnSteps = ['core_lib', 'connections']
-    const dbConns = getValueAtPath(data, dbConnSteps)
+    let dbConns = getValueAtPath(data, dbConnSteps)
+    if(!dbConns){
+        setValueAtPath(data, dbConnSteps, [])
+        dbConns = getValueAtPath(data, dbConnSteps)
+    }
     let newEntity = {key: `new_entity_${target.length + 1}`}
     dbConns.forEach(connection => {
         if(connection.key === dbConn && connection['url']['protocol'] === 'mongodb'){
@@ -36,16 +44,20 @@ export const entity = (dbConn, yamlData) => {
 }
 
 export const dataAccess = (yamlData) => {
-    if(yamlData.core_lib.connections.length === 0){
+    if(!yamlData.core_lib.hasOwnProperty('connections') || yamlData.core_lib.connections.length === 0){
         yamlData = dbConnection(yamlData)
     }
     const dbConn = yamlData.core_lib.connections[0].key
-    if(yamlData.core_lib.entities.length === 0){
+    if(!yamlData.core_lib.hasOwnProperty('entities') || yamlData.core_lib.entities.length === 0){
         yamlData = entity(dbConn, yamlData)
     }
     const data = JSON.parse(JSON.stringify(yamlData))
     const dbEntitySteps =  ['core_lib', 'entities']
-    const dbEntities = getValueAtPath(data, dbEntitySteps)
+    let dbEntities = getValueAtPath(data, dbEntitySteps)
+    if(!dbEntities){
+        setValueAtPath(data, dbEntitySteps, [])
+        dbEntities = getValueAtPath(data, dbEntitySteps)
+    }
     let dbEntitiesList = []
     dbEntities.forEach(entity => {
         if(entity.db_connection === dbConn){
@@ -53,7 +65,11 @@ export const dataAccess = (yamlData) => {
         }
     })
     const steps = ['core_lib', 'data_accesses']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
         entity: dbEntitiesList[0],
@@ -70,11 +86,18 @@ export const dataAccess = (yamlData) => {
 export const dbConnection = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'connections']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const dbConnName = `newdb${target.length + 1}`
     const envSteps = ['core_lib', 'env']
-    const envTarget = getValueAtPath(data, envSteps)
-
+    let envTarget = getValueAtPath(data, envSteps)
+    if(!envTarget){
+        setValueAtPath(data, envSteps, {})
+        envTarget = getValueAtPath(data, envSteps)
+    }
     const newDbConn = {
         key: dbConnName,
         log_queries: false,
@@ -106,7 +129,11 @@ export const dbConnection = (yamlData) => {
 export const cache = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'caches']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const newCacheName = `new_cache_${target.length + 1}`
     const newCache = {
         key: newCacheName,
@@ -119,7 +146,11 @@ export const cache = (yamlData) => {
     target.push(newCache)
 
     const envSteps = ['core_lib', 'env']
-    const envTarget = getValueAtPath(data, envSteps)
+    let envTarget = getValueAtPath(data, envSteps)
+    if(!envTarget){
+        setValueAtPath(data, envSteps, {})
+        envTarget = getValueAtPath(data, envSteps)
+    }
     envTarget[`${newCacheName.toUpperCase()}_HOST`] = 'localhost'
     envTarget[`${newCacheName.toUpperCase()}_PORT`] = 11211
 
@@ -130,7 +161,11 @@ export const cache = (yamlData) => {
 export const job = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'jobs']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const newName = `new_job_${target.length + 1}`
     const snakeCoreLib = toSnakeCase(coreLibName)
     const newJob = {
@@ -176,16 +211,24 @@ export const functions = (path, yamlData) => {
 export const services = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'services']
-    const target = getValueAtPath(data, steps)
+    let target = getValueAtPath(data, steps)
+    if(!target){
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
     const daSteps = ['core_lib', 'data_accesses']
-    const daTarget = getValueAtPath(data, steps)
+    let daTarget = getValueAtPath(data, daSteps)
+    if(!daTarget){
+        setValueAtPath(data, daSteps, [])
+        daTarget = getValueAtPath(data, daSteps)
+    }
     const newName = `NewService${target.length + 1}`
-    const newJob = {
+    const newService = {
         key: newName,
-        data_access: daTarget[0].key,
+        data_access: daTarget.length > 0 ? daTarget[0].key : '',
         functions: [],
         is_crud:true,
     }
-    target.push(newJob)
+    target.push(newService)
     return data
 }

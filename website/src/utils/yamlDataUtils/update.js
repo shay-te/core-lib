@@ -62,7 +62,6 @@ export const updateDBConn = (path, value, yamlData) => {
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.slice(0, -2))
     const dbConn = target.key
-    // debugger
     if (value.toLowerCase() === 'mongodb') {
         target['url']['protocol'] = value.toLowerCase()
         delete target['create_db']
@@ -98,17 +97,17 @@ export const updateDBConn = (path, value, yamlData) => {
     else {
         target['url']['protocol'] = value.toLowerCase()
         if (!target.hasOwnProperty('create_db')) {
-            target['create_db'] = true
+            target['url']['create_db'] = true
         }
         if (!target.hasOwnProperty('log_queries')) {
-            target['log_queries'] = false
+            target['url']['log_queries'] = false
         }
         if (!target.hasOwnProperty('session')) {
             const session = {
                 pool_recycle: 3200,
                 pool_pre_ping: false
             }
-            target['session'] = session
+            target['url']['session'] = session
         }
         if (!target['url'].hasOwnProperty('username')) {
             target['url']['username'] = '${oc.env:' + dbConn.toUpperCase() + '_USER}'
