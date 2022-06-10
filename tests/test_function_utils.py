@@ -8,7 +8,6 @@ from core_lib.helpers.func_utils import (
     build_function_key,
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
-    reset_datetime,
     Keyable,
 )
 
@@ -199,8 +198,3 @@ class TestFunctionUtils(unittest.TestCase):
 
         with self.assertRaises(Exception):
             get_func_parameter_index_by_name(function_with_parameters, "param_46")
-
-    def test_reset_date(self):
-        dattime = datetime.datetime.utcnow()
-        self.assertEqual(reset_datetime(dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
-        self.assertEqual(reset_datetime(date=dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))

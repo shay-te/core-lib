@@ -7,29 +7,29 @@ from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 #
 # primitives
 #
-def is_bool(st) -> bool:
-    if isinstance(st, str):
-        st = str.lower(st)
+def is_bool(val) -> bool:
+    if isinstance(val, str):
+        st = str.lower(val)
         return True if st == "true" or st == "false" else False
     else:
-        return True if isinstance(st, bool) else False
+        return True if isinstance(val, bool) else False
 
 
-def is_float(st) -> bool:
-    if st is None:
+def is_float(val) -> bool:
+    if val is None:
         return False
     try:
-        float(st)
+        float(val)
         return True
     except Exception:
         return False
 
 
-def is_int(s) -> bool:
-    if s is None:
+def is_int(val) -> bool:
+    if val is None:
         return False
     try:
-        int(s)
+        int(val)
         return True
     except Exception:
         return False

@@ -60,8 +60,8 @@ class CoreLib(object):
     def attach_listener(self, core_lib_listener: CoreLibListener):
         self._observer.attach(core_lib_listener)
 
-    def detach_listener(self, conversation_listener: CoreLibListener):
-        self._observer.detach(conversation_listener)
+    def detach_listener(self, core_lib_listener: CoreLibListener):
+        self._observer.detach(core_lib_listener)
 
     def fire_core_lib_ready(self):
         self._observer.notify(CoreLibListener.CoreLibEventType.CORE_LIB_READY, None)

@@ -9,6 +9,8 @@ Core-Lib provides `core_lib.jobs.JobScheduler` class that can schedule `core_lib
 
 # Job class
 
+*core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/jobs/job.py#L4)
+
 `Job` class provide an abstract method called `run`. to create a custom Job simply do.
 
 ```python
@@ -20,13 +22,21 @@ class MyJob(Job):
 The local variable `self.core_lib` will be automatically populated by `CoreLib` when running using configuration (see below).    
 In case you want to create the job manually. pass the `CoreLib` instance using the job function `set_data_handler`, Or using the constructor.
 
-Example: 
+**Example**
 `my_job.set_data_handler(my_core_lib)` 
 
 
 # JobScheduler class
 
+*core_lib.jobs.job_scheduler.JobScheduler* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/jobs/job_scheduler.py#L10)
+
 `JobScheduler` provides 2 main functions 
+
+1. `schedule()` 
+*core_lib.jobs.job_scheduler.JobScheduler.schedule() * [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/jobs/job_scheduler.py#L22)
+
+2. `schedule_once()` 
+*core_lib.jobs.job_scheduler.JobScheduler.schedule_once() * [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/jobs/job_scheduler.py#L27)
 
 ````python
 # Run the job, and repeat by frequency
@@ -36,15 +46,16 @@ def schedule(self, initial_delay: str, frequency: str, job: Job):
 def schedule_once(self, initial_delay: str, job: Job):
     ... 
 ````
-`initial_delay` the initial time after which the `run()` function will be called for the first time.
 
-`frequency` the time interval after which `run()` function will be called.
+**Arguments**
 
-`job` is the instance of `Job` class created by user that implements `run()` and `initialized()`
+- **`initial_delay`** *`(str)`*: The initial time after which the `run()` function will be called for the first time.
+- **`frequency`** *`(str)`*: The time interval after which `run()` function will be called.
+- **`job`** *`(Job)`*: Is the instance of `Job` class created by user that implements `run()` and `initialized()`
 
 The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse).
 
-### Usage
+**Example**
 ```python
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
