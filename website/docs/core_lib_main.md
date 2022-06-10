@@ -4,7 +4,13 @@ title: Core Lib Main
 sidebar_label: Core Lib Main
 ---
 
-This file is the single gateway to interact with the `Core-Lib` Generator. It has functions to handle the creation of `Core-Lib` Yaml, generation of `Core-Lib` and handling migrations using the command line.
+`core_lib_main` is the single gateway to interact with `Core-Lib` using the command line.  
+It offers the following tools:
+
+- Creating `Core-Lib` YAML, taking user inputs for various configurations.
+- Generating `Core-Lib` from YAML will create a `Core-Lib` folder with your `Core-Lib` inside.
+- Run Migration, `Alembic` upgrade or downgrade for migrations.
+- List Migrations created until now.
 
 
 ## Create a new Core-Lib YAML file 
@@ -20,11 +26,12 @@ This command will take user input for various `Core-Lib` configurations and deta
 - `DB Connection` config and details.
 - `DB Entities` config and details.
 - `DataAccess` config and details.
+- `Services` config and details.
 - `Cache` config and details.
 - `Jobs` config and details.
 - `setup.py` details
 
-You can have multiple `DB connections`, `DB entities`, `DataAccess`, `Cache` connections and `Jobs`. 
+You can have multiple `DB connections`, `DB entities`, `DataAccess`, `Service`, `Cache` connections and `Jobs`. 
 
 > Please when inserting names for various properties please follow the naming convention i.e. for class names use `PascalCase` for entity name use `snake_case`
 

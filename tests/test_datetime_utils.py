@@ -26,8 +26,8 @@ from core_lib.helpers.datetime_utils import (
     hour_end,
     age,
     timestamp_to_ms,
+    reset_datetime,
 )
-from core_lib.helpers.func_utils import reset_datetime
 
 
 def _next_weekday(date: datetime, weekday: int):
@@ -38,6 +38,11 @@ def _next_weekday(date: datetime, weekday: int):
 
 
 class TestDBRuleValidator(unittest.TestCase):
+    def test_reset_date(self):
+        dattime = datetime.utcnow()
+        self.assertEqual(reset_datetime(dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
+        self.assertEqual(reset_datetime(date=dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
+
     def test_yesterday(self):
         dt_yesterday = datetime.today() - timedelta(days=1)
         cl_yesterday = yesterday()

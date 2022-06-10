@@ -18,13 +18,10 @@ def download_file(path: str, local_filename: str):
         download_file_handle(file, f)
 
 
-def compare_files_md5(file_1: str, file_2: str) -> bool:
-    digests = []
-    for filename in [file_1, file_2]:
-        hasher = hashlib.md5()
-        with open(filename, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
-            a = hasher.hexdigest()
-            digests.append(a)
-    return digests[0] == digests[1]
+def get_file_md5(file_name: str) -> str:
+    hasher = hashlib.md5()
+    with open(file_name, 'rb') as f:
+        buf = f.read()
+        hasher.update(buf)
+        md5_str = hasher.hexdigest()
+        return md5_str

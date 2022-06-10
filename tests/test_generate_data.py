@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from core_lib.helpers.func_utils import reset_datetime
 from core_lib.helpers.generate_data import generate_random_string, generate_email, generate_datetime
+from core_lib.helpers.validation import is_email
 
 
 def has_numbers(input_string: str):
@@ -48,6 +49,7 @@ class TestGenerateData(unittest.TestCase):
         domain = 'example.com'
         email = generate_email(domain)
         self.assertIn(domain, email)
+        self.assertTrue(is_email(email))
 
     def test_datetime(self):
         today_sub_15 = reset_datetime(datetime.today() - timedelta(days=15))

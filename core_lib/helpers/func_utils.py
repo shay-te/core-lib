@@ -1,4 +1,3 @@
-import datetime
 import inspect
 import logging
 from abc import ABC, abstractmethod
@@ -68,7 +67,3 @@ def build_function_key(key: str, func, *args, **kwargs) -> str:
     else:
         new_key = func.__qualname__
     return new_key.replace('\n', '').replace('\r', '')
-
-
-def reset_datetime(date: datetime):
-    return date.replace(hour=0, minute=0, second=0, microsecond=0)

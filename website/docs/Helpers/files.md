@@ -34,28 +34,27 @@ download_file('https://path.to.file.pdf', 'mypdf.pdf') # will download ans save 
 ```
 
 
-### compare_files_md5()
+### get_file_md5()
 
-*core_lib.helpers.files.compare_files_md5()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/helpers/files.py#L17)
+*core_lib.helpers.files.get_file_md5()* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/helpers/files.py#L21)
 
 Compares 2 given files of any type and returns `True` and `False` as per the outcome of the comparison.
 
 ```python
-def compare_files_md5(file_1: str, file_2: str) -> bool:
+def get_file_md5(file_name: str) -> str:
 ```
 
 **Arguments**
 
-- **`file_1`** *`(str)`*: Path of the first file.
-- **`file_2`** *`(str)`*: Path of the second file.
+- **`file_name`** *`(str)`*: Path of the file.
 
 **Returns**
 
-*`(bool)`*: Returns `True` and `False` as per the outcome of the comparison.
+*`(str)`*: Returns `md5` hash for the given file.
 
 **Example**
 ```python
-from core_lib.helpers.files import compare_files_md5
+from core_lib.helpers.files import get_file_md5
 
-compare_files_md5(path_to_file_1, path_to_file_2) # True if both contain the same data else False
+get_file_md5(path_to_file) # returns md5 hash string of the file
 ```

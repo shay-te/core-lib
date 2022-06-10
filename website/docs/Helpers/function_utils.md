@@ -6,8 +6,7 @@ sidebar_label: Function Utilities
 
 # Function Utils
 
-These functions provide a unified way to retrieve or format a function's parameters
-or get the calling module of a function.
+These functions provide a unified way to retrieve or format a function's parameters.
 
 ## Functions
 
@@ -128,35 +127,6 @@ parameter_index = get_func_parameter_index_by_name(function_to_get_param_index, 
 print(function_to_get_param_index) # 1
 ```
 > **Note:** Will raise an exception if the parameter passed is not valid
-
-### reset_datetime()
-
-*core_lib.helpers.func_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L73)
-
-Will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
-
-```python
-def reset_datetime(date: datetime):
-```
-
-**Arguments**
-
-- **`date`** *`(datetime)`*: The datetime to convert.
-
-
-**Returns**
-
-*`(datetime)`*: Returns the datetime with `hour`, `minute`, `second` and `microsecond` as  `0`.
-
-**Example**
-
-```python
-import datetime
-from core_lib.helpers.func_utils import reset_datetime
-
-formatted_datetime = reset_datetime(datetime.datetime.utcnow())
-print(formatted_datetime) #2022-02-07 00:00:00
-```
 
 
 ### Keyable Class

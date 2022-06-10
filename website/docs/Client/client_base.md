@@ -8,7 +8,7 @@ sidebar_label: Client Base
 
 *core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/client/client_base.py#L5)
 
-`Client Base` class provides functions by which we can interface with the `REST` APIs.
+`Client Base` class provides functions by which we can interface with the `HTTP` APIs.
 
 ## Initializing
 
@@ -43,7 +43,7 @@ def _get(self, path: str, *args, **kwargs) -> Response:
 **Arguments**
 
 - **`path`** *`(str)`*: The API path to make the request.
-- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters.
+- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters, will be passed to the `requests.get` function.
 
 **Returns**
 
@@ -72,7 +72,7 @@ def _put(self, path: str, *args, **kwargs) -> Response:
 **Arguments**
 
 - **`path`** *`(str)`*: The API path to make the request.
-- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters.
+- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters, will be passed to the `requests.put` function.
 
 **Returns**
 
@@ -101,7 +101,7 @@ def _post(self, path: str, *args, **kwargs) -> Response:
 **Arguments**
 
 - **`path`** *`(str)`*: The API path to make the request.
-- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters.
+- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters, will be passed to the `requests.post` function.
 
 **Returns**
 
@@ -130,7 +130,7 @@ def _delete(self, path: str, *args, **kwargs) -> Response:
 **Arguments**
 
 - **`path`** *`(str)`*: The API path to make the request.
-- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters.
+- __*args, **kwargs__: The args and kwargs of the function, if the API accepts some parameters, will be passed to the `requests.delete` function.
 
 **Returns**
 

@@ -6,7 +6,8 @@ sidebar_label: Core Lib Listener
 
 *core_lib.core_lib.CoreLibListner* [[source]](https://github.com/shay-te/core-lib/blob/058dead7fa30e1a2b4531f698da95c5380ca8d55/core_lib/core_lib_listener.py#L7)
 
-An abstract class that implements `ObserverListener`, functions provided by this class are used by the `CoreLib` class methods.
+
+An abstract class that implements `ObserverListener`, functions provided by this class are used by the `Core-Lib` class methods that update you when `Core-Lib` is being created or destroyed
 
 ## Functions
 

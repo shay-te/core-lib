@@ -57,9 +57,9 @@ def tomorrow(hours: int = 0, minutes: int = 0) -> datetime:
 
 def yesterday(hours: int = 0, minutes: int = 0) -> datetime:
     return (
-        datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        - timedelta(days=1)
-        + timedelta(hours=hours, minutes=minutes)
+            datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            - timedelta(days=1)
+            + timedelta(hours=hours, minutes=minutes)
     )
 
 
@@ -143,3 +143,7 @@ def age(born: date) -> int:
 
 def timestamp_to_ms(timestamp) -> int:
     return int(timestamp * 1000)
+
+
+def reset_datetime(date: datetime):
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)

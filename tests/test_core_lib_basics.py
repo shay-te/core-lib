@@ -1,13 +1,10 @@
 import unittest
-from time import sleep
 
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.data_layers.service.service import Service
 from core_lib.observer.observer_listener import ObserverListener
-
-state = ''
 
 
 class EventsDataAccess(DataAccess, CoreLibListener):
