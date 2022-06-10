@@ -23,7 +23,9 @@ export const updateCache = (path, yamlData) => {
             else {
                 target['url'] = {}
             }
-
+            if(!data.core_lib.env){
+                data.core_lib['env'] = {}
+            }
             if (!target['url'].hasOwnProperty('host')) {
                 target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
                 data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
@@ -40,7 +42,9 @@ export const updateCache = (path, yamlData) => {
             else {
                 target['url'] = {}
             }
-
+            if(!data.core_lib.env){
+                data.core_lib['env'] = {}
+            }
             if (!target['url'].hasOwnProperty('host')) {
                 target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
                 data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
