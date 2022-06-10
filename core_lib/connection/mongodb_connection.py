@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-from core_lib.connection.data_handler import Connection
+from core_lib.connection.connection import Connection
 
 
 class MongoDBConnection(Connection):

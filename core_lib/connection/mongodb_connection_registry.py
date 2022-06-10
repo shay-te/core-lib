@@ -1,8 +1,8 @@
 from omegaconf import DictConfig
 from pymongo import MongoClient
 
+from core_lib.connection.connection_registry import ConnectionRegistry
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.connection.data_handler_registry import ConnectionRegistry
 
 
 class MongoDBConnectionRegistry(ConnectionRegistry):

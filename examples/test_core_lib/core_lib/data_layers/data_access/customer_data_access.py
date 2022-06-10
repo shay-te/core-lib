@@ -1,6 +1,6 @@
 import datetime
 
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
 from core_lib.helpers.validation import is_email
@@ -37,5 +37,5 @@ user_rule_validator = RuleValidator(user_rule_validators)
 
 
 class CustomerDataAccess(CRUDSoftDeleteDataAccess):
-    def __init__(self, db: SqlAlchemyDataHandlerRegistry):
+    def __init__(self, db: SqlAlchemyConnectionRegistry):
         CRUD.__init__(self, User, db, user_rule_validator)

@@ -1,9 +1,9 @@
 from neo4j import Session
 
-from core_lib.connection.data_handler import Connection
+from core_lib.connection.connection import Connection
 
 
-class Neo4JConnection(Connection):
+class Neo4jConnection(Connection):
     def __init__(self, neo4j_session: Session):
         self.neo4j_session = neo4j_session
 

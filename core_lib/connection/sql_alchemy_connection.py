@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy.orm import sessionmaker, Session
 
-from core_lib.connection.data_handler import Connection
+from core_lib.connection.connection import Connection
 
 logger = logging.getLogger(__name__)
 

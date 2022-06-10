@@ -3,8 +3,8 @@ import unittest
 import hydra
 from pysolr import Solr
 
-from core_lib.data_layers.data.handler.solr_data_handler import SolrDataHandler
-from core_lib.data_layers.data.handler.solr_data_handler_registry import SolrDataHandlerRegistry
+from core_lib.connection.solr_connection import SolrConnection
+from core_lib.connection.solr_connection_registry import SolrConnectionRegistry
 from core_lib.helpers.config_instances import instantiate_config
 
 
@@ -19,7 +19,7 @@ class TestSolrHandler(unittest.TestCase):
         config_file = 'test_solr.yaml'
         config = hydra.compose(config_file)
         solr = instantiate_config(config.core_lib.solr)
-        self.assertIsInstance(solr, SolrDataHandlerRegistry)
+        self.assertIsInstance(solr, SolrConnectionRegistry)
         self.assertIsInstance(solr.client, Solr)
-        self.assertIsInstance(solr.get(), SolrDataHandler)
+        self.assertIsInstance(solr.get(), SolrConnection)
 

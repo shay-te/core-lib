@@ -1,5 +1,5 @@
-from core_lib.connection.data_handler_registry import ConnectionRegistry
-from core_lib.connection.object_data_handler import ObjectConnection
+from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.object_connection import ObjectConnection
 
 
 class ObjectConnectionRegistry(ConnectionRegistry):

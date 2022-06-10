@@ -1,8 +1,8 @@
 from omegaconf import DictConfig
 
+from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.connection.data_handler_registry import ConnectionRegistry
-from core_lib.connection.sql_alchemy_data_handler import SqlAlchemyConnection
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 

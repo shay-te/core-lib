@@ -1,7 +1,7 @@
 core_lib:
   config:
     db:
-      _target_: core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry.SqlAlchemyDataHandlerRegistry
+      _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
       config:
         log_queries: false
         create_db: true

@@ -1,9 +1,9 @@
 from omegaconf import DictConfig
 from pysolr import Solr
 
+from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.solr_connection import SolrConnection
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.connection.data_handler_registry import ConnectionRegistry
-from core_lib.connection.solr_data_handler import SolrConnection
 
 
 class SolrConnectionRegistry(ConnectionRegistry):

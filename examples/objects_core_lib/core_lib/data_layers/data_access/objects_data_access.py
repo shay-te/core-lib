@@ -2,11 +2,11 @@ import io
 import logging
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.handler.object_data_handler_registry import ObjectDataHandlerRegistry
+from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
 
 
 class ObjectsDataAccess(DataAccess):
-    def __init__(self, data_session_registry: ObjectDataHandlerRegistry):
+    def __init__(self, data_session_registry: ObjectConnectionRegistry):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.data_session_registry = data_session_registry
 

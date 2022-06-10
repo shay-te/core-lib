@@ -1,6 +1,6 @@
 from pysolr import Solr
 
-from core_lib.connection.data_handler import Connection
+from core_lib.connection.connection import Connection
 
 
 class SolrConnection(Connection):
