@@ -2,10 +2,10 @@ from omegaconf import DictConfig
 from pymongo import MongoClient
 
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
+from core_lib.connection.data_handler_registry import ConnectionRegistry
 
 
-class MongoDBDataHandlerRegistry(DataHandlerRegistry):
+class MongoDBConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
         self._mongo_client = MongoClient(build_url(**config.url))
 

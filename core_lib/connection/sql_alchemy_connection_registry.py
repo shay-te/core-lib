@@ -1,13 +1,13 @@
 from omegaconf import DictConfig
 
 from core_lib.data_layers.data.data_helpers import build_url
-from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler import SqlAlchemyDataHandler
+from core_lib.connection.data_handler_registry import ConnectionRegistry
+from core_lib.connection.sql_alchemy_data_handler import SqlAlchemyConnection
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 
-class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
+class SqlAlchemyConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
         self.session_to_count = {}
         self._engine = self._create_engine(config)
@@ -24,10 +24,10 @@ class SqlAlchemyDataHandlerRegistry(DataHandlerRegistry):
     def connection(self):
         return self._connection
 
-    def get(self, *args, **kwargs) -> SqlAlchemyDataHandler:
-        return SqlAlchemyDataHandler(self._engine, self._on_db_session_exit)
+    def get(self, *args, **kwargs) -> SqlAlchemyConnection:
+        return SqlAlchemyConnection(self._engine, self._on_db_session_exit)
 
-    def _on_db_session_exit(self, db_session: SqlAlchemyDataHandler):
+    def _on_db_session_exit(self, db_session: SqlAlchemyConnection):
         db_session.close()
 
     def _create_engine(self, config) -> engine:

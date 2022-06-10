@@ -1,9 +1,9 @@
 from pysolr import Solr
 
-from core_lib.data_layers.data.handler.data_handler import DataHandler
+from core_lib.connection.data_handler import Connection
 
 
-class SolrDataHandler(DataHandler):
+class SolrConnection(Connection):
     def __init__(self, solr_client):
         self._solr_client = solr_client
 

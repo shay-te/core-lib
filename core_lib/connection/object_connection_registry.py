@@ -1,8 +1,8 @@
-from core_lib.data_layers.data.handler.data_handler_registry import DataHandlerRegistry
-from core_lib.data_layers.data.handler.object_data_handler import ObjectDataHandler
+from core_lib.connection.data_handler_registry import ConnectionRegistry
+from core_lib.connection.object_data_handler import ObjectConnection
 
 
-class ObjectDataHandlerRegistry(DataHandlerRegistry):
+class ObjectConnectionRegistry(ConnectionRegistry):
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self._obj = obj
         self.new_session_callback = new_session_callback
@@ -12,8 +12,8 @@ class ObjectDataHandlerRegistry(DataHandlerRegistry):
     def object(self):
         return self._obj
 
-    def get(self, *args, **kwargs) -> ObjectDataHandler:
+    def get(self, *args, **kwargs) -> ObjectConnection:
         obj = self._obj
         if self.new_session_callback:
             obj = self.new_session_callback(self._obj)
-        return ObjectDataHandler(obj, self.close_session_callback)
+        return ObjectConnection(obj, self.close_session_callback)

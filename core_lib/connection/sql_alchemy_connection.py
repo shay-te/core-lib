@@ -2,12 +2,12 @@ import logging
 
 from sqlalchemy.orm import sessionmaker, Session
 
-from core_lib.data_layers.data.handler.data_handler import DataHandler
+from core_lib.connection.data_handler import Connection
 
 logger = logging.getLogger(__name__)
 
 
-class SqlAlchemyDataHandler(DataHandler):
+class SqlAlchemyConnection(Connection):
     def __init__(self, engine, on_exit):
         self.engine = engine
         self.on_exit = on_exit

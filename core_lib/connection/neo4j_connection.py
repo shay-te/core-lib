@@ -1,9 +1,9 @@
 from neo4j import Session
 
-from core_lib.data_layers.data.handler.data_handler import DataHandler
+from core_lib.connection.data_handler import Connection
 
 
-class Neo4jDataHandler(DataHandler):
+class Neo4JConnection(Connection):
     def __init__(self, neo4j_session: Session):
         self.neo4j_session = neo4j_session
 

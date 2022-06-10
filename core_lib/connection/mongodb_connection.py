@@ -1,9 +1,9 @@
 from pymongo import MongoClient
 
-from core_lib.data_layers.data.handler.data_handler import DataHandler
+from core_lib.connection.data_handler import Connection
 
 
-class MongoDBDataHandler(DataHandler):
+class MongoDBConnection(Connection):
     def __init__(self, mongo_client):
         self.mongo_client = mongo_client
 
