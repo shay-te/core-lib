@@ -15,9 +15,7 @@ or get the calling module of a function.
 
 *core_lib.helpers.func_utils.build_function_key()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/func_utils.py#L65)
 
-Will validate if the passed string is a valid `email` or not. 
-
-Format a new string by merging a unique message with the function parameters and custom parameter.
+Will format a new string by merging a unique message with the function parameters and custom parameters.
 
 ```python
 def build_function_key(key: str, func, *args, **kwargs) -> str:

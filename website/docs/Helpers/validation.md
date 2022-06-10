@@ -16,12 +16,12 @@ Here we have functions to validate the different datatypes and strings. Function
 Will validate if the passed argument is type `boolean` or not.
 
 ```python
-def is_bool(st) -> bool:
+def is_bool(val) -> bool:
 ```
 
 **Arguments**
 
-- **`st`** *`(any)`*: Value to validate.
+- **`val`** *`(any)`*: Value to validate.
 
 **Returns**
 
@@ -44,12 +44,12 @@ print(is_bool("string")) # False
 Will validate if the passed argument is type `float` or not. 
 
 ```python
-def is_float(st) -> bool:
+def is_float(val) -> bool:
 ```
 
 **Arguments**
 
-- **`st`** *`(any)`*: Value to validate.
+- **`val`** *`(any)`*: Value to validate.
 
 **Returns**
 
@@ -71,12 +71,12 @@ print(is_float("string")) # False
 Will validate if the passed argument is type `int` or not. 
 
 ```python
-def is_int(s) -> bool:
+def is_int(val) -> bool:
 ```
 
 **Arguments**
 
-- **`s`** *`(any)`*: Value to validate.
+- **`val`** *`(any)`*: Value to validate.
 
 **Returns**
 
