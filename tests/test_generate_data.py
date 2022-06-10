@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from core_lib.helpers.func_utils import reset_datetime
+from core_lib.helpers.datetime_utils import reset_datetime
 from core_lib.helpers.generate_data import generate_random_string, generate_email, generate_datetime
 from core_lib.helpers.validation import is_email
 

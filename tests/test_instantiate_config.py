@@ -1,5 +1,6 @@
 import unittest
 from datetime import date
+from time import sleep
 
 import hydra
 from omegaconf import DictConfig
@@ -44,6 +45,7 @@ class TestInstantiateConfig(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
         hydra.core.global_hydra.GlobalHydra.instance().clear()
         hydra.initialize(config_path='./test_data/test_config')
 
@@ -61,7 +63,7 @@ class TestInstantiateConfig(unittest.TestCase):
         user = self.test_core_lib.customer.create(user_data)
         db_data = self.test_core_lib.customer.get(user[User.id.key])
         self.assertDictEqual(db_data, user)
-
+        sleep(0.1)
         self.test_core_lib.customer.update(user[User.id.key], {'email': 'jon@doe.com'})
         db_data = self.test_core_lib.customer.get(user[User.id.key])
         self.assertEqual(db_data[User.email.key], 'jon@doe.com')
