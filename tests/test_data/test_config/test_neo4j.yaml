@@ -1,0 +1,10 @@
+core_lib:
+  neo4j:
+    _target_: core_lib.data_layers.data.handler.neo4j_data_handler_registry.Neo4jDataHandlerRegistry
+    config:
+      credentials:
+        username: test_name
+        password: test_password
+      url:
+        host: neo4j
+        port: 7474

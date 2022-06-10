@@ -37,10 +37,39 @@ sidebar_label: Datetime Utilities
 - `timestamp_to_ms` returns `timestamp` converted to `milliseconds`.
 
 
-### Usage
+### Basic Usage
 ```python
 from core_lib.helpers.datetime_utils import year_begin 
     
 beginning_of_the_year = year_begin() 
 print(beginning_of_the_year) # will print "2022-01-01 00:00:00"
+```
+
+### reset_datetime()
+
+*core_lib.helpers.datetime_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/5b8b2a4ca73dfd29138a216eb1f5648a5ae9be55/core_lib/helpers/datetime_utils.py#L148)
+
+Will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
+
+```python
+def reset_datetime(date: datetime):
+```
+
+**Arguments**
+
+- **`date`** *`(datetime)`*: The DateTime to convert.
+
+
+**Returns**
+
+*`(datetime)`*: Returns the DateTime with `hour`, `minute`, `second` and `microsecond` as  `0`.
+
+**Example**
+
+```python
+import datetime
+from core_lib.helpers.datetime_utils import reset_datetime
+
+formatted_datetime = reset_datetime(datetime.datetime.utcnow())
+print(formatted_datetime) #2022-02-07 00:00:00
 ```

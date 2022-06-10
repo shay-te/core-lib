@@ -1,0 +1,8 @@
+core_lib:
+  solr:
+    _target_: core_lib.data_layers.data.handler.solr_data_handler_registry.SolrDataHandlerRegistry
+    config:
+      always_commit: true
+      url:
+        host: localhost
+        port: 8983
