@@ -20,7 +20,7 @@ def has_special_chars(input_string: str):
 
 class TestGenerateData(unittest.TestCase):
 
-    def test_string(self):
+    def test_generate_string(self):
         string = generate_random_string()
         self.assertEqual(10, len(string))
         self.assertFalse(has_uppercase(string))
@@ -45,13 +45,13 @@ class TestGenerateData(unittest.TestCase):
         self.assertTrue(has_numbers(string))
         self.assertTrue(has_special_chars(string))
 
-    def test_email(self):
+    def test_generate_email(self):
         domain = 'example.com'
         email = generate_email(domain)
         self.assertIn(domain, email)
         self.assertTrue(is_email(email))
 
-    def test_datetime(self):
+    def test_generate_datetime(self):
         today_sub_15 = reset_datetime(datetime.today() - timedelta(days=15))
         today_add_15 = reset_datetime(datetime.today() + timedelta(days=15))
         today_sub_10 = reset_datetime(datetime.today() - timedelta(days=10))

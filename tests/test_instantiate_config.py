@@ -11,6 +11,7 @@ from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.config_instances import instantiate_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
+from tests.test_data.test_utils import sync_create_core_lib_config
 
 dattime = date.today()
 user_data = {
@@ -43,22 +44,13 @@ class CustomerClient(ClientBase):
 
 class TestInstantiateConfig(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
-        hydra.core.global_hydra.GlobalHydra.instance().clear()
-        hydra.initialize(config_path='./test_data/test_config')
-
     def test_example_core_lib(self):
-        config_file = 'instantiate_config_example.yaml'
-        config = hydra.compose(config_file)
+        config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_example.yaml')
         self.example_core_lib = ExampleCoreLib(config)
         self.assertTrue(isinstance(self.example_core_lib.db_session, SqlAlchemyDataHandlerRegistry))
 
     def test_core_lib(self):
-        config_file = 'instantiate_config_test_core_lib.yaml'
-        config = hydra.compose(config_file)
-
+        config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_test_core_lib.yaml')
         self.test_core_lib = instantiate_config(config.core_lib)
         user = self.test_core_lib.customer.create(user_data)
         db_data = self.test_core_lib.customer.get(user[User.id.key])
