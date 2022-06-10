@@ -1,5 +1,6 @@
 from core_lib.helpers.string import snake_to_camel
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
+from core_lib_generator.generator_utils.formatting_utils import remove_line
 
 
 class ReadmeGenerateTemplate(TemplateGenerator):
@@ -22,5 +23,5 @@ def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):
             func_call_list.append(f'{core_lib_name}.{db_conn}_{db_entity}.your_function()')
         updated_file = updated_file.replace('# function_call', '\n'.join(func_call_list))
     else:
-        updated_file = updated_file.replace('# function_call', '')
+        updated_file = remove_line('# function_call', updated_file)
     return updated_file

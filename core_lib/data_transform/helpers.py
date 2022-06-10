@@ -1,8 +1,3 @@
-import logging
-
-logger = logging.getLogger(__name__)
-
-
 def get_dict_attr(obj: dict, path: str):
     path_list = path.split('.')
     obj_temp = obj
@@ -11,7 +6,7 @@ def get_dict_attr(obj: dict, path: str):
             obj_temp = obj_temp[elem]
         return obj_temp
     except KeyError as e:
-        logger.error('Key Not Found')
+        return None
 
 
 def set_dict_attr(obj: dict, path: str, value) -> dict:

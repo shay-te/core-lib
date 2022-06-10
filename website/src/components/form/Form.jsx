@@ -1,21 +1,21 @@
-import React from 'react'
+import React from "react";
 import "./form.scss";
-import InputString from '../inputs/InputString'
-import InputInteger from '../inputs/InputInteger'
-import InputBoolean from '../inputs/InputBoolean'
-import InputENUM from '../inputs/InputENUM'
-import InputList from '../inputs/InputList'
-import ColumnsTable from "../columnsTable/ColumnsTable";
+import InputString from "../inputs/InputString";
+import InputInteger from "../inputs/InputInteger";
+import InputBoolean from "../inputs/InputBoolean";
+import InputENUM from "../inputs/InputENUM";
+import InputList from "../inputs/InputList";
 import { useSelector } from "react-redux";
-import InputDropDown from '../inputs/InputDropDown'
+import InputDropDown from "../inputs/InputDropDown";
+import InputTable from "../inputTable/InputTable";
 
 const Form = (props) => {
-    const fields = useSelector((state) => state.treeData.fields)
-    const title = useSelector((state) => state.treeData.fieldsTitle)
-    const form = []
+    const fields = useSelector((state) => state.treeData.fields);
+    const title = useSelector((state) => state.treeData.fieldsTitle);
+    const form = [];
     form.push(
         fields.map((field, index) => {
-            const key = `${field.key}`
+            const key = `${field.key}`;
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
@@ -102,8 +102,10 @@ const Form = (props) => {
                         />
                     );
                 case "columns":
-                    return(
-                        <ColumnsTable
+                case "functions":
+                    return (
+                        <InputTable
+                            type={field.type.toLowerCase()}
                             index={index}
                             key={key}
                             title={field.title}
@@ -111,19 +113,19 @@ const Form = (props) => {
                             onChange={props.onChange}
                             fieldKey={key}
                         />
-                    )
+                    );
                 default:
-                    return ''
+                    return "";
             }
         })
-    )
+    );
 
-    return(
+    return (
         <div className="form-root">
             <h2>{title}</h2>
             {form}
         </div>
-    )
-}
+    );
+};
 
-export default Form
+export default Form;

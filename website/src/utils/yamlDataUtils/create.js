@@ -58,6 +58,7 @@ export const dataAccess = (yamlData) => {
         key: 'NewDataAccess' + (target.length + 1),
         entity: dbEntitiesList[0],
         db_connection: dbConn,
+        functions: [],
         is_crud: true,
         is_crud_soft_delete: true,
         is_crud_soft_delete_token: true,
@@ -155,5 +156,36 @@ export const columns = (path, yamlData) => {
         default: '',
     }
     target.push(newColumn)
+    return data
+}
+
+export const functions = (path, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = path.split('.')
+    const target = getValueAtPath(data, steps)
+    const newFunc = {
+        key: `func_${target.length + 1}`,
+        result_to_dict: false,
+        cache_key: "CACHE_KEY",
+        cache_invalidate: false,
+    }
+    target.push(newFunc)
+    return data
+}
+
+export const services = (yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = ['core_lib', 'services']
+    const target = getValueAtPath(data, steps)
+    const daSteps = ['core_lib', 'data_accesses']
+    const daTarget = getValueAtPath(data, steps)
+    const newName = `NewService${target.length + 1}`
+    const newJob = {
+        key: newName,
+        data_access: daTarget[0].key,
+        functions: [],
+        is_crud:true,
+    }
+    target.push(newJob)
     return data
 }

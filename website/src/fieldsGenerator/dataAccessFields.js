@@ -6,12 +6,21 @@ export const dataAccessFields = (path, yamlData) => {
     const index = pathSplit.at(pathSplit.indexOf('data_accesses')+1)
     const dataAccess = dataAccessList[index]
     const connections = yamlData.core_lib.connections
+    const entities = yamlData.core_lib.entities
     const fields = []
     const connection = []
+    const entity = []
     const keyPrefix = `core_lib.data_accesses.${index}`
     connections.forEach(conn => {
         connection.push(conn.key)
     })
+    if(dataAccess['db_connection']){
+        entities.forEach(ent => {
+            if(dataAccess['db_connection'] === ent['db_connection']){
+                entity.push(ent.key)
+            }
+        })
+    }
     fields.push({
         title: "Enter Data Access Name",
         type: "string",
@@ -32,31 +41,51 @@ export const dataAccessFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
-        title: "Is CRUD?",
-        type: "boolean",
-        default_value: false,
-        value: getBoolean(dataAccess['is_crud']),
+        title: "DB Entities",
+        type: "dropdown",
+        default_value: entity[0],
+        value: dataAccess['entity'],
         mandatory: true,
-        key: keyPrefix + '.is_crud',
-        // validatorCallback: validateFunc,
+        options: entity,
+        key: keyPrefix + '.entity',
     },
     {
-        title: "Is CRUD Soft Delete?",
-        type: "boolean",
-        default_value: false,
-        value: getBoolean(dataAccess['is_crud_soft_delete']),
+        title: "Functions",
+        type: "functions",
+        default_value: "",
+        value: dataAccess.functions,
         mandatory: true,
-        key: keyPrefix + '.is_crud_soft_delete',
-        // validatorCallback: validateFunc,
-    },
-    {
-        title: "Is CRUD Soft Delete Token?",
-        type: "boolean",
-        default_value: false,
-        value: getBoolean(dataAccess['is_crud_soft_delete_token']),
-        mandatory: true,
-        key: keyPrefix + '.is_crud_soft_delete_token',
+        key: `${keyPrefix}.functions`,
         // validatorCallback: validateFunc,
     })
+    if(dataAccess['db_connection']){
+        fields.push({
+            title: "Is CRUD?",
+            type: "boolean",
+            default_value: false,
+            value: getBoolean(dataAccess['is_crud']),
+            mandatory: true,
+            key: keyPrefix + '.is_crud',
+            // validatorCallback: validateFunc,
+        },
+        {
+            title: "Is CRUD Soft Delete?",
+            type: "boolean",
+            default_value: false,
+            value: getBoolean(dataAccess['is_crud_soft_delete']),
+            mandatory: true,
+            key: keyPrefix + '.is_crud_soft_delete',
+            // validatorCallback: validateFunc,
+        },
+        {
+            title: "Is CRUD Soft Delete Token?",
+            type: "boolean",
+            default_value: false,
+            value: getBoolean(dataAccess['is_crud_soft_delete_token']),
+            mandatory: true,
+            key: keyPrefix + '.is_crud_soft_delete_token',
+            // validatorCallback: validateFunc,
+        })
+    }
     return fields
 };
