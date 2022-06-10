@@ -23,7 +23,9 @@ export const updateCache = (path, yamlData) => {
             else {
                 target['url'] = {}
             }
-
+            if(!data.core_lib.env){
+                data.core_lib['env'] = {}
+            }
             if (!target['url'].hasOwnProperty('host')) {
                 target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
                 data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
@@ -40,7 +42,9 @@ export const updateCache = (path, yamlData) => {
             else {
                 target['url'] = {}
             }
-
+            if(!data.core_lib.env){
+                data.core_lib['env'] = {}
+            }
             if (!target['url'].hasOwnProperty('host')) {
                 target['url']['host'] = '${oc.env:' + target.key.toUpperCase() + '_HOST}'
                 data.core_lib.env[`${target.key.toUpperCase()}_HOST`] = 'localhost'
@@ -62,7 +66,6 @@ export const updateDBConn = (path, value, yamlData) => {
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.slice(0, -2))
     const dbConn = target.key
-    // debugger
     if (value.toLowerCase() === 'mongodb') {
         target['url']['protocol'] = value.toLowerCase()
         delete target['create_db']
@@ -109,6 +112,9 @@ export const updateDBConn = (path, value, yamlData) => {
                 pool_pre_ping: false
             }
             target['session'] = session
+        }
+        if(!data.core_lib.env){
+            data.core_lib['env'] = {}
         }
         if (!target['url'].hasOwnProperty('username')) {
             target['url']['username'] = '${oc.env:' + dbConn.toUpperCase() + '_USER}'

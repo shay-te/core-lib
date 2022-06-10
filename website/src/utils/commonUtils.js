@@ -39,3 +39,10 @@ export const toCamelCase = (str) => {
 export const getValueAtPath = (obj, path) => {
     return path.reduce((key, val) => key && key[val] ? key[val] : '', obj);
 }
+
+export const setValueAtPath = (obj, path, value) => {
+    const key = path.at(-1)
+    const target = getValueAtPath(obj, path.slice(0, -1) )
+    target[key] = value
+    return obj
+}
