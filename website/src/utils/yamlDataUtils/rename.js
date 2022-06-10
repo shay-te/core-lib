@@ -1,4 +1,4 @@
-import { toCamelCase, toSnakeCase, getValueAtPath } from "../commonUtils"
+import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 export const rename = (path, value, yamlData, oldYamlData) => {
     const pathSplit = path.split('.')
     if (path.includes('connections') && path.includes('key')) {
@@ -59,6 +59,10 @@ const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     // Environment varibales
     const envSteps = ['core_lib', 'env']
     const envTarget = getValueAtPath(data, envSteps)
+    if(!envTarget){
+        setValueAtPath(data, envSteps, {})
+        envTarget = getValueAtPath(data, envSteps)
+    }
     const newHost = `${newValue.toUpperCase()}_HOST`
     const newPort = `${newValue.toUpperCase()}_PORT`
     const newPassword = `${newValue.toUpperCase()}_PASSWORD`
@@ -78,11 +82,13 @@ const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     // DB Connection
     const connSteps = ['core_lib', 'connections', path.at(-2)]
     const connTarget = getValueAtPath(data, connSteps)
-    connTarget['url']['host'] = '${oc.env:' + newHost + '}'
-    connTarget['url']['port'] = '${oc.env:' + newPort + '}'
-    connTarget['url']['password'] = '${oc.env:' + newPassword + '}'
-    connTarget['url']['username'] = '${oc.env:' + newUser + '}'
-    connTarget['url']['file'] = '${oc.env:' + newDB + '}'
+    if(connTarget.url.protocol !== 'sqlite'){
+        connTarget['url']['host'] = '${oc.env:' + newHost + '}'
+        connTarget['url']['port'] = '${oc.env:' + newPort + '}'
+        connTarget['url']['password'] = '${oc.env:' + newPassword + '}'
+        connTarget['url']['username'] = '${oc.env:' + newUser + '}'
+        connTarget['url']['file'] = '${oc.env:' + newDB + '}'
+    }
     // Entity group
     const entitySteps = ['core_lib', 'entities']
     const entityTarget = getValueAtPath(data, entitySteps)

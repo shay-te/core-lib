@@ -109,6 +109,9 @@ export const updateDBConn = (path, value, yamlData) => {
             }
             target['session'] = session
         }
+        if(!data.core_lib.env){
+            data.core_lib['env'] = {}
+        }
         if (!target['url'].hasOwnProperty('username')) {
             target['url']['username'] = '${oc.env:' + dbConn.toUpperCase() + '_USER}'
             data.core_lib.env[dbConn.toUpperCase() + '_USER'] = 'username'
