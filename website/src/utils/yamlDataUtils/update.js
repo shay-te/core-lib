@@ -97,17 +97,17 @@ export const updateDBConn = (path, value, yamlData) => {
     else {
         target['url']['protocol'] = value.toLowerCase()
         if (!target.hasOwnProperty('create_db')) {
-            target['url']['create_db'] = true
+            target['create_db'] = true
         }
         if (!target.hasOwnProperty('log_queries')) {
-            target['url']['log_queries'] = false
+            target['log_queries'] = false
         }
         if (!target.hasOwnProperty('session')) {
             const session = {
                 pool_recycle: 3200,
                 pool_pre_ping: false
             }
-            target['url']['session'] = session
+            target['session'] = session
         }
         if (!target['url'].hasOwnProperty('username')) {
             target['url']['username'] = '${oc.env:' + dbConn.toUpperCase() + '_USER}'
