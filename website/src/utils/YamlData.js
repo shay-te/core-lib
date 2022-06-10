@@ -45,6 +45,14 @@ export class YamlData {
                     this.yaml = update.updateColumnDefault(path, value, this.yaml)
                     return path
                 }
+                if(path.includes('functions') && (path.endsWith('result_to_dict') || path.endsWith('cache_invalidate'))){
+                    this.yaml = update.updateFunctionsCheckbox(path, this.yaml, addOrRemove)
+                    return path
+                }
+                if(path.includes('functions') && path.endsWith('cache_key')){
+                    this.yaml = update.updateFunctionsCache(path, value, this.yaml)
+                    return path
+                }
                 const parent = getValueAtPath(data, steps.slice(0, -1));
                 parent[fieldName] = value;
                 data = rename(path, value, data, this.yaml)
@@ -83,6 +91,14 @@ export class YamlData {
 
     createColumn(path) {
         this.yaml = create.columns(path, this.yaml)
+    }
+
+    createFunction(path) {
+        this.yaml = create.functions(path, this.yaml)
+    }
+
+    createServices(path){
+        this.yaml = create.services(this.yaml)
     }
 
     delete(path) {
