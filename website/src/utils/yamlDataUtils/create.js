@@ -227,7 +227,6 @@ export const services = (yamlData) => {
         key: newName,
         data_access: daTarget.length > 0 ? daTarget[0].key : '',
         functions: [],
-        is_crud:true,
     }
     target.push(newService)
     return data
