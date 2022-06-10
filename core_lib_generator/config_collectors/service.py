@@ -5,11 +5,12 @@ from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.generator_utils.helpers import is_exists, input_function
 
 
-def generate_service_template(data_access: list) -> list:
+def generate_service_template(data_access: list, ask_cache: bool) -> list:
     service = []
 
     def is_exists_service(user_input: str):
         return is_exists(user_input, service)
+
     data_access_list = []
     if data_access:
         for da in data_access:
@@ -34,7 +35,7 @@ def generate_service_template(data_access: list) -> list:
         add_function = input_yes_no('Do you want to add a function to your service?', True)
         while add_function:
             functions.append(
-                input_function(is_exists_function)
+                input_function(ask_cache, is_exists_function)
             )
             add_function = input_yes_no('Do you want to add another function to your service?', True)
 
