@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.rule_validator.rule_validator import RuleValidator
 
 
 class CRUD(ABC):
-    def __init__(self, db_entity, db: SqlAlchemyDataHandlerRegistry, rule_validator: RuleValidator = None):
+    def __init__(self, db_entity, db: SqlAlchemyConnectionRegistry, rule_validator: RuleValidator = None):
         self._db_entity = db_entity
         self._db = db
         self._rule_validator = rule_validator

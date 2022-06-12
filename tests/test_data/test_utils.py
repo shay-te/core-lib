@@ -1,8 +1,8 @@
 import hydra
 from omegaconf import OmegaConf
 
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.core_lib import CoreLib
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
 
 
 def connect_to_mem_db():
@@ -12,7 +12,7 @@ def connect_to_mem_db():
         'session': {'pool_recycle': 3600, 'pool_pre_ping': False},
         'url': {'protocol': 'sqlite'},
     }
-    return SqlAlchemyDataHandlerRegistry(OmegaConf.create(conf))
+    return SqlAlchemyConnectionRegistry(OmegaConf.create(conf))
 
 
 def sync_create_core_lib_config(path: str, config_file: str = 'config.yaml'):

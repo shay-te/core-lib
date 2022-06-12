@@ -1,7 +1,7 @@
-from core_lib.data_layers.data.handler.data_handler import DataHandler
+from core_lib.connection.connection import Connection
 
 
-class ObjectDataHandler(DataHandler):
+class ObjectConnection(Connection):
     def __init__(self, obj, close_callback):
         self.obj = obj
         self.close_callback = close_callback

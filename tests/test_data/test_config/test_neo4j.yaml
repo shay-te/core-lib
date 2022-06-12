@@ -1,6 +1,6 @@
 core_lib:
   neo4j:
-    _target_: core_lib.data_layers.data.handler.neo4j_data_handler_registry.Neo4jDataHandlerRegistry
+    _target_: core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry
     config:
       credentials:
         username: test_name
