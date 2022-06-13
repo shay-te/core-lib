@@ -2,12 +2,11 @@ import unittest
 from datetime import date
 from time import sleep
 
-import hydra
 from omegaconf import DictConfig
 
 from core_lib.client.client_base import ClientBase
 from core_lib.core_lib import CoreLib
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.config_instances import instantiate_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
@@ -47,7 +46,7 @@ class TestInstantiateConfig(unittest.TestCase):
     def test_example_core_lib(self):
         config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_example.yaml')
         self.example_core_lib = ExampleCoreLib(config)
-        self.assertTrue(isinstance(self.example_core_lib.db_session, SqlAlchemyDataHandlerRegistry))
+        self.assertTrue(isinstance(self.example_core_lib.db_session, SqlAlchemyConnectionRegistry))
 
     def test_core_lib(self):
         config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_test_core_lib.yaml')

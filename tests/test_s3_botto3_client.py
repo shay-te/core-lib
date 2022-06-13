@@ -2,7 +2,7 @@
 #
 # import boto3
 # from dotenv import load_dotenv
-# from core_lib.data_layers.data_access.handler.object_data_session_factory import ObjectDataHandlerRegistry
+# from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
 # from examples.objects_core_lib.core_lib.data_layers.data_access.objects_data_access import ObjectsDataAccess
 #
 # current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
@@ -22,6 +22,6 @@
 # print('List Buckets.')
 # print(s3_client.list_buckets())
 
-# object_data_session_factory = ObjectDataHandlerRegistry(s3_client)
+# object_data_session_factory = ObjectConnectionRegistry(s3_client)
 # ob = ObjectsDataAccess(object_data_session_factory)
 # ob.set_object('x', 'xxxx')

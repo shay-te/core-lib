@@ -46,7 +46,7 @@ customer_core_lib.yaml
 core_lib:
   customer_core_lib:
     db:
-      _target_: core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry.SqlAlchemyDataHandlerRegistry
+      _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
       config:
         log_queries: false
         create_db: true
@@ -62,12 +62,13 @@ CustomerCoreLib.py
 ```python
 from omegaconf import DictConfig
 import hydra
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.helpers.config_instances import instantiate_config
 from core_lib.core_lib import CoreLib
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize(config_path='./path/to/your/config_dir')
+
 
 class CustomerCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
@@ -79,7 +80,7 @@ class CustomerCoreLib(CoreLib):
 config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = CustomerCoreLib(config)
-isinstance(customer_core_lib.db_session, SqlAlchemyDataHandlerRegistry) #True
+isinstance(customer_core_lib.db_session, SqlAlchemyConnectionRegistry)  # True
 ```
 
 ### Core-Lib as a target
@@ -89,7 +90,7 @@ config:
   _target_: your.core_lib_path.CustomerCoreLib
   conf:
     db:
-      _target_: core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry.SqlAlchemyDataHandlerRegistry
+      _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
       config:
         log_queries: false
         create_db: true
@@ -105,12 +106,13 @@ CustomerCoreLib.py
 ```python
 from omegaconf import DictConfig
 import hydra
-from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.helpers.config_instances import instantiate_config
 from core_lib.core_lib import CoreLib
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
 hydra.initialize(config_path='./path/to/your/config_dir')
+
 
 class CustomerCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
@@ -122,7 +124,7 @@ class CustomerCoreLib(CoreLib):
 config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = instantiate_config(config.config)
-isinstance(customer_core_lib.db_session, SqlAlchemyDataHandlerRegistry) #True
+isinstance(customer_core_lib.db_session, SqlAlchemyConnectionRegistry)  # True
 ```
 
 

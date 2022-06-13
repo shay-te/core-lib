@@ -13,9 +13,9 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
         else:
             updated_file = remove_line('# template_da_imports', updated_file)
-            updated_file = remove_line('# template_data_handlers_imports', updated_file)
+            updated_file = remove_line('# template_connections_imports', updated_file)
             updated_file = remove_line('# template_da_instances', updated_file)
-            updated_file = remove_line('# template_data_handlers', updated_file)
+            updated_file = remove_line('# template_connections', updated_file)
         if get_dict_attr(yaml_data, 'services'):
             updated_file = _add_service(updated_file, yaml_data, core_lib_name)
         else:
@@ -60,18 +60,18 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
         da_name = get_dict_attr(data_access, 'key')
         inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection})'
         inst_list.append(add_tab_spaces(inst_str, 2))
-        handler_str = f'{db_connection} = SqlAlchemyDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
+        handler_str = f'{db_connection} = SqlAlchemyConnectionRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
         handler_list.append(add_tab_spaces(handler_str, 2))
 
     updated_file = updated_file.replace(
         '# template_da_imports', _create_data_access_imports(data_access_list, core_lib_name)
     )
     updated_file = updated_file.replace(
-        '# template_data_handlers_imports',
-        'from core_lib.data_layers.data.handler.sql_alchemy_data_handler_registry import SqlAlchemyDataHandlerRegistry',
+        '# template_connections_imports',
+        'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry',
     )
     updated_file = updated_file.replace('# template_da_instances', '\n'.join(inst_list))
-    updated_file = updated_file.replace('# template_data_handlers', '\n'.join(set(handler_list)))
+    updated_file = updated_file.replace('# template_connections', '\n'.join(set(handler_list)))
     return updated_file
 
 
@@ -137,13 +137,13 @@ def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
 def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     updated_file = template_content
     import_str = (
-        'from core_lib.data_layers.data.handler.mongodb_data_handler_registry import MongoDBDataHandlerRegistry'
+        'from core_lib.connection.mongodb_connection_registry import MongoDBConnectionRegistry'
     )
     mongo_conn = []
     for db_connection in yaml_data:
         db_conn_name = get_dict_attr(db_connection, 'key')
         if get_dict_attr(db_connection, 'url.protocol') == 'mongodb':
-            conn_str = f'self.{db_conn_name} = MongoDBDataHandlerRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
+            conn_str = f'self.{db_conn_name} = MongoDBConnectionRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
             mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)

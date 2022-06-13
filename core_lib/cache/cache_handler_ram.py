@@ -4,7 +4,7 @@ from core_lib.cache.cache_handler import CacheHandler
 
 
 class CacheHandlerRam(CacheHandler):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.cached_function_responses = {}
 
     def get(self, key):
