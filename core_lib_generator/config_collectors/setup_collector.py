@@ -35,7 +35,7 @@ def generate_setup_template():
 
     while add_classifiers:
         user_classifiers_input = input_list(classifiers, 'Select the classifiers for your project', None, is_exists)
-        user_classifiers.append(user_classifiers_input)
+        user_classifiers.append(classifiers[user_classifiers_input])
         add_classifiers = input_yes_no('Do you want to add another classifier?', True)
 
     return {

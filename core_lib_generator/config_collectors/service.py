@@ -17,7 +17,8 @@ def generate_service_template(data_access: list, ask_cache: bool) -> list:
             data_access_list.append(da['key'])
     add_service = True
     while add_service:
-        da_name = input_list(data_access_list, 'Select the Data Access to create service for')
+        da_input = input_list(data_access_list, 'Select the Data Access to create service for')
+        da_name = data_access_list[da_input]
         service_name = any_to_pascal(
             input_str(
                 f'What is the name of the service? [Eg. UpdateService, ChatService]',

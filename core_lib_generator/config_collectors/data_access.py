@@ -19,11 +19,8 @@ def generate_data_access_template(db_entities: list) -> list:
             entity_list.append(f'{name} -> {conn}')
         add_da = True
         while add_da:
-            entity_input = (input_list(entity_list, 'Select the Entity to create DataAccess for')).split(' -> ')
-            entity_data = {}
-            for entity in db_entities:
-                if entity.get('key') == entity_input[0] and entity.get('db_connection') == entity_input[1]:
-                    entity_data = entity
+            entity_input = input_list(entity_list, 'Select the Entity to create DataAccess for')
+            entity_data = db_entities[entity_input]
             entity_name = entity_data.get('key')
             db_conn = entity_data.get('db_connection')
             default = (
@@ -33,7 +30,7 @@ def generate_data_access_template(db_entities: list) -> list:
             )
             data_access_name = any_to_pascal(
                 input_str(
-                    f'What is the name of the data access?',
+                    f'What is the name of the data access? (Database connection: {db_conn}, Entity: {entity_name})',
                     default,
                     False,
                     is_exists_data_access,
