@@ -21,6 +21,16 @@ export const entityFields = (path, yamlData) => {
         // validatorCallback: validateFunc,
     },
     {
+        title: "DB Connection",
+        type: "dropdown",
+        default_value: dbConn[0],
+        value: entity['db_connection'],
+        mandatory: true,
+        options: dbConn,
+        key: keyPrefix + '.db_connection',
+        // validatorCallback: validateFunc,
+    },
+    {
         title: "Columns",
         type: "columns",
         default_value: "",

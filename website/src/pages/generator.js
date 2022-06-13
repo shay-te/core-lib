@@ -39,7 +39,7 @@ function Generator() {
 			</div>
 			<div className='app-root' key={'app-root'}>
 				<ReflexContainer orientation="vertical">
-					<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
+					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={300}>
 						<Tree key={'tree'} />
 					</ReflexElement>
 					<ReflexSplitter />

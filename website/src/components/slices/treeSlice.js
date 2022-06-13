@@ -16,6 +16,7 @@ const updateLocalStorage = (state) => {
     recentCoreLibs.splice(state.localStorageIndex, 1);
     recentCoreLibs.splice(state.localStorageIndex, 0, state.yaml);
     localStorage.setItem('core_libs', JSON.stringify(recentCoreLibs));
+    localStorage.setItem('recent_core_lib', JSON.stringify(state.yaml))
 }
 
 const setTreeState = (state, yamlData) => {
@@ -44,7 +45,7 @@ const pathToFields = (path, yaml) => {
 
 const createNewEntry = (path, yamlData) => {
     if (path.includes('functions')) { return yamlData.createFunction(path) }
-    if (path.includes('db_entity')) { return yamlData.createEntity(path.split('.')[1]) }
+    if (path.includes('db_entities')) { return yamlData.createEntity() }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
     if (path.includes('connections')) { return yamlData.createDBConnection() }
     if (path.includes('caches')) { return yamlData.createCache() }
@@ -99,6 +100,11 @@ export const treeSlice = createSlice({
             setTreeState(state, yamlData)
         },
         deleteTreeBranch: (state, action) => {
+            if (action.payload === state.fieldsPath){
+                state.fields = []
+                state.fieldsPath = ''
+                state.fieldsTitle = ''
+            }
             yamlData.delete(action.payload)
             state.yaml = yamlData.toJSON()
             setTreeState(state, yamlData)
@@ -114,6 +120,7 @@ export const treeSlice = createSlice({
             state.yaml = yamlData.toJSON()
             setTreeState(state, yamlData)
             state.fields = pathToFields(state.fieldsPath, state.yaml)
+            state.treeState[action.payload] = false
         },
         toggleCollapseExpand: (state, action) => {
             if (!state.treeState.hasOwnProperty(action.payload)) {

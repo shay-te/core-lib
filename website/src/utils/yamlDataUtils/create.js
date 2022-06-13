@@ -1,23 +1,6 @@
 import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 
-export const entity = (dbConn, yamlData) => {
-    const newNormalEntity = {
-        db_connection: dbConn,
-        columns: [
-            {
-                key: 'column_name',
-                type: "VARCHAR",
-                default: null,
-            },
-        ],
-        is_soft_delete: true,
-        is_soft_delete_token: true,
-    }
-
-    const newMongoEntity = {
-        db_connection: dbConn,
-    }
-
+export const entity = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps)
@@ -31,39 +14,29 @@ export const entity = (dbConn, yamlData) => {
         setValueAtPath(data, dbConnSteps, [])
         dbConns = getValueAtPath(data, dbConnSteps)
     }
-    let newEntity = {key: `new_entity_${target.length + 1}`}
-    dbConns.forEach(connection => {
-        if(connection.key === dbConn && connection['url']['protocol'] === 'mongodb'){
-            newEntity = Object.assign(newEntity, newMongoEntity)
-        }else{
-            newEntity = Object.assign(newEntity, newNormalEntity)
-        }
-    })
+    if(dbConns.length === 0){
+        alert('Create a Connection First!')
+        return data
+    }
+    const newEntity = {
+        key: `new_entity_${target.length + 1}`,
+        db_connection: dbConns[0].key,
+        columns: [
+            {
+                key: 'column_name',
+                type: "VARCHAR",
+                default: null,
+            },
+        ],
+        is_soft_delete: true,
+        is_soft_delete_token: true,
+    }
     target.push(newEntity)
     return data
 }
 
 export const dataAccess = (yamlData) => {
-    if(!yamlData.core_lib.hasOwnProperty('connections') || yamlData.core_lib.connections.length === 0){
-        yamlData = dbConnection(yamlData)
-    }
-    const dbConn = yamlData.core_lib.connections[0].key
-    if(!yamlData.core_lib.hasOwnProperty('entities') || yamlData.core_lib.entities.length === 0){
-        yamlData = entity(dbConn, yamlData)
-    }
     const data = JSON.parse(JSON.stringify(yamlData))
-    const dbEntitySteps =  ['core_lib', 'entities']
-    let dbEntities = getValueAtPath(data, dbEntitySteps)
-    if(!dbEntities){
-        setValueAtPath(data, dbEntitySteps, [])
-        dbEntities = getValueAtPath(data, dbEntitySteps)
-    }
-    let dbEntitiesList = []
-    dbEntities.forEach(entity => {
-        if(entity.db_connection === dbConn){
-            dbEntitiesList.push(entity.key)
-        }
-    })
     const steps = ['core_lib', 'data_accesses']
     let target = getValueAtPath(data, steps)
     if(!target){
@@ -72,8 +45,8 @@ export const dataAccess = (yamlData) => {
     }
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
-        entity: dbEntitiesList[0],
-        db_connection: dbConn,
+        entity: '',
+        db_connection: '',
         functions: [],
         is_crud: true,
         is_crud_soft_delete: true,
@@ -216,16 +189,10 @@ export const services = (yamlData) => {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const daSteps = ['core_lib', 'data_accesses']
-    let daTarget = getValueAtPath(data, daSteps)
-    if(!daTarget){
-        setValueAtPath(data, daSteps, [])
-        daTarget = getValueAtPath(data, daSteps)
-    }
     const newName = `NewService${target.length + 1}`
     const newService = {
         key: newName,
-        data_access: daTarget.length > 0 ? daTarget[0].key : '',
+        data_access: '',
         functions: [],
     }
     target.push(newService)

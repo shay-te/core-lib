@@ -8,7 +8,7 @@ import "./TreeSection.scss";
 const TreeSection = (props) => {
 	const dispatch = useDispatch();
 	
-	const onBranchClick = (path, event) => {
+	const onBranchClick = (path) => {
 		dispatch(toggleSelected(path))
 	}
 
@@ -44,6 +44,7 @@ const TreeSection = (props) => {
 					image={<i className="fa-solid fa-plus"></i>}
 					icon={props.icon}
 					key={props.title}
+                    showHover={false}
 				/>
 			</div>
 			<CollapseExpand key={props.title} collapsed={props.collapse}>{items}</CollapseExpand>

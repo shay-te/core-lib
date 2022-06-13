@@ -2,6 +2,7 @@ import { isObject, getValueAtPath } from "./commonUtils"
 import {rename} from './yamlDataUtils/rename'
 import * as update from './yamlDataUtils/update'
 import * as create from './yamlDataUtils/create'
+import { deleteConnData, deleteEnv } from "./yamlDataUtils/delete"
 export class YamlData {
 
     init(data) {
@@ -69,8 +70,8 @@ export class YamlData {
         return path
     }
 
-    createEntity(dbConn) {
-        this.yaml = create.entity(dbConn, this.yaml)
+    createEntity() {
+        this.yaml = create.entity(this.yaml)
     }
 
     createDataAccess() {
@@ -102,10 +103,21 @@ export class YamlData {
     }
 
     delete(path) {
-        const data = JSON.parse(JSON.stringify(this.yaml))
+        let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         const parent = getValueAtPath(data, steps.slice(0, -1));
-        parent.splice(steps.at(-1), 1);
+        if(path.includes('connections')){
+            if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
+                const delData = parent.splice(steps.at(-1), 1);
+                data = deleteConnData(delData, data)
+            }
+        } else if (path.includes('caches')){
+            const delData = parent.splice(steps.at(-1), 1);
+            data = deleteEnv(delData, data)
+        } else {
+            parent.splice(steps.at(-1), 1);
+        }
+        
         this.yaml = data
     }
 
@@ -124,7 +136,7 @@ export class YamlData {
         if (path === 'core_lib.entities') {
             const entityRes = []
             list.forEach((entity, index) => {
-                entityRes.push({ name: entity.key, path: path + '.' + index, dbConnection: entity.db_connection })
+                entityRes.push({ name: `${entity.key} (${entity.db_connection})`, path: path + '.' + index, dbConnection: entity.db_connection })
             })
             return entityRes
         }

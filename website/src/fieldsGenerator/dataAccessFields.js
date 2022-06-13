@@ -8,8 +8,8 @@ export const dataAccessFields = (path, yamlData) => {
     const connections = yamlData.core_lib.connections
     const entities = yamlData.core_lib.entities
     const fields = []
-    const connection = []
-    const entity = []
+    const connection = ['']
+    const entity = ['']
     const keyPrefix = `core_lib.data_accesses.${index}`
     connections.forEach(conn => {
         connection.push(conn.key)
