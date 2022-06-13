@@ -1,43 +1,43 @@
 .tree-branch {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 0.25rem;
-	cursor: pointer;
-	transition: 0.5s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: 0.5s;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 90%;
     position: relative;
-	img {
-		height: auto;
-		width: 1rem;
-	}
+    img {
+        height: auto;
+        width: 1rem;
+    }
 
-	.branch-title-icon {
-		display: flex;
+    .branch-title-icon {
+        display: flex;
 
-		.branch-title {
-			width: inherit;
-			margin-left: 0.75rem;
+        .branch-title {
+            width: inherit;
+            margin-left: 0.75rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-		}
-	}
-	&.hover-branch{
-		border-radius: 5px;
-		box-shadow: 0px 0px 4px 0px rgb(157 157 157);
-		background-color: #ffffff;
-	}
-	&.selected{
-		border-radius: 5px;
-		box-shadow: 0px 0px 4px 0px rgb(157 157 157);
-		background-color: #ffffff;
-	}
+        }
+    }
+    &.hover-branch {
+        border-radius: 5px;
+        box-shadow: 0px 0px 4px 0px rgb(157 157 157);
+        background-color: #ffffff;
+    }
+    &.selected {
+        border-radius: 5px;
+        box-shadow: 0px 0px 4px 0px rgb(157 157 157);
+        background-color: #ffffff;
+    }
 }
-.hover-img{
+.hover-img {
     position: absolute;
     right: 0px;
     top: 10%;
