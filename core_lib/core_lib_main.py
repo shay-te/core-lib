@@ -80,9 +80,6 @@ def main():
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Core-Lib")
     g = parser.add_mutually_exclusive_group()
-    g.add_argument(
-        '-c', '--create', action="append_const", const=on_create, help='Create new Core-Lib YAML file'
-    )
     g.add_argument('-g', '--generate', nargs=1, help='Generate Core-Lib classes from YAML file')
     subparsers = parser.add_subparsers(dest='command')
     rev = subparsers.add_parser('rev', help='migration revision')
@@ -114,8 +111,6 @@ def main():
             on_revision(['new', args.new[0]])
         else:
             on_revision(['list'])
-    elif args.create and len(args.create) > 0 and isinstance(args.create[0], Callable):
-        args.create[0]()
     elif args.generate:
         on_generate(args.generate)
     elif args.revision:
