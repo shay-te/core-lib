@@ -6,10 +6,7 @@ import { useState } from "react";
 const FunctionsTable = (props) => {
     const [visible, setVisible] = useState(false);
     const items = [];
-    let isDataAccess = false;
-    if (props.fieldKey.includes('core_lib.data_accesses.')){
-        isDataAccess = true
-    }
+    const isDataAccess = props.fieldKey.includes('core_lib.data_accesses.');
     items.push(
         
         props.value.map((func, index) => {
