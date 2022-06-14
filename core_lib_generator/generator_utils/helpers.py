@@ -30,7 +30,8 @@ def generate_functions(template_content: str, functions: list) -> str:
         func_str_list.append(add_tab_spaces(f'def {name}(self):', 1))
         func_str_list.append(add_tab_spaces('pass', 2))
         func_list.append('\n'.join(func_str_list))
-    updated_file = template_content.replace('# template_functions', '\n\n'.join(func_list))
+    func_str = '\n\n'.join(func_list)
+    updated_file = template_content.replace('# template_functions', f'\n{func_str}')
     if not imports:
         updated_file = remove_line('# template_function_imports', updated_file)
     else:

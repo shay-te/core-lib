@@ -47,7 +47,7 @@ const createNewEntry = (path, yamlData) => {
     if (path.includes('functions')) { return yamlData.createFunction(path) }
     if (path.includes('db_entities')) { return yamlData.createEntity() }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
-    if (path.includes('connections')) { return yamlData.createDBConnection() }
+    if (path.includes('connections')) { return yamlData.createConnection() }
     if (path.includes('caches')) { return yamlData.createCache() }
     if (path.includes('jobs')) { return yamlData.createJob() }
     if (path.includes('columns')) { return yamlData.createColumn(path) }
@@ -94,7 +94,7 @@ export const treeSlice = createSlice({
             state.fieldsTitle = action.payload.title
         },
         updateFields: (state, action) => {
-            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.addOrRemove)
+            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.addOrRemove, action.payload.isBool)
             state.yaml = yamlData.toJSON()
             state.fields = pathToFields(state.fieldsPath, state.yaml)
             setTreeState(state, yamlData)

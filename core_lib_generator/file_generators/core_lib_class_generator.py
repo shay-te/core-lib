@@ -9,13 +9,19 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         data_access_list = []
         [data_access_list.append(get_dict_attr(da, 'key')) for da in get_dict_attr(yaml_data, 'data_access')]
         updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))
+        if get_dict_attr(yaml_data, 'connections'):
+            updated_file = _add_connections(updated_file, yaml_data, core_lib_name)
+            updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
+        else:
+            updated_file = remove_line('# template_alembic_imports', updated_file)
+            updated_file = remove_line('# template_alembic_functions', updated_file)
+            updated_file = remove_line('# template_connections_imports', updated_file)
+            updated_file = remove_line('# template_connections', updated_file)
         if data_access_list:
             updated_file = _add_data_access(updated_file, yaml_data, core_lib_name, data_access_list)
         else:
             updated_file = remove_line('# template_da_imports', updated_file)
-            updated_file = remove_line('# template_connections_imports', updated_file)
             updated_file = remove_line('# template_da_instances', updated_file)
-            updated_file = remove_line('# template_connections', updated_file)
         if get_dict_attr(yaml_data, 'services'):
             updated_file = _add_service(updated_file, yaml_data, core_lib_name)
         else:
@@ -31,11 +37,6 @@ class CoreLibClassGenerateTemplate(TemplateGenerator):
         else:
             updated_file = remove_line('# template_jobs_data_handlers', updated_file)
             updated_file = remove_line('# template_load_jobs', updated_file)
-        if get_dict_attr(yaml_data, 'connections'):
-            updated_file = _add_alembic_funcs(updated_file, get_dict_attr(yaml_data, 'connections'), core_lib_name)
-        else:
-            updated_file = remove_line('# template_alembic_imports', updated_file)
-            updated_file = remove_line('# template_alembic_functions', updated_file)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
@@ -49,29 +50,50 @@ def _create_data_access_imports(data_access_list: list, core_lib_name: str) -> s
     return '\n'.join(da_imports)
 
 
+def _add_connections(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
+    handler_list = []
+    imports_list = []
+    updated_file = template_content
+    connections = get_dict_attr(yaml_data, 'connections')
+    for connection in connections:
+        conn_type = connection.type.split('.')[-1]
+        config_instantiate = get_dict_attr(connection, 'config_instantiate')
+        instantiate = 'instantiate_config' if config_instantiate else conn_type
+        if instantiate == 'instantiate_config':
+            imports_list.append('from core_lib.helpers.config_instances import instantiate_config')
+        if 'sql' in conn_type.lower():
+            if not config_instantiate:
+                imports_list.append('from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
+            handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.data.{connection.key})'
+        elif 'solr' in conn_type.lower():
+            if not config_instantiate:
+                imports_list.append('from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
+            handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.solr.{connection.key})'
+        else:
+            if not config_instantiate:
+                imports_list.append('from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
+            handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.neo4j.{connection.key})'
+        handler_list.append(add_tab_spaces(handler_str, 2))
+
+    updated_file = updated_file.replace('# template_connections_imports', '\n'.join(set(imports_list)))
+    updated_file = updated_file.replace('# template_connections', '\n'.join(set(handler_list)))
+    return updated_file
+
+
 def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str, data_access_list: list) -> str:
     inst_list = []
-    handler_list = []
     updated_file = template_content
     yaml_data_dataaccess = get_dict_attr(yaml_data, 'data_access')
     for data_access in yaml_data_dataaccess:
-        entity = get_dict_attr(data_access, 'entity')
-        db_connection = get_dict_attr(data_access, 'db_connection')
+        connection = get_dict_attr(data_access, 'connection')
         da_name = get_dict_attr(data_access, 'key')
-        inst_str = f'self.{db_connection}_{entity.lower()} = {da_name}({db_connection})'
+        inst_str = f'self.{camel_to_snake(da_name)} = {da_name}({connection})'
         inst_list.append(add_tab_spaces(inst_str, 2))
-        handler_str = f'{db_connection} = SqlAlchemyConnectionRegistry(self.config.core_lib.{core_lib_name}.data.{db_connection})'
-        handler_list.append(add_tab_spaces(handler_str, 2))
-
     updated_file = updated_file.replace(
         '# template_da_imports', _create_data_access_imports(data_access_list, core_lib_name)
     )
-    updated_file = updated_file.replace(
-        '# template_connections_imports',
-        'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry',
-    )
     updated_file = updated_file.replace('# template_da_instances', '\n'.join(inst_list))
-    updated_file = updated_file.replace('# template_connections', '\n'.join(set(handler_list)))
+
     return updated_file
 
 
@@ -85,7 +107,8 @@ def _add_service(template_content: str, yaml_data: dict, core_lib_name: str) -> 
         service_name = get_dict_attr(service, 'key')
         inst_str = f'self.{camel_to_snake(service_name)} = {service_name}({data_access})'
         inst_list.append(add_tab_spaces(inst_str, 2))
-        import_list.append(f'from {core_lib_name}.data_layers.service.{camel_to_snake(service_name)} import {service_name}')
+        import_list.append(
+            f'from {core_lib_name}.data_layers.service.{camel_to_snake(service_name)} import {service_name}')
     updated_file = updated_file.replace('# template_service_imports', '\n'.join(import_list))
     updated_file = updated_file.replace('# template_service_instances', '\n'.join(inst_list))
     return updated_file

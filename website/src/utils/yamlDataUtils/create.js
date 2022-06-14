@@ -4,23 +4,23 @@ export const entity = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const dbConnSteps = ['core_lib', 'connections']
-    let dbConns = getValueAtPath(data, dbConnSteps)
-    if(!dbConns){
-        setValueAtPath(data, dbConnSteps, [])
-        dbConns = getValueAtPath(data, dbConnSteps)
+    const connSteps = ['core_lib', 'connections']
+    let conns = getValueAtPath(data, connSteps)
+    if (!conns) {
+        setValueAtPath(data, connSteps, [])
+        conns = getValueAtPath(data, connSteps)
     }
-    if(dbConns.length === 0){
+    if (conns.length === 0) {
         alert('Create a Connection First!')
         return data
     }
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
-        db_connection: dbConns[0].key,
+        connection: conns[0].key,
         columns: [
             {
                 key: 'column_name',
@@ -39,14 +39,12 @@ export const dataAccess = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'data_accesses']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
-        entity: '',
-        db_connection: '',
         functions: [],
         is_crud: true,
         is_crud_soft_delete: true,
@@ -56,45 +54,50 @@ export const dataAccess = (yamlData) => {
     return data
 }
 
-export const dbConnection = (yamlData) => {
+export const connection = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'connections']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const dbConnName = `newdb${target.length + 1}`
+    const connName = `newconn${target.length + 1}`
     const envSteps = ['core_lib', 'env']
     let envTarget = getValueAtPath(data, envSteps)
-    if(!envTarget){
+    if (!envTarget) {
         setValueAtPath(data, envSteps, {})
         envTarget = getValueAtPath(data, envSteps)
     }
-    const newDbConn = {
-        key: dbConnName,
-        log_queries: false,
-        create_db: true,
-        session: {
-            pool_recycle: 3200,
-            pool_pre_ping: false,
-        },
-        url: {
-            protocol: "postgresql",
-            username: "${oc.env:"+dbConnName.toUpperCase()+"_USER}",
-            password: "${oc.env:"+dbConnName.toUpperCase()+"_PASSWORD}",
-            host: "${oc.env:"+dbConnName.toUpperCase()+"_HOST}",
-            port: "${oc.env:"+dbConnName.toUpperCase()+"_PORT}",
-            file: "${oc.env:"+dbConnName.toUpperCase()+"_DB}",
+    const newconn = {
+        key: connName,
+        migrate: false,
+        config_instantiate: false,
+        type: 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry',
+        config: {
+            create_db: true,
+            log_queries: false,
+            session: {
+                pool_recycle: 3200,
+                pool_pre_ping: false,
+            },
+            url: {
+                protocol: "postgresql",
+                username: "${oc.env:" + connName.toUpperCase() + "_USER}",
+                password: "${oc.env:" + connName.toUpperCase() + "_PASSWORD}",
+                host: "${oc.env:" + connName.toUpperCase() + "_HOST}",
+                port: "${oc.env:" + connName.toUpperCase() + "_PORT}",
+                file: "${oc.env:" + connName.toUpperCase() + "_DB}",
+            },
         },
     }
 
-    envTarget[`${dbConnName.toUpperCase()}_USER`] = 'user'
-    envTarget[`${dbConnName.toUpperCase()}_PASSWORD`] = 'password'
-    envTarget[`${dbConnName.toUpperCase()}_HOST`] = 'localhost'
-    envTarget[`${dbConnName.toUpperCase()}_PORT`] = 5432
-    envTarget[`${dbConnName.toUpperCase()}_DB`] = dbConnName
-    target.push(newDbConn)
+    envTarget[`${connName.toUpperCase()}_USER`] = 'user'
+    envTarget[`${connName.toUpperCase()}_PASSWORD`] = 'password'
+    envTarget[`${connName.toUpperCase()}_HOST`] = 'localhost'
+    envTarget[`${connName.toUpperCase()}_PORT`] = 5432
+    envTarget[`${connName.toUpperCase()}_DB`] = connName
+    target.push(newconn)
 
     return data
 }
@@ -103,7 +106,7 @@ export const cache = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'caches']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
@@ -120,7 +123,7 @@ export const cache = (yamlData) => {
 
     const envSteps = ['core_lib', 'env']
     let envTarget = getValueAtPath(data, envSteps)
-    if(!envTarget){
+    if (!envTarget) {
         setValueAtPath(data, envSteps, {})
         envTarget = getValueAtPath(data, envSteps)
     }
@@ -135,7 +138,7 @@ export const job = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'jobs']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
@@ -185,14 +188,13 @@ export const services = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'services']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
     const newName = `NewService${target.length + 1}`
     const newService = {
         key: newName,
-        data_access: '',
         functions: [],
     }
     target.push(newService)

@@ -10,7 +10,7 @@ export class YamlData {
         this.coreLibName = data.core_lib.name
     }
 
-    set(path, value, isEnv, addOrRemove) {
+    set(path, value, isEnv, addOrRemove, isBool) {
         let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         if (path === 'core_lib.name') {
@@ -19,6 +19,9 @@ export class YamlData {
             this.coreLibName = value
         }
         else {
+            if(isBool){
+                value = value === 'true'
+            }
             const objField = getValueAtPath(data, steps)
             const fieldName = steps[steps.length - 1]
             if (isObject(objField)) {
@@ -59,10 +62,16 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    this.yaml = update.updateDBConn(path, value, this.yaml)
+                    this.yaml = update.updateConn(path, value, this.yaml)
                 }
                 if (path.includes('core_lib.caches')){
                     this.yaml = update.updateCache(path, this.yaml)
+                }
+                if (path.includes('core_lib.data_accesses')){
+                    this.yaml = update.updateDataAccess(path, value, this.yaml)
+                }
+                if (path.includes('core_lib.services')){
+                    this.yaml = update.updateService(path, value, this.yaml)
                 }
                 return steps.join('.')
             }
@@ -78,8 +87,8 @@ export class YamlData {
         this.yaml = create.dataAccess(this.yaml)
     }
 
-    createDBConnection() {
-        this.yaml = create.dbConnection(this.yaml)
+    createConnection() {
+        this.yaml = create.connection(this.yaml)
     }
 
     createCache() {
@@ -136,7 +145,7 @@ export class YamlData {
         if (path === 'core_lib.entities') {
             const entityRes = []
             list.forEach((entity, index) => {
-                entityRes.push({ name: `${entity.key} (${entity.db_connection})`, path: path + '.' + index, dbConnection: entity.db_connection })
+                entityRes.push({ name: `${entity.key} (${entity.connection})`, path: path + '.' + index, dbConnection: entity.connection })
             })
             return entityRes
         }
