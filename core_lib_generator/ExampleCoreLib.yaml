@@ -78,11 +78,7 @@ core_lib:
     - key: DetailsDataAccess
       functions:
         - key: get_data
-          result_to_dict: true
         - key: get_user
-          result_to_dict: false
-          cache_key: CACHE_USER
-          cache_invalidate: false
       is_crud: true
       is_crud_soft_delete: true
       is_crud_soft_delete_token: true
@@ -91,13 +87,7 @@ core_lib:
     - key: SolrDataAccess
       functions:
         - key: get_data
-          result_to_dict: false
-          cache_key: CACHE_KEY
-          cache_invalidate: false
         - key: get_query
-          result_to_dict: false
-          cache_key: CACHE_KEY
-          cache_invalidate: false
       connection: solrconn
     - key: Neo4jDataAccess
       functions: []
@@ -125,6 +115,6 @@ core_lib:
           cache_invalidate: false
         - key: get_user
           result_to_dict: true
-          cache_key: CACHE_DATA
+          cache_key: CACHE_USER
           cache_invalidate: false
       data_access: DetailsDataAccess

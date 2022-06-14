@@ -23,7 +23,7 @@ def generate_functions(template_content: str, functions: list) -> str:
             cache_key = get_dict_attr(function, 'cache_key')
             cache_invalidate = get_dict_attr(function, 'cache_invalidate')
             invalidate_str = ', invalidate=True' if cache_invalidate else ''
-            func_str_list.append(add_tab_spaces(f'@Cache(\'{cache_key}\'{invalidate_str})', 1))
+            func_str_list.append(add_tab_spaces(f'@Cache({cache_key.upper()}{invalidate_str})', 1))
         if get_dict_attr(function, 'result_to_dict'):
             imports.append('from core_lib.data_transform.result_to_dict import ResultToDict')
             func_str_list.append(add_tab_spaces('@ResultToDict()', 1))

@@ -22,7 +22,16 @@ class ServiceGenerateTemplate(TemplateGenerator):
             updated_file = remove_line('# template_init', updated_file)
         functions = get_dict_attr(yaml_data, 'functions')
         if functions:
+            cache_consts = []
             updated_file = generate_functions(updated_file, functions)
+            for function in functions:
+                if get_dict_attr(function, 'cache_key'):
+                    cache_key = function['cache_key'].upper()
+                    cache_consts.append(add_tab_spaces(f'{cache_key} = \'{cache_key}\'', 1))
+            if cache_consts:
+                updated_file = updated_file.replace('# template_cache_constants', '\n'.join(set(cache_consts)))
+            else:
+                updated_file = remove_line('# template_cache_constants', updated_file)
         else:
             updated_file = updated_file.replace(
                 '# template_functions',

@@ -176,9 +176,6 @@ export const functions = (path, yamlData) => {
     const target = getValueAtPath(data, steps)
     const newFunc = {
         key: `func_${target.length + 1}`,
-        result_to_dict: false,
-        cache_key: "CACHE_KEY",
-        cache_invalidate: false,
     }
     target.push(newFunc)
     return data
