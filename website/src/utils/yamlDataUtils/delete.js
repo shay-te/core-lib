@@ -1,6 +1,18 @@
 import { getValueAtPath } from "../commonUtils";
 
-export const deleteConnData = (connData, yamData) => {
+export const deleteData = (path, delData, yamData) => {
+    let data = JSON.parse(JSON.stringify(yamData))
+    if(path.includes('connections')){
+        if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
+            data = deleteConnData(delData, data)
+        }
+    } else if (path.includes('caches')){
+        data = deleteEnv(delData, data)
+    }
+    return data
+}
+
+const deleteConnData = (connData, yamData) => {
     const data = JSON.parse(JSON.stringify(yamData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps);
@@ -18,7 +30,7 @@ export const deleteConnData = (connData, yamData) => {
     return deleteEnv(connData, data)
 }
 
-export const deleteEnv = (delData, yamData) => {
+const deleteEnv = (delData, yamData) => {
     const data = JSON.parse(JSON.stringify(yamData))
     const delName = delData[0].key
     delete data.core_lib.env[delName.toUpperCase() + '_USER']

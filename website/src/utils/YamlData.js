@@ -2,7 +2,7 @@ import { isObject, getValueAtPath } from "./commonUtils"
 import {rename} from './yamlDataUtils/rename'
 import * as update from './yamlDataUtils/update'
 import * as create from './yamlDataUtils/create'
-import { deleteConnData, deleteEnv } from "./yamlDataUtils/delete"
+import {deleteData} from './yamlDataUtils/delete'
 export class YamlData {
 
     init(data) {
@@ -106,18 +106,8 @@ export class YamlData {
         let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         const parent = getValueAtPath(data, steps.slice(0, -1));
-        if(path.includes('connections')){
-            if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
-                const delData = parent.splice(steps.at(-1), 1);
-                data = deleteConnData(delData, data)
-            }
-        } else if (path.includes('caches')){
-            const delData = parent.splice(steps.at(-1), 1);
-            data = deleteEnv(delData, data)
-        } else {
-            parent.splice(steps.at(-1), 1);
-        }
-        
+        const delData = parent.splice(steps.at(-1), 1);
+        data = deleteData(path, delData, data)
         this.yaml = data
     }
 
