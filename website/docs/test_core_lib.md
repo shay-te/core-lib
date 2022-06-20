@@ -39,38 +39,16 @@ Here you should define the functions that only and only communicate with the con
 ```python
 from http import HTTPStatus
 
-from core_lib.data_layers.data_access.data_access import DataAccess
+from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
 from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from user_core_lib.data_layers.data.db.user import User
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 
-class UserDataAccess(DataAccess):
+class UserDataAccess(CRUDDataAccess):
     def __init__(self, db: SqlAlchemyConnectionRegistry):
-        self.db = db
-
-    def create(self, user_data: dict):
-        with self.db.get() as session:
-            user = User(**user_data)
-            session.add(user)
-        return user
-
-    def update(self, user_id: int, user_data: dict):
-        with self.db.get() as session:
-            return session.query(User).filter(User.id == user_id).update(user_data)
-
-    def delete(self, id: int):
-        with self.db.get() as session:
-            return (
-                session.query(User)
-                .filter(User.id == id)
-                .delete()
-            )
-    @NotFoundErrorHandler()
-    def get(self, user_id):
-        with self.db.get() as session:
-            return session.query(User).get(user_id)
+        CRUD.__init__(self, User, db)
 ```
 
 ## Service 
@@ -127,46 +105,83 @@ core_lib:
           password: ${oc.env:USERDB_PASSWORD}
           port: ${oc.env:USERDB_PORT}
           host: ${oc.env:USERDB_HOST}
+    client:
+      user_client:
+        _target_: core_lib.client.client_base.ClientBase
+        base_url: https://example.com/
 ```
 
-In your main file
+In your test file
 
-`main.py`
+`test.py`
 ```python
-import hydra
-from omegaconf import OmegaConf
-from core_lib.core_lib import CoreLib
+import unittest
 
+from core_lib.error_handling.status_code_exception import StatusCodeException
 from user_core_lib.user_core_lib import UserCoreLib
+from tests.test_data.test_utils import sync_create_core_lib_config
+from core_lib.client.client_base import ClientBase
+from core_lib.helpers.config_instances import instantiate_config
 
-# A utility to help us clean all the existing keys, clear registries, clear hydra instances and return the `DictConfig` from the yaml file
-# you can keep this utility elsewhere for keep the file clean too
-def sync_create_core_lib_config(path: str, config_file):
-    [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
-    [CoreLib.observer_registry.unregister(key) for key in CoreLib.observer_registry.registered()]
-    hydra.core.global_hydra.GlobalHydra.instance().clear()
-    hydra.initialize(config_path=path)
-    config = hydra.compose(config_file)
-    return config
+class UserClient(ClientBase):
+    def __init__(self, target_url):
+        ClientBase.__init__(self, target_url)
 
-# here we have the config for the Core-Lib
-config = sync_create_core_lib_config('./config', 'user_core_lib.yaml')
+    def get(self, user_id: int):
+        pass
+    
+    def create(self, data: dict):
+        pass
+    
+    def update(self, data: dict, user_id: int):
+        pass
+    
+    def delete(self, user_id: int):
+        pass
 
-# here we initialize the Core-Lib
-user_core_lib = UserCoreLib(config)
-# this will initialize the Core-Lib with the connection and we can access the service to communicate with the database.
+class TestCoreLib(unittest.TestCase):
+    
+    def setUp(self):
+        # util that will clear all the earlier Core-Lib data and return DictConfig
+        self.config = sync_create_core_lib_config('./config', 'user_core_lib.yaml')
+        # here we initialize the Core-Lib
+        self.user_core_lib = UserCoreLib(self.config)
+    
+    
+    def test_core_lib(self):
+        user_data = self.user_core_lib.user.create({'name': 'John', 'contact': '123456'}) # store the created data to retrieve the id for update and delete 
+        user_id = user_data['id']
+        self.assertEqual(user_data['name'], 'John')
+        self.assertEqual(user_data['contact'], '123456')
+        
+        self.user_core_lib.user.update(user_id, {'name': 'John Doe', 'contact': '789456'})
+        
+        user_data = self.user_core_lib.user.get(user_id) # returns the data at the specified id or raises exception if id not found
+        self.assertEqual(user_data['name'], 'John Doe')
+        self.assertEqual(user_data['contact'], '789456')
+        
+        self.user_core_lib.user.delete(user_id) # deletes the entry at the specified id
+        with self.assertRaises(StatusCodeException):
+            self.user_core_lib.user.get(user_id)
+    
+    # instantiate_config to create a instance of UserClient class
+    def test_client(self):
+        user_client = instantiate_config(self.config.core_lib.user_core_lib.client.user_client)
+        user_data = user_client.create({'name': 'John', 'contact': '123456'})
+        user_id = user_data['id']
+        self.assertEqual(user_data['name'], 'John')
+        self.assertEqual(user_data['contact'], '123456')
+        
+        user_client.update(user_id, {'name': 'John Doe', 'contact': '789456'})
+        
+        user_data = user_client.get(user_id) 
+        self.assertEqual(user_data['name'], 'John Doe')
+        self.assertEqual(user_data['contact'], '789456')
+        
+        user_client.delete(user_id)
 
-user_data = user_core_lib.user.create({'name': 'John', 'contact': '123456'}) # store the created data to retrieve the id for update and delete 
-user_id = user_data['id']
-# this will call the create function inside the `UserService` and that will call the create() in the `UserDataAccess`, thus creating a new user in the database, while keeping the layers different for clean code.
-
-user_core_lib.update(user_id, {'name': 'John Doe', 'contact': '789456'})
-
-user_core_lib.get(user_id) # returns the data at the specified id or raises exception if id not found
-
-user_core_lib.delete(user_id) # deletes the entry at the specified id
 ```
 
-This is a basic usage of how to initialize a `Core-Lib` and write `DataAccess` and `Service`. Once a `Core-Lib` instance is created that you can pass it on to different files and keep this instance singleton so the data in the `cache` and `registry` remains persistent. Make sure to initialize it at the topmost level of your application. 
+This is a basic usage of how to initialize and test a `Core-Lib` and write `DataAccess` and `Service`. Once a `Core-Lib` instance is created that you can pass it on to different files and keep this instance singleton so the data in the `cache` and `registry` remains persistent. Make sure to initialize it at the topmost level of your application. 
 
 If you want to check out more usages of `Core-Lib` you can check out our examples here.
