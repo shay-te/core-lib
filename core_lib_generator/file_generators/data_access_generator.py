@@ -25,11 +25,11 @@ class DataAccessGenerateTemplate(TemplateGenerator):
                 if connection.key == conn:
                     conn_data = connection
             conn_type = conn_data.type.split('.')[-1]
-            if 'sql' in conn_type.lower():
+            if 'SqlAlchemyConnectionRegistry' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
-            elif 'solr' in conn_type.lower():
+            elif 'SolrConnectionRegistry' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
-            else:
+            elif 'Neo4jConnectionRegistry' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
             init_str_list = [add_tab_spaces(f'def __init__(self, session: {conn_type}):'),
                              add_tab_spaces('self.session = session', 2)]
@@ -49,11 +49,11 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        if 'is_crud_soft_delete_token' in yaml_data['data_access']:
+        if 'is_crud_soft_delete_token' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
-        elif 'is_crud_soft_delete' in yaml_data['data_access']:
+        elif 'is_crud_soft_delete' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
-        elif 'is_crud' in yaml_data['data_access']:
+        elif 'is_crud' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
             return (

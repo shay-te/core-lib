@@ -61,15 +61,16 @@ def _add_connections(template_content: str, yaml_data: dict, core_lib_name: str)
         instantiate = 'instantiate_config' if config_instantiate else conn_type
         if instantiate == 'instantiate_config':
             imports_list.append('from core_lib.helpers.config_instances import instantiate_config')
-        if 'sql' in conn_type.lower():
+        handler_str = ''
+        if 'SqlAlchemyConnectionRegistry' in conn_type:
             if not config_instantiate:
                 imports_list.append('from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.data.{connection.key})'
-        elif 'solr' in conn_type.lower():
+        elif 'SolrConnectionRegistry' in conn_type:
             if not config_instantiate:
                 imports_list.append('from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.solr.{connection.key})'
-        else:
+        elif 'Neo4jConnectionRegistry' in conn_type:
             if not config_instantiate:
                 imports_list.append('from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.neo4j.{connection.key})'

@@ -21,7 +21,7 @@ export const connectionFields = (path, yamlData) => {
             title: 'Select connection',
             type: 'enum',
             mandatory: true,
-            value: connection['config']['url']['protocol'].includes('http') ? 'solr' : connection['config']['url']['protocol'],
+            value: connection['type'].includes('SolrConnectionRegistry') ? 'solr' : connection['config']['url']['protocol'],
             // validatorCallback: validateFunc,
             options: [
                 'SQLite',
@@ -46,7 +46,7 @@ export const connectionFields = (path, yamlData) => {
             // validatorCallback: validateFunc,
         },
     );
-    if (!(['solr', 'neo4j'].some(val => connection['type'].toLowerCase().includes(val)))) {
+    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
         fields.push(
             {
                 title: 'Do you want to log queries?',
@@ -110,7 +110,7 @@ export const connectionFields = (path, yamlData) => {
                 // validatorCallback: validateFunc,
             },
         );
-        if (!connection['type'].toLowerCase().includes('neo4j')) {
+        if (!connection['type'].includes('Neo4jConnectionRegistry')) {
             fields.push(
                 {
                     title: 'Enter filename for your connection',
@@ -124,17 +124,17 @@ export const connectionFields = (path, yamlData) => {
                 },
             )
         }
-        if (connection['type'].toLowerCase().includes('sql')) {
+        if (['SqlAlchemyConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val))) {
             fields.push(
                 {
                     title: 'Enter your connection username',
                     type: 'string',
                     default_value: 'user',
-                    value: getENVValue(
-                        connection['config']['url']['username'], yamlData
-                    ),
+                    value: connection['type'].includes('SqlAlchemyConnectionRegistry') ? 
+                            getENVValue(connection['config']['url']['username'], yamlData) : 
+                            getENVValue(connection['config']['credentials']['username'], yamlData),
                     mandatory: true,
-                    key: `${keyPrefix}.config.url.username`,
+                    key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.username` : `${keyPrefix}.config.credentials.username`,
                     env: `${envPrefix}_USER`,
                     // validatorCallback: validateFunc,
                 },
@@ -142,39 +142,11 @@ export const connectionFields = (path, yamlData) => {
                     title: 'Enter your connection password',
                     type: 'string',
                     default_value: null,
-                    value: getENVValue(
-                        connection['config']['url']['password'], yamlData
-                    ),
+                    value: connection['type'].includes('SqlAlchemyConnectionRegistry') ? 
+                            getENVValue(connection['config']['url']['password'], yamlData) : 
+                            getENVValue(connection['config']['credentials']['password'], yamlData),
                     mandatory: true,
-                    key: `${keyPrefix}.config.url.password`,
-                    env: `${envPrefix}_PASSWORD`,
-                    // validatorCallback: validateFunc,
-                }
-            )
-        }
-        if (connection['type'].toLowerCase().includes('neo4j')) {
-            fields.push(
-                {
-                    title: 'Enter your connection username',
-                    type: 'string',
-                    default_value: 'user',
-                    value: getENVValue(
-                        connection['config']['credentials']['username'], yamlData
-                    ),
-                    mandatory: true,
-                    key: `${keyPrefix}.config.credentials.username`,
-                    env: `${envPrefix}_USER`,
-                    // validatorCallback: validateFunc,
-                },
-                {
-                    title: 'Enter your connection password',
-                    type: 'string',
-                    default_value: null,
-                    value: getENVValue(
-                        connection['config']['credentials']['password'], yamlData
-                    ),
-                    mandatory: true,
-                    key: `${keyPrefix}.config.credentials.password`,
+                    key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.password` : `${keyPrefix}.config.credentials.password`,
                     env: `${envPrefix}_PASSWORD`,
                     // validatorCallback: validateFunc,
                 }

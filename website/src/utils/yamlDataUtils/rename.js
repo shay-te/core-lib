@@ -102,11 +102,11 @@ const renameConnEvents = (path, oldValue, newValue, yamlData) => {
     const connSteps = ['core_lib', 'connections', path.at(-2)]
     const connTarget = getValueAtPath(data, connSteps)
     if(connTarget.config.url.protocol !== 'sqlite'){
-        if(!connTarget.type.includes('neo4j') && !connTarget.type.includes('solr')){
+        if(!connTarget.type.includes('Neo4jConnectionRegistry') && !connTarget.type.includes('SolrConnectionRegistry')){
             connTarget['config']['url']['password'] = '${oc.env:' + newPassword + '}'
             connTarget['config']['url']['username'] = '${oc.env:' + newUser + '}'
         }
-        if(!connTarget.type.includes('neo4j')){
+        if(!connTarget.type.includes('Neo4jConnectionRegistry')){
             connTarget['config']['url']['file'] = '${oc.env:' + newDB + '}'
         }
         connTarget['config']['url']['host'] = '${oc.env:' + newHost + '}'
