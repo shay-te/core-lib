@@ -7,6 +7,7 @@ import {
     deleteTreeBranch,
     addNewEntry,
     toggleCollapseExpand,
+    downloadZip,
 } from "../slices/treeSlice";
 import { download } from "../../utils/commonUtils";
 import YAML from "yaml";
@@ -73,11 +74,16 @@ const Tree = () => {
     const onCollapseExpand = (path) => {
         dispatch(toggleCollapseExpand(path));
     };
+
     const exportYaml = () => {
         const doc = new YAML.Document();
         doc.contents = yaml;
         download(doc.toString(), `${CoreLibName}.yaml`);
     };
+
+    const downloadCLZip = () => {
+        dispatch(downloadZip({config: yaml}))
+    }
 
     const connectionElements = [];
     connections.forEach((connection) => {
@@ -202,7 +208,13 @@ const Tree = () => {
                         className="export-button"
                         onClick={() => exportYaml()}
                     >
-                        Export
+                        Export YAML
+                    </button>
+                    <button
+                        className="export-button"
+                        onClick={() => downloadCLZip()}
+                    >
+                        Download ZIP
                     </button>
                 </div>
             </div>

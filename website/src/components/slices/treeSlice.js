@@ -1,6 +1,6 @@
 import { current } from '@reduxjs/toolkit'
 
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { YamlData } from "./../../utils/YamlData";
 import { dataAccessFields } from '../../fieldsGenerator/dataAccessFields';
 import { setupFields } from '../../fieldsGenerator/setupFields';
@@ -10,6 +10,9 @@ import { cacheFields } from '../../fieldsGenerator/cacheFields';
 import { serviceFields } from '../../fieldsGenerator/serviceFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
+import axios from 'axios';
+
+const BASE = 'http://127.0.0.1:5000/';
 
 const updateLocalStorage = (state) => {
     const recentCoreLibs = (JSON.parse(localStorage.getItem('core_libs')) === null ? [] : JSON.parse(localStorage.getItem('core_libs')))
@@ -55,6 +58,16 @@ const createNewEntry = (path, yamlData) => {
 }
 
 const yamlData = new YamlData()
+
+export const downloadZip = createAsyncThunk(
+	'api/downloadZip',
+	async (data) => {
+		const url = BASE + 'api/download_zip';
+		const response = await axios.post(url, data);
+		return response.data;
+	}
+)
+
 export const treeSlice = createSlice({
     name: 'tree',
     initialState: {
