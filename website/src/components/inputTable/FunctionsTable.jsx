@@ -6,8 +6,11 @@ import { useState } from "react";
 const FunctionsTable = (props) => {
     const [visible, setVisible] = useState(false);
     const items = [];
+    const isDataAccess = props.fieldKey.includes('core_lib.data_accesses.');
     items.push(
+        
         props.value.map((func, index) => {
+            
             return (
                 <tr
                     key={index}
@@ -40,6 +43,7 @@ const FunctionsTable = (props) => {
                             name={"list" + props.fieldKey}
                             value={func.result_to_dict}
                             defaultChecked={func.result_to_dict}
+                            disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: `${props.fieldKey}.${index}.result_to_dict`,
                             })}
@@ -57,6 +61,7 @@ const FunctionsTable = (props) => {
                             value={func.cache_key ? func.cache_key : ''}
                             required={true}
                             placeholder="Cache key"
+                            disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: `${props.fieldKey}.${index}.cache_key`,
                             })}
@@ -72,6 +77,7 @@ const FunctionsTable = (props) => {
                             name={"list" + props.fieldKey}
                             value={func.cache_invalidate}
                             defaultChecked={func.cache_invalidate}
+                            disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: `${props.fieldKey}.${index}.cache_invalidate`,
                             })}

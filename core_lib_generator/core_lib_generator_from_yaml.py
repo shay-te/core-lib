@@ -63,7 +63,10 @@ class CoreLibGenerator:
                 da_name = da['key']
                 self._generate_template(
                     f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data_access/{camel_to_snake(da_name)}.py',
-                    da,
+                    {
+                        'data_access': da,
+                        'connections': self.core_lib_data_conn,
+                    },
                     DataAccessGenerateTemplate(),
                     da_name,
                 )
@@ -83,9 +86,9 @@ class CoreLibGenerator:
         if self.core_lib_entities:
             for entity in self.core_lib_entities:
                 entity_name = entity['key']
-                db_conn_name = entity['db_connection']
+                conn_name = entity['connection']
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{db_conn_name}/entities/{entity_name.lower()}.py',
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/data/{conn_name}/entities/{entity_name.lower()}.py',
                     entity,
                     EntityGenerateTemplate(),
                     entity_name,

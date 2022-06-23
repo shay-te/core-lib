@@ -7,19 +7,37 @@ from core_lib_generator.generator_utils.helpers import generate_functions
 
 class DataAccessGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
+        connections = yaml_data['connections']
         updated_file = template_content.replace('Template', file_name)
-        db_conn = get_dict_attr(yaml_data, 'db_connection')
-        entity = get_dict_attr(yaml_data, 'entity')
-        updated_file = updated_file.replace(
-            '# template_entity_imports',
-            f'from {core_lib_name}.data_layers.data.{db_conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
-        )
-        updated_file = updated_file.replace('db_entity', any_to_pascal(entity))
-        init_str_list = [add_tab_spaces('def __init__(self, db_session: SqlAlchemyConnectionRegistry):'),
-                         add_tab_spaces('self.db_session = db_session', 2)]
-        updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))
-        updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
-        functions = get_dict_attr(yaml_data, 'functions')
+        conn = get_dict_attr(yaml_data, 'data_access.connection')
+        entity = get_dict_attr(yaml_data, 'data_access.entity')
+        if entity:
+            updated_file = updated_file.replace(
+                '# template_entity_imports',
+                f'from {core_lib_name}.data_layers.data.{conn}.entities.{entity.lower()} import {any_to_pascal(entity)}',
+            )
+            updated_file = updated_file.replace('db_entity', any_to_pascal(entity))
+        else:
+            updated_file = remove_line('# template_entity_imports', updated_file)
+        if conn:
+            conn_data = {}
+            for connection in connections:
+                if connection.key == conn:
+                    conn_data = connection
+            conn_type = conn_data.type.split('.')[-1]
+            if 'SqlAlchemyConnectionRegistry' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
+            elif 'SolrConnectionRegistry' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
+            elif 'Neo4jConnectionRegistry' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
+            init_str_list = [add_tab_spaces(f'def __init__(self, session: {conn_type}):'),
+                             add_tab_spaces('self.session = session', 2)]
+            updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))
+        else:
+            updated_file = remove_line('# template_connections_imports', updated_file)
+            updated_file = remove_line('# template_init', updated_file)
+        functions = get_dict_attr(yaml_data, 'data_access.functions')
         if functions:
             updated_file = generate_functions(updated_file, functions)
         else:
@@ -31,11 +49,11 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        if 'is_crud_soft_delete_token' in yaml_data:
+        if 'is_crud_soft_delete_token' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
-        elif 'is_crud_soft_delete' in yaml_data:
+        elif 'is_crud_soft_delete' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
-        elif 'is_crud' in yaml_data:
+        elif 'is_crud' in yaml_data.get('data_access'):
             return 'core_lib_generator/template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
             return (

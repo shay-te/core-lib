@@ -26,8 +26,13 @@ function Generator() {
 	const dispatch = useDispatch()
 
 	const onFieldChange = (field, e) => {
+        let isBool = false
+        const idArr = e.target.id.split('.')
+        if(idArr[0] === 'true' || idArr[0] === 'false'){
+            isBool = true
+        }
 		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked }))
+			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked, isBool: isBool }))
 		}
 	}
 	return (
@@ -39,7 +44,7 @@ function Generator() {
 			</div>
 			<div className='app-root' key={'app-root'}>
 				<ReflexContainer orientation="vertical">
-					<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
+					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={300}>
 						<Tree key={'tree'} />
 					</ReflexElement>
 					<ReflexSplitter />

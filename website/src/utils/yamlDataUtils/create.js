@@ -1,8 +1,26 @@
 import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 
-export const entity = (dbConn, yamlData) => {
-    const newNormalEntity = {
-        db_connection: dbConn,
+export const entity = (yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const steps = ['core_lib', 'entities']
+    let target = getValueAtPath(data, steps)
+    if (!target) {
+        setValueAtPath(data, steps, [])
+        target = getValueAtPath(data, steps)
+    }
+    const connSteps = ['core_lib', 'connections']
+    let conns = getValueAtPath(data, connSteps)
+    if (!conns) {
+        setValueAtPath(data, connSteps, [])
+        conns = getValueAtPath(data, connSteps)
+    }
+    if (conns.length === 0) {
+        alert('Create a Connection First!')
+        return data
+    }
+    const newEntity = {
+        key: `new_entity_${target.length + 1}`,
+        connection: conns[0].key,
         columns: [
             {
                 key: 'column_name',
@@ -13,67 +31,20 @@ export const entity = (dbConn, yamlData) => {
         is_soft_delete: true,
         is_soft_delete_token: true,
     }
-
-    const newMongoEntity = {
-        db_connection: dbConn,
-    }
-
-    const data = JSON.parse(JSON.stringify(yamlData))
-    const steps = ['core_lib', 'entities']
-    let target = getValueAtPath(data, steps)
-    if(!target){
-        setValueAtPath(data, steps, [])
-        target = getValueAtPath(data, steps)
-    }
-    const dbConnSteps = ['core_lib', 'connections']
-    let dbConns = getValueAtPath(data, dbConnSteps)
-    if(!dbConns){
-        setValueAtPath(data, dbConnSteps, [])
-        dbConns = getValueAtPath(data, dbConnSteps)
-    }
-    let newEntity = {key: `new_entity_${target.length + 1}`}
-    dbConns.forEach(connection => {
-        if(connection.key === dbConn && connection['url']['protocol'] === 'mongodb'){
-            newEntity = Object.assign(newEntity, newMongoEntity)
-        }else{
-            newEntity = Object.assign(newEntity, newNormalEntity)
-        }
-    })
     target.push(newEntity)
     return data
 }
 
 export const dataAccess = (yamlData) => {
-    if(!yamlData.core_lib.hasOwnProperty('connections') || yamlData.core_lib.connections.length === 0){
-        yamlData = dbConnection(yamlData)
-    }
-    const dbConn = yamlData.core_lib.connections[0].key
-    if(!yamlData.core_lib.hasOwnProperty('entities') || yamlData.core_lib.entities.length === 0){
-        yamlData = entity(dbConn, yamlData)
-    }
     const data = JSON.parse(JSON.stringify(yamlData))
-    const dbEntitySteps =  ['core_lib', 'entities']
-    let dbEntities = getValueAtPath(data, dbEntitySteps)
-    if(!dbEntities){
-        setValueAtPath(data, dbEntitySteps, [])
-        dbEntities = getValueAtPath(data, dbEntitySteps)
-    }
-    let dbEntitiesList = []
-    dbEntities.forEach(entity => {
-        if(entity.db_connection === dbConn){
-            dbEntitiesList.push(entity.key)
-        }
-    })
     const steps = ['core_lib', 'data_accesses']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
-        entity: dbEntitiesList[0],
-        db_connection: dbConn,
         functions: [],
         is_crud: true,
         is_crud_soft_delete: true,
@@ -83,45 +54,50 @@ export const dataAccess = (yamlData) => {
     return data
 }
 
-export const dbConnection = (yamlData) => {
+export const connection = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'connections']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const dbConnName = `newdb${target.length + 1}`
+    const connName = `newconn${target.length + 1}`
     const envSteps = ['core_lib', 'env']
     let envTarget = getValueAtPath(data, envSteps)
-    if(!envTarget){
+    if (!envTarget) {
         setValueAtPath(data, envSteps, {})
         envTarget = getValueAtPath(data, envSteps)
     }
-    const newDbConn = {
-        key: dbConnName,
-        log_queries: false,
-        create_db: true,
-        session: {
-            pool_recycle: 3200,
-            pool_pre_ping: false,
-        },
-        url: {
-            protocol: "postgresql",
-            username: "${oc.env:"+dbConnName.toUpperCase()+"_USER}",
-            password: "${oc.env:"+dbConnName.toUpperCase()+"_PASSWORD}",
-            host: "${oc.env:"+dbConnName.toUpperCase()+"_HOST}",
-            port: "${oc.env:"+dbConnName.toUpperCase()+"_PORT}",
-            file: "${oc.env:"+dbConnName.toUpperCase()+"_DB}",
+    const newconn = {
+        key: connName,
+        migrate: false,
+        config_instantiate: false,
+        type: 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry',
+        config: {
+            create_db: true,
+            log_queries: false,
+            session: {
+                pool_recycle: 3200,
+                pool_pre_ping: false,
+            },
+            url: {
+                protocol: "postgresql",
+                username: "${oc.env:" + connName.toUpperCase() + "_USER}",
+                password: "${oc.env:" + connName.toUpperCase() + "_PASSWORD}",
+                host: "${oc.env:" + connName.toUpperCase() + "_HOST}",
+                port: "${oc.env:" + connName.toUpperCase() + "_PORT}",
+                file: "${oc.env:" + connName.toUpperCase() + "_DB}",
+            },
         },
     }
 
-    envTarget[`${dbConnName.toUpperCase()}_USER`] = 'user'
-    envTarget[`${dbConnName.toUpperCase()}_PASSWORD`] = 'password'
-    envTarget[`${dbConnName.toUpperCase()}_HOST`] = 'localhost'
-    envTarget[`${dbConnName.toUpperCase()}_PORT`] = 5432
-    envTarget[`${dbConnName.toUpperCase()}_DB`] = dbConnName
-    target.push(newDbConn)
+    envTarget[`${connName.toUpperCase()}_USER`] = 'user'
+    envTarget[`${connName.toUpperCase()}_PASSWORD`] = 'password'
+    envTarget[`${connName.toUpperCase()}_HOST`] = 'localhost'
+    envTarget[`${connName.toUpperCase()}_PORT`] = 5432
+    envTarget[`${connName.toUpperCase()}_DB`] = connName
+    target.push(newconn)
 
     return data
 }
@@ -130,7 +106,7 @@ export const cache = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'caches']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
@@ -147,7 +123,7 @@ export const cache = (yamlData) => {
 
     const envSteps = ['core_lib', 'env']
     let envTarget = getValueAtPath(data, envSteps)
-    if(!envTarget){
+    if (!envTarget) {
         setValueAtPath(data, envSteps, {})
         envTarget = getValueAtPath(data, envSteps)
     }
@@ -162,7 +138,7 @@ export const job = (yamlData, coreLibName) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'jobs']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
@@ -200,9 +176,6 @@ export const functions = (path, yamlData) => {
     const target = getValueAtPath(data, steps)
     const newFunc = {
         key: `func_${target.length + 1}`,
-        result_to_dict: false,
-        cache_key: "CACHE_KEY",
-        cache_invalidate: false,
     }
     target.push(newFunc)
     return data
@@ -212,20 +185,13 @@ export const services = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'services']
     let target = getValueAtPath(data, steps)
-    if(!target){
+    if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
-    }
-    const daSteps = ['core_lib', 'data_accesses']
-    let daTarget = getValueAtPath(data, daSteps)
-    if(!daTarget){
-        setValueAtPath(data, daSteps, [])
-        daTarget = getValueAtPath(data, daSteps)
     }
     const newName = `NewService${target.length + 1}`
     const newService = {
         key: newName,
-        data_access: daTarget.length > 0 ? daTarget[0].key : '',
         functions: [],
     }
     target.push(newService)

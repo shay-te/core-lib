@@ -2,9 +2,9 @@ import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../com
 export const rename = (path, value, yamlData, oldYamlData) => {
     const pathSplit = path.split('.')
     if (path.includes('connections') && path.includes('key')) {
-        return renameDBConnEvents(pathSplit, oldYamlData.core_lib.connections[pathSplit.at(-2)], value, yamlData);
+        return renameConnEvents(pathSplit, oldYamlData.core_lib.connections[pathSplit.at(-2)], value, yamlData);
     }
-    if (path.includes('entities') && path.includes('key')) {
+    if (path.includes('entities') && path.includes('key') && !path.includes('columns')) {
         return renameEntityEvents(oldYamlData.core_lib.entities[pathSplit.at(-2)], value, yamlData);
     }
     if (path.includes('jobs') && path.includes('key')) {
@@ -12,6 +12,9 @@ export const rename = (path, value, yamlData, oldYamlData) => {
     }
     if (path.includes('caches') && path.includes('key')) {
         return renameCacheEvents(pathSplit, oldYamlData.core_lib.caches[pathSplit.at(-2)], value, yamlData);
+    }
+    if (path.includes('data_accesses') && path.includes('key') && !path.includes('functions')) {
+        return renameDataAccessEvents(oldYamlData.core_lib.data_accesses[pathSplit.at(-2)], value, yamlData);
     }
     return yamlData
 }
@@ -46,15 +49,31 @@ const renameEntityEvents = (oldValue, newValue, yamlData) => {
     // Data access
     const daSteps = ['core_lib', 'data_accesses']
     const daTarget = getValueAtPath(data, daSteps)
-    daTarget.forEach(dataAccess => {
-        if (dataAccess.entity === oldValue.key && dataAccess.db_connection === oldValue.db_connection) {
-            dataAccess['entity'] = newValue
-        }
-    })
+    if(daTarget){
+        daTarget.forEach(dataAccess => {
+            if (dataAccess.entity === oldValue.key && dataAccess.connection === oldValue.connection) {
+                dataAccess['entity'] = newValue
+            }
+        })
+    }
     return data
 }
 
-const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
+const renameDataAccessEvents = (oldValue, newValue, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const serviceSteps = ['core_lib', 'services']
+    const serviceTarget = getValueAtPath(data, serviceSteps)
+    if(serviceTarget){
+        serviceTarget.forEach(service => {
+            if (service.data_access === oldValue.key) {
+                service['data_access'] = newValue
+            }
+        })
+    }
+    return data
+}
+
+const renameConnEvents = (path, oldValue, newValue, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     // Environment varibales
     const envSteps = ['core_lib', 'env']
@@ -79,22 +98,26 @@ const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     delete envTarget[`${oldValue.key.toUpperCase()}_PASSWORD`]
     delete envTarget[`${oldValue.key.toUpperCase()}_USER`]
     delete envTarget[`${oldValue.key.toUpperCase()}_DB`]
-    // DB Connection
+    // Connection
     const connSteps = ['core_lib', 'connections', path.at(-2)]
     const connTarget = getValueAtPath(data, connSteps)
-    if(connTarget.url.protocol !== 'sqlite'){
-        connTarget['url']['host'] = '${oc.env:' + newHost + '}'
-        connTarget['url']['port'] = '${oc.env:' + newPort + '}'
-        connTarget['url']['password'] = '${oc.env:' + newPassword + '}'
-        connTarget['url']['username'] = '${oc.env:' + newUser + '}'
-        connTarget['url']['file'] = '${oc.env:' + newDB + '}'
+    if(connTarget.config.url.protocol !== 'sqlite'){
+        if(!connTarget.type.includes('Neo4jConnectionRegistry') && !connTarget.type.includes('SolrConnectionRegistry')){
+            connTarget['config']['url']['password'] = '${oc.env:' + newPassword + '}'
+            connTarget['config']['url']['username'] = '${oc.env:' + newUser + '}'
+        }
+        if(!connTarget.type.includes('Neo4jConnectionRegistry')){
+            connTarget['config']['url']['file'] = '${oc.env:' + newDB + '}'
+        }
+        connTarget['config']['url']['host'] = '${oc.env:' + newHost + '}'
+        connTarget['config']['url']['port'] = '${oc.env:' + newPort + '}'
     }
     // Entity group
     const entitySteps = ['core_lib', 'entities']
     const entityTarget = getValueAtPath(data, entitySteps)
     entityTarget.forEach(entity => {
-        if (entity.db_connection === oldValue.key) {
-            entity.db_connection = newValue
+        if (entity.connection === oldValue.key) {
+            entity.connection = newValue
         }
     })
 
@@ -102,8 +125,8 @@ const renameDBConnEvents = (path, oldValue, newValue, yamlData) => {
     const daSteps = ['core_lib', 'data_accesses']
     const daTarget = getValueAtPath(data, daSteps)
     daTarget.forEach(dataAccess => {
-        if (dataAccess.db_connection === oldValue.key) {
-            dataAccess.db_connection = newValue
+        if (dataAccess.connection === oldValue.key) {
+            dataAccess.connection = newValue
         }
     })
     return data

@@ -9,7 +9,10 @@ export const entityFields = (path, yamlData) => {
     const connections = yamlData.core_lib.connections
     const keyPrefix = `core_lib.entities.${index}`
     connections.forEach(conn => {
-        dbConn.push(conn.key)
+        if(conn.type.includes('sql')){
+            dbConn.push(conn.key)
+        }
+        
     })
     fields.push({
         title: "Enter DB Entity Name",
@@ -18,6 +21,16 @@ export const entityFields = (path, yamlData) => {
         value: entity.key,
         mandatory: true,
         key: `${keyPrefix}.key`,
+        // validatorCallback: validateFunc,
+    },
+    {
+        title: "DB Connection",
+        type: "dropdown",
+        default_value: dbConn[0],
+        value: entity['connection'],
+        mandatory: true,
+        options: dbConn,
+        key: keyPrefix + '.connection',
         // validatorCallback: validateFunc,
     },
     {
