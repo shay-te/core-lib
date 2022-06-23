@@ -11,6 +11,7 @@ import { serviceFields } from '../../fieldsGenerator/serviceFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
 import axios from 'axios';
+import { downloadFile, toSnakeCase } from '../../utils/commonUtils';
 
 const BASE = 'http://127.0.0.1:5000/';
 
@@ -62,10 +63,11 @@ const yamlData = new YamlData()
 
 export const downloadZip = createAsyncThunk(
 	'api/downloadZip',
-	async (data) => {
+	async (data, { getState }) => {
+        const state = getState();
 		const url = BASE + 'api/download_zip';
-		const response = await axios.post(url, data);
-		return response.data;
+		const response = await axios.post(url, data, { responseType: 'blob' });
+        downloadFile(response.data, `${toSnakeCase(state.treeData.CoreLibName)}.zip`);
 	}
 )
 

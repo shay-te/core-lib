@@ -11,7 +11,7 @@ class HydraPluginsGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/hydra_plugins/template_core_lib/template_core_lib_searchpath.py'
+        return 'template_core_lib/hydra_plugins/template_core_lib/template_core_lib_searchpath.py'
 
     def exclude_init_from_dirs(self) -> list:
         return ['hydra_plugins']

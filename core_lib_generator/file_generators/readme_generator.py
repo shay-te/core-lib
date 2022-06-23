@@ -10,7 +10,7 @@ class ReadmeGenerateTemplate(TemplateGenerator):
         return _add_function_calls(updated_file, yaml_data, core_lib_name)
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/README.md'
+        return 'template_core_lib/README.md'
 
 
 def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):

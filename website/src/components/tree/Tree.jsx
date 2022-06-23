@@ -8,6 +8,7 @@ import {
     addNewEntry,
     toggleCollapseExpand,
     downloadZip,
+    init,
 } from "../slices/treeSlice";
 import { download } from "../../utils/commonUtils";
 import YAML from "yaml";
@@ -195,13 +196,13 @@ const Tree = () => {
                         Setup
                     </div>
                     <button
-                        className="export-button"
+                        className="tree-button"
                         onClick={() => exportYaml()}
                     >
                         Export YAML
                     </button>
                     <button
-                        className="export-button"
+                        className="tree-button"
                         onClick={() => downloadCLZip()}
                     >
                         Download ZIP

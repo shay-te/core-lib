@@ -10,4 +10,4 @@ class EnvGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/.env'
+        return 'template_core_lib/.env'
