@@ -34,7 +34,7 @@ const FunctionsTable = (props) => {
                     </td>
                     <td
                         key={`${props.fieldKey}.${index}.result_to_dict`}
-                        className="td"
+                        className={isDataAccess ? "hide" : "td"}
                     >
                         <input
                             key={`${props.fieldKey}.${index}.result_to_dict`}
@@ -51,7 +51,7 @@ const FunctionsTable = (props) => {
                     </td>
                     <td
                         key={`${props.fieldKey}.${index}.cache_key`}
-                        className="td"
+                        className={isDataAccess ? "hide" : "td"}
                     >
                         <input
                             key={`${props.fieldKey}.${index}.cache_key`}
@@ -69,7 +69,7 @@ const FunctionsTable = (props) => {
                     </td>
                     <td
                         key={`${props.fieldKey}.${index}.cache_invalidate`}
-                        className="td"
+                        className={isDataAccess ? "hide" : "td"}
                     >
                         <input
                             type="checkbox"
@@ -108,9 +108,9 @@ const FunctionsTable = (props) => {
                 <thead>
                     <tr className="tr">
                         <th className="th">Name</th>
-                        <th className="th">Result To Dict</th>
-                        <th className="th">Cache Key</th>
-                        <th className="th">Cache Invalidate</th>
+                        <th className={isDataAccess ? "hide" : "th"}>Result To Dict</th>
+                        <th className={isDataAccess ? "hide" : "th"}>Cache Key</th>
+                        <th className={isDataAccess ? "hide" : "th"}>Cache Invalidate</th>
                     </tr>
                 </thead>
                 <tbody>{items}</tbody>

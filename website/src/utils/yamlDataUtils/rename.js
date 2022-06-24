@@ -1,20 +1,21 @@
 import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 export const rename = (path, value, yamlData, oldYamlData) => {
     const pathSplit = path.split('.')
+    const index = pathSplit.at(-2)
     if (path.includes('connections') && path.includes('key')) {
-        return renameConnEvents(pathSplit, oldYamlData.core_lib.connections[pathSplit.at(-2)], value, yamlData);
+        return renameConnEvents(pathSplit, oldYamlData.core_lib.connections[index], value, yamlData);
     }
     if (path.includes('entities') && path.includes('key') && !path.includes('columns')) {
-        return renameEntityEvents(oldYamlData.core_lib.entities[pathSplit.at(-2)], value, yamlData);
+        return renameEntityEvents(oldYamlData.core_lib.entities[index], value, yamlData);
     }
     if (path.includes('jobs') && path.includes('key')) {
         return renameJobEvents(pathSplit, value, yamlData);
     }
     if (path.includes('caches') && path.includes('key')) {
-        return renameCacheEvents(pathSplit, oldYamlData.core_lib.caches[pathSplit.at(-2)], value, yamlData);
+        return renameCacheEvents(pathSplit, oldYamlData.core_lib.caches[index], value, yamlData);
     }
     if (path.includes('data_accesses') && path.includes('key') && !path.includes('functions')) {
-        return renameDataAccessEvents(oldYamlData.core_lib.data_accesses[pathSplit.at(-2)], value, yamlData);
+        return renameDataAccessEvents(oldYamlData.core_lib.data_accesses[index], value, yamlData);
     }
     return yamlData
 }

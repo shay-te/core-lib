@@ -20,7 +20,7 @@ export class YamlData {
         }
         else {
             if(isBool){
-                value = value === 'true'
+                value = value.toLowerCase() === 'true'
             }
             const objField = getValueAtPath(data, steps)
             const fieldName = steps[steps.length - 1]

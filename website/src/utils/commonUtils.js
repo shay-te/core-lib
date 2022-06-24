@@ -46,3 +46,16 @@ export const setValueAtPath = (obj, path, value) => {
     target[key] = value
     return obj
 }
+
+export const keyStringify = (key, prefix) => {
+    return `${prefix}.${key}`
+}
+
+export const keyParse = (key) => {
+    const keySplit = key.split('.');
+    let isBoolean = false;
+    if(keySplit[0] === 'true' || keySplit[0] === 'false'){
+        isBoolean = true
+    }
+    return { isBoolean, key }
+}
