@@ -4,33 +4,8 @@ title: Test Core Lib
 sidebar_label: Test Core Lib
 ---
 
-Let's understand how `Core-Lib` is initialized and how to integrate it with your new or existing application.
+Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.
 
-## Main Class
-Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
-
-`user_core_lib.py`
-```python
-from omegaconf import DictConfig
-
-from core_lib.cache.cache_handler_ram import CacheHandlerRam
-from core_lib.core_lib import CoreLib
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
-
-from user_core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
-from user_core_lib.data_layers.data_access.user_data_access import UserDataAccess
-from user_core_lib.data_layers.service.customer_service import CustomerService
-from user_core_lib.data_layers.service.user_service import UserService
-
-
-class UserCoreLib(CoreLib):
-    def __init__(self, conf: DictConfig):
-        super().__init__()
-        self.config = conf
-        CoreLib.cache_registry.register("memory_cache", CacheHandlerRam())
-        db_session = SqlAlchemyConnectionRegistry(self.config.core_lib.user_core_lib.data.userdb)
-        self.user = UserService(UserDataAccess(db_session))
-```
 
 ## DataAccess
 Here you should define the functions that only and only communicate with the connection created, for e.g., queries to get some data from a database or insert some data in the database, Solr queries or whatever the function has to interface with the connection.
@@ -80,35 +55,104 @@ class UserService(Service):
         return self.data_access.delete(user_id)
 ```
 
-## Initializing
-For initializing our `Core-Lib` we will need a config that is stored under the config directory.
+## Main Class
+Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
+### Config
 `user_core_lib.yaml`
 ```yaml
 # @package _global_
 core_lib:
   user_core_lib:
-    cache:
-      memory_cache:
-        type: memory
     data:
       userdb:
-        log_queries: false
-        create_db: true
-        session:
-          pool_recycle: 3200
-          pool_pre_ping: false
-        url:
-          file: ${oc.env:USERDB_DB}
-          protocol: postgresql
-          username: ${oc.env:USERDB_USER}
-          password: ${oc.env:USERDB_PASSWORD}
-          port: ${oc.env:USERDB_PORT}
-          host: ${oc.env:USERDB_HOST}
+        _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+        config:
+            log_queries: false
+            create_db: true
+            session:
+                pool_recycle: 3200
+                pool_pre_ping: false
+            url:
+                file: ${oc.env:USERDB_DB}
+                protocol: postgresql
+                username: ${oc.env:USERDB_USER}
+                password: ${oc.env:USERDB_PASSWORD}
+                port: ${oc.env:USERDB_PORT}
+                host: ${oc.env:USERDB_HOST}
+    cache:
+        memory_cache:
+            _target_: core_lib.cache.cache_handler_ram.CacheHandlerRam
     client:
       user_client:
-        _target_: core_lib.client.client_base.ClientBase
+        _target_: user_core_lib.UserCoreLib.UserClient
         base_url: https://example.com/
+```
+
+`user_core_lib.py`
+```python
+from omegaconf import DictConfig
+
+from core_lib.core_lib import CoreLib
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.helpers.config_instances import instantiate_config
+
+from user_core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
+from user_core_lib.data_layers.data_access.user_data_access import UserDataAccess
+from user_core_lib.data_layers.service.customer_service import CustomerService
+from user_core_lib.data_layers.service.user_service import UserService
+
+
+class UserCoreLib(CoreLib):
+    def __init__(self, conf: DictConfig):
+        super().__init__()
+        self.config = conf
+        CoreLib.cache_registry.register("memory_cache", instantiate_config(self.config.core_lib.user_core_lib.cache.memory_cache))
+        db_session = instantiate_config(self.config.core_lib.user_core_lib.data.userdb)
+        self.user = UserService(UserDataAccess(db_session))
+        self.user_client = instantiate_config(self.config.core_lib.user_core_lib.client.user_client)
+
+    class UserClient(ClientBase):
+        def __init__(self, target_url):
+            ClientBase.__init__(self, target_url)
+
+        def get(self, user_id: int):
+            return self._get(f'/user/{user_id}')
+        
+        def create(self, data: dict):
+            return self._post(f'/create_user', data)
+        
+        def update(self, data: dict):
+            return self._put(f'/update_user', data)
+        
+        def delete(self, user_id: int):
+            return self._delete(f'/user/{user_id}')
+```
+
+## Initializing
+For initializing our `Core-Lib` and mocking the Client we will make use of a test config file that will override the main config file of our `Core-Lib`.
+
+
+This config will override the `UserClient` config with the `UserClientMock`.
+`test_config_override.yaml`
+```yaml
+# @package _global_
+core_lib:
+  user_core_lib:
+    client:
+      user_client:
+        _target_: test.UserClientMock
+        base_url: https://example.com/
+```
+
+`test_config.yaml`
+```yaml
+defaults:
+ - user_core_lib
+ - test_config_override
+ hydra:
+  run:
+    dir: .
 ```
 
 In your test file
@@ -123,7 +167,7 @@ from tests.test_data.test_utils import sync_create_core_lib_config
 from core_lib.client.client_base import ClientBase
 from core_lib.helpers.config_instances import instantiate_config
 
-class UserClient(ClientBase):
+class UserClientMock(ClientBase):
     def __init__(self, target_url):
         ClientBase.__init__(self, target_url)
 
@@ -143,7 +187,7 @@ class TestCoreLib(unittest.TestCase):
     
     def setUp(self):
         # util that will clear all the earlier Core-Lib data and return DictConfig
-        self.config = sync_create_core_lib_config('./config', 'user_core_lib.yaml')
+        self.config = sync_create_core_lib_config('./test/config', 'test_config.yaml')
         # here we initialize the Core-Lib
         self.user_core_lib = UserCoreLib(self.config)
     
@@ -163,10 +207,10 @@ class TestCoreLib(unittest.TestCase):
         self.user_core_lib.user.delete(user_id) # deletes the entry at the specified id
         with self.assertRaises(StatusCodeException):
             self.user_core_lib.user.get(user_id)
-    
-    # instantiate_config to create a instance of UserClient class
+
     def test_client(self):
-        user_client = instantiate_config(self.config.core_lib.user_core_lib.client.user_client)
+        # loads the UserClientMock instance
+        user_client = self.user_core_lib.user_client
         user_data = user_client.create({'name': 'John', 'contact': '123456'})
         user_id = user_data['id']
         self.assertEqual(user_data['name'], 'John')
