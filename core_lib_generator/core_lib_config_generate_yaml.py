@@ -57,7 +57,7 @@ def _get_data_layers_config():
                 want_service = input_yes_no('\nDo you want to create services?', True)
                 if want_service:
                     print('Please fill out the requested information for creating Service for Data Accesses.')
-                    service = generate_service_template(data_access)
+                    service = generate_service_template(data_access, True if len(config['cache']) > 0 else False)
                     data_layers.setdefault('service', [])
                     data_layers['service'] = service
 
@@ -106,11 +106,11 @@ def create_yaml_file(core_lib_name: str):
 def get_data_from_user():
     core_lib_name = any_to_pascal(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
 
-    _get_data_layers_config()
-
     want_cache = input_yes_no('\nWould you like to use cache?', True)
     if want_cache:
         _get_cache_config()
+
+    _get_data_layers_config()
 
     want_job = input_yes_no('\nWould you like to create a Job?', False)
     if want_job:

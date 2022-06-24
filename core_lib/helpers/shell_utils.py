@@ -120,7 +120,7 @@ def input_list(
                 result = None
                 is_result_valid = False
             else:
-                result = list_value[int(user_input) - 1]
+                result = int(user_input) - 1
                 is_result_valid = True
     return result
 

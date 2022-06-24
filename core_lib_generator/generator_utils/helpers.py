@@ -38,7 +38,7 @@ def generate_functions(template_content: str, functions: list) -> str:
     return updated_file
 
 
-def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
+def input_function(ask_cache: bool, validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
     function_data = {}
     function_name = input_str('What is the name of the function?', None, False, validate_value_callback,
                               'Function with this name already exists')
@@ -47,11 +47,12 @@ def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = 
         'key': function_name,
         'result_to_dict': result_to_dict,
     })
-    if input_yes_no('Do you want to cache the data?', False):
-        cache_key = input_str('Enter the name of the cache key')
-        cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
-        function_data.update({
-            'cache_key': cache_key,
-            'cache_invalidate': cache_invalidate,
-        })
+    if ask_cache:
+        if input_yes_no('Do you want to cache the data?', False):
+            cache_key = input_str('Enter the name of the cache key (CAPITAL_LETTERS)')
+            cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
+            function_data.update({
+                'cache_key': cache_key,
+                'cache_invalidate': cache_invalidate,
+            })
     return function_data
