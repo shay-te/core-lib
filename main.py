@@ -39,7 +39,7 @@ def get_archive_content(config: dict):
 
 
 @app.route('/api/download_zip', methods=['POST'])
-def send_message():
+def download_zip():
     archive = get_archive_content(request.json['config'])
     return Response(archive, mimetype='application/zip',
                     headers={'Content-Disposition': 'attachment;filename=core_lib.zip'})

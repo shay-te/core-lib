@@ -7,7 +7,6 @@ import './generator.scss';
 import Form from './../components/form/Form';
 import Tree from './../components/tree/Tree';
 import {
-	init,
 	updateFields
 } from "./../components/slices/treeSlice";
 import { useDispatch } from "react-redux";
@@ -24,7 +23,6 @@ import Link from '@docusaurus/Link';
 
 function Generator() {
 	const dispatch = useDispatch()
-
 	const onFieldChange = (field, e) => {
         let isBool = false
         const idArr = e.target.id.split('.')
