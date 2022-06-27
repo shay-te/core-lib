@@ -1,7 +1,6 @@
 export class Key {
 
     toString(keyArray){
-        console.log(keyArray.join('.'))
         return keyArray.join('.')
     }
     
