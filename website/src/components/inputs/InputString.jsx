@@ -5,14 +5,15 @@ const InputString = (props) => {
         if(props.value===undefined) return props.default_value
         else return props.value
     }
+    const fieldId = props.keyObj.toString(["field", props.fieldKey])
     return (
         <div className="form-input-div" key={props.fieldKey}>
-            <label htmlFor={"field-" + props.fieldKey} className="input-label">
+            <label htmlFor={fieldId} className="input-label">
                 {props.title}
             </label>
             <input
                 type={"text"}
-                id={"field-" + props.fieldKey}
+                id={fieldId}
                 className="form-input"
                 defaultValue={getDefault()}
                 required={props.mandatory}
@@ -30,6 +31,7 @@ InputString.defaultProps = {
     value:'',
     default_value:'',
     onChange: () => {},
+    keyObj: Object,
 }
 
 export default InputString

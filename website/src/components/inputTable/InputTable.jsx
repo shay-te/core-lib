@@ -29,6 +29,7 @@ const InputTable = (props) => {
                 onChange={props.onChange}
                 fieldKey={props.fieldKey}
                 onDeleteClick={onDeleteClick}
+                keyObj={props.keyObj}
             />
         
     } else if (props.type === "columns") {
@@ -41,6 +42,7 @@ const InputTable = (props) => {
                 onChange={props.onChange}
                 fieldKey={props.fieldKey}
                 onDeleteClick={onDeleteClick}
+                keyObj={props.keyObj}
             />
     }
 
@@ -70,6 +72,7 @@ InputTable.defaultProps = {
     title: "",
     value: [],
     type: "",
+    keyObj: Object,
 };
 
 export default InputTable;
