@@ -14,10 +14,6 @@ export const entity = (yamlData) => {
         setValueAtPath(data, connSteps, [])
         conns = getValueAtPath(data, connSteps)
     }
-    if (conns.length === 0) {
-        alert('Create a Connection First!')
-        return data
-    }
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
         connection: conns[0].key,
