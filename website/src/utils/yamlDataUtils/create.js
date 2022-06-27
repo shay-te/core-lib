@@ -4,6 +4,7 @@ export const entity = (yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps)
+    let defaultConnection = ''
     if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
@@ -18,9 +19,15 @@ export const entity = (yamlData) => {
         alert('Create a Connection First!')
         return data
     }
+    conns.forEach(connection => {
+        if (connection.type.includes("SqlAlchemyConnectionRegistry")){
+            defaultConnection = connection.key
+            return
+        }
+    })
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
-        connection: conns[0].key,
+        connection: defaultConnection,
         columns: [
             {
                 key: 'column_name',
