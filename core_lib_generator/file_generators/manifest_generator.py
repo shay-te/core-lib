@@ -6,4 +6,4 @@ class ManifestGenerateTemplate(TemplateGenerator):
         return template_content.replace('template_core_lib', core_lib_name)
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/MANIFEST.in'
+        return 'template_core_lib/MANIFEST.in'

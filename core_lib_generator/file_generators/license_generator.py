@@ -12,8 +12,8 @@ class LicenseGenerateTemplate(TemplateGenerator):
 
     def get_template_file(self, yaml_data: dict) -> str:
         if yaml_data['license'] == 'MIT':
-            return 'core_lib_generator/template_core_lib/LICENSE_MIT'
+            return 'template_core_lib/LICENSE_MIT'
         elif yaml_data['license'] == 'APACHE_LICENSE_2':
-            return 'core_lib_generator/template_core_lib/LICENSE_Apache-2'
+            return 'template_core_lib/LICENSE_Apache-2'
         elif yaml_data['license'] == 'MOZILLA_PUBLIC_LICENSE_2':
-            return 'core_lib_generator/template_core_lib/LICENSE_MPL-2'
+            return 'template_core_lib/LICENSE_MPL-2'

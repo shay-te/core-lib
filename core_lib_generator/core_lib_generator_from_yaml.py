@@ -52,7 +52,9 @@ class CoreLibGenerator:
             init_file_path = f'{init_path}/__init__.py'
             if not os.path.isfile(init_file_path) and filename not in excluded_init_dirs:
                 open(init_file_path, 'w').close()
-        with open(template_generator.get_template_file(yaml_data), 'r') as template_file:
+
+        location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(location, template_generator.get_template_file(yaml_data)), 'r') as template_file:
             new_file = template_generator.generate(template_file.read(), yaml_data, self.snake_core_lib_name, file_name)
         with open(file_path, 'w') as file:
             file.write(new_file)

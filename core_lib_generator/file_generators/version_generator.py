@@ -8,4 +8,4 @@ class VersionGenerateTemplate(TemplateGenerator):
         return template_content.replace('# template_version', f'__version__ = \'{version}\'')
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/template_core_lib/__init__.py'
+        return 'template_core_lib/template_core_lib/__init__.py'

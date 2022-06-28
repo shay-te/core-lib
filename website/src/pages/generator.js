@@ -24,7 +24,6 @@ import { Key } from '../utils/Key';
 
 function Generator() {
 	const dispatch = useDispatch()
-
 	const onFieldChange = (field, e) => {
         const key = new Key()
         const data = key.parse(e.target.id)
