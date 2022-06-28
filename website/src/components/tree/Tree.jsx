@@ -95,6 +95,28 @@ const Tree = () => {
         doc.contents = yaml;
         download(doc.toString(), `${CoreLibName}.yaml`);
     };
+    let entitySection = "";
+    if(JSON.stringify(yaml) !== '{}'){
+        yaml.core_lib.connections.forEach((connection) => {
+            if (connection.type.includes("SqlAlchemyConnectionRegistry")) {
+                entitySection = (
+                    <TreeSection
+                        key={"db_entities"}
+                        path={"db_entities"}
+                        title="DB Entities"
+                        items={entities}
+                        onDeleteClick={onDeleteClick}
+                        onAddClick={onAddEntity}
+                        onTitleClick={onCollapseExpand}
+                        onClick={onEntityClick}
+                        collapse={treeState["db_entities"]}
+                        icon={<i className="fa-solid fa-database fa-sm"></i>}
+                    />
+                );
+                return
+            }
+        });
+    }
 
     const downloadCLZip = () => {
         dispatch(downloadZip({config: yaml}))
@@ -138,18 +160,7 @@ const Tree = () => {
                             <i className="fa-solid fa-circle-nodes fa-sm"></i>
                         }
                     />
-                    <TreeSection
-                        key={"db_entities"}
-                        path={"db_entities"}
-                        title="DB Entities"
-                        items={entities}
-                        onDeleteClick={onDeleteClick}
-                        onAddClick={onAddEntity}
-                        onTitleClick={onCollapseExpand}
-                        onClick={onEntityClick}
-                        collapse={treeState["db_entities"]}
-                        icon={<i className="fa-solid fa-database fa-sm"></i>}
-                    />
+                    {entitySection}
                     <TreeSection
                         key={"services"}
                         path={"services"}

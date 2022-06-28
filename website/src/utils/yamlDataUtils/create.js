@@ -15,10 +15,6 @@ export const entity = (yamlData) => {
         setValueAtPath(data, connSteps, [])
         conns = getValueAtPath(data, connSteps)
     }
-    if (conns.length === 0) {
-        alert('Create a Connection First!')
-        return data
-    }
     conns.forEach(connection => {
         if (connection.type.includes("SqlAlchemyConnectionRegistry")){
             defaultConnection = connection.key
