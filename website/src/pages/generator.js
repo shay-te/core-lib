@@ -7,7 +7,6 @@ import './generator.scss';
 import Form from './../components/form/Form';
 import Tree from './../components/tree/Tree';
 import {
-	init,
 	updateFields
 } from "./../components/slices/treeSlice";
 import { useDispatch } from "react-redux";
@@ -21,13 +20,16 @@ import {
 } from 'react-reflex'
 import 'react-reflex/styles.css'
 import Link from '@docusaurus/Link';
+import { Key } from '../utils/Key';
 
 function Generator() {
 	const dispatch = useDispatch()
-
 	const onFieldChange = (field, e) => {
+        const key = new Key()
+        const data = key.parse(e.target.id)
+        const isBool = data['isBoolean']
 		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked }))
+			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked, isBool: isBool }))
 		}
 	}
 	return (
@@ -39,7 +41,7 @@ function Generator() {
 			</div>
 			<div className='app-root' key={'app-root'}>
 				<ReflexContainer orientation="vertical">
-					<ReflexElement className="left-pane custom-scrollbar" minSize={200} size={300}>
+					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={300}>
 						<Tree key={'tree'} />
 					</ReflexElement>
 					<ReflexSplitter />

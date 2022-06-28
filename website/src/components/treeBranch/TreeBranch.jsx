@@ -15,20 +15,19 @@ const TreeBranch = (props) => {
 			onMouseEnter={() => setVisible(true)}
 			onMouseLeave={() => setVisible(false)}
 			onMouseOver={() => setVisible(true)}
-			onClick={props.onBranchClick.bind(this, props.path)}
-			className={["tree-branch", treeSelected[props.path]? "selected" : ""].join(" ")}
+			onClick={() => {props.onBranchClick(props.path)}}
+			className={["tree-branch",treeSelected[props.path] ? "selected" : "",visible && props.showHover? "hover-branch" : ""].join(" ")}
 		>
 			<div
 				className="branch-title-icon"
-				onClick={props.onTitleClick.bind(this, props.path)}
 			>
 				<div>{props.icon}</div>
-				<div className="branch-title">{props.title}</div>
+				<div className="branch-title" onClick={() => {props.onTitleClick(props.path)}}>{props.title}</div>
 			</div>
 			<HoverVisible isVisible={visible}>
 				<div
 					onClick={props.onImageClick.bind(this, props.path)}
-					className={["hover-img"].join(" ")}
+					className={[props.showHover? "hover-img" : ""].join(" ")}
 				>
 					{props.image}
 				</div>
@@ -43,6 +42,7 @@ TreeBranch.defaultProps = {
 	path: "",
 	icon: "",
 	selected: false,
+    showHover: true,
 	onClick: () => {},
 	onImageClick: () => {},
 	onTitleClick: () => {},

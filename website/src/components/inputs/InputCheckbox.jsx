@@ -1,15 +1,15 @@
 import React from 'react'
 
 const InputCheckbox = (props) => {
-
+    const fieldId = props.keyObj.toString(["checkbox", props.fieldKey])
     return (
         <div className="form-input-div">
             <label className="input-label">{props.title}</label>
             <div key={props.fieldKey}>
                     <input
                         type='checkbox'
-                        id={props.value + props.fieldKey}
-                        name={"list" + props.fieldKey}
+                        id={fieldId}
+                        name={fieldId}
                         value={props.value}
                         defaultChecked={
                             props.value || props.default_value
@@ -28,6 +28,7 @@ InputCheckbox.defaultProps = {
     value:'',
     default_value:'',
     onChange: () => {},
+    keyObj: Object,
 }
 
 export default InputCheckbox

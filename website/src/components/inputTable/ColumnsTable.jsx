@@ -17,24 +17,24 @@ const ColumnsTable = (props) => {
                     onMouseOver={() => setVisible(true)}
                     className="tr"
                 >
-                    <td key={`${props.fieldKey}.${index}.key`} className="td">
+                    <td key={props.keyObj.toString([props.fieldKey, index, 'key'])} className="td">
                         <input
                             type={"text"}
-                            id={`field-${props.fieldKey}.${index}.key`}
+                            id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
                             className="form-input"
                             defaultValue={column.key}
                             required={true}
                             placeholder="Column Name"
                             onChange={props.onChange.bind(this, {
-                                key: `${props.fieldKey}.${index}.key`,
+                                key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
                         />
                     </td>
-                    <td key={`${props.fieldKey}.${index}.type`} className="td">
+                    <td key={props.keyObj.toString([props.fieldKey, index, 'type'])} className="td">
                         <select
-                            id={`${props.fieldKey}.${index}.type`}
+                            id={props.keyObj.toString([props.fieldKey, index, 'type'])}
                             onChange={props.onChange.bind(this, {
-                                key: `${props.fieldKey}.${index}.type`,
+                                key: props.keyObj.toString([props.fieldKey, index, 'type']),
                             })}
                             value={column.type}
                         >
@@ -44,33 +44,33 @@ const ColumnsTable = (props) => {
                         </select>
                     </td>
                     <td
-                        key={`${props.fieldKey}.${index}.default`}
+                        key={props.keyObj.toString([props.fieldKey, index, 'default'])}
                         className="td"
                     >
                         <input
                             type={"text"}
-                            id={`field-${props.fieldKey}.${index}.default`}
+                            id={props.keyObj.toString(['field', props.fieldKey, index, 'default'])}
                             className="form-input"
                             defaultValue={column.default}
                             required={true}
                             placeholder="Column Default Value"
                             onChange={props.onChange.bind(this, {
-                                key: `${props.fieldKey}.${index}.default`,
+                                key: props.keyObj.toString([props.fieldKey, index, 'default']),
                             })}
                         />
                     </td>
                     <td
-                        key={`${props.fieldKey}.${index}.nullable`}
+                        key={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
                         className="td"
                     >
                         <input
                             type="checkbox"
-                            id={`${props.fieldKey}.${index}.nullable`}
-                            name={"list" + props.fieldKey}
+                            id={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
+                            name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'nullable'])}
                             value={column.nullable}
                             defaultChecked={column.nullable}
                             onChange={props.onChange.bind(this, {
-                                key: `${props.fieldKey}.${index}.nullable`,
+                                key: props.keyObj.toString([props.fieldKey, index, 'nullable']),
                             })}
                         />
                     </td>
@@ -117,6 +117,7 @@ ColumnsTable.defaultProps = {
     onDeleteClick: () => {},
     title: "",
     value: [],
+    keyObj: Object,
 };
 
 export default ColumnsTable;

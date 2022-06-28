@@ -1,137 +1,120 @@
 core_lib:
   name: ExampleCoreLib
   env:
-    USERDB_DB: userdb
-    USERDB_USER: user
-    USERDB_PASSWORD: password
-    USERDB_PORT: 5432
-    USERDB_HOST: localhost
-    REDISCACHE_PORT: 6379
-    REDISCACHE_HOST: localhost
+    SQLCONN_HOST: localhost
+    SQLCONN_PORT: 5432
+    SQLCONN_PASSWORD: password
+    SQLCONN_USER: user
+    SQLCONN_DB: sqlconn
+    SOLRCONN_HOST: localhost
+    SOLRCONN_PORT: 5432
+    SOLRCONN_DB: solrconn
+    NEO4JCONN_HOST: localhost
+    NEO4JCONN_PORT: 5432
+    NEO4JCONN_PASSWORD: password
+    NEO4JCONN_USER: username
   connections:
-  - key: userdb
-    migrate: true
-    log_queries: false
-    create_db: true
-    session:
-      pool_recycle: 3200
-      pool_pre_ping: false
-    url:
-      file: ${oc.env:USERDB_DB}
-      protocol: postgresql
-      username: ${oc.env:USERDB_USER}
-      password: ${oc.env:USERDB_PASSWORD}
-      port: ${oc.env:USERDB_PORT}
-      host: ${oc.env:USERDB_HOST}
-  - key: sellerdb
-    migrate: true
-    log_queries: false
-    create_db: true
-    session:
-      pool_recycle: 3200
-      pool_pre_ping: false
-    url:
-      protocol: sqlite
+    - key: sqlconn
+      migrate: false
+      config_instantiate: true
+      type: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+      config:
+        create_db: true
+        log_queries: false
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
+        url:
+          protocol: postgresql
+          username: ${oc.env:SQLCONN_USER}
+          password: ${oc.env:SQLCONN_PASSWORD}
+          host: ${oc.env:SQLCONN_HOST}
+          port: ${oc.env:SQLCONN_PORT}
+          file: ${oc.env:SQLCONN_DB}
+    - key: solrconn
+      migrate: false
+      config_instantiate: false
+      type: core_lib.connection.solr_connection_registry.SolrConnectionRegistry
+      config:
+        url:
+          protocol: http
+          host: ${oc.env:SOLRCONN_HOST}
+          port: ${oc.env:SOLRCONN_PORT}
+          file: ${oc.env:SOLRCONN_DB}
+    - key: neo4jconn
+      migrate: false
+      config_instantiate: true
+      type: core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry
+      config:
+        url:
+          protocol: neo4j
+          host: ${oc.env:NEO4JCONN_HOST}
+          port: ${oc.env:NEO4JCONN_PORT}
+        credentials:
+          username: ${oc.env:NEO4JCONN_USER}
+          password: ${oc.env:NEO4JCONN_PASSWORD}
   caches:
-  - key: memorycache
-    type: memory
-  - key: rediscache
-    type: redis
-    url:
-      host: ${oc.env:REDISCACHE_HOST}
-      port: ${oc.env:REDISCACHE_PORT}
-      protocol: redis
+    - key: cache_mem
+      type: memory
   jobs:
-  - key: update_user
-    initial_delay: 0s
-    frequency: ''
-    handler:
-      _target_: example_core_lib.example_core_lib.jobs.update_user.UpdateUser
+    - key: update_user
+      initial_delay: 0s
+      frequency: ""
+      handler:
+        _target_: example_core_lib.example_core_lib.jobs.update_user.UpdateUser
   entities:
-  - key: details
-    db_connection: userdb
-    columns:
-    - key: username
-      type: VARCHAR
-      default: ''''''
-      nullable: true
-    - key: password
-      type: VARCHAR
-      default: ''''''
-      nullable: true
-    - key: active
-      type: BOOLEAN
-      default: false
-      nullable: true
-    is_soft_delete: true
-    is_soft_delete_token: true
-  - key: details
-    db_connection: sellerdb
-    columns:
-    - key: username
-      type: VARCHAR
-      default: ''''''
-      nullable: false
-    - key: password
-      type: VARCHAR
-      default: null
-      nullable: true
-    - key: active
-      type: BOOLEAN
-      default: false
-      nullable: false
-    is_soft_delete: true
-    is_soft_delete_token: false
-  - key: data
-    db_connection: sellerdb
-    columns:
-    - key: address
-      type: VARCHAR
-      default: null
-      nullable: true
-    is_soft_delete: false
-    is_soft_delete_token: false
+    - key: details
+      connection: sqlconn
+      columns:
+        - key: username
+          type: VARCHAR
+          default: null
+        - key: contact
+          type: INTEGER
+          default: ""
+      is_soft_delete: true
+      is_soft_delete_token: true
   data_accesses:
-  - key: DetailsDataAccess
-    entity: details
-    db_connection: userdb
-    functions:
-      - key: get_data
-        result_to_dict: true
-        cache_key: CACHE_DATA
-        cache_invalidate: true
-      - key: get_user
-        result_to_dict: true
-    is_crud: true
-    is_crud_soft_delete: true
-    is_crud_soft_delete_token: true
-  - key: SellerDetailsDataAccess
-    entity: details
-    db_connection: sellerdb
-    is_crud: true
-    is_crud_soft_delete: true
-  - key: DataDataAccess
-    entity: data
-    db_connection: sellerdb
-  services:
-  - key: DetailsService
-    data_access: DetailsDataAccess
-    functions:
-    - key: get_user
-      result_to_dict: false
-      cache_key: CACHE_DETAILS
-      cache_invalidate: false
+    - key: DetailsDataAccess
+      functions:
+        - key: get_data
+        - key: get_user
+      is_crud: true
+      is_crud_soft_delete: true
+      is_crud_soft_delete_token: true
+      connection: sqlconn
+      entity: details
+    - key: SolrDataAccess
+      functions:
+        - key: get_data
+        - key: get_query
+      connection: solrconn
+    - key: Neo4jDataAccess
+      functions: []
+      connection: neo4jconn
   setup:
     author: name
     author_email: name@name.com
     description: Project
-    url: ''
+    url: ""
     license: MIT
     classifiers:
-    - 'Development Status :: 3 - Alpha'
-    - 'Development Status :: 4 - Beta'
-    - 'Development Status :: 5 - Production/Stable'
-    - 'Environment :: MacOS X'
-    - 'Environment :: Win32 (MS Windows)'
-    - 'Framework :: Django :: 4.0'
+      - "Development Status :: 3 - Alpha"
+      - "Development Status :: 4 - Beta"
+      - "Development Status :: 5 - Production/Stable"
+      - "Environment :: MacOS X"
+      - "Environment :: Win32 (MS Windows)"
+      - "Framework :: Django :: 4.0"
     version: 0.0.0.1
+  services:
+    - key: DetailsService
+      functions:
+        - key: get_data
+          result_to_dict: true
+          cache_key: CACHE_DATA
+          cache_invalidate: false
+        - key: get_user
+          result_to_dict: true
+          cache_key: CACHE_USER
+          cache_invalidate: false
+      data_access: DetailsDataAccess

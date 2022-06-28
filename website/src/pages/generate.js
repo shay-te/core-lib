@@ -10,10 +10,9 @@ import {
 } from "./../components/slices/treeSlice";
 import { useDispatch } from "react-redux";
 import { newCL } from './../newCoreLib';
-
-
 import './generate.scss'
 import { useHistory } from '@docusaurus/router';
+
 const yaml = require('js-yaml');
 
 function Generate() {

@@ -7,9 +7,13 @@ import {
     deleteTreeBranch,
     addNewEntry,
     toggleCollapseExpand,
+    downloadZip,
+    init,
 } from "../slices/treeSlice";
 import { download } from "../../utils/commonUtils";
 import YAML from "yaml";
+import { useEffect } from "react";
+import { useHistory } from '@docusaurus/router';
 
 const Tree = () => {
     const dataAccess = useSelector((state) => state.treeData.dataAccess);
@@ -22,6 +26,18 @@ const Tree = () => {
     const CoreLibName = useSelector((state) => state.treeData.CoreLibName);
     const treeState = useSelector((state) => state.treeData.treeState);
     const dispatch = useDispatch();
+    const history = useHistory();
+    useEffect(() => {
+        if(JSON.stringify(yaml) === '{}'){
+            const recentCoreLib = JSON.parse(localStorage.getItem('recent_core_lib'))
+            if(recentCoreLib){
+                dispatch(init(recentCoreLib))
+            } else {
+                history.push('/generate')
+            }
+        }
+    }, [])
+    
 
     const onDataAccessClick = (path) => {
         dispatch(setFields({ title: "Data Access", path: path }));
@@ -51,7 +67,7 @@ const Tree = () => {
         dispatch(deleteTreeBranch(path));
     };
     const onAddEntity = (path) => {
-        dispatch(addNewEntry(path));
+        dispatch(addNewEntry("db_entities"));
     };
     const onAddDataAccess = (path) => {
         dispatch(addNewEntry("data_accesses"));
@@ -73,36 +89,38 @@ const Tree = () => {
     const onCollapseExpand = (path) => {
         dispatch(toggleCollapseExpand(path));
     };
+
     const exportYaml = () => {
         const doc = new YAML.Document();
         doc.contents = yaml;
         download(doc.toString(), `${CoreLibName}.yaml`);
     };
+    let entitySection = "";
+    if(JSON.stringify(yaml) !== '{}'){
+        yaml.core_lib.connections.forEach((connection) => {
+            if (connection.type.includes("SqlAlchemyConnectionRegistry")) {
+                entitySection = (
+                    <TreeSection
+                        key={"db_entities"}
+                        path={"db_entities"}
+                        title="DB Entities"
+                        items={entities}
+                        onDeleteClick={onDeleteClick}
+                        onAddClick={onAddEntity}
+                        onTitleClick={onCollapseExpand}
+                        onClick={onEntityClick}
+                        collapse={treeState["db_entities"]}
+                        icon={<i className="fa-solid fa-database fa-sm"></i>}
+                    />
+                );
+                return
+            }
+        });
+    }
 
-    const connectionElements = [];
-    connections.forEach((connection) => {
-        if (connection.hasEntity) {
-            let entityList = [];
-            entities.forEach((connectionEntity) => {
-                if (connection.name === connectionEntity.dbConnection) {
-                    entityList.push(connectionEntity);
-                }
-            });
-            connectionElements.push(
-                <TreeSection
-                    path={`db_entity.${connection.name}`}
-                    key={connection.name}
-                    title={connection.name}
-                    items={entityList}
-                    onClick={onEntityClick}
-                    onDeleteClick={onDeleteClick}
-                    onAddClick={onAddEntity}
-                    onTitleClick={onCollapseExpand}
-                    collapse={treeState[`db_entity.${connection.name}`]}
-                />
-            );
-        }
-    });
+    const downloadCLZip = () => {
+        dispatch(downloadZip({config: yaml}))
+    }
 
     const RenderTree = () => {
         return (
@@ -115,8 +133,8 @@ const Tree = () => {
                         {CoreLibName}
                     </div>
                     <TreeSection
-                        key={"data_access"}
-                        path={"data_access"}
+                        key={"data_accesses"}
+                        path={"data_accesses"}
                         title="Data Access"
                         items={dataAccess}
                         onClick={onDataAccessClick}
@@ -124,7 +142,7 @@ const Tree = () => {
                         isNested={false}
                         onAddClick={onAddDataAccess}
                         onTitleClick={onCollapseExpand}
-                        collapse={treeState["data_access"]}
+                        collapse={treeState["data_accesses"]}
                         icon={<i className="fa-solid fa-list fa-sm"></i>}
                     />
                     <TreeSection
@@ -142,17 +160,7 @@ const Tree = () => {
                             <i className="fa-solid fa-circle-nodes fa-sm"></i>
                         }
                     />
-                    <TreeSection
-                        key={"db_entities"}
-                        path={"db_entities"}
-                        title="DB Entities"
-                        items={connectionElements}
-                        onDeleteClick={onDeleteClick}
-                        onTitleClick={onCollapseExpand}
-                        isNested={true}
-                        collapse={treeState["db_entities"]}
-                        icon={<i className="fa-solid fa-database fa-sm"></i>}
-                    />
+                    {entitySection}
                     <TreeSection
                         key={"services"}
                         path={"services"}
@@ -164,7 +172,7 @@ const Tree = () => {
                         onAddClick={onAddService}
                         onTitleClick={onCollapseExpand}
                         collapse={treeState["services"]}
-                        icon={<i className="fa-solid fa-database fa-sm"></i>}
+                        icon={<i className="fa-solid fa-network-wired fa-sm"></i>}
                     />
                     <TreeSection
                         key={"jobs"}
@@ -180,12 +188,12 @@ const Tree = () => {
                         icon={<i className="fa-solid fa-spinner fa-sm"></i>}
                     />
                     <TreeSection
-                        key={"cache"}
-                        path={"cache"}
+                        key={"caches"}
+                        path={"caches"}
                         title="Cache"
                         items={cache}
                         onDeleteClick={onDeleteClick}
-                        collapse={treeState["cache"]}
+                        collapse={treeState["caches"]}
                         onClick={onCacheClick}
                         isNested={false}
                         onAddClick={onAddCache}
@@ -199,10 +207,16 @@ const Tree = () => {
                         Setup
                     </div>
                     <button
-                        className="export-button"
+                        className="tree-button"
                         onClick={() => exportYaml()}
                     >
-                        Export
+                        Export YAML
+                    </button>
+                    <button
+                        className="tree-button"
+                        onClick={() => downloadCLZip()}
+                    >
+                        Download ZIP
                     </button>
                 </div>
             </div>

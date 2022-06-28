@@ -7,27 +7,27 @@ const InputBoolean = (props) => {
             <div>
                 <input
                     type="radio"
-                    id={"true" + props.fieldKey}
-                    name={"bool" + props.fieldKey}
+                    id={props.keyObj.toString(["true", props.fieldKey])}
+                    name={props.keyObj.toString(["bool", props.fieldKey])}
                     value={true}
                     defaultChecked={props.value || props.default_value}
                     required={props.mandatory}
                     onChange={props.onChange}
                 />
-                <label htmlFor={"true" + props.fieldKey}>Yes</label>
+                <label htmlFor={props.keyObj.toString(["true", props.fieldKey])}>Yes</label>
             </div>
 
             <div>
                 <input
                     type="radio"
-                    id={"false" + props.fieldKey}
-                    name={"bool" + props.fieldKey}
+                    id={props.keyObj.toString(["false", props.fieldKey])}
+                    name={props.keyObj.toString(["bool", props.fieldKey])}
                     value={false}
-                    defaultChecked={!props.value || props.default_value}
+                    defaultChecked={!(props.value || props.default_value)}
                     required={props.mandatory}
                     onChange={props.onChange}
                 />
-                <label htmlFor={"false" + props.fieldKey}>No</label>
+                <label htmlFor={props.keyObj.toString(["false", props.fieldKey])}>No</label>
             </div>
         </div>
     );
