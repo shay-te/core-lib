@@ -68,6 +68,20 @@ export const updateConn = (path, value, yamlData) => {
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.splice(0, 3))
     const conn = target.key
+    if (value.toLowerCase() === 'solr' || value.toLowerCase() === 'neo4j') { 
+        const entitySteps = ['core_lib', 'entities']
+        let entityTarget = getValueAtPath(data, entitySteps);
+        const entities = []
+        if(entityTarget.length > 0){
+            entityTarget.forEach((entity) => {
+                if(entity.connection !== conn){
+                    entities.push(entity)
+                }
+            });
+            data.core_lib.entities = entities
+            entityTarget = entities.slice(0)
+        }
+    }
     if (value.toLowerCase() === 'sqlite') {
         target['type'] = 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
         target['config']['url']['protocol'] = value.toLowerCase()

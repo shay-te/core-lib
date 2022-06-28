@@ -31,8 +31,8 @@ export const entity = (yamlData) => {
                 default: null,
             },
         ],
-        is_soft_delete: true,
-        is_soft_delete_token: true,
+        is_soft_delete: false,
+        is_soft_delete_token: false,
     }
     target.push(newEntity)
     return data
@@ -49,9 +49,6 @@ export const dataAccess = (yamlData) => {
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
         functions: [],
-        is_crud: true,
-        is_crud_soft_delete: true,
-        is_crud_soft_delete_token: true,
     }
     target.push(newDataAccess)
     return data
@@ -153,7 +150,7 @@ export const job = (yamlData, coreLibName) => {
         frequency: "",
         handler: {
             _target_:
-                `${snakeCoreLib}.${snakeCoreLib}.jobs.${newName}.${toCamelCase(newName)}`,
+                `${snakeCoreLib}.jobs.${newName}.${toCamelCase(newName)}`,
         },
     }
     target.push(newJob)

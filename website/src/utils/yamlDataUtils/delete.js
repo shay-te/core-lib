@@ -8,26 +8,52 @@ export const deleteData = (path, delData, yamData) => {
         }
     } else if (path.includes('caches')){
         data = deleteEnv(delData, data)
+    } else if (path.includes('data_accesses')){
+        data = deleteDataAccessData(delData, data)
     }
     return data
 }
 
 const deleteConnData = (connData, yamData) => {
     const data = JSON.parse(JSON.stringify(yamData))
-    const steps = ['core_lib', 'entities']
-    let target = getValueAtPath(data, steps);
+    const entitySteps = ['core_lib', 'entities']
+    let entityTarget = getValueAtPath(data, entitySteps);
     const connName = connData[0].key
     const entities = []
-    if(target.length > 0){
-        target.forEach((entity, index) => {
+    if(entityTarget.length > 0){
+        entityTarget.forEach((entity) => {
             if(entity.connection !== connName){
                 entities.push(entity)
             }
         });
         data.core_lib.entities = entities
-        target = entities.slice(0)
+        entityTarget = entities.slice(0)
+    }
+    const dataAccessSteps = ['core_lib', 'data_accesses']
+    const daTarget = getValueAtPath(data, dataAccessSteps)
+    if(daTarget.length > 0) {
+        daTarget.forEach((dataAccess, index) => {
+            if(dataAccess.connection === connName){
+                delete daTarget[index]['connection']
+            }
+        })
     }
     return deleteEnv(connData, data)
+}
+
+const deleteDataAccessData = (daData, yamData) => {
+    const data = JSON.parse(JSON.stringify(yamData))
+    const daName = daData[0].key
+    const serviceSteps = ['core_lib', 'services']
+    const serviceTarget = getValueAtPath(data, serviceSteps)
+    if(serviceTarget.length > 0) {
+        serviceTarget.forEach((service, index) => {
+            if(service.data_access === daName){
+                delete serviceTarget[index]['data_access']
+            }
+        })
+    }
+    return data
 }
 
 const deleteEnv = (delData, yamData) => {

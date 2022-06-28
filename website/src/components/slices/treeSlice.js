@@ -59,6 +59,14 @@ const createNewEntry = (path, yamlData) => {
     return [];
 }
 
+const resetFields = (state, path) => {
+    if (path === state.fieldsPath || path.includes('connections')) {
+        state.fields = []
+        state.fieldsPath = ''
+        state.fieldsTitle = ''
+    }
+}
+
 const yamlData = new YamlData()
 
 export const downloadZip = createAsyncThunk(
@@ -115,11 +123,7 @@ export const treeSlice = createSlice({
             setTreeState(state, yamlData)
         },
         deleteTreeBranch: (state, action) => {
-            if (action.payload === state.fieldsPath){
-                state.fields = []
-                state.fieldsPath = ''
-                state.fieldsTitle = ''
-            }
+            resetFields(state, action.payload)
             yamlData.delete(action.payload)
             state.yaml = yamlData.toJSON()
             setTreeState(state, yamlData)
