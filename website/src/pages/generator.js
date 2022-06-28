@@ -26,8 +26,11 @@ function Generator() {
 	const dispatch = useDispatch()
 	const onFieldChange = (field, e) => {
         const key = new Key()
-        const data = key.parse(e.target.id)
-        const isBool = data['isBoolean']
+        let isBool = false
+        if (e.target.id){
+            const data = key.parse(e.target.id)
+            isBool = data['isBoolean']
+        }
 		if (field.key) {
 			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked, isBool: isBool }))
 		}

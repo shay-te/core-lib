@@ -1,7 +1,6 @@
-import React from "react";
-
+import React, { useState } from "react";
 import HoverVisible from "../hoverVisible/HoverVisible";
-import { useState } from "react";
+import { Checkbox, TextField } from "@mui/material";
 
 const FunctionsTable = (props) => {
     const [visible, setVisible] = useState(false);
@@ -20,40 +19,41 @@ const FunctionsTable = (props) => {
                     className="tr"
                 >
                     <td key={props.keyObj.toString([props.fieldKey, index, 'key'])} className="td">
-                        <input
+                        <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
                             className="form-input"
                             defaultValue={func.key}
                             required={true}
-                            placeholder="Name"
+                            label="Function Name"
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
+                            size='small'
                         />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'result_to_dict'])}
                         className={isDataAccess ? "hide" : "td"}
                     >
-                        <input
+                        <Checkbox
                             key={props.keyObj.toString([props.fieldKey, index, 'result_to_dict'])}
-                            type="checkbox"
                             id={props.keyObj.toString([props.fieldKey, index, 'result_to_dict'])}
                             name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'result_to_dict'])}
                             value={func.result_to_dict}
-                            defaultChecked={func.result_to_dict}
+                            checked={func.result_to_dict}
                             disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'result_to_dict']),
                             })}
+                            size='small'
                         />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'cache_key'])}
                         className={isDataAccess ? "hide" : "td"}
                     >
-                        <input
+                        <TextField
                             key={props.keyObj.toString([props.fieldKey, index, 'cache_key'])}
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'cache_key'])}
@@ -61,26 +61,29 @@ const FunctionsTable = (props) => {
                             value={func.cache_key ? func.cache_key : ''}
                             required={true}
                             placeholder="Cache key"
+                            label="Cache key"
                             disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'cache_key']),
                             })}
+                            size='small'
                         />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate'])}
                         className={isDataAccess ? "hide" : "td"}
                     >
-                        <input
-                            type="checkbox"
+                        <Checkbox
+                            key={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate'])}
                             id={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate'])}
                             name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'cache_invalidate'])}
                             value={func.cache_invalidate}
-                            defaultChecked={func.cache_invalidate}
+                            checked={func.cache_invalidate}
                             disabled={isDataAccess}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'cache_invalidate']),
                             })}
+                            size='small'
                         />
                     </td>
 

@@ -1,36 +1,46 @@
 import React from 'react'
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 const InputList = (props) => {
 
-    const RenderItems = () => {
-        const fieldId = props.keyObj.toString(["list", props.fieldKey])
-        return props.options.map((value, index) => {
-            return (
-                <div key={index}>
-                    <input
-                        type={
-                            props.multiple_selection
-                                ? "checkbox"
-                                : "radio"
-                        }
-                        id={fieldId}
-                        name={fieldId}
-                        value={value}
-                        defaultChecked={
+    const fieldId = props.keyObj.toString(["list", props.fieldKey])
+    const items = props.options.map((value, index) => {
+        return (
+            <FormControlLabel
+                control={props.multiple_selection
+                    ? <Checkbox 
+                        checked={
                             props.value.includes(value) || props.default_value.includes(value)
                         }
-                        onChange={props.onChange}
+                        size="small"
                     />
-                    <label htmlFor={fieldId}>{value}</label>
-                </div>
-            );
-        })
-    }
+                    : <Radio 
+                        checked={
+                            props.value.includes(value) || props.default_value.includes(value)
+                        }
+                        size="small"
+                    />}
+                id={fieldId}
+                name={fieldId}
+                value={value}
+                onChange={props.onChange}
+                label={value}
+            />
+        );
+    })
 
     return (
         <div className="form-input-div">
             <label className="input-label">{props.title}</label>
-            <RenderItems/>
+            <RadioGroup
+                aria-labelledby="radio-buttons-group-list"
+                name={props.fieldKey}
+            >
+                {items}
+            </RadioGroup>
         </div>
     );
 };

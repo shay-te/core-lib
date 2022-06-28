@@ -218,6 +218,8 @@ export const updateColumnDefault = (path, value, yamlData) => {
     const target = getValueAtPath(data, pathSplit.slice(0, -1))
     if (value === '') {
         target.default = null
+    } else {
+        target.default = value
     }
     return data
 }

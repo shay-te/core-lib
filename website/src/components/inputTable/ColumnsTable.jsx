@@ -1,7 +1,7 @@
-import React from "react";
-
+import React, { useState } from "react";
 import HoverVisible from "../hoverVisible/HoverVisible";
-import { useState } from "react";
+import TextField from "@mui/material/TextField";
+import { Checkbox, MenuItem, Select } from "@mui/material";
 
 const ColumnsTable = (props) => {
     const [visible, setVisible] = useState(false);
@@ -18,7 +18,7 @@ const ColumnsTable = (props) => {
                     className="tr"
                 >
                     <td key={props.keyObj.toString([props.fieldKey, index, 'key'])} className="td">
-                        <input
+                        <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
                             className="form-input"
@@ -28,26 +28,28 @@ const ColumnsTable = (props) => {
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
+                            size='small'
                         />
                     </td>
                     <td key={props.keyObj.toString([props.fieldKey, index, 'type'])} className="td">
-                        <select
+                        <Select
                             id={props.keyObj.toString([props.fieldKey, index, 'type'])}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'type']),
                             })}
                             value={column.type}
+                            size='small'
                         >
-                            <option value="VARCHAR">VARCHAR</option>
-                            <option value="BOOLEAN">BOOLEAN</option>
-                            <option value="INTEGER">INTEGER</option>
-                        </select>
+                            <MenuItem value="VARCHAR" size='small'>VARCHAR</MenuItem>
+                            <MenuItem value="BOOLEAN" size='small'>BOOLEAN</MenuItem>
+                            <MenuItem value="INTEGER" size='small'>INTEGER</MenuItem>
+                        </Select>
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'default'])}
                         className="td"
                     >
-                        <input
+                        <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'default'])}
                             className="form-input"
@@ -57,21 +59,22 @@ const ColumnsTable = (props) => {
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'default']),
                             })}
+                            size='small'
                         />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
                         className="td"
                     >
-                        <input
-                            type="checkbox"
+                        <Checkbox 
                             id={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
                             name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'nullable'])}
                             value={column.nullable}
-                            defaultChecked={column.nullable}
+                            checked={column.nullable}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'nullable']),
                             })}
+                            size='small'
                         />
                     </td>
 

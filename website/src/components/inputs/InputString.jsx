@@ -1,4 +1,5 @@
 import React from 'react'
+import TextField from '@mui/material/TextField';
 
 const InputString = (props) => {
     const getDefault = () => {
@@ -8,17 +9,18 @@ const InputString = (props) => {
     const fieldId = props.keyObj.toString(["field", props.fieldKey])
     return (
         <div className="form-input-div" key={props.fieldKey}>
-            <label htmlFor={fieldId} className="input-label">
-                {props.title}
-            </label>
-            <input
+            <TextField 
+                InputProps={{
+                    className: "form-input",
+                }}
                 type={"text"}
                 id={fieldId}
-                className="form-input"
                 defaultValue={getDefault()}
                 required={props.mandatory}
                 placeholder={props.title}
                 onChange={props.onChange}
+                label={props.title}
+                size="small"
             />
         </div>
     );
