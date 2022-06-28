@@ -32,6 +32,7 @@ InputDropDown.defaultProps = {
 	default_value:'',
 	options:[],
 	onChange: () => {},
+    keyObj: Object,
 }
 
 export default InputDropDown;

@@ -20,7 +20,7 @@ const deleteConnData = (connData, yamData) => {
     const entities = []
     if(target.length > 0){
         target.forEach((entity, index) => {
-            if(entity.db_connection !== connName){
+            if(entity.connection !== connName){
                 entities.push(entity)
             }
         });

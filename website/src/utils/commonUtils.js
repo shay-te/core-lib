@@ -13,14 +13,19 @@ export const isObject = (obj) => {
 }
 
 export const download = (file, name) => {
+    const blob = new Blob([file]);
+    downloadFile(blob, name);
+}
+
+export const downloadFile = (blob, name) => {
     const a = document.createElement('a');
-    const newFile = new Blob([file]);
-    a.href = URL.createObjectURL(newFile);
+    a.href = URL.createObjectURL(blob);
     a.download = name
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 }
+
 
 export const getENVValue = (envVar, yamlData) => {
     const CoreLibName = Object.keys(yamlData)[0]

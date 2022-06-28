@@ -3,6 +3,7 @@ import React from 'react'
 const InputList = (props) => {
 
     const RenderItems = () => {
+        const fieldId = props.keyObj.toString(["list", props.fieldKey])
         return props.options.map((value, index) => {
             return (
                 <div key={index}>
@@ -12,15 +13,15 @@ const InputList = (props) => {
                                 ? "checkbox"
                                 : "radio"
                         }
-                        id={value + props.fieldKey}
-                        name={"list" + props.fieldKey}
+                        id={fieldId}
+                        name={fieldId}
                         value={value}
                         defaultChecked={
                             props.value.includes(value) || props.default_value.includes(value)
                         }
                         onChange={props.onChange}
                     />
-                    <label htmlFor={value + props.fieldKey}>{value}</label>
+                    <label htmlFor={fieldId}>{value}</label>
                 </div>
             );
         })
@@ -43,6 +44,7 @@ InputList.defaultProps = {
     options: [],
     multiple_selection: false,
     onChange: () => {},
+    keyObj: Object,
 }
 
 export default InputList

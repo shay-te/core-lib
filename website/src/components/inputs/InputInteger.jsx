@@ -1,14 +1,15 @@
 import React from 'react'
 
 const InputInteger = (props) => {
+    const fieldId = props.keyObj.toString(["integer", props.fieldKey])
     return (
         <div className="form-input-div">
-            <label htmlFor={"field-" + props.fieldKey} className="input-label">
+            <label htmlFor={fieldId} className="input-label">
                 {props.title}
             </label>
             <input
                 type={"number"}
-                id={"field-" + props.fieldKey}
+                id={fieldId}
                 className="form-input"
                 defaultValue={props.value || props.default_value}
                 required={props.mandatory}
@@ -26,6 +27,7 @@ InputInteger.defaultProps = {
     value:'',
     default_value:'',
     onChange: () => {},
+    keyObj: Object,
 }
 
 export default InputInteger

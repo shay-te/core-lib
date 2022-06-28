@@ -7,7 +7,8 @@ import {
     deleteTreeBranch,
     addNewEntry,
     toggleCollapseExpand,
-    init
+    downloadZip,
+    init,
 } from "../slices/treeSlice";
 import { download } from "../../utils/commonUtils";
 import YAML from "yaml";
@@ -88,11 +89,38 @@ const Tree = () => {
     const onCollapseExpand = (path) => {
         dispatch(toggleCollapseExpand(path));
     };
+
     const exportYaml = () => {
         const doc = new YAML.Document();
         doc.contents = yaml;
         download(doc.toString(), `${CoreLibName}.yaml`);
     };
+    let entitySection = "";
+    if(JSON.stringify(yaml) !== '{}'){
+        yaml.core_lib.connections.forEach((connection) => {
+            if (connection.type.includes("SqlAlchemyConnectionRegistry")) {
+                entitySection = (
+                    <TreeSection
+                        key={"db_entities"}
+                        path={"db_entities"}
+                        title="DB Entities"
+                        items={entities}
+                        onDeleteClick={onDeleteClick}
+                        onAddClick={onAddEntity}
+                        onTitleClick={onCollapseExpand}
+                        onClick={onEntityClick}
+                        collapse={treeState["db_entities"]}
+                        icon={<i className="fa-solid fa-database fa-sm"></i>}
+                    />
+                );
+                return
+            }
+        });
+    }
+
+    const downloadCLZip = () => {
+        dispatch(downloadZip({config: yaml}))
+    }
 
     const RenderTree = () => {
         return (
@@ -132,18 +160,7 @@ const Tree = () => {
                             <i className="fa-solid fa-circle-nodes fa-sm"></i>
                         }
                     />
-                    <TreeSection
-                        key={"db_entities"}
-                        path={"db_entities"}
-                        title="DB Entities"
-                        items={entities}
-                        onDeleteClick={onDeleteClick}
-                        onAddClick={onAddEntity}
-                        onTitleClick={onCollapseExpand}
-                        onClick={onEntityClick}
-                        collapse={treeState["db_entities"]}
-                        icon={<i className="fa-solid fa-database fa-sm"></i>}
-                    />
+                    {entitySection}
                     <TreeSection
                         key={"services"}
                         path={"services"}
@@ -190,10 +207,16 @@ const Tree = () => {
                         Setup
                     </div>
                     <button
-                        className="export-button"
+                        className="tree-button"
                         onClick={() => exportYaml()}
                     >
-                        Export
+                        Export YAML
+                    </button>
+                    <button
+                        className="tree-button"
+                        onClick={() => downloadCLZip()}
+                    >
+                        Download ZIP
                     </button>
                 </div>
             </div>

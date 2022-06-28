@@ -1,6 +1,6 @@
 import { current } from '@reduxjs/toolkit'
 
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { YamlData } from "./../../utils/YamlData";
 import { dataAccessFields } from '../../fieldsGenerator/dataAccessFields';
 import { setupFields } from '../../fieldsGenerator/setupFields';
@@ -10,6 +10,10 @@ import { cacheFields } from '../../fieldsGenerator/cacheFields';
 import { serviceFields } from '../../fieldsGenerator/serviceFields';
 import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
+import axios from 'axios';
+import { downloadFile, toSnakeCase } from '../../utils/commonUtils';
+
+const BASE = 'http://127.0.0.1:5000/';
 
 const updateLocalStorage = (state) => {
     const recentCoreLibs = (JSON.parse(localStorage.getItem('core_libs')) === null ? [] : JSON.parse(localStorage.getItem('core_libs')))
@@ -47,7 +51,7 @@ const createNewEntry = (path, yamlData) => {
     if (path.includes('functions')) { return yamlData.createFunction(path) }
     if (path.includes('db_entities')) { return yamlData.createEntity() }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
-    if (path.includes('connections')) { return yamlData.createDBConnection() }
+    if (path.includes('connections')) { return yamlData.createConnection() }
     if (path.includes('caches')) { return yamlData.createCache() }
     if (path.includes('jobs')) { return yamlData.createJob() }
     if (path.includes('columns')) { return yamlData.createColumn(path) }
@@ -56,6 +60,17 @@ const createNewEntry = (path, yamlData) => {
 }
 
 const yamlData = new YamlData()
+
+export const downloadZip = createAsyncThunk(
+	'api/downloadZip',
+	async (data, { getState }) => {
+        const state = getState();
+		const url = BASE + 'api/download_zip';
+		const response = await axios.post(url, data, { responseType: 'blob' });
+        downloadFile(response.data, `${toSnakeCase(state.treeData.CoreLibName)}.zip`);
+	}
+)
+
 export const treeSlice = createSlice({
     name: 'tree',
     initialState: {
@@ -94,7 +109,7 @@ export const treeSlice = createSlice({
             state.fieldsTitle = action.payload.title
         },
         updateFields: (state, action) => {
-            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.addOrRemove)
+            state.fieldsPath = yamlData.set(action.payload.path, action.payload.value, action.payload.env, action.payload.addOrRemove, action.payload.isBool)
             state.yaml = yamlData.toJSON()
             state.fields = pathToFields(state.fieldsPath, state.yaml)
             setTreeState(state, yamlData)
