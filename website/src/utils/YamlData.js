@@ -16,6 +16,7 @@ export class YamlData {
         if (path === 'core_lib.name') {
             data.core_lib.name = value
             this.yaml = data
+            this.yaml = update.updateJobs(value, this.coreLibName, this.yaml)
             this.coreLibName = value
         }
         else {

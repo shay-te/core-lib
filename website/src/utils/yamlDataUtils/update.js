@@ -1,4 +1,4 @@
-import { getValueAtPath } from "../commonUtils"
+import { getValueAtPath, toSnakeCase } from "../commonUtils"
 
 export const updateEnv = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
@@ -320,5 +320,15 @@ export const updateService = (path, value, yamlData) => {
         }
         return data
     }
+    return data
+}
+
+export const updateJobs = (value, oldValue, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    const jobsSteps = ['core_lib', 'jobs']
+    const jobsTarget = getValueAtPath(data, jobsSteps)
+    jobsTarget.forEach((job, index) => {
+        jobsTarget[index]['handler']['_target_'] = jobsTarget[index]['handler']['_target_'].replaceAll(toSnakeCase(oldValue), toSnakeCase(value))
+    })
     return data
 }

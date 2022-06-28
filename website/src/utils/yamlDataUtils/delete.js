@@ -10,6 +10,8 @@ export const deleteData = (path, delData, yamData) => {
         data = deleteEnv(delData, data)
     } else if (path.includes('data_accesses')){
         data = deleteDataAccessData(delData, data)
+    } else if (path.includes('entities')){
+        data = deleteEntityData(delData, data)
     }
     return data
 }
@@ -50,6 +52,21 @@ const deleteDataAccessData = (daData, yamData) => {
         serviceTarget.forEach((service, index) => {
             if(service.data_access === daName){
                 delete serviceTarget[index]['data_access']
+            }
+        })
+    }
+    return data
+}
+
+const deleteEntityData = (entityData, yamData) => {
+    const data = JSON.parse(JSON.stringify(yamData))
+    const dataAccessSteps = ['core_lib', 'data_accesses']
+    const daTarget = getValueAtPath(data, dataAccessSteps)
+    const entityName = entityData[0].key
+    if(daTarget.length > 0) {
+        daTarget.forEach((dataAccess, index) => {
+            if(dataAccess.entity === entityName){
+                delete daTarget[index]['entity']
             }
         })
     }
