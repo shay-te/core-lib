@@ -46,7 +46,7 @@ const Tree = () => {
         dispatch(setFields({ title: "Core-Lib", path: "name" }));
     };
     const onSetupClick = (item) => {
-        dispatch(setFields({ title: "Data Access", path: "setup" }));
+        dispatch(setFields({ title: "Setup", path: "setup" }));
     };
     const onEntityClick = (path) => {
         dispatch(setFields({ title: "Entity", path: path }));
