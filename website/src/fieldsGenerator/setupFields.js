@@ -78,6 +78,7 @@ export const setupFields = (yamlData) => {
         value: setup.url,
         mandatory: false,
         key: keyPrefix + '.url',
+        toolTipTitle: "Optional",
         // validatorCallback: validateFunc,
     },
     {

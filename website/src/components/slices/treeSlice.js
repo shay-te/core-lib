@@ -1,5 +1,6 @@
 import { current } from '@reduxjs/toolkit'
-
+import { download } from "./../../utils/commonUtils";
+import YAML from "yaml";
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { YamlData } from "./../../utils/YamlData";
 import { dataAccessFields } from '../../fieldsGenerator/dataAccessFields';
@@ -12,6 +13,8 @@ import { jobFields } from '../../fieldsGenerator/jobFields';
 import { coreLibField } from '../../fieldsGenerator/coreLibField';
 import axios from 'axios';
 import { downloadFile, toSnakeCase } from '../../utils/commonUtils';
+import { exportYamlFields } from '../../fieldsGenerator/exportYamlFields';
+import { downloadZipFields } from '../../fieldsGenerator/downloadZipFields';
 
 const BASE = 'http://127.0.0.1:5000/';
 
@@ -44,12 +47,14 @@ const pathToFields = (path, yaml) => {
     if (path.includes('services')) { return serviceFields(path, yaml); }
     if (path.includes('jobs')) { return jobFields(path, yaml); }
     if (path.includes('name')) { return coreLibField(yaml); }
+    if (path.includes('export_yaml')) { return exportYamlFields(yaml); }
+    if (path.includes('download_zip')) { return downloadZipFields(yaml); }
     return [];
 }
 
 const createNewEntry = (path, yamlData) => {
     if (path.includes('functions')) { return yamlData.createFunction(path) }
-    if (path.includes('db_entities')) { return yamlData.createEntity() }
+    if (path.includes('db_entities')) { return yamlData.createEntity(path.split('.')[1]) }
     if (path.includes('data_accesses')) { return yamlData.createDataAccess() }
     if (path.includes('connections')) { return yamlData.createConnection() }
     if (path.includes('caches')) { return yamlData.createCache() }
@@ -71,10 +76,10 @@ const yamlData = new YamlData()
 
 export const downloadZip = createAsyncThunk(
 	'api/downloadZip',
-	async (data, { getState }) => {
+	async (_, { getState }) => {
         const state = getState();
 		const url = BASE + 'api/download_zip';
-		const response = await axios.post(url, data, { responseType: 'blob' });
+		const response = await axios.post(url, {config: state.treeData.yaml}, { responseType: 'blob' });
         downloadFile(response.data, `${toSnakeCase(state.treeData.CoreLibName)}.zip`);
 	}
 )
@@ -94,6 +99,8 @@ export const treeSlice = createSlice({
         fields: [],
         fieldsTitle: '',
         fieldsPath: '',
+        selectedConfig: '',
+        selectedField: '',
         treeSelected: {},
         treeState: {},
         localStorageIndex: 0,
@@ -102,16 +109,21 @@ export const treeSlice = createSlice({
         init: (state, action) => {
             yamlData.init(action.payload)
             state.yaml = yamlData.toJSON()
-            state.fields = [],
-            state.fieldsPath = '',
-            state.fieldsTitle = '',
+            state.fields = []
+            state.fieldsPath = ''
+            state.fieldsTitle = ''
             setTreeState(state, yamlData)
         },
-        updateTree: (state, action) => {
-            state.yaml = yamlData.toJSON()
-            setTreeState(state, yamlData)
+        downloadYaml: (state, action) => {
+            const doc = new YAML.Document();
+            doc.contents = state.yaml;
+            download(doc.toString(), `${state.CoreLibName}.yaml`);
+        },
+        setList: (state, action) => {
+            state.selectedConfig = action.payload
         },
         setFields: (state, action) => {
+            state.selectedField = action.payload.path
             state.fieldsPath = action.payload.path;
             state.fields = pathToFields(action.payload.path, current(state.yaml))
             state.fieldsTitle = action.payload.title
@@ -160,6 +172,6 @@ export const treeSlice = createSlice({
     },
 })
 
-export const { init, updateTree, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected, setStorageIndex } = treeSlice.actions
+export const { init, downloadYaml, setList, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected, setStorageIndex } = treeSlice.actions
 
 export default treeSlice.reducer

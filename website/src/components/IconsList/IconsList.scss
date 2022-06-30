@@ -1,0 +1,30 @@
+@import './../../utils/css/variables.scss';
+
+.icons-list-root{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: 1px solid #cccccc;
+    overflow-y: auto;
+    overflow-x: hidden;
+    .core-lib-image{
+        height: auto;
+        width: 55px;
+    }
+
+    .list-icon{
+        align-self: center;
+        padding: $spacing-m;
+        margin: $spacing-xs;
+        font-size: 20px;
+
+        &:hover{
+            cursor: pointer;
+        }
+    }
+
+    .selected{
+        background-color: $accent-color;
+        border-radius: 10px;
+    }
+}

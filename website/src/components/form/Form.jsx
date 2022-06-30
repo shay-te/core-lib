@@ -9,6 +9,9 @@ import { useSelector } from "react-redux";
 import InputDropDown from "../inputs/InputDropDown";
 import InputTable from "../inputTable/InputTable";
 import { Key } from "../../utils/Key";
+import Tooltip from "@mui/material/Tooltip";
+import FormTitleSubtitle from "../FormTitleSubtitle/FormTitleSubtitle";
+import FormButton from "../FormButton/FormButton";
 
 const Form = (props) => {
     const fields = useSelector((state) => state.treeData.fields);
@@ -18,96 +21,122 @@ const Form = (props) => {
     form.push(
         fields.map((field, index) => {
             const fieldKey = field.key;
+            const toolTipTitle = field.toolTipTitle ? field.toolTipTitle : ''
             switch (field.type.toLowerCase()) {
                 case "string":
                 case "varchar":
                     return (
-                        <InputString
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputString
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                    helperText={field.helperText}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "integer":
                     return (
-                        <InputInteger
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputInteger
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "boolean":
                     return (
-                        <InputBoolean
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputBoolean
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "enum":
                     return (
-                        <InputENUM
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            multiple_selection={field.multiple_selection}
-                            options={field.options}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputENUM
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    multiple_selection={field.multiple_selection}
+                                    options={field.options}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "list":
                     return (
-                        <InputList
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            multiple_selection={field.multiple_selection}
-                            options={field.options}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputList
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    multiple_selection={field.multiple_selection}
+                                    options={field.options}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "dropdown":
                     return (
-                        <InputDropDown
-                            index={index}
-                            key={fieldKey}
-                            title={field.title}
-                            mandatory={field.mandatory}
-                            value={field.value}
-                            default_value={field.default_value}
-                            options={field.options}
-                            onChange={props.onChange.bind(this, field)}
-                            fieldKey={fieldKey}
-                            keyObj={key}
-                        />
+                        <Tooltip title={String(toolTipTitle)} placement='right' arrow>
+                            <div>
+                                <InputDropDown
+                                    index={index}
+                                    key={fieldKey}
+                                    title={field.title}
+                                    mandatory={field.mandatory}
+                                    value={field.value}
+                                    default_value={field.default_value}
+                                    options={field.options}
+                                    onChange={props.onChange.bind(this, field)}
+                                    fieldKey={fieldKey}
+                                    keyObj={key}
+                                />
+                            </div>
+                        </Tooltip>
                     );
                 case "columns":
                 case "functions":
@@ -123,6 +152,28 @@ const Form = (props) => {
                             keyObj={key}
                         />
                     );
+                case "title_subtitle":
+                    return(
+                        <FormTitleSubtitle
+                            index={index}
+                            key={fieldKey}
+                            title={field.title}
+                            subtitle={field.subtitle}
+                            fieldKey={fieldKey}
+                            keyObj={key}
+                        />
+                    )
+                case "button":
+                    return(
+                        <FormButton
+                            index={index}
+                            key={fieldKey}
+                            label={field.label}
+                            onClick={field.onClick}
+                            fieldKey={fieldKey}
+                            keyObj={key}
+                        />
+                    )
                 default:
                     return "";
             }
@@ -130,8 +181,7 @@ const Form = (props) => {
     );
 
     return (
-        <div className="form-root">
-            <h2>{title}</h2>
+        <div className="form-root custom-scrollbar">
             {form}
         </div>
     );

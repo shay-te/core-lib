@@ -3,6 +3,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
+import ToolTip from '@mui/material/ToolTip';
 
 
 const InputBoolean = (props) => {
@@ -12,10 +13,10 @@ const InputBoolean = (props) => {
             <RadioGroup
                 aria-labelledby="bool-radio-grp"
                 name="bool-radio-grp"
-                defaultValue={props.value || props.default_value}
             >
                 <FormControlLabel 
                     value={true} 
+                    key={props.keyObj.toString(["true", props.fieldKey])}
                     control={
                         <Radio 
                             id={props.keyObj.toString(["true", props.fieldKey])}
@@ -27,10 +28,11 @@ const InputBoolean = (props) => {
                             size='small'
                         />
                     } 
-                    label="True" 
+                    label="Yes" 
                 />
                 <FormControlLabel 
                     value={true} 
+                    key={props.keyObj.toString(["false", props.fieldKey])}
                     control={
                         <Radio 
                             id={props.keyObj.toString(["false", props.fieldKey])}
@@ -42,7 +44,7 @@ const InputBoolean = (props) => {
                             size='small'
                         />
                     } 
-                    label="False" 
+                    label="No" 
                 />
             </RadioGroup>
         </div>

@@ -3,6 +3,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import FormLabel from '@mui/material/FormLabel';
 
 const InputENUM = (props) => {
 
@@ -34,7 +35,7 @@ const InputENUM = (props) => {
 
     return (
         <div className="form-input-div">
-            <label className="input-label">{props.title}</label>
+            <FormLabel id="radio-buttons-group-enum">{props.title}</FormLabel>
             <RadioGroup
                 aria-labelledby="radio-buttons-group-enum"
                 name={props.fieldKey}

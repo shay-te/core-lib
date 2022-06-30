@@ -1,5 +1,3 @@
-import { getBoolean } from '../utils/commonUtils';
-
 export const dataAccessFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const dataAccessList = yamlData.core_lib.data_accesses
@@ -35,6 +33,7 @@ export const dataAccessFields = (path, yamlData) => {
         value: dataAccess.key,
         mandatory: true,
         key: keyPrefix + '.key',
+        toolTipTitle: "Edit Data Access Name (PascalCase)",
         // validatorCallback: validateFunc, onchange validator, predefined validation func for each types
     },
     {
@@ -45,6 +44,7 @@ export const dataAccessFields = (path, yamlData) => {
         mandatory: true,
         options: connection,
         key: keyPrefix + '.connection',
+        toolTipTitle: "Select connection for data access",
         // validatorCallback: validateFunc,
     })
     if(dataAccess['connection']){
@@ -58,6 +58,7 @@ export const dataAccessFields = (path, yamlData) => {
                     mandatory: true,
                     options: entity,
                     key: keyPrefix + '.entity',
+                    toolTipTitle: "Select DB entity for data access",
                 },
             )
         }
@@ -82,6 +83,7 @@ export const dataAccessFields = (path, yamlData) => {
             value: dataAccess['is_crud'],
             mandatory: true,
             key: keyPrefix + '.is_crud',
+            toolTipTitle: "If you want to implement CRUD for this Data Access",
             // validatorCallback: validateFunc,
         })
         if(dataAccess['is_crud']){
@@ -92,6 +94,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete',
+                toolTipTitle: "If you want to implement CRUD Soft Delete for this Data Access",
                 // validatorCallback: validateFunc,
             })
         }
@@ -103,6 +106,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete_token'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete_token',
+                toolTipTitle: "If you want to implement CRUD Soft Delete Token for this Data Access",
                 // validatorCallback: validateFunc,
             })
         }

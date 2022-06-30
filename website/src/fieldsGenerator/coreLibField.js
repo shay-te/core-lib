@@ -7,7 +7,8 @@ export const coreLibField = (yamlData) => {
         default_value: 'UserCoreLib',
         value: yamlData.core_lib.name,
         mandatory: true,
-        key: 'core_lib.name'
+        key: 'core_lib.name',
+        toolTipTitle: "Edit Core-Lib Name (PascalCase)",
         // validatorCallback: validateFunc,
     })
     return fields

@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import TextField from "@mui/material/TextField";
-import { Checkbox, MenuItem, Select } from "@mui/material";
+import Checkbox from '@mui/material/Checkbox';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 
 const ColumnsTable = (props) => {
     const [visible, setVisible] = useState(false);
@@ -21,10 +25,12 @@ const ColumnsTable = (props) => {
                         <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
-                            className="form-input"
+                            InputProps={{
+                                style:{borderColor: '#d2e5fc', borderRadius: 15}
+                            }}
                             defaultValue={column.key}
                             required={true}
-                            placeholder="Column Name"
+                            label="Column Name"
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
@@ -32,18 +38,23 @@ const ColumnsTable = (props) => {
                         />
                     </td>
                     <td key={props.keyObj.toString([props.fieldKey, index, 'type'])} className="td">
-                        <Select
-                            id={props.keyObj.toString([props.fieldKey, index, 'type'])}
-                            onChange={props.onChange.bind(this, {
-                                key: props.keyObj.toString([props.fieldKey, index, 'type']),
-                            })}
-                            value={column.type}
-                            size='small'
-                        >
-                            <MenuItem value="VARCHAR" size='small'>VARCHAR</MenuItem>
-                            <MenuItem value="BOOLEAN" size='small'>BOOLEAN</MenuItem>
-                            <MenuItem value="INTEGER" size='small'>INTEGER</MenuItem>
-                        </Select>
+                        <FormControl size="small">
+                            <InputLabel id="dropdown-select-helper-label">Column Type</InputLabel>
+                            <Select
+                                labelId="dropdown-select-helper-label"
+                                label='Column Type'
+                                style={{borderColor: '#d2e5fc', borderRadius: 15}}
+                                id={props.keyObj.toString([props.fieldKey, index, 'type'])}
+                                onChange={props.onChange.bind(this, {
+                                    key: props.keyObj.toString([props.fieldKey, index, 'type']),
+                                })}
+                                value={column.type}
+                            >
+                                <MenuItem value="VARCHAR" size='small'>VARCHAR</MenuItem>
+                                <MenuItem value="BOOLEAN" size='small'>BOOLEAN</MenuItem>
+                                <MenuItem value="INTEGER" size='small'>INTEGER</MenuItem>
+                            </Select>
+                        </FormControl>
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'default'])}
@@ -52,10 +63,12 @@ const ColumnsTable = (props) => {
                         <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'default'])}
-                            className="form-input"
+                            InputProps={{
+                                style:{borderColor: '#d2e5fc', borderRadius: 15}
+                            }}
                             defaultValue={column.default}
                             required={true}
-                            placeholder="Column Default Value"
+                            label="Column Default Value"
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'default']),
                             })}
@@ -110,7 +123,12 @@ const ColumnsTable = (props) => {
                 <tbody>{items}</tbody>
             </table>
     }
-    return <>{render}</>;
+    return (
+        <>
+            <div className="table-info">Note: <code>id</code> column will be added automatically for every column</div>
+            {render}
+        </>
+    );
 };
 
 ColumnsTable.defaultProps = {

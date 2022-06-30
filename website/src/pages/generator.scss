@@ -1,6 +1,4 @@
-$primary-color: #01011d;
-$secondary-color: #0aa2f8;
-
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@100;400&display=swap');
 .App {
 	text-align: center;
 }
@@ -15,7 +13,9 @@ $secondary-color: #0aa2f8;
 	.main-wrapper {
 		height: calc(100% - 50px);
 		.app-root {
+            font-family: 'Lato', sans-serif;
 			height: 100%;
+            display: flex;
 		}
 	}
 	.footer {
@@ -26,10 +26,14 @@ $secondary-color: #0aa2f8;
 .close-generator-btn{
 	z-index: 1;
 	position: absolute;
-	font-size: 2rem;
+	font-size: 1.25rem;
 	color: #ff7948;
 	top: 10%;
 	right: 5%;
+    a{
+        text-decoration: none;
+    }
+    
 }
 
 .custom-scrollbar {

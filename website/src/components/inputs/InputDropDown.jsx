@@ -16,6 +16,7 @@ const InputDropDown = (props) => {
             <FormControl size="small">
                 <InputLabel id="dropdown-select-helper-label">{props.title}</InputLabel>
                 <Select
+                    style={{borderColor: '#d2e5fc', borderRadius: 15}}
                     labelId="dropdown-select-helper-label"
                     id="dropdown-select-helper"
                     value={props.value}

@@ -1,0 +1,21 @@
+import { downloadZip } from "../components/slices/treeSlice";
+
+export const downloadZipFields = () => {
+    const fields = [];
+    
+    fields.push(
+        {
+            title: 'Download Core-Lib zip file',
+            subtitle: 'Will generate and download a new Core-Lib zip file as configured in the generator.',
+            type: 'title_subtitle',
+            // validatorCallback: validateFunc,
+        },
+        {
+            label: 'Download Zip',
+            type: 'button',
+            onClick: downloadZip,
+            // validatorCallback: validateFunc,
+        },
+    )
+    return fields
+}

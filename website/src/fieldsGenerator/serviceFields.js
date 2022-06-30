@@ -12,12 +12,13 @@ export const serviceFields = (path, yamlData) => {
         dataAccess.push(da.key)
     })
     fields.push({
-        title: "Service Name",
+        title: "Enter Service Name",
         type: "string",
         default_value: "",
         value: service.key,
         mandatory: true,
         key: `${keyPrefix}.key`,
+        toolTipTitle: "Edit Service Name (PascalCase)",
         // validatorCallback: validateFunc,
     },
     {
@@ -28,6 +29,7 @@ export const serviceFields = (path, yamlData) => {
         mandatory: true,
         options: dataAccess,
         key: keyPrefix + '.data_access',
+        toolTipTitle: "Select Data Access for this Service",
         // validatorCallback: validateFunc,
     },
     {

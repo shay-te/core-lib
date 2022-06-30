@@ -15,6 +15,7 @@ export const cacheFields = (path, yamlData) => {
         value: cacheName,
         mandatory: true,
         key: `${keyPrefix}.key`,
+        toolTipTitle: "Edit Cache Name (snake_case)",
         // validatorCallback: validateFunc,
     },
     {
@@ -29,6 +30,7 @@ export const cacheFields = (path, yamlData) => {
             'redis',
         ],
         key: `${keyPrefix}.type`,
+        toolTipTitle: "Select type of your cache for this Core-Lib",
         // validatorCallback: validateFunc,
     })
     if(cache['type'] !== 'memory'){

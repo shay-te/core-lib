@@ -11,6 +11,7 @@ export const jobFields = (path, yamlData) => {
         value: job.key,
         mandatory: true,
         key: `${keyPrefix}.key`,
+        toolTipTitle: "Edit Job Name (snake_case)",
         // validatorCallback: validateFunc,
     },
     {
@@ -20,6 +21,7 @@ export const jobFields = (path, yamlData) => {
         value: job.initial_delay,
         mandatory: true,
         key: `${keyPrefix}.initial_delay`,
+        helperText: "Initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)",
         // validatorCallback: validateFunc,
     },
     {
@@ -29,6 +31,7 @@ export const jobFields = (path, yamlData) => {
         value: job.frequency,
         mandatory: true,
         key: `${keyPrefix}.frequency`,
+        helperText: "Frequency of the job (1s, 1m, 1h, 1h30m ...)",
         // validatorCallback: validateFunc,
     },
     )

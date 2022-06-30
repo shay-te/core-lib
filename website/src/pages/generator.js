@@ -5,7 +5,6 @@ import Layout from "@theme/Layout";
 
 import './generator.scss';
 import Form from './../components/form/Form';
-import Tree from './../components/tree/Tree';
 import {
 	updateFields
 } from "./../components/slices/treeSlice";
@@ -21,6 +20,7 @@ import {
 import 'react-reflex/styles.css'
 import Link from '@docusaurus/Link';
 import { Key } from '../utils/Key';
+import DoubleMenu from '../components/doubleMenu/DoubleMenu';
 
 function Generator() {
 	const dispatch = useDispatch()
@@ -39,19 +39,19 @@ function Generator() {
 		<>
 			<div className='close-generator-btn'>
 				<Link to='/generate'>
-					<i className="fa-solid fa-xmark"></i>
+					CLOSE
 				</Link>
 			</div>
 			<div className='app-root' key={'app-root'}>
-				<ReflexContainer orientation="vertical">
-					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={300}>
-						<Tree key={'tree'} />
-					</ReflexElement>
+				{/* <ReflexContainer orientation="vertical">
+					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={350}> */}
+						<DoubleMenu key={'tree'} />
+					{/* </ReflexElement>
 					<ReflexSplitter />
-					<ReflexElement className="right-pane custom-scrollbar" minSize={200}>
+					<ReflexElement className="right-pane custom-scrollbar" minSize={200}> */}
 						<Form onChange={onFieldChange} />
-					</ReflexElement>
-				</ReflexContainer>
+					{/* </ReflexElement>
+				</ReflexContainer> */}
 			</div>
 		</>
 

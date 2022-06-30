@@ -80,8 +80,9 @@ export class YamlData {
         return path
     }
 
-    createEntity() {
-        this.yaml = create.entity(this.yaml)
+    createEntity(connection) {
+        console.log(connection)
+        this.yaml = create.entity(this.yaml, connection)
     }
 
     createDataAccess() {
@@ -130,14 +131,26 @@ export class YamlData {
     listChildrenUnderPath(path) {
         const res = []
         const list = this.get(path) 
+        
         if(!list){
             return res
         }
         if (path === 'core_lib.entities') {
             const entityRes = []
-            list.forEach((entity, index) => {
-                entityRes.push({ name: `${entity.key} (${entity.connection})`, path: path + '.' + index, dbConnection: entity.connection })
+            const connectionList = this.get('core_lib.connections')
+            connectionList.forEach((connection) => {
+                if(connection.type.includes('SqlAlchemyConnectionRegistry')) {
+                    const entities = []
+                    list.forEach((entity, index) => {
+                        if(connection.key === entity.connection){
+                            entities.push({ name: `${entity.key}`, path: path + '.' + index, dbConnection: entity.connection })
+                        }
+                        
+                    })
+                    entityRes.push({connection: connection.key, entities})
+                }
             })
+            
             return entityRes
         }
         if (path === 'core_lib.connections') {

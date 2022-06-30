@@ -1,5 +1,6 @@
 import React from 'react'
 import TextField from '@mui/material/TextField';
+import FormHelperText from '@mui/material/FormHelperText';
 
 const InputString = (props) => {
     const getDefault = () => {
@@ -12,6 +13,7 @@ const InputString = (props) => {
             <TextField 
                 InputProps={{
                     className: "form-input",
+                    style:{borderColor: '#d2e5fc', borderRadius: 15},
                 }}
                 type={"text"}
                 id={fieldId}
@@ -22,6 +24,9 @@ const InputString = (props) => {
                 label={props.title}
                 size="small"
             />
+            <FormHelperText id="component-helper-text">
+                {props.helperText}
+            </FormHelperText>
         </div>
     );
 };
@@ -33,6 +38,7 @@ InputString.defaultProps = {
     value:'',
     default_value:'',
     onChange: () => {},
+    helperText: '',
     keyObj: Object,
 }
 

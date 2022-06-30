@@ -22,7 +22,9 @@ const FunctionsTable = (props) => {
                         <TextField
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
-                            className="form-input"
+                            InputProps={{
+                                style:{borderColor: '#d2e5fc', borderRadius: 15}
+                            }}
                             defaultValue={func.key}
                             required={true}
                             label="Function Name"
@@ -57,7 +59,9 @@ const FunctionsTable = (props) => {
                             key={props.keyObj.toString([props.fieldKey, index, 'cache_key'])}
                             type={"text"}
                             id={props.keyObj.toString(['field', props.fieldKey, index, 'cache_key'])}
-                            className="form-input"
+                            InputProps={{
+                                style:{borderColor: '#d2e5fc', borderRadius: 15}
+                            }}
                             value={func.cache_key ? func.cache_key : ''}
                             required={true}
                             placeholder="Cache key"

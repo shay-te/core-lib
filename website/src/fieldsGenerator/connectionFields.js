@@ -15,6 +15,7 @@ export const connectionFields = (path, yamlData) => {
             value: connection.key,
             mandatory: true,
             key: keyPrefix + '.key',
+            toolTipTitle: "Edit connection Name ",
             // validatorCallback: validateFunc,
         },
         {
@@ -35,6 +36,7 @@ export const connectionFields = (path, yamlData) => {
                 'Neo4j'
             ],
             key: keyPrefix + '.config.url.protocol',
+            toolTipTitle: "Select a connetion protocol",
         },
         {
             title: 'Do you want to instantiate it via config?',
@@ -43,6 +45,7 @@ export const connectionFields = (path, yamlData) => {
             value: getBoolean(connection['config_instantiate']),
             mandatory: true,
             key: keyPrefix + '.config_instantiate',
+            toolTipTitle: "If yes, will use `instantiate_config` to initialize via config",
             // validatorCallback: validateFunc,
         },
     );

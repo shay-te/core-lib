@@ -8,6 +8,7 @@ const InputInteger = (props) => {
             <TextField
                 InputProps={{
                     className: "form-input",
+                    style:{borderColor: '#d2e5fc', borderRadius: 15}
                 }}
                 type={"number"}
                 id={fieldId}
