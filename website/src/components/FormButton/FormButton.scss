@@ -3,7 +3,7 @@
 .form-button{
     background-color: $primary-color;
     padding: $spacing-s $spacing-l;
-    margin: 0.5rem;
+    margin: $spacing-xs $spacing-xs $spacing-xs 0;
     border: none; 
     border-radius: 15px;
     cursor: pointer;
