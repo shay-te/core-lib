@@ -32,19 +32,12 @@ function Generator() {
 		<>
 			<div className='close-generator-btn'>
 				<Link to='/generate'>
-					CLOSE
+					Close
 				</Link>
 			</div>
 			<div className='app-root' key={'app-root'}>
-				{/* <ReflexContainer orientation="vertical">
-					<ReflexElement className="left-pane custom-scrollbar" minSize={250} size={350}> */}
-						<DoubleMenu key={'tree'} />
-					{/* </ReflexElement>
-					<ReflexSplitter />
-					<ReflexElement className="right-pane custom-scrollbar" minSize={200}> */}
-						<Form onChange={onFieldChange} />
-					{/* </ReflexElement>
-				</ReflexContainer> */}
+				<DoubleMenu key={'tree'} />
+				<Form onChange={onFieldChange} />
 			</div>
 		</>
 
