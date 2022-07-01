@@ -2,7 +2,7 @@
 
 .form-root{
     width: 100%;
-    padding: 2rem;
+    padding: $spacing-xs $spacing-xl $spacing-xl $spacing-xl;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -39,7 +39,10 @@
 .form-input{
     display: inline-block;
     min-width: 600px;
-    
+}
+
+.form-input-small{
+    display: inline-block;
 }
 
 .mui-input{

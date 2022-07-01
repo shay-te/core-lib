@@ -1,4 +1,5 @@
 import { getENVValue } from "../utils/commonUtils";
+import { isNotNull, isNumber, isSnakeCase } from "../utils/validatorUtils";
 
 export const cacheFields = (path, yamlData) => {
     const pathSplit = path.split('.')
@@ -16,7 +17,7 @@ export const cacheFields = (path, yamlData) => {
         mandatory: true,
         key: `${keyPrefix}.key`,
         toolTipTitle: "Edit Cache Name (snake_case)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isSnakeCase,
     },
     {
         title: "Select Cache Type",
@@ -43,7 +44,7 @@ export const cacheFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.url.port`,
                 env: `${envPrefix}_PORT`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNumber,
             },
             {
                 title: "Enter host of your cache server",
@@ -53,7 +54,7 @@ export const cacheFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.url.host`,
                 env: `${envPrefix}_HOST`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         )
     }
@@ -66,7 +67,7 @@ export const cacheFields = (path, yamlData) => {
                 value: cache["url"]["protocol"],
                 mandatory: true,
                 key: `${keyPrefix}.url.protocol`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         )
     }

@@ -1,3 +1,5 @@
+import { isEmail, isNotNull, isURL } from "../utils/validatorUtils"
+
 export const setupFields = (yamlData) => {
     const fields = []
     const CoreLibName = Object.keys(yamlData)[0]
@@ -10,7 +12,7 @@ export const setupFields = (yamlData) => {
         value: setup.author,
         mandatory: true,
         key: keyPrefix + '.author',
-        // validatorCallback: validateFunc,
+        validatorCallback: isNotNull,
     },
     {
         title: "Your Email",
@@ -19,7 +21,7 @@ export const setupFields = (yamlData) => {
         value: setup.author_email,
         mandatory: true,
         key: keyPrefix + '.author_email',
-        // validatorCallback: validateFunc,
+        validatorCallback: isEmail,
     },
     {
         title: 'Select classifiers',
@@ -55,7 +57,7 @@ export const setupFields = (yamlData) => {
         value: setup.description,
         mandatory: true,
         key: keyPrefix + '.description',
-        // validatorCallback: validateFunc,
+        validatorCallback: isNotNull,
     },
     {
         title: "License Type",
@@ -78,17 +80,17 @@ export const setupFields = (yamlData) => {
         value: setup.url,
         mandatory: false,
         key: keyPrefix + '.url',
-        toolTipTitle: "Optional",
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Should start with https or http (Optional)",
+        validatorCallback: isURL,
     },
     {
         title: "Project version",
         type: "string",
         default_value: '',
         value: setup.version,
-        mandatory: false,
+        mandatory: true,
         key: keyPrefix + '.version',
-        // validatorCallback: validateFunc,
+        validatorCallback: isNotNull,
     })
     return fields
 }

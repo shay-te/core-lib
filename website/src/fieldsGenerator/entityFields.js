@@ -1,4 +1,5 @@
 import { getBoolean } from '../utils/commonUtils';
+import { isSnakeCase } from '../utils/validatorUtils';
 
 export const entityFields = (path, yamlData) => {
     const fields = []
@@ -22,7 +23,7 @@ export const entityFields = (path, yamlData) => {
         mandatory: true,
         key: `${keyPrefix}.key`,
         toolTipTitle: "Edit DB Entity Name (snake_case)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isSnakeCase,
     },
     {
         title: "DB Connection",
@@ -52,7 +53,7 @@ export const entityFields = (path, yamlData) => {
             value: getBoolean(entity["is_soft_delete"]),
             mandatory: true,
             key: keyPrefix + '.is_soft_delete',
-            toolTipTitle: "If you want to implement Soft Delete for this entity",
+            toolTipTitle: {yes: "Will implement Soft Delete for this entity", no: "Will not implement Soft Delete for this entity"},
             // validatorCallback: validateFunc,
         },
         {
@@ -62,7 +63,7 @@ export const entityFields = (path, yamlData) => {
             value: getBoolean(entity["is_soft_delete_token"]),
             mandatory: true,
             key: keyPrefix + '.is_soft_delete_token',
-            toolTipTitle: "If you want to implement Soft Delete Token for this entity",
+            toolTipTitle: {yes: "Will implement Soft Delete Token for this entity", no: "Will not implement Soft Delete Token for this entity"},
             // validatorCallback: validateFunc,
         });
     }

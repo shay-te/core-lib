@@ -1,4 +1,5 @@
 import { getBoolean, getENVValue } from '../utils/commonUtils';
+import { isNotNull } from '../utils/validatorUtils';
 
 export const connectionFields = (path, yamlData) => {
     const fields = [];
@@ -15,8 +16,8 @@ export const connectionFields = (path, yamlData) => {
             value: connection.key,
             mandatory: true,
             key: keyPrefix + '.key',
-            toolTipTitle: "Edit connection Name ",
-            // validatorCallback: validateFunc,
+            toolTipTitle: "Edit Connection Name",
+            validatorCallback: isNotNull,
         },
         {
             title: 'Select connection',
@@ -45,7 +46,7 @@ export const connectionFields = (path, yamlData) => {
             value: getBoolean(connection['config_instantiate']),
             mandatory: true,
             key: keyPrefix + '.config_instantiate',
-            toolTipTitle: "If yes, will use `instantiate_config` to initialize via config",
+            toolTipTitle: {yes: "Will use `instantiate_config` to initialize via config", no: "Will use instantiate a normal class via config"},
             // validatorCallback: validateFunc,
         },
     );
@@ -76,7 +77,7 @@ export const connectionFields = (path, yamlData) => {
                 value: connection['config']['session']['pool_recycle'],
                 mandatory: true,
                 key: keyPrefix + '.config.session.pool_recycle',
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
             {
                 title: 'Do you want to set pool pre ping?',
@@ -100,7 +101,7 @@ export const connectionFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.config.url.port`,
                 env: `${envPrefix}_PORT`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
             {
                 title: 'Enter host of your connection',
@@ -110,7 +111,7 @@ export const connectionFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.config.url.host`,
                 env: `${envPrefix}_HOST`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         );
         if (!connection['type'].includes('Neo4jConnectionRegistry')) {
@@ -123,7 +124,7 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: `${keyPrefix}.config.url.file`,
                     env: `${envPrefix}_DB`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 },
             )
         }
@@ -139,7 +140,7 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.username` : `${keyPrefix}.config.credentials.username`,
                     env: `${envPrefix}_USER`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 },
                 {
                     title: 'Enter your connection password',
@@ -151,7 +152,7 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.password` : `${keyPrefix}.config.credentials.password`,
                     env: `${envPrefix}_PASSWORD`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 }
             )
         }

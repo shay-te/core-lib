@@ -1,37 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import HoverVisible from "../hoverVisible/HoverVisible";
-import { Checkbox, TextField } from "@mui/material";
+import { Checkbox} from "@mui/material";
+import { isNotNull, isSnakeCaseCapital } from "../../utils/validatorUtils";
+import InputString from "../inputs/InputString";
 
 const FunctionsTable = (props) => {
+    const [functions, setFunctions] = useState([]);
     const [visible, setVisible] = useState(false);
     const items = [];
     const isDataAccess = props.fieldKey.includes('core_lib.data_accesses.');
-    items.push(
+    useEffect(() => {
+        if(functions.length !== props.value.length){
+            setFunctions(props.value)
+        }
         
-        props.value.map((func, index) => {
-            
+    }, [props.value.length])
+    items.push(
+        functions.map((func, index) => {
             return (
                 <tr
-                    key={index}
+                    key={props.keyObj.toString([props.fieldKey, index, 'key', func.key])}
                     onMouseEnter={() => setVisible(true)}
                     onMouseLeave={() => setVisible(false)}
                     onMouseOver={() => setVisible(true)}
                     className="tr"
                 >
                     <td key={props.keyObj.toString([props.fieldKey, index, 'key'])} className="td">
-                        <TextField
-                            type={"text"}
-                            id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
-                            InputProps={{
-                                style:{borderColor: '#d2e5fc', borderRadius: 15}
-                            }}
-                            defaultValue={func.key}
-                            required={true}
-                            label="Function Name"
+                        <InputString
+                            index={index}
+                            key={props.keyObj.toString([props.fieldKey, index, 'key'])}
+                            title={"Function Name"}
+                            mandatory={true}
+                            value={func.key}
+                            default_value={func.key}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
-                            size='small'
+                            fieldKey={props.fieldKey}
+                            keyObj={props.keyObj}
+                            validatorCallback={isNotNull}
+                            fullWidth={false}
                         />
                     </td>
                     <td
@@ -55,22 +63,21 @@ const FunctionsTable = (props) => {
                         key={props.keyObj.toString([props.fieldKey, index, 'cache_key'])}
                         className={isDataAccess ? "hide" : "td"}
                     >
-                        <TextField
+                        <InputString
+                            index={index}
                             key={props.keyObj.toString([props.fieldKey, index, 'cache_key'])}
-                            type={"text"}
-                            id={props.keyObj.toString(['field', props.fieldKey, index, 'cache_key'])}
-                            InputProps={{
-                                style:{borderColor: '#d2e5fc', borderRadius: 15}
-                            }}
+                            title={"Cache key"}
+                            mandatory={false}
                             value={func.cache_key ? func.cache_key : ''}
-                            required={true}
-                            placeholder="Cache key"
-                            label="Cache key"
-                            disabled={isDataAccess}
+                            default_value={func.cache_key ? func.cache_key : ''}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'cache_key']),
                             })}
-                            size='small'
+                            fieldKey={props.fieldKey}
+                            keyObj={props.keyObj}
+                            validatorCallback={isSnakeCaseCapital}
+                            toolTipTitle={'Cache key in CAPITAL LETTERS'}
+                            fullWidth={false}
                         />
                     </td>
                     <td
@@ -78,7 +85,7 @@ const FunctionsTable = (props) => {
                         className={isDataAccess ? "hide" : "td"}
                     >
                         <Checkbox
-                            key={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate'])}
+                            key={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate', func.cache_invalidate])}
                             id={props.keyObj.toString([props.fieldKey, index, 'cache_invalidate'])}
                             name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'cache_invalidate'])}
                             value={func.cache_invalidate}
@@ -109,7 +116,7 @@ const FunctionsTable = (props) => {
         })
     );
     let render = '';
-    if (props.value.length !== 0) {
+    if (functions.length !== 0) {
         render = 
             <table className="table">
                 <thead>

@@ -8,15 +8,8 @@ import Form from './../components/form/Form';
 import {
 	updateFields
 } from "./../components/slices/treeSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, Provider } from "react-redux";
 import { store } from './../components/store/store';
-import { Provider } from 'react-redux';
-
-import {
-	ReflexContainer,
-	ReflexSplitter,
-	ReflexElement
-} from 'react-reflex'
 import 'react-reflex/styles.css'
 import Link from '@docusaurus/Link';
 import { Key } from '../utils/Key';
@@ -32,7 +25,7 @@ function Generator() {
             isBool = data['isBoolean']
         }
 		if (field.key) {
-			dispatch(updateFields({ path: field.key, value: e.target.value, env: field.env, addOrRemove: e.target.checked, isBool: isBool }))
+			dispatch(updateFields({ path: field.key, value: e.target.value.trim(), env: field.env, addOrRemove: e.target.checked, isBool: isBool }))
 		}
 	}
 	return (

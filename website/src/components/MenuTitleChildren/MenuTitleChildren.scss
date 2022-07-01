@@ -1,7 +1,7 @@
 @import './../../utils/css/variables.scss';
 
 .title-children-root{
-    padding: $spacing-l;
+    padding: $spacing-xs $spacing-l $spacing-l $spacing-l;
     width: 100%;
     .title-div{
         padding: $spacing-xs;

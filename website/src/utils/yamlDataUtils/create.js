@@ -8,7 +8,6 @@ export const entity = (yamlData, connection) => {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    console.log(connection)    
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
         connection: connection,

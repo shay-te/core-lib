@@ -2,7 +2,7 @@ import React, {useState} from "react"
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import HoverVisible from "../hoverVisible/HoverVisible";
-import './TitleChildren.scss';
+import './MenuTitleChildren.scss';
 
 const RenderChild = (props) => {
     const [isVisible, setIsVisible] = useState(false)
@@ -35,7 +35,7 @@ const RenderChild = (props) => {
     )
 }
 
-const TitleChildren = (props) => {
+const MenuTitleChildren = (props) => {
     const children = []
     useEffect(()=>{}, [props.children])
     props.children.forEach((child, index) => {
@@ -44,9 +44,10 @@ const TitleChildren = (props) => {
         )
     })
 
-    const renderChildren = (
-        children.length > 0 ? children : <div className={`child child-info`}>No entries in this section.</div>
-    )
+    let renderChildren = ''
+    if(props.showChildren){
+        renderChildren = (children.length > 0 ? children : <div className={`child child-info`}>No entries in this section.</div>)
+    }
     
     return(
         <div className="title-children-root">
@@ -65,7 +66,7 @@ const TitleChildren = (props) => {
     )
 }
 
-TitleChildren.defaultProps = {
+MenuTitleChildren.defaultProps = {
     title:'',
     children: [],
     onClick: () => {},
@@ -73,6 +74,7 @@ TitleChildren.defaultProps = {
     onDeleteClick: () => {},
     showAdd: true,
     showDelete: true,
+    showChildren: true,
 }
 
-export default TitleChildren
+export default MenuTitleChildren

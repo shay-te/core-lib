@@ -1,3 +1,5 @@
+import { isNotNull, isSnakeCase, isTimeFrame } from "../utils/validatorUtils";
+
 export const jobFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const index = pathSplit.at(pathSplit.indexOf('jobs')+1)
@@ -12,7 +14,7 @@ export const jobFields = (path, yamlData) => {
         mandatory: true,
         key: `${keyPrefix}.key`,
         toolTipTitle: "Edit Job Name (snake_case)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isSnakeCase,
     },
     {
         title: "Enter Initial Dealy",
@@ -22,17 +24,17 @@ export const jobFields = (path, yamlData) => {
         mandatory: true,
         key: `${keyPrefix}.initial_delay`,
         helperText: "Initial delay for the job (boot, startup, 1s, 1m, 1h, 1h30m ...)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isTimeFrame,
     },
     {
         title: "Enter Frequency for Job",
         type: "string",
         default_value: '',
         value: job.frequency,
-        mandatory: true,
+        mandatory: false,
         key: `${keyPrefix}.frequency`,
         helperText: "Frequency of the job (1s, 1m, 1h, 1h30m ...)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isTimeFrame,
     },
     )
     return fields

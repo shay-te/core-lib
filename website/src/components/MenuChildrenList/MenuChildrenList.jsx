@@ -1,5 +1,5 @@
 import React from "react"
-import TitleChildren from "../TitleChildren/TitleChildren"
+import MenuTitleChildren from "../MenuTitleChildren/MenuTitleChildren"
 import { useDispatch, useSelector } from "react-redux";
 import {
     setFields,
@@ -7,9 +7,9 @@ import {
     deleteTreeBranch
 } from "../slices/treeSlice";
 
-import './ChildrenList.scss'
+import './MenuChildrenList.scss'
 
-const ChildrenList = () => {
+const MenuChildrenList = () => {
     const dataAccess = useSelector((state) => state.treeData.dataAccess);
     const connections = useSelector((state) => state.treeData.connections);
     const entities = useSelector((state) => state.treeData.entities);
@@ -68,16 +68,17 @@ const ChildrenList = () => {
     switch (selected) {
         case "core_lib":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'core_lib'}
                     title='Core-Lib' 
                     showAdd={false}
+                    showChildren={false}
                 />
             )
             break;
         case "data_accesses":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'data_accesses'}
                     title='Data Accesses' 
                     children={dataAccess} 
@@ -89,7 +90,7 @@ const ChildrenList = () => {
             break;
         case "connections":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'connections'}
                     title='Connections' 
                     children={connections} 
@@ -102,7 +103,7 @@ const ChildrenList = () => {
         case "entities":
             entities.forEach(entity => {
                 items.push(
-                    <TitleChildren 
+                    <MenuTitleChildren 
                         key={entity.connection}
                         title={entity.connection}
                         children={entity.entities} 
@@ -116,7 +117,7 @@ const ChildrenList = () => {
             break;
         case "services":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'services'}
                     title='Services' 
                     children={services} 
@@ -128,7 +129,7 @@ const ChildrenList = () => {
             break;
         case "jobs":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'jobs'}
                     title='Jobs' 
                     children={jobs} 
@@ -140,7 +141,7 @@ const ChildrenList = () => {
             break;
         case "caches":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'caches'}
                     title='Caches' 
                     children={cache} 
@@ -152,16 +153,17 @@ const ChildrenList = () => {
             break;
         case "setup":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'setup'}
                     title='Setup' 
                     showAdd={false}
+                    showChildren={false}
                 />
             )
             break;
         case "export":
             items.push(
-                <TitleChildren 
+                <MenuTitleChildren 
                     key={'export'}
                     title='Export'
                     children={[{name: 'Export YAML', path: 'export_yaml'}, {name: 'Download ZIP', path: 'download_zip'}]}
@@ -179,4 +181,4 @@ const ChildrenList = () => {
     )
 }
 
-export default ChildrenList
+export default MenuChildrenList

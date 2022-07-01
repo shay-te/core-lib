@@ -1,3 +1,5 @@
+import { isPascalCase } from "../utils/validatorUtils";
+
 export const dataAccessFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const dataAccessList = yamlData.core_lib.data_accesses
@@ -34,7 +36,7 @@ export const dataAccessFields = (path, yamlData) => {
         mandatory: true,
         key: keyPrefix + '.key',
         toolTipTitle: "Edit Data Access Name (PascalCase)",
-        // validatorCallback: validateFunc, onchange validator, predefined validation func for each types
+        validatorCallback: isPascalCase,
     },
     {
         title: 'Connection',
@@ -83,7 +85,7 @@ export const dataAccessFields = (path, yamlData) => {
             value: dataAccess['is_crud'],
             mandatory: true,
             key: keyPrefix + '.is_crud',
-            toolTipTitle: "If you want to implement CRUD for this Data Access",
+            toolTipTitle: {yes: "Will implement CRUD for this Data Access", no: "Will not implement CRUD for this Data Access"},
             // validatorCallback: validateFunc,
         })
         if(dataAccess['is_crud']){
@@ -94,7 +96,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete',
-                toolTipTitle: "If you want to implement CRUD Soft Delete for this Data Access",
+                toolTipTitle: {yes: "Will implement CRUD Soft Delete for this Data Access", no: "Will not implement CRUD Soft Delete for this Data Access"},
                 // validatorCallback: validateFunc,
             })
         }
@@ -106,7 +108,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete_token'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete_token',
-                toolTipTitle: "If you want to implement CRUD Soft Delete Token for this Data Access",
+                toolTipTitle: {yes: "Will implement CRUD Soft Delete Token for this Data Access", no: "Will not implement CRUD Soft Delete Token for this Data Access"},
                 // validatorCallback: validateFunc,
             })
         }

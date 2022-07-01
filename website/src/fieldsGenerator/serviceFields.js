@@ -1,4 +1,4 @@
-import { getBoolean } from '../utils/commonUtils';
+import { isPascalCase } from '../utils/validatorUtils';
 
 export const serviceFields = (path, yamlData) => {
     const fields = []
@@ -19,7 +19,7 @@ export const serviceFields = (path, yamlData) => {
         mandatory: true,
         key: `${keyPrefix}.key`,
         toolTipTitle: "Edit Service Name (PascalCase)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isPascalCase,
     },
     {
         title: "DataAccess",

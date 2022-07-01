@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import ChildrenList from '../ChildrenList/ChildrenList';
-import IconsList from "../IconsList/IconsList"
+import MenuChildrenList from '../MenuChildrenList/MenuChildrenList';
+import MenuIconsList from "../MenuIconsList/MenuIconsList"
 import './DoubleMenu.scss'
 
 import { useSelector, useDispatch } from "react-redux";
@@ -27,8 +27,8 @@ const DoubleMenu = () => {
 
     return(
         <div className="double-menu-root">
-            <IconsList/>
-            <ChildrenList/>
+            <MenuIconsList/>
+            <MenuChildrenList/>
         </div>
     )
 }

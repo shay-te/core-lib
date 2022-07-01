@@ -81,7 +81,6 @@ export class YamlData {
     }
 
     createEntity(connection) {
-        console.log(connection)
         this.yaml = create.entity(this.yaml, connection)
     }
 

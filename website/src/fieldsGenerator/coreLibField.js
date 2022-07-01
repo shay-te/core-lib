@@ -1,6 +1,7 @@
+import { isPascalCase } from "../utils/validatorUtils";
+
 export const coreLibField = (yamlData) => {
     const fields = [];
-    
     fields.push({
         title: 'Enter Core-Lib name',
         type: 'string',
@@ -9,7 +10,7 @@ export const coreLibField = (yamlData) => {
         mandatory: true,
         key: 'core_lib.name',
         toolTipTitle: "Edit Core-Lib Name (PascalCase)",
-        // validatorCallback: validateFunc,
+        validatorCallback: isPascalCase,
     })
     return fields
 }
