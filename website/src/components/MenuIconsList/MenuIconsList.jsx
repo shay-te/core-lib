@@ -5,26 +5,27 @@ import Tooltip from '@mui/material/Tooltip';
 const MenuIconsList = (props) => {
     const renderTopIcons = []
     const renderBottomIcons = []   
-
-    const renderIcon = (tooltipTitle, item, onClick, selected) => {
-        return(
-            <Tooltip title={tooltipTitle} placement='right' arrow>
-                <div onClick={() => onClick()} className={`list-icon ${selected? 'selected' : ''}`}>
-                    {item}
+    
+    props.topMenuItems.forEach((item) => {
+        renderTopIcons.push(
+            <Tooltip title={item.tooltipTitle} placement='right' arrow>
+                <div onClick={() => item.onClick()} className={`list-icon ${item.selected? 'selected' : ''}`}>
+                    {item.item}
                 </div>
             </Tooltip> 
         )
-    }
-    props.topMenuItems.forEach((item) => {
-        renderTopIcons.push(
-            renderIcon(item.tooltipTitle, item.item, item.onClick(), item.selected)
-        )
+        
     })
 
     props.bottomMenuItems.forEach((item) => {
         renderBottomIcons.push(
-            renderIcon(item.tooltipTitle, item.item, item.onClick(), item.selected)
+            <Tooltip title={item.tooltipTitle} placement='right' arrow>
+                <div onClick={() => item.onClick()} className={`list-icon ${item.selected? 'selected' : ''}`}>
+                    {item.item}
+                </div>
+            </Tooltip> 
         )
+        
     })
 
 
