@@ -23,13 +23,12 @@ const deleteConnData = (connData, yamData) => {
     const connName = connData[0].key
     const entities = []
     if(entityTarget.length > 0){
-        entityTarget.forEach((entity) => {
+        for ( const entity of entityTarget ){
             if(entity.connection !== connName){
                 entities.push(entity)
             }
-        });
+        }
         data.core_lib.entities = entities
-        entityTarget = entities.slice(0)
     }
     const dataAccessSteps = ['core_lib', 'data_accesses']
     const daTarget = getValueAtPath(data, dataAccessSteps)
