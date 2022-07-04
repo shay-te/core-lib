@@ -24,7 +24,6 @@ export const connectionFields = (path, yamlData) => {
             type: 'enum',
             mandatory: true,
             value: connection['type'].includes('SolrConnectionRegistry') ? 'solr' : connection['config']['url']['protocol'],
-            // validatorCallback: validateFunc,
             options: [
                 'SQLite',
                 'Postgresql',
@@ -47,7 +46,6 @@ export const connectionFields = (path, yamlData) => {
             mandatory: true,
             key: keyPrefix + '.config_instantiate',
             toolTipTitle: {yes: "Will use `instantiate_config` to initialize via config", no: "Will use instantiate a normal class via config"},
-            // validatorCallback: validateFunc,
         },
     );
     if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
@@ -59,7 +57,6 @@ export const connectionFields = (path, yamlData) => {
                 value: connection['config']['log_queries'],
                 mandatory: true,
                 key: keyPrefix + '.config.log_queries',
-                // validatorCallback: validateFunc,
             },
             {
                 title: 'Do you want create Database?',
@@ -68,7 +65,6 @@ export const connectionFields = (path, yamlData) => {
                 value: connection['config']['create_db'],
                 mandatory: true,
                 key: keyPrefix + '.config.create_db',
-                // validatorCallback: validateFunc,
             },
             {
                 title: 'Enter the pool recycle time',
@@ -86,7 +82,6 @@ export const connectionFields = (path, yamlData) => {
                 value: connection['config']['session']['pool_pre_ping'],
                 mandatory: true,
                 key: keyPrefix + '.config.session.pool_pre_ping',
-                // validatorCallback: validateFunc,
             }
         );
     }

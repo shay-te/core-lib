@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import './MenuTitleChildren.scss';
 
-const RenderChild = (props) => {
+const HandleChildRenderEvents = (props) => {
     const [isVisible, setIsVisible] = useState(false)
     const selectedField = useSelector((state) => state.treeData.selectedField);
     
@@ -37,16 +37,16 @@ const RenderChild = (props) => {
 
 const MenuTitleChildren = (props) => {
     const children = []
-    useEffect(()=>{}, [props.children])
-    props.children.forEach((child, index) => {
+    useEffect(()=>{}, [props.items])
+    props.items.forEach((child, index) => {
         children.push(
-           <RenderChild key={index} path={child.path} name={child.name} index={index} onClick={props.onClick} onDeleteClick={props.onDeleteClick} showDelete={props.showDelete}/>
+           <HandleChildRenderEvents key={index} path={child.path} name={child.name} index={index} onClick={props.onClick} onDeleteClick={props.onDeleteClick} showDelete={props.showDelete}/>
         )
     })
 
     let renderChildren = ''
     if(props.showChildren){
-        renderChildren = (children.length > 0 ? children : <div className={`child child-info`}>No entries in this section.</div>)
+        renderChildren = (children.length > 0 ? children : <div className={`child child-info`}>{props.noEntriesMessage}</div>)
     }
     
     return(
@@ -68,13 +68,14 @@ const MenuTitleChildren = (props) => {
 
 MenuTitleChildren.defaultProps = {
     title:'',
-    children: [],
+    items: [],
     onClick: () => {},
     onAddClick: () => {},
     onDeleteClick: () => {},
     showAdd: true,
     showDelete: true,
     showChildren: true,
+    noEntriesMessage: '',
 }
 
 export default MenuTitleChildren

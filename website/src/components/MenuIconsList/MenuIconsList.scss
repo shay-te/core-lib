@@ -4,28 +4,25 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    
     height: 100%;
     border-right: 1px solid #cccccc;
     overflow-y: auto;
     overflow-x: hidden;
-    .icons-list{
+    .top-icons-list{
         display: flex;
         flex-direction: column;
     }
-    .export-icon{
+    .bottom-icons-list{
+        display: flex;
+        flex-direction: column;
         margin-bottom: $spacing-xs;
     }
-    .core-lib-image{
-        height: auto;
-        width: 55px;
-    }
-
     .list-icon{
         align-self: center;
-        padding: $spacing-m;
+        padding: $spacing-s;
         margin: $spacing-xs;
         font-size: 20px;
-
         &:hover{
             cursor: pointer;
         }

@@ -7,7 +7,6 @@ import InputString from "../inputs/InputString";
 const FunctionsTable = (props) => {
     const [functions, setFunctions] = useState([]);
     const [visible, setVisible] = useState(false);
-    const items = [];
     const isDataAccess = props.fieldKey.includes('core_lib.data_accesses.');
     useEffect(() => {
         if(functions.length !== props.value.length){
@@ -15,7 +14,7 @@ const FunctionsTable = (props) => {
         }
         
     }, [props.value.length])
-    items.push(
+    const items = (
         functions.map((func, index) => {
             return (
                 <tr

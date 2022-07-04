@@ -34,7 +34,6 @@ export const entityFields = (path, yamlData) => {
         options: dbConn,
         key: keyPrefix + '.connection',
         toolTipTitle: "Select DB Connection",
-        // validatorCallback: validateFunc,
     },
     {
         title: "Columns",
@@ -43,7 +42,6 @@ export const entityFields = (path, yamlData) => {
         value: entity.columns,
         mandatory: true,
         key: `${keyPrefix}.columns`,
-        // validatorCallback: validateFunc,
     });
     if(entity.hasOwnProperty('is_soft_delete')){
         fields.push({
@@ -54,7 +52,6 @@ export const entityFields = (path, yamlData) => {
             mandatory: true,
             key: keyPrefix + '.is_soft_delete',
             toolTipTitle: {yes: "Will implement Soft Delete for this entity", no: "Will not implement Soft Delete for this entity"},
-            // validatorCallback: validateFunc,
         },
         {
             title: "Is Soft Delete Token",
@@ -64,7 +61,6 @@ export const entityFields = (path, yamlData) => {
             mandatory: true,
             key: keyPrefix + '.is_soft_delete_token',
             toolTipTitle: {yes: "Will implement Soft Delete Token for this entity", no: "Will not implement Soft Delete Token for this entity"},
-            // validatorCallback: validateFunc,
         });
     }
     return fields

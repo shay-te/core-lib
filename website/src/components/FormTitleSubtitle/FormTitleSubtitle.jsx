@@ -3,7 +3,7 @@ import React from 'react'
 
 const FormTitleSubtitle = (props) => {
     return (
-        <div className="form-input-div" key={props.fieldKey}>
+        <div className="form-input-div" key={props.keyObj.toString([props.fieldKey])}>
             <div className="form-title">
                 {props.title}
             </div>

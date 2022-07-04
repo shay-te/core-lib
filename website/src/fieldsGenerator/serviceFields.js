@@ -30,7 +30,6 @@ export const serviceFields = (path, yamlData) => {
         options: dataAccess,
         key: keyPrefix + '.data_access',
         toolTipTitle: "Select Data Access for this Service",
-        // validatorCallback: validateFunc,
     },
     {
         title: "Functions",
@@ -39,7 +38,6 @@ export const serviceFields = (path, yamlData) => {
         value: service.functions,
         mandatory: true,
         key: `${keyPrefix}.functions`,
-        // validatorCallback: validateFunc,
     });
     return fields
 };

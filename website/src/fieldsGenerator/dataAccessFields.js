@@ -47,7 +47,6 @@ export const dataAccessFields = (path, yamlData) => {
         options: connection,
         key: keyPrefix + '.connection',
         toolTipTitle: "Select connection for data access",
-        // validatorCallback: validateFunc,
     })
     if(dataAccess['connection']){
         if(connections[connIndex - 1]['type'].includes('sql')){
@@ -74,7 +73,6 @@ export const dataAccessFields = (path, yamlData) => {
             value: dataAccess.functions,
             mandatory: true,
             key: `${keyPrefix}.functions`,
-            // validatorCallback: validateFunc,
         }
     )
     if(isSql){
@@ -86,7 +84,6 @@ export const dataAccessFields = (path, yamlData) => {
             mandatory: true,
             key: keyPrefix + '.is_crud',
             toolTipTitle: {yes: "Will implement CRUD for this Data Access", no: "Will not implement CRUD for this Data Access"},
-            // validatorCallback: validateFunc,
         })
         if(dataAccess['is_crud']){
             fields.push({
@@ -97,7 +94,6 @@ export const dataAccessFields = (path, yamlData) => {
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete',
                 toolTipTitle: {yes: "Will implement CRUD Soft Delete for this Data Access", no: "Will not implement CRUD Soft Delete for this Data Access"},
-                // validatorCallback: validateFunc,
             })
         }
         if(dataAccess['is_crud_soft_delete']){
@@ -109,7 +105,6 @@ export const dataAccessFields = (path, yamlData) => {
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete_token',
                 toolTipTitle: {yes: "Will implement CRUD Soft Delete Token for this Data Access", no: "Will not implement CRUD Soft Delete Token for this Data Access"},
-                // validatorCallback: validateFunc,
             })
         }
     }

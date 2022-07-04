@@ -32,7 +32,6 @@ export const cacheFields = (path, yamlData) => {
         ],
         key: `${keyPrefix}.type`,
         toolTipTitle: "Select type of your cache for this Core-Lib",
-        // validatorCallback: validateFunc,
     })
     if(cache['type'] !== 'memory'){
         fields.push(

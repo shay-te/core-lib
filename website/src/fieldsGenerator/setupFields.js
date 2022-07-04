@@ -29,7 +29,6 @@ export const setupFields = (yamlData) => {
         default_value: 'Development Status :: 3 - Alpha',
         value: setup.classifiers,
         mandatory: true,
-        // validatorCallback: validateFunc,
         multiple_selection: true,
         options: [
             'Development Status :: 3 - Alpha',
@@ -71,7 +70,6 @@ export const setupFields = (yamlData) => {
             'MOZILLA_PUBLIC_LICENSE_2',
         ],
         key: keyPrefix + '.license',
-        // validatorCallback: validateFunc,
     },
     {
         title: "Project url",

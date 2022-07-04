@@ -10,13 +10,11 @@ export const exportYamlFields = () => {
                       'You can either select the Download Zip option and download the zip file of your Core-Lib right away or '+
                       'you can use the command `core_lib -g YourCoreLib.yaml` to generate a new Core-Lib from the command line.',
             type: 'title_subtitle',
-            // validatorCallback: validateFunc,
         },
         {
             label: 'Export YAML',
             type: 'button',
             onClick: downloadYaml,
-            // validatorCallback: validateFunc,
         },
     )
     return fields

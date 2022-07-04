@@ -64,113 +64,71 @@ const MenuChildrenList = () => {
         dispatch(addNewEntry("services"));
     }
 
+
+    const renderMenuTitle = (key, title, noEntriesMessage = '', children = [], showAdd = false, showDelete = false, showChildren = false,  onClick = () => {}, onAddClick = () => {}) => {
+       return <MenuTitleChildren 
+            key={key}
+            title={title} 
+            items={children}
+            showAdd={showAdd}
+            showDelete={showDelete}
+            showChildren={showChildren}
+            onClick={onClick}
+            onAddClick={onAddClick}
+            onDeleteClick={onDeleteClick}
+            noEntriesMessage={noEntriesMessage}
+        />
+    }
+
     const items = []
     switch (selected) {
         case "core_lib":
             items.push(
-                <MenuTitleChildren 
-                    key={'core_lib'}
-                    title='Core-Lib' 
-                    showAdd={false}
-                    showChildren={false}
-                />
+                renderMenuTitle('core_lib', 'Core-Lib')
             )
             break;
         case "data_accesses":
             items.push(
-                <MenuTitleChildren 
-                    key={'data_accesses'}
-                    title='Data Accesses' 
-                    children={dataAccess} 
-                    onClick={onDataAccessClick}
-                    onAddClick={onAddDataAccess}
-                    onDeleteClick={onDeleteClick}
-                />
+                renderMenuTitle('data_accesses', 'Data Accesses', 'No Data Accesses added yet.', dataAccess, true, true , true, onDataAccessClick, onAddDataAccess)
             )
             break;
         case "connections":
             items.push(
-                <MenuTitleChildren 
-                    key={'connections'}
-                    title='Connections' 
-                    children={connections} 
-                    onClick={onConnectionClick}
-                    onAddClick={onAddConnection}
-                    onDeleteClick={onDeleteClick}
-                />
+                renderMenuTitle('connections', 'Connections', 'No Connections added yet.', connections, true, true , true, onConnectionClick, onAddConnection)
             )
             break;
         case "entities":
             entities.forEach(entity => {
                 items.push(
-                    <MenuTitleChildren 
-                        key={entity.connection}
-                        title={entity.connection}
-                        children={entity.entities} 
-                        onClick={onEntityClick}
-                        onAddClick={onAddEntity}
-                        onDeleteClick={onDeleteClick}
-                    />
+                    renderMenuTitle(entity.connection, entity.connection, 'No Entities added to this connection yet.', entity.entities, true, true , true, onEntityClick, onAddEntity)
                 )
             });
             
             break;
         case "services":
             items.push(
-                <MenuTitleChildren 
-                    key={'services'}
-                    title='Services' 
-                    children={services} 
-                    onClick={onServiceClick}
-                    onAddClick={onAddService}
-                    onDeleteClick={onDeleteClick}
-                />
+                renderMenuTitle('services', 'Services', 'No Services added yet.', services, true, true , true, onServiceClick, onAddService)
             )
             break;
         case "jobs":
             items.push(
-                <MenuTitleChildren 
-                    key={'jobs'}
-                    title='Jobs' 
-                    children={jobs} 
-                    onClick={onJobClick}
-                    onAddClick={onAddJob}
-                    onDeleteClick={onDeleteClick}
-                />
+                renderMenuTitle('jobs', 'Jobs', 'No Jobs added yet.', jobs, true, true , true, onJobClick, onAddJob)
             )
             break;
         case "caches":
             items.push(
-                <MenuTitleChildren 
-                    key={'caches'}
-                    title='Caches' 
-                    children={cache} 
-                    onClick={onCacheClick}
-                    onAddClick={onAddCache}
-                    onDeleteClick={onDeleteClick}
-                />
+                renderMenuTitle('caches', 'Caches', 'No Caches added yet.', cache, true, true , true, onCacheClick, onAddCache)
             )
             break;
         case "setup":
             items.push(
-                <MenuTitleChildren 
-                    key={'setup'}
-                    title='Setup' 
-                    showAdd={false}
-                    showChildren={false}
-                />
+                renderMenuTitle('setup', 'Setup')
             )
             break;
         case "export":
+            const exportChildren = [{name: 'Export YAML', path: 'export_yaml'}, {name: 'Download ZIP', path: 'download_zip'}]
             items.push(
-                <MenuTitleChildren 
-                    key={'export'}
-                    title='Export'
-                    children={[{name: 'Export YAML', path: 'export_yaml'}, {name: 'Download ZIP', path: 'download_zip'}]}
-                    showAdd={false}
-                    showDelete={false}
-                    onClick={onExportClick}
-                />
+                renderMenuTitle('export', 'Export', '', exportChildren, false, false, true, onExportClick)
             )
             break;
     }
