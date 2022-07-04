@@ -50,7 +50,7 @@ class DataAccessGenerateTemplate(TemplateGenerator):
                     '# template_functions',
                     add_tab_spaces('pass', 1)
                 )
-                updated_file = remove_line('# template_function_imports', updated_file)
+            updated_file = remove_line('# template_function_imports', updated_file)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
