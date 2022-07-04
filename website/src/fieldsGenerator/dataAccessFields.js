@@ -3,11 +3,14 @@ import { isPascalCase } from "../utils/validatorUtils";
 export const dataAccessFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const dataAccessList = yamlData.core_lib.data_accesses
+    const fields = []
     const index = pathSplit.at(pathSplit.indexOf('data_accesses')+1)
     const dataAccess = dataAccessList[index]
+    if(!dataAccess){
+        return fields
+    }
     const connections = yamlData.core_lib.connections
     const entities = yamlData.core_lib.entities
-    const fields = []
     const connection = ['']
     const entity = ['']
     const keyPrefix = `core_lib.data_accesses.${index}`

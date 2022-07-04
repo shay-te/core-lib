@@ -15,6 +15,9 @@ const MenuIcons = () => {
 
     const onDataAccessClick = () => {
         dispatch(setList('data_accesses'));
+        if(yaml.core_lib.data_accesses.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.data_accesses.0"}));
+        }
     };
     const onCoreLibClick = () => {
         dispatch(setList('core_lib'));
@@ -26,18 +29,33 @@ const MenuIcons = () => {
     };
     const onEntityClick = () => {
         dispatch(setList('entities'));
+        if(yaml.core_lib.entities.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.entities.0"}));
+        }
     };
     const onConnectionClick = () => {
         dispatch(setList('connections'));
+        if(yaml.core_lib.connections.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.connections.0"}));
+        }
     };
     const onCacheClick = () => {
         dispatch(setList('caches'));
+        if(yaml.core_lib.caches.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.caches.0"}));
+        }
     };
     const onServiceClick = () => {
         dispatch(setList('services'));
+        if(yaml.core_lib.services.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.services.0"}));
+        }
     }
     const onJobClick = () => {
         dispatch(setList('jobs'));
+        if(yaml.core_lib.jobs.length > 0){
+            dispatch(setFields({ title: "Data Access", path: "core_lib.jobs.0"}));
+        }
     };
     const onExportClick = () => {
         dispatch(setList('export'));

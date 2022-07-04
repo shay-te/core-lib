@@ -6,6 +6,9 @@ export const serviceFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const index = pathSplit.at(pathSplit.indexOf('services') + 1)
     const service = yamlData.core_lib.services[index]
+    if(!service){
+        return fields
+    }
     const dataAccesses = yamlData.core_lib.data_accesses
     const keyPrefix = `core_lib.services.${index}`
     dataAccesses.forEach(da => {

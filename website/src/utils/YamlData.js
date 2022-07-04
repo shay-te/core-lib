@@ -107,7 +107,7 @@ export class YamlData {
         this.yaml = create.functions(path, this.yaml)
     }
 
-    createServices(path){
+    createServices(){
         this.yaml = create.services(this.yaml)
     }
 
@@ -118,52 +118,6 @@ export class YamlData {
         const delData = parent.splice(steps.at(-1), 1);
         data = deleteData(path, delData, data)
         this.yaml = data
-    }
-
-    get(path) {
-        return path.split('.').reduce((obj, key) => {
-            return obj && obj[key];
-        }, this.yaml);
-    }
-
-    listChildrenUnderPath(path) {
-        const res = []
-        const list = this.get(path) 
-        
-        if(!list){
-            return res
-        }
-        if (path === 'core_lib.entities') {
-            const entityRes = []
-            const connectionList = this.get('core_lib.connections')
-            connectionList.forEach((connection) => {
-                if(connection.type.includes('SqlAlchemyConnectionRegistry')) {
-                    const entities = []
-                    list.forEach((entity, index) => {
-                        if(connection.key === entity.connection){
-                            entities.push({ name: `${entity.key}`, path: path + '.' + index, dbConnection: entity.connection })
-                        }
-                        
-                    })
-                    entityRes.push({connection: connection.key, entities})
-                }
-            })
-            
-            return entityRes
-        }
-        if (path === 'core_lib.connections') {
-            list.forEach((dbConn, index) => {
-                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
-            })
-            return res
-
-        }
-        if(list instanceof Array){
-            list.forEach((item, index )=> {
-                res.push({ name: item.key, path: path + '.' + index })
-            })
-        }
-        return res
     }
 
     toJSON() {

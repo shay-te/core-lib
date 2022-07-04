@@ -1,6 +1,5 @@
-import React, {useState} from "react"
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, {useState, useEffect} from "react"
+import { useSelector } from "react-redux";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import './MenuTitleChildren.scss';
 
@@ -36,17 +35,22 @@ const HandleChildRenderEvents = (props) => {
 }
 
 const MenuTitleChildren = (props) => {
-    const children = []
-    useEffect(()=>{}, [props.items])
-    props.items.forEach((child, index) => {
-        children.push(
-           <HandleChildRenderEvents key={index} path={child.path} name={child.name} index={index} onClick={props.onClick} onDeleteClick={props.onDeleteClick} showDelete={props.showDelete}/>
+    const [children, setChildren] = useState([]);
+    const childrenList = []
+    useEffect(() => {
+        if(props.items.length !== children.length){
+            setChildren(props.items)
+        }
+    }, [props.items])
+    children.forEach((child, index) => {
+        childrenList.push(
+           <HandleChildRenderEvents key={child.path} path={child.path} name={child.name} index={index} onClick={props.onClick} onDeleteClick={props.onDeleteClick} showDelete={props.showDelete}/>
         )
     })
 
     let renderChildren = ''
     if(props.showChildren){
-        renderChildren = (children.length > 0 ? children : <div className={`child child-info`}>{props.noEntriesMessage}</div>)
+        renderChildren = (childrenList.length > 0 ? childrenList : <div className={`child child-info`}>{props.noEntriesMessage}</div>)
     }
     
     return(

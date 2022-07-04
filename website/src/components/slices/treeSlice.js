@@ -17,13 +17,6 @@ const updateLocalStorage = (state) => {
 }
 
 const setTreeState = (state, yamlData) => {
-    state.dataAccess = yamlData.listChildrenUnderPath('core_lib.data_accesses')
-    state.entities = yamlData.listChildrenUnderPath('core_lib.entities')
-    state.setup = yamlData.listChildrenUnderPath('core_lib.setup')
-    state.connections = yamlData.listChildrenUnderPath('core_lib.connections')
-    state.jobs = yamlData.listChildrenUnderPath('core_lib.jobs')
-    state.cache = yamlData.listChildrenUnderPath('core_lib.caches')
-    state.services = yamlData.listChildrenUnderPath('core_lib.services')
     state.CoreLibName = yamlData.coreLibName
     updateLocalStorage(state)
 }
@@ -55,21 +48,12 @@ export const downloadZip = createAsyncThunk(
 export const treeSlice = createSlice({
     name: 'tree',
     initialState: {
-        dataAccess: [],
-        connections: [],
-        entities: [],
-        jobs: [],
-        cache: [],
-        services: [],
-        setup: [],
         CoreLibName: '',
         yaml: {},
         fieldsTitle: '',
         fieldsPath: '',
         selectedConfig: '',
         selectedField: '',
-        treeSelected: {},
-        treeState: {},
         localStorageIndex: 0,
     },
     reducers: {
@@ -121,20 +105,6 @@ export const treeSlice = createSlice({
             createNewEntry(action.payload, yamlData)
             state.yaml = yamlData.toJSON()
             setTreeState(state, yamlData)
-            state.treeState[action.payload] = false
-        },
-        toggleCollapseExpand: (state, action) => {
-            if (!state.treeState.hasOwnProperty(action.payload)) {
-                state.treeState[action.payload] = true
-            }
-            else {
-                state.treeState[action.payload] = !state.treeState[action.payload]
-            }
-
-        },
-        toggleSelected: (state, action) => {
-            state.treeSelected = {}
-            state.treeSelected[action.payload] = true
         },
         setStorageIndex: (state, action) => {
             state.localStorageIndex = action.payload;
@@ -142,6 +112,6 @@ export const treeSlice = createSlice({
     },
 })
 
-export const { init, downloadYaml, setList, setFields, updateFields, deleteTreeBranch, addNewEntry, toggleCollapseExpand, deleteFormField, toggleSelected, setStorageIndex } = treeSlice.actions
+export const { init, downloadYaml, setList, setFields, updateFields, deleteTreeBranch, addNewEntry, deleteFormField, setStorageIndex } = treeSlice.actions
 
 export default treeSlice.reducer

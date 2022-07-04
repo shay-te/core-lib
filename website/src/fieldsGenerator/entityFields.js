@@ -7,6 +7,9 @@ export const entityFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const index = pathSplit.at(pathSplit.indexOf('entities') + 1)
     const entity = yamlData.core_lib.entities[index]
+    if(!entity){
+        return fields
+    }
     const connections = yamlData.core_lib.connections
     const keyPrefix = `core_lib.entities.${index}`
     connections.forEach(conn => {

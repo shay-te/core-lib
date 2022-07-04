@@ -7,20 +7,14 @@ module.exports.newCL = {
       "jobs": [],
       "entities": [],
       "data_accesses": [],
+      "services": [],
       "setup": {
         "author": "name",
-        "author_email": "name@name.com",
+        "author_email": "name@example.com",
         "description": "Project",
         "url": "",
         "license": "MIT",
-        "classifiers": [
-          "Development Status :: 3 - Alpha",
-          "Development Status :: 4 - Beta",
-          "Development Status :: 5 - Production/Stable",
-          "Environment :: MacOS X",
-          "Environment :: Win32 (MS Windows)",
-          "Framework :: Django :: 4.0"
-        ],
+        "classifiers": [],
         "version": "0.0.0.1"
       }
     }
