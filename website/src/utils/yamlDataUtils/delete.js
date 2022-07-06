@@ -23,7 +23,7 @@ const deleteConnData = (connData, yamData) => {
     const connName = connData[0].key
     const entities = []
     if(entityTarget.length > 0){
-        for ( const entity of entityTarget ){
+        for (const entity of entityTarget){
             if(entity.connection !== connName){
                 entities.push(entity)
             }
@@ -33,11 +33,11 @@ const deleteConnData = (connData, yamData) => {
     const dataAccessSteps = ['core_lib', 'data_accesses']
     const daTarget = getValueAtPath(data, dataAccessSteps)
     if(daTarget.length > 0) {
-        daTarget.forEach((dataAccess, index) => {
-            if(dataAccess.connection === connName){
+        for (const index in daTarget){
+            if(daTarget[index].connection === connName){
                 delete daTarget[index]['connection']
             }
-        })
+        }
     }
     return deleteEnv(connData, data)
 }
@@ -48,11 +48,11 @@ const deleteDataAccessData = (daData, yamData) => {
     const serviceSteps = ['core_lib', 'services']
     const serviceTarget = getValueAtPath(data, serviceSteps)
     if(serviceTarget.length > 0) {
-        serviceTarget.forEach((service, index) => {
-            if(service.data_access === daName){
+        for (const index in serviceTarget){
+            if(serviceTarget[index].data_access === daName){
                 delete serviceTarget[index]['data_access']
             }
-        })
+        }
     }
     return data
 }
@@ -63,11 +63,11 @@ const deleteEntityData = (entityData, yamData) => {
     const daTarget = getValueAtPath(data, dataAccessSteps)
     const entityName = entityData[0].key
     if(daTarget.length > 0) {
-        daTarget.forEach((dataAccess, index) => {
-            if(dataAccess.entity === entityName){
+        for (const index in daTarget){
+            if(daTarget[index].entity === entityName){
                 delete daTarget[index]['entity']
             }
-        })
+        }
     }
     return data
 }
