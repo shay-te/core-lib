@@ -98,7 +98,7 @@ export const treeSlice = createSlice({
                 const payloadIndex = payloadArr.at(-1)
                 if(selectedIndex > payloadIndex) {
                     selectedArr.splice(-1, 1)
-                    selectedArr.splice(selectedArr.length, 0, parseInt(selectedIndex) - 1)
+                    selectedArr.push(parseInt(selectedIndex) - 1)
                     state.selectedField = selectedArr.join('.')
                 }
             }
