@@ -22,6 +22,8 @@ from core_lib_generator.file_generators.requirements_generator import Requiremen
 from core_lib_generator.file_generators.service_generator import ServiceGenerateTemplate
 from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
+from core_lib_generator.file_generators.test_config_generator import TestConfigGenerateTemplate
+from core_lib_generator.file_generators.test_generator import TestGenerateTemplate
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
 
@@ -178,6 +180,25 @@ class CoreLibGenerator:
                 LicenseGenerateTemplate(),
             )
 
+    def generate_tests(self):
+        self._generate_template(
+            f'{self.snake_core_lib_name}/tests/test_{self.snake_core_lib_name}.py',
+            {
+                'services': self.core_lib_service,
+                'data_accesses': self.core_lib_data_access,
+            },
+            TestGenerateTemplate(),
+        )
+        self._generate_template(
+            f'{self.snake_core_lib_name}/tests/test_data/test_config/test_config.yaml',
+            {
+                'jobs': self.core_lib_jobs,
+                'cache': self.core_lib_cache,
+                'connections': self.core_lib_data_conn,
+            },
+            TestConfigGenerateTemplate(),
+        )
+
     def run_all(self):
         self.generate_data_access()
         self.generate_service()
@@ -194,3 +215,4 @@ class CoreLibGenerator:
         self.generate_manifest()
         self.generate_env()
         self.generate_setup()
+        self.generate_tests()

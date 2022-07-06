@@ -2,11 +2,10 @@ import os
 import unittest
 
 import boto3
-import hydra
 from moto import mock_s3
 
+from core_lib.helpers.test import sync_create_core_lib_config
 from examples.objects_core_lib.core_lib.objects_core_lib import ObjectsCoreLib
-from tests.test_data.test_utils import sync_create_core_lib_config
 
 
 @mock_s3

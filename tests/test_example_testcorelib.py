@@ -3,9 +3,9 @@ from datetime import date
 from time import sleep
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
+from core_lib.helpers.test import sync_create_core_lib_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 from examples.test_core_lib.core_lib.test_core_lib import TestCoreLib
-from tests.test_data.test_utils import sync_create_core_lib_config
 
 dattime = date.today()
 user_data = {

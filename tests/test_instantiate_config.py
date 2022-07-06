@@ -9,8 +9,8 @@ from core_lib.core_lib import CoreLib
 from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.config_instances import instantiate_config
+from core_lib.helpers.test import sync_create_core_lib_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
-from tests.test_data.test_utils import sync_create_core_lib_config
 
 dattime = date.today()
 user_data = {

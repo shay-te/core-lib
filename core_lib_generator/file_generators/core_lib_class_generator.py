@@ -7,7 +7,8 @@ from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, 
 class CoreLibClassGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         data_access_list = []
-        [data_access_list.append(get_dict_attr(da, 'key')) for da in get_dict_attr(yaml_data, 'data_access')]
+        if get_dict_attr(yaml_data, 'data_access'):
+            [data_access_list.append(get_dict_attr(da, 'key')) for da in get_dict_attr(yaml_data, 'data_access')]
         updated_file = template_content.replace('Template', snake_to_camel(core_lib_name))
         if get_dict_attr(yaml_data, 'connections'):
             updated_file = _add_connections(updated_file, yaml_data, core_lib_name)
