@@ -8,7 +8,7 @@ Let's understand how `Core-Lib` is initialized and tested and how to integrate i
 
 
 ## DataAccess
-Here you should define the functions that only and only communicate with the connection created, for e.g., queries to get some data from a database or insert some data in the database, Solr queries or whatever the function has to interface with the connection.
+The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
 
 `user_data_access.py`
 ```python
@@ -27,7 +27,7 @@ class UserDataAccess(CRUDDataAccess):
 ```
 
 ## Service 
-Here we right the business logic for the extracted data, as the `DataAccess` only handles the interfacing with the connection, a `Service` will only be used to take the data and process it.
+The `Service` layer is a facade of the `DataAccess` layer and connections. consisting of `API` functions that will handle business logic, data transformation, and caching.
 
 `user_service.py`
 ```python
@@ -85,7 +85,7 @@ core_lib:
             _target_: core_lib.cache.cache_handler_ram.CacheHandlerRam
     client:
       user_client:
-        _target_: user_core_lib.UserCoreLib.UserClient
+        _target_: user_core_lib.UserClient
         base_url: https://example.com/
 ```
 
@@ -102,6 +102,21 @@ from user_core_lib.data_layers.data_access.user_data_access import UserDataAcces
 from user_core_lib.data_layers.service.customer_service import CustomerService
 from user_core_lib.data_layers.service.user_service import UserService
 
+class UserClient(ClientBase):
+    def __init__(self, target_url):
+        ClientBase.__init__(self, target_url)
+
+    def get(self, user_id: int):
+        return self._get(f'/user/{user_id}')
+    
+    def create(self, data: dict):
+        return self._post(f'/create_user', data)
+    
+    def update(self, data: dict):
+        return self._put(f'/update_user', data)
+    
+    def delete(self, user_id: int):
+        return self._delete(f'/user/{user_id}')
 
 class UserCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
@@ -111,22 +126,6 @@ class UserCoreLib(CoreLib):
         db_session = instantiate_config(self.config.core_lib.user_core_lib.data.userdb)
         self.user = UserService(UserDataAccess(db_session))
         self.user_client = instantiate_config(self.config.core_lib.user_core_lib.client.user_client)
-
-    class UserClient(ClientBase):
-        def __init__(self, target_url):
-            ClientBase.__init__(self, target_url)
-
-        def get(self, user_id: int):
-            return self._get(f'/user/{user_id}')
-        
-        def create(self, data: dict):
-            return self._post(f'/create_user', data)
-        
-        def update(self, data: dict):
-            return self._put(f'/update_user', data)
-        
-        def delete(self, user_id: int):
-            return self._delete(f'/user/{user_id}')
 ```
 
 ## Initializing
@@ -139,6 +138,16 @@ This config will override the `UserClient` config with the `UserClientMock`.
 # @package _global_
 core_lib:
   user_core_lib:
+    userdb:
+        _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+        config:
+            log_queries: false
+            create_db: true
+            session:
+                pool_recycle: 3200
+                pool_pre_ping: false
+            url:
+                protocol: sqlite
     client:
       user_client:
         _target_: test.UserClientMock
