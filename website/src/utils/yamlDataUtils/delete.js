@@ -5,6 +5,8 @@ export const deleteData = (path, delData, yamData) => {
     if(path.includes('connections')){
         if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
             data = deleteConnData(delData, data)
+        } else {
+            data.core_lib.connections.splice(path.split('.').at(-1), 0, delData[0])
         }
     } else if (path.includes('caches')){
         data = deleteEnv(delData, data)
