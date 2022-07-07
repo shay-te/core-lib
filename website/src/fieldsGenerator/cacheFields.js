@@ -7,6 +7,9 @@ export const cacheFields = (path, yamlData) => {
     const fields = []
     const keyPrefix = `core_lib.caches.${index}`
     const cache = yamlData.core_lib.caches[index]
+    if(!cache){
+        return fields
+    }
     const cacheName = yamlData.core_lib.caches[index].key
     const envPrefix =  `core_lib.env.${cacheName.toUpperCase()}`
     fields.push({

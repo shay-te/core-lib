@@ -9,6 +9,8 @@ import Form from './../components/form/Form';
 import {
     init,
 	updateFields,
+    setList,
+    setFields,
 } from "./../components/slices/treeSlice";
 import { useDispatch, Provider, useSelector } from "react-redux";
 import { store } from './../components/store/store';
@@ -32,6 +34,8 @@ function GeneratorElements() {
                 history.push('/generate')
             }
         }
+        dispatch(setList('core_lib'));
+        dispatch(setFields({ title: "Core-Lib", path: "name" }));
     }, [])
 
 	const onFieldChange = (field, e) => {

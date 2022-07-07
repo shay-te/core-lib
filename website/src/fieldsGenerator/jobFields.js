@@ -6,6 +6,9 @@ export const jobFields = (path, yamlData) => {
     const fields = []
     const keyPrefix = `core_lib.jobs.${index}`
     const job = yamlData.core_lib.jobs[index]
+    if(!job){
+        return fields
+    }
     fields.push({
         title: "Enter Job Name",
         type: "string",

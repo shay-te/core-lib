@@ -8,14 +8,17 @@ import {
 } from "../slices/treeSlice";
 
 import './MenuChildrenList.scss'
+import Pathsfactory from "../../utils/PathsFactory";
 
 const MenuChildrenList = () => {
-    const dataAccess = useSelector((state) => state.treeData.dataAccess);
-    const connections = useSelector((state) => state.treeData.connections);
-    const entities = useSelector((state) => state.treeData.entities);
-    const jobs = useSelector((state) => state.treeData.jobs);
-    const cache = useSelector((state) => state.treeData.cache);
-    const services = useSelector((state) => state.treeData.services);
+    const yaml = useSelector((state) => state.treeData.yaml);
+    const pathsFactory = new Pathsfactory()
+    const dataAccess = pathsFactory.listPaths('core_lib.data_accesses', yaml);
+    const connections = pathsFactory.listPaths('core_lib.connections', yaml);
+    const entities = pathsFactory.listPaths('core_lib.entities', yaml);
+    const jobs = pathsFactory.listPaths('core_lib.jobs', yaml);
+    const cache = pathsFactory.listPaths('core_lib.caches', yaml);
+    const services = pathsFactory.listPaths('core_lib.services', yaml);
     const selected = useSelector((state) => state.treeData.selectedConfig);
     const dispatch = useDispatch();
 

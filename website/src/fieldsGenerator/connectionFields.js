@@ -7,6 +7,9 @@ export const connectionFields = (path, yamlData) => {
     const connections = yamlData.core_lib.connections
     const index = pathSplit.at(pathSplit.indexOf('connections') + 1)
     const connection = connections[index]
+    if(!connection){
+        return fields
+    }
     const keyPrefix = `core_lib.connections.${index}`
     fields.push(
         {
@@ -48,43 +51,6 @@ export const connectionFields = (path, yamlData) => {
             toolTipTitle: {yes: "Will use `instantiate_config` to initialize via config", no: "Will use instantiate a normal class via config"},
         },
     );
-    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
-        fields.push(
-            {
-                title: 'Do you want to log queries?',
-                type: 'boolean',
-                default_value: false,
-                value: connection['config']['log_queries'],
-                mandatory: true,
-                key: keyPrefix + '.config.log_queries',
-            },
-            {
-                title: 'Do you want create Database?',
-                type: 'boolean',
-                default_value: true,
-                value: connection['config']['create_db'],
-                mandatory: true,
-                key: keyPrefix + '.config.create_db',
-            },
-            {
-                title: 'Enter the pool recycle time',
-                type: 'integer',
-                default_value: 3200,
-                value: connection['config']['session']['pool_recycle'],
-                mandatory: true,
-                key: keyPrefix + '.config.session.pool_recycle',
-                validatorCallback: isNotNull,
-            },
-            {
-                title: 'Do you want to set pool pre ping?',
-                type: 'boolean',
-                default_value: false,
-                value: connection['config']['session']['pool_pre_ping'],
-                mandatory: true,
-                key: keyPrefix + '.config.session.pool_pre_ping',
-            }
-        );
-    }
     const envPrefix = `core_lib.env.${connection.key.toUpperCase()}`
     if (connection['config']['url']['protocol'].toLowerCase() !== 'sqlite') {
         fields.push(
@@ -151,6 +117,43 @@ export const connectionFields = (path, yamlData) => {
                 }
             )
         }
+    }
+    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
+        fields.push(
+            {
+                title: 'Do you want to log queries?',
+                type: 'boolean',
+                default_value: false,
+                value: connection['config']['log_queries'],
+                mandatory: true,
+                key: keyPrefix + '.config.log_queries',
+            },
+            {
+                title: 'Do you want create Database?',
+                type: 'boolean',
+                default_value: true,
+                value: connection['config']['create_db'],
+                mandatory: true,
+                key: keyPrefix + '.config.create_db',
+            },
+            {
+                title: 'Enter the pool recycle time',
+                type: 'integer',
+                default_value: 3200,
+                value: connection['config']['session']['pool_recycle'],
+                mandatory: true,
+                key: keyPrefix + '.config.session.pool_recycle',
+                validatorCallback: isNotNull,
+            },
+            {
+                title: 'Do you want to set pool pre ping?',
+                type: 'boolean',
+                default_value: false,
+                value: connection['config']['session']['pool_pre_ping'],
+                mandatory: true,
+                key: keyPrefix + '.config.session.pool_pre_ping',
+            }
+        );
     }
     return fields
 }
