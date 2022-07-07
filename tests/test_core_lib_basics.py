@@ -1,9 +1,11 @@
 import unittest
 
+from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.data_layers.service.service import Service
+from core_lib.observer.observer import Observer
 from core_lib.observer.observer_listener import ObserverListener
 
 
@@ -94,3 +96,15 @@ class TestCoreLibBasics(unittest.TestCase):
         self.assertEqual(core_lib.core_lib_ready_called, True)
         self.assertEqual(core_lib.core_lib_ready_data_access_called, True)
         self.assertEqual(core_lib.core_lib_ready_service_called, True)
+
+    def test_core_lib_registries(self):
+        CoreLib.cache_registry.register('test_cache_key', CacheHandlerRam())
+        self.assertTrue('test_cache_key' in CoreLib.cache_registry.registered())
+        [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
+        self.assertFalse('test_cache_key' in CoreLib.cache_registry.registered())
+
+        test_observer = Observer(Listener())
+        CoreLib.observer_registry.register('test_observer_key', test_observer)
+        self.assertTrue('test_observer_key' in CoreLib.observer_registry.registered())
+        [CoreLib.observer_registry.unregister(key) for key in CoreLib.observer_registry.registered()]
+        self.assertFalse('test_observer_key' in CoreLib.observer_registry.registered())

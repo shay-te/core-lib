@@ -2,18 +2,17 @@ import os
 import unittest
 
 import boto3
-import hydra
 from moto import mock_s3
 
+from core_lib.helpers.test import load_core_lib_config
 from examples.objects_core_lib.core_lib.objects_core_lib import ObjectsCoreLib
-from tests.test_data.test_utils import sync_create_core_lib_config
 
 
 @mock_s3
 class TestExamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config = sync_create_core_lib_config('../../examples/objects_core_lib/config')
+        config = load_core_lib_config('../examples/objects_core_lib/config')
         cls.objects_core_lib = ObjectsCoreLib(config)
 
     def test_object_core_lib(self):
