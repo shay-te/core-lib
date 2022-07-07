@@ -11,6 +11,7 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         updated_file = template_content.replace('Template', file_name)
         conn = get_dict_attr(yaml_data, 'data_access.connection')
         entity = get_dict_attr(yaml_data, 'data_access.entity')
+        is_init = False
         if entity:
             updated_file = updated_file.replace(
                 '# template_entity_imports',
@@ -20,6 +21,7 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         else:
             updated_file = remove_line('# template_entity_imports', updated_file)
         if conn:
+            is_init = True
             conn_data = {}
             for connection in connections:
                 if connection.key == conn:
@@ -41,10 +43,13 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         if functions:
             updated_file = generate_functions(updated_file, functions)
         else:
-            updated_file = updated_file.replace(
-                '# template_functions',
-                add_tab_spaces('pass', 1)
-            )
+            if is_init:
+                updated_file = remove_line('# template_functions', updated_file)
+            else:
+                updated_file = updated_file.replace(
+                    '# template_functions',
+                    add_tab_spaces('pass', 1)
+                )
             updated_file = remove_line('# template_function_imports', updated_file)
         return updated_file
 

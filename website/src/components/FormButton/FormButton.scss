@@ -1,0 +1,16 @@
+@import './../../utils/css/variables.scss';
+
+.form-button{
+    background-color: $primary-color;
+    padding: $spacing-s $spacing-l;
+    margin: $spacing-xs $spacing-xs $spacing-xs 0;
+    border: none; 
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #FFFFFF; 
+    &:hover{
+        box-shadow: rgb(0 0 0 / 20%) 0px 2px 4px -1px, rgb(0 0 0 / 14%) 0px 4px 5px 0px, rgb(0 0 0 / 12%) 0px 1px 10px 0px;
+    }
+    transition: all 0.25s ease;
+}

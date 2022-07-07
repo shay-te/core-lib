@@ -79,8 +79,8 @@ export class YamlData {
         return path
     }
 
-    createEntity() {
-        this.yaml = create.entity(this.yaml)
+    createEntity(connection) {
+        this.yaml = create.entity(this.yaml, connection)
     }
 
     createDataAccess() {
@@ -107,7 +107,7 @@ export class YamlData {
         this.yaml = create.functions(path, this.yaml)
     }
 
-    createServices(path){
+    createServices(){
         this.yaml = create.services(this.yaml)
     }
 
@@ -118,40 +118,6 @@ export class YamlData {
         const delData = parent.splice(steps.at(-1), 1);
         data = deleteData(path, delData, data)
         this.yaml = data
-    }
-
-    get(path) {
-        return path.split('.').reduce((obj, key) => {
-            return obj && obj[key];
-        }, this.yaml);
-    }
-
-    listChildrenUnderPath(path) {
-        const res = []
-        const list = this.get(path) 
-        if(!list){
-            return res
-        }
-        if (path === 'core_lib.entities') {
-            const entityRes = []
-            list.forEach((entity, index) => {
-                entityRes.push({ name: `${entity.key} (${entity.connection})`, path: path + '.' + index, dbConnection: entity.connection })
-            })
-            return entityRes
-        }
-        if (path === 'core_lib.connections') {
-            list.forEach((dbConn, index) => {
-                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
-            })
-            return res
-
-        }
-        if(list instanceof Array){
-            list.forEach((item, index )=> {
-                res.push({ name: item.key, path: path + '.' + index })
-            })
-        }
-        return res
     }
 
     toJSON() {
