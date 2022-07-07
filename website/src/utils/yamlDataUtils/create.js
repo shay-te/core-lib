@@ -1,29 +1,16 @@
 import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 
-export const entity = (yamlData) => {
+export const entity = (yamlData, connection) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps)
-    let defaultConnection = ''
     if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const connSteps = ['core_lib', 'connections']
-    let conns = getValueAtPath(data, connSteps)
-    if (!conns) {
-        setValueAtPath(data, connSteps, [])
-        conns = getValueAtPath(data, connSteps)
-    }
-    conns.forEach(connection => {
-        if (connection.type.includes("SqlAlchemyConnectionRegistry")){
-            defaultConnection = connection.key
-            return
-        }
-    })
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
-        connection: defaultConnection,
+        connection: connection,
         columns: [
             {
                 key: 'column_name',

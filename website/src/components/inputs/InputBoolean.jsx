@@ -3,6 +3,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
+import ToolTip from '@mui/material/ToolTip';
 
 
 const InputBoolean = (props) => {
@@ -12,38 +13,47 @@ const InputBoolean = (props) => {
             <RadioGroup
                 aria-labelledby="bool-radio-grp"
                 name="bool-radio-grp"
-                defaultValue={props.value || props.default_value}
             >
-                <FormControlLabel 
-                    value={true} 
-                    control={
-                        <Radio 
-                            id={props.keyObj.toString(["true", props.fieldKey])}
-                            name={props.keyObj.toString(["bool", props.fieldKey])}
-                            value={true}
-                            checked={props.value || props.default_value}
-                            required={props.mandatory}
-                            onChange={props.onChange}
-                            size='small'
+                <ToolTip title={props.toolTipTitle.yes} placement="right" arrow>
+                    <div>
+                        <FormControlLabel 
+                            value={true} 
+                            key={props.keyObj.toString(["true", props.fieldKey])}
+                            control={
+                                <Radio 
+                                    id={props.keyObj.toString(["true", props.fieldKey])}
+                                    name={props.keyObj.toString(["bool", props.fieldKey])}
+                                    value={true}
+                                    checked={props.value || props.default_value}
+                                    required={props.mandatory}
+                                    onChange={props.onChange}
+                                    size='small'
+                                />
+                            } 
+                            label="Yes" 
                         />
-                    } 
-                    label="True" 
-                />
-                <FormControlLabel 
-                    value={true} 
-                    control={
-                        <Radio 
-                            id={props.keyObj.toString(["false", props.fieldKey])}
-                            name={props.keyObj.toString(["bool", props.fieldKey])}
-                            value={false}
-                            checked={!(props.value || props.default_value)}
-                            required={props.mandatory}
-                            onChange={props.onChange}
-                            size='small'
+                    </div>
+                </ToolTip>
+                 <ToolTip title={props.toolTipTitle.no} placement="right" arrow>
+                    <div>
+                        <FormControlLabel 
+                            value={true} 
+                            key={props.keyObj.toString(["false", props.fieldKey])}
+                            control={
+                                <Radio 
+                                    id={props.keyObj.toString(["false", props.fieldKey])}
+                                    name={props.keyObj.toString(["bool", props.fieldKey])}
+                                    value={false}
+                                    checked={!(props.value || props.default_value)}
+                                    required={props.mandatory}
+                                    onChange={props.onChange}
+                                    size='small'
+                                />
+                            } 
+                            label="No" 
                         />
-                    } 
-                    label="False" 
-                />
+                    </div>
+                </ToolTip>
             </RadioGroup>
         </div>
     );
@@ -56,6 +66,7 @@ InputBoolean.defaultProps = {
     value:false,
     default_value:false,
     onChange: () => {},
+    toolTipTitle: {yes: '', no: ''},
 }
 
 export default InputBoolean
