@@ -63,7 +63,7 @@ export const updateCache = (path, yamlData) => {
     return data
 }
 
-export const updateConn = (path, value, yamlData) => {
+export const updateConnectionProtocol = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.splice(0, 3))

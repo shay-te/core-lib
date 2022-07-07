@@ -63,7 +63,7 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    this.yaml = update.updateConn(path, value, this.yaml)
+                    this.yaml = update.updateConnectionProtocol(path, value, this.yaml)
                 }
                 if (path.includes('core_lib.caches')){
                     this.yaml = update.updateCache(path, this.yaml)
