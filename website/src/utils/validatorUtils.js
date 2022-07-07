@@ -1,13 +1,13 @@
 export const isPascalCase = (string) => {
-    return /^[A-Z][A-Za-z]*$/.test(string.trim())
+    return /^[A-Z][A-Za-z0-9]*$/.test(string.trim())
 }
 
 export const isSnakeCase = (string) => {
-    return /^[a-z]+(?:_[a-z]+)*$/.test(string.trim())
+    return /^[a-z]+(?:_[a-z0-9]+)*$/.test(string.trim())
 }
 
 export const isSnakeCaseCapital = (string) => {
-    return /^[A-Z]+(?:_[A-Z]+)*$/.test(string.trim())
+    return /^[A-Z]+(?:_[A-Z0-9]+)*$/.test(string.trim())
 }
 
 export const isBoolean = (string) => {

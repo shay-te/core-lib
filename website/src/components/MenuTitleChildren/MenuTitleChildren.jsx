@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState} from "react"
 import { useSelector } from "react-redux";
 import HoverVisible from "../hoverVisible/HoverVisible";
 import './MenuTitleChildren.scss';
@@ -35,14 +35,8 @@ const HandleChildRenderEvents = (props) => {
 }
 
 const MenuTitleChildren = (props) => {
-    const [children, setChildren] = useState([]);
     const childrenList = []
-    useEffect(() => {
-        if(props.items.length !== children.length){
-            setChildren(props.items)
-        }
-    }, [props.items])
-    children.forEach((child, index) => {
+    props.items.forEach((child, index) => {
         childrenList.push(
            <HandleChildRenderEvents key={child.path} path={child.path} name={child.name} index={index} onClick={props.onClick} onDeleteClick={props.onDeleteClick} showDelete={props.showDelete}/>
         )

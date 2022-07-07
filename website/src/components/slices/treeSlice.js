@@ -91,6 +91,16 @@ export const treeSlice = createSlice({
                 state.fieldsPath = ''
                 state.fieldsTitle = ''
                 state.selectedField = ''
+            } else {
+                const selectedArr = state.selectedField.split('.')
+                const payloadArr = action.payload.split('.')
+                const selectedIndex = selectedArr.at(-1)
+                const payloadIndex = payloadArr.at(-1)
+                if(selectedIndex > payloadIndex) {
+                    selectedArr.splice(-1, 1)
+                    selectedArr.push(parseInt(selectedIndex) - 1)
+                    state.selectedField = selectedArr.join('.')
+                }
             }
             yamlData.delete(action.payload)
             state.yaml = yamlData.toJSON()
