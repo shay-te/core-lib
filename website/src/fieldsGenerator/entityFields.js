@@ -1,4 +1,5 @@
 import { getBoolean } from '../utils/commonUtils';
+import { isSnakeCase } from '../utils/validatorUtils';
 
 export const entityFields = (path, yamlData) => {
     const fields = []
@@ -6,6 +7,9 @@ export const entityFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const index = pathSplit.at(pathSplit.indexOf('entities') + 1)
     const entity = yamlData.core_lib.entities[index]
+    if(!entity){
+        return fields
+    }
     const connections = yamlData.core_lib.connections
     const keyPrefix = `core_lib.entities.${index}`
     connections.forEach(conn => {
@@ -21,7 +25,8 @@ export const entityFields = (path, yamlData) => {
         value: entity.key,
         mandatory: true,
         key: `${keyPrefix}.key`,
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Edit DB Entity Name (snake_case)",
+        validatorCallback: isSnakeCase,
     },
     {
         title: "DB Connection",
@@ -31,7 +36,7 @@ export const entityFields = (path, yamlData) => {
         mandatory: true,
         options: dbConn,
         key: keyPrefix + '.connection',
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Select DB Connection",
     },
     {
         title: "Columns",
@@ -40,7 +45,6 @@ export const entityFields = (path, yamlData) => {
         value: entity.columns,
         mandatory: true,
         key: `${keyPrefix}.columns`,
-        // validatorCallback: validateFunc,
     });
     if(entity.hasOwnProperty('is_soft_delete')){
         fields.push({
@@ -50,7 +54,7 @@ export const entityFields = (path, yamlData) => {
             value: getBoolean(entity["is_soft_delete"]),
             mandatory: true,
             key: keyPrefix + '.is_soft_delete',
-            // validatorCallback: validateFunc,
+            toolTipTitle: {yes: "Will implement Soft Delete for this entity", no: "Will not implement Soft Delete for this entity"},
         },
         {
             title: "Is Soft Delete Token",
@@ -59,7 +63,7 @@ export const entityFields = (path, yamlData) => {
             value: getBoolean(entity["is_soft_delete_token"]),
             mandatory: true,
             key: keyPrefix + '.is_soft_delete_token',
-            // validatorCallback: validateFunc,
+            toolTipTitle: {yes: "Will implement Soft Delete Token for this entity", no: "Will not implement Soft Delete Token for this entity"},
         });
     }
     return fields

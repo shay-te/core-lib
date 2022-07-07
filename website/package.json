@@ -16,7 +16,10 @@
   "dependencies": {
     "@docusaurus/core": "2.0.0-beta.20",
     "@docusaurus/preset-classic": "2.0.0-beta.20",
+    "@emotion/react": "^11.9.3",
+    "@emotion/styled": "^11.9.3",
     "@mdx-js/react": "^1.6.22",
+    "@mui/material": "^5.8.6",
     "@reduxjs/toolkit": "^1.8.1",
     "clsx": "^1.1.1",
     "docusaurus-plugin-sass": "^0.2.2",
@@ -27,7 +30,8 @@
     "react-redux": "^8.0.1",
     "react-reflex": "^4.0.8",
     "sass": "^1.51.0",
-    "sass-loader": "^13.0.0"
+    "sass-loader": "^13.0.0",
+    "timeparse": "^1.0.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.0.0-beta.20"
