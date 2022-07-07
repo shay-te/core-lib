@@ -1,5 +1,5 @@
 export default class Pathsfactory{
-    #get(path, yaml) {
+    _get(path, yaml) {
         return path.split('.').reduce((obj, key) => {
             return obj && obj[key];
         }, yaml);
@@ -7,14 +7,14 @@ export default class Pathsfactory{
 
     listPaths(path, yaml) {
         const res = []
-        const list = this.#get(path, yaml) 
+        const list = this._get(path, yaml) 
         
         if(!list){
             return res
         }
         if (path === 'core_lib.entities') {
             const entityRes = []
-            const connectionList = this.#get('core_lib.connections', yaml)
+            const connectionList = this._get('core_lib.connections', yaml)
             connectionList.forEach((connection) => {
                 if(connection.type.includes('SqlAlchemyConnectionRegistry')) {
                     const entities = []
