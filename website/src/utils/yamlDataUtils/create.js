@@ -1,29 +1,16 @@
 import { toCamelCase, toSnakeCase, getValueAtPath, setValueAtPath } from "../commonUtils"
 
-export const entity = (yamlData) => {
+export const entity = (yamlData, connection) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = ['core_lib', 'entities']
     let target = getValueAtPath(data, steps)
-    let defaultConnection = ''
     if (!target) {
         setValueAtPath(data, steps, [])
         target = getValueAtPath(data, steps)
     }
-    const connSteps = ['core_lib', 'connections']
-    let conns = getValueAtPath(data, connSteps)
-    if (!conns) {
-        setValueAtPath(data, connSteps, [])
-        conns = getValueAtPath(data, connSteps)
-    }
-    conns.forEach(connection => {
-        if (connection.type.includes("SqlAlchemyConnectionRegistry")){
-            defaultConnection = connection.key
-            return
-        }
-    })
     const newEntity = {
         key: `new_entity_${target.length + 1}`,
-        connection: defaultConnection,
+        connection: connection,
         columns: [
             {
                 key: 'column_name',
@@ -31,8 +18,8 @@ export const entity = (yamlData) => {
                 default: null,
             },
         ],
-        is_soft_delete: true,
-        is_soft_delete_token: true,
+        is_soft_delete: false,
+        is_soft_delete_token: false,
     }
     target.push(newEntity)
     return data
@@ -49,9 +36,6 @@ export const dataAccess = (yamlData) => {
     const newDataAccess = {
         key: 'NewDataAccess' + (target.length + 1),
         functions: [],
-        is_crud: true,
-        is_crud_soft_delete: true,
-        is_crud_soft_delete_token: true,
     }
     target.push(newDataAccess)
     return data
@@ -153,7 +137,7 @@ export const job = (yamlData, coreLibName) => {
         frequency: "",
         handler: {
             _target_:
-                `${snakeCoreLib}.${snakeCoreLib}.jobs.${newName}.${toCamelCase(newName)}`,
+                `${snakeCoreLib}.jobs.${newName}.${toCamelCase(newName)}`,
         },
     }
     target.push(newJob)

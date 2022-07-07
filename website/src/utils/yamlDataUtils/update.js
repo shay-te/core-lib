@@ -1,4 +1,4 @@
-import { getValueAtPath } from "../commonUtils"
+import { getValueAtPath, toCamelCase, toSnakeCase } from "../commonUtils"
 
 export const updateEnv = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
@@ -63,11 +63,25 @@ export const updateCache = (path, yamlData) => {
     return data
 }
 
-export const updateConn = (path, value, yamlData) => {
+export const updateConnectionProtocol = (path, value, yamlData) => {
     const data = JSON.parse(JSON.stringify(yamlData))
     const steps = path.split(".")
     const target = getValueAtPath(data, steps.splice(0, 3))
     const conn = target.key
+    if (value.toLowerCase() === 'solr' || value.toLowerCase() === 'neo4j') { 
+        const entitySteps = ['core_lib', 'entities']
+        let entityTarget = getValueAtPath(data, entitySteps);
+        const entities = []
+        if(entityTarget.length > 0){
+            entityTarget.forEach((entity) => {
+                if(entity.connection !== conn){
+                    entities.push(entity)
+                }
+            });
+            data.core_lib.entities = entities
+            entityTarget = entities.slice(0)
+        }
+    }
     if (value.toLowerCase() === 'sqlite') {
         target['type'] = 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
         target['config']['url']['protocol'] = value.toLowerCase()
@@ -204,6 +218,8 @@ export const updateColumnDefault = (path, value, yamlData) => {
     const target = getValueAtPath(data, pathSplit.slice(0, -1))
     if (value === '') {
         target.default = null
+    } else {
+        target.default = value
     }
     return data
 }
@@ -306,5 +322,19 @@ export const updateService = (path, value, yamlData) => {
         }
         return data
     }
+    return data
+}
+
+export const updateCoreLibName = (value, oldValue, yamlData) => {
+    const data = JSON.parse(JSON.stringify(yamlData))
+    data.core_lib.name = value
+    const jobsSteps = ['core_lib', 'jobs']
+    const jobsTarget = getValueAtPath(data, jobsSteps)
+    if (!jobsTarget) {
+        return data
+    }
+    jobsTarget.forEach((job, index) => {
+        jobsTarget[index]['handler']['_target_'] = `${toSnakeCase(value)}.jobs.${job.key}.${toCamelCase(job.key)}`
+    })
     return data
 }

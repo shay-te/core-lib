@@ -80,7 +80,7 @@ function Generate() {
                             <h2>
                                 Create
                             </h2>
-                            <div className={`button button--secondary button--lg `} onClick={() => addNew(newCL)}>
+                            <div className={`create-cl-btn button button--secondary button--lg `} onClick={() => addNew(newCL)}>
                                 Create New
                             </div>
                         </div>

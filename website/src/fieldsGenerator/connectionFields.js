@@ -1,4 +1,5 @@
 import { getBoolean, getENVValue } from '../utils/commonUtils';
+import { isNotNull } from '../utils/validatorUtils';
 
 export const connectionFields = (path, yamlData) => {
     const fields = [];
@@ -6,6 +7,9 @@ export const connectionFields = (path, yamlData) => {
     const connections = yamlData.core_lib.connections
     const index = pathSplit.at(pathSplit.indexOf('connections') + 1)
     const connection = connections[index]
+    if(!connection){
+        return fields
+    }
     const keyPrefix = `core_lib.connections.${index}`
     fields.push(
         {
@@ -15,14 +19,14 @@ export const connectionFields = (path, yamlData) => {
             value: connection.key,
             mandatory: true,
             key: keyPrefix + '.key',
-            // validatorCallback: validateFunc,
+            toolTipTitle: "Edit Connection Name",
+            validatorCallback: isNotNull,
         },
         {
             title: 'Select connection',
             type: 'enum',
             mandatory: true,
             value: connection['type'].includes('SolrConnectionRegistry') ? 'solr' : connection['config']['url']['protocol'],
-            // validatorCallback: validateFunc,
             options: [
                 'SQLite',
                 'Postgresql',
@@ -35,6 +39,7 @@ export const connectionFields = (path, yamlData) => {
                 'Neo4j'
             ],
             key: keyPrefix + '.config.url.protocol',
+            toolTipTitle: "Select a connetion protocol",
         },
         {
             title: 'Do you want to instantiate it via config?',
@@ -43,49 +48,9 @@ export const connectionFields = (path, yamlData) => {
             value: getBoolean(connection['config_instantiate']),
             mandatory: true,
             key: keyPrefix + '.config_instantiate',
-            // validatorCallback: validateFunc,
+            toolTipTitle: {yes: "Will use `instantiate_config` to initialize via config", no: "Will use instantiate a normal class via config"},
         },
     );
-    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
-        fields.push(
-            {
-                title: 'Do you want to log queries?',
-                type: 'boolean',
-                default_value: false,
-                value: connection['config']['log_queries'],
-                mandatory: true,
-                key: keyPrefix + '.config.log_queries',
-                // validatorCallback: validateFunc,
-            },
-            {
-                title: 'Do you want create Database?',
-                type: 'boolean',
-                default_value: true,
-                value: connection['config']['create_db'],
-                mandatory: true,
-                key: keyPrefix + '.config.create_db',
-                // validatorCallback: validateFunc,
-            },
-            {
-                title: 'Enter the pool recycle time',
-                type: 'integer',
-                default_value: 3200,
-                value: connection['config']['session']['pool_recycle'],
-                mandatory: true,
-                key: keyPrefix + '.config.session.pool_recycle',
-                // validatorCallback: validateFunc,
-            },
-            {
-                title: 'Do you want to set pool pre ping?',
-                type: 'boolean',
-                default_value: false,
-                value: connection['config']['session']['pool_pre_ping'],
-                mandatory: true,
-                key: keyPrefix + '.config.session.pool_pre_ping',
-                // validatorCallback: validateFunc,
-            }
-        );
-    }
     const envPrefix = `core_lib.env.${connection.key.toUpperCase()}`
     if (connection['config']['url']['protocol'].toLowerCase() !== 'sqlite') {
         fields.push(
@@ -97,7 +62,7 @@ export const connectionFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.config.url.port`,
                 env: `${envPrefix}_PORT`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
             {
                 title: 'Enter host of your connection',
@@ -107,7 +72,7 @@ export const connectionFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.config.url.host`,
                 env: `${envPrefix}_HOST`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         );
         if (!connection['type'].includes('Neo4jConnectionRegistry')) {
@@ -120,7 +85,7 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: `${keyPrefix}.config.url.file`,
                     env: `${envPrefix}_DB`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 },
             )
         }
@@ -136,7 +101,7 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.username` : `${keyPrefix}.config.credentials.username`,
                     env: `${envPrefix}_USER`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 },
                 {
                     title: 'Enter your connection password',
@@ -148,10 +113,47 @@ export const connectionFields = (path, yamlData) => {
                     mandatory: true,
                     key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.password` : `${keyPrefix}.config.credentials.password`,
                     env: `${envPrefix}_PASSWORD`,
-                    // validatorCallback: validateFunc,
+                    validatorCallback: isNotNull,
                 }
             )
         }
+    }
+    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
+        fields.push(
+            {
+                title: 'Do you want to log queries?',
+                type: 'boolean',
+                default_value: false,
+                value: connection['config']['log_queries'],
+                mandatory: true,
+                key: keyPrefix + '.config.log_queries',
+            },
+            {
+                title: 'Do you want create Database?',
+                type: 'boolean',
+                default_value: true,
+                value: connection['config']['create_db'],
+                mandatory: true,
+                key: keyPrefix + '.config.create_db',
+            },
+            {
+                title: 'Enter the pool recycle time',
+                type: 'integer',
+                default_value: 3200,
+                value: connection['config']['session']['pool_recycle'],
+                mandatory: true,
+                key: keyPrefix + '.config.session.pool_recycle',
+                validatorCallback: isNotNull,
+            },
+            {
+                title: 'Do you want to set pool pre ping?',
+                type: 'boolean',
+                default_value: false,
+                value: connection['config']['session']['pool_pre_ping'],
+                mandatory: true,
+                key: keyPrefix + '.config.session.pool_pre_ping',
+            }
+        );
     }
     return fields
 }

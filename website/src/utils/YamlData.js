@@ -15,7 +15,7 @@ export class YamlData {
         const steps = path.split(".")
         if (path === 'core_lib.name') {
             data.core_lib.name = value
-            this.yaml = data
+            this.yaml = update.updateCoreLibName(value, this.coreLibName, this.yaml)
             this.coreLibName = value
         }
         else {
@@ -62,7 +62,7 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    this.yaml = update.updateConn(path, value, this.yaml)
+                    this.yaml = update.updateConnectionProtocol(path, value, this.yaml)
                 }
                 if (path.includes('core_lib.caches')){
                     this.yaml = update.updateCache(path, this.yaml)
@@ -79,8 +79,8 @@ export class YamlData {
         return path
     }
 
-    createEntity() {
-        this.yaml = create.entity(this.yaml)
+    createEntity(connection) {
+        this.yaml = create.entity(this.yaml, connection)
     }
 
     createDataAccess() {
@@ -107,7 +107,7 @@ export class YamlData {
         this.yaml = create.functions(path, this.yaml)
     }
 
-    createServices(path){
+    createServices(){
         this.yaml = create.services(this.yaml)
     }
 
@@ -118,40 +118,6 @@ export class YamlData {
         const delData = parent.splice(steps.at(-1), 1);
         data = deleteData(path, delData, data)
         this.yaml = data
-    }
-
-    get(path) {
-        return path.split('.').reduce((obj, key) => {
-            return obj && obj[key];
-        }, this.yaml);
-    }
-
-    listChildrenUnderPath(path) {
-        const res = []
-        const list = this.get(path) 
-        if(!list){
-            return res
-        }
-        if (path === 'core_lib.entities') {
-            const entityRes = []
-            list.forEach((entity, index) => {
-                entityRes.push({ name: `${entity.key} (${entity.connection})`, path: path + '.' + index, dbConnection: entity.connection })
-            })
-            return entityRes
-        }
-        if (path === 'core_lib.connections') {
-            list.forEach((dbConn, index) => {
-                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
-            })
-            return res
-
-        }
-        if(list instanceof Array){
-            list.forEach((item, index )=> {
-                res.push({ name: item.key, path: path + '.' + index })
-            })
-        }
-        return res
     }
 
     toJSON() {

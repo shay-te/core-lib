@@ -1,77 +1,102 @@
-import React from "react";
-
+import React, { useState, useEffect } from "react";
 import HoverVisible from "../hoverVisible/HoverVisible";
-import { useState } from "react";
+import Checkbox from '@mui/material/Checkbox';
+import InputString from "../inputs/InputString";
+import { isBoolean, isNotNull, isNumber } from "../../utils/validatorUtils";
+import InputDropDown from "../inputs/InputDropDown";
 
 const ColumnsTable = (props) => {
     const [visible, setVisible] = useState(false);
-
+    const [columns, setColumns] = useState([]);
     const items = [];
+    useEffect(() => {
+        if(columns.length !== props.value.length){
+            setColumns(props.value)
+        }
+        
+    }, [props.value.length])
     items.push(
-        props.value.map((column, index) => {
+        columns.map((column, index) => {
+            let validatorCallback;
+            if(column.type === 'INTEGER'){
+                validatorCallback = isNumber
+            } else if (column.type === 'BOOLEAN'){
+                validatorCallback= isBoolean
+            } else {
+                validatorCallback = isNotNull
+            }
             return (
                 <tr
-                    key={index}
+                    key={props.keyObj.toString([props.fieldKey, index, 'key', column.key])}
                     onMouseEnter={() => setVisible(true)}
                     onMouseLeave={() => setVisible(false)}
                     onMouseOver={() => setVisible(true)}
                     className="tr"
                 >
                     <td key={props.keyObj.toString([props.fieldKey, index, 'key'])} className="td">
-                        <input
-                            type={"text"}
-                            id={props.keyObj.toString(['field', props.fieldKey, index, 'key'])}
-                            className="form-input"
-                            defaultValue={column.key}
-                            required={true}
-                            placeholder="Column Name"
+                        <InputString
+                            key={props.keyObj.toString([props.fieldKey, index, 'key'])}
+                            title={"Column Name"}
+                            mandatory={column.nullable ? column.nullable : false}
+                            value={column.key}
+                            default_value={column.key}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'key']),
                             })}
+                            fieldKey={props.fieldKey}
+                            keyObj={props.keyObj}
+                            fullWidth={false}
+                            validatorCallback={isNotNull}
                         />
                     </td>
                     <td key={props.keyObj.toString([props.fieldKey, index, 'type'])} className="td">
-                        <select
-                            id={props.keyObj.toString([props.fieldKey, index, 'type'])}
+                        <InputDropDown
+                            key={props.keyObj.toString([props.fieldKey, index, 'type'])}
+                            title={"Column Type"}
+                            mandatory={true}
+                            value={column.type}
+                            default_value={column.type}
+                            options={["VARCHAR", "BOOLEAN", "INTEGER"]}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'type']),
                             })}
-                            value={column.type}
-                        >
-                            <option value="VARCHAR">VARCHAR</option>
-                            <option value="BOOLEAN">BOOLEAN</option>
-                            <option value="INTEGER">INTEGER</option>
-                        </select>
+                            fieldKey={props.fieldKey}
+                            keyObj={props.keyObj}
+                            fullWidth={false}
+                        />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'default'])}
                         className="td"
                     >
-                        <input
-                            type={"text"}
-                            id={props.keyObj.toString(['field', props.fieldKey, index, 'default'])}
-                            className="form-input"
-                            defaultValue={column.default}
-                            required={true}
-                            placeholder="Column Default Value"
+                        <InputString
+                            key={props.keyObj.toString([props.fieldKey, index, 'default'])}
+                            title={"Column Default Value"}
+                            mandatory={column.nullable ? column.nullable : false}
+                            value={column.default}
+                            default_value={column.default}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'default']),
                             })}
+                            fieldKey={props.fieldKey}
+                            keyObj={props.keyObj}
+                            fullWidth={false}
+                            validatorCallback={validatorCallback}
                         />
                     </td>
                     <td
                         key={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
                         className="td"
                     >
-                        <input
-                            type="checkbox"
+                        <Checkbox 
                             id={props.keyObj.toString([props.fieldKey, index, 'nullable'])}
                             name={props.keyObj.toString(['checkbox', props.fieldKey, index, 'nullable'])}
                             value={column.nullable}
-                            defaultChecked={column.nullable}
+                            checked={column.nullable}
                             onChange={props.onChange.bind(this, {
                                 key: props.keyObj.toString([props.fieldKey, index, 'nullable']),
                             })}
+                            size='small'
                         />
                     </td>
 
@@ -93,7 +118,7 @@ const ColumnsTable = (props) => {
         })
     );
     let render = '';
-    if (props.value.length !== 0) {
+    if (columns.length !== 0) {
         render = 
             <table className="table">
                 <thead>
@@ -107,7 +132,12 @@ const ColumnsTable = (props) => {
                 <tbody>{items}</tbody>
             </table>
     }
-    return <>{render}</>;
+    return (
+        <>
+            <div className="table-info">Note: <code>id</code> column will be added automatically for every column</div>
+            {render}
+        </>
+    );
 };
 
 ColumnsTable.defaultProps = {

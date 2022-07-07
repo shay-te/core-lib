@@ -1,13 +1,16 @@
-import { getBoolean } from '../utils/commonUtils';
+import { isPascalCase } from "../utils/validatorUtils";
 
 export const dataAccessFields = (path, yamlData) => {
     const pathSplit = path.split('.')
     const dataAccessList = yamlData.core_lib.data_accesses
+    const fields = []
     const index = pathSplit.at(pathSplit.indexOf('data_accesses')+1)
     const dataAccess = dataAccessList[index]
+    if(!dataAccess){
+        return fields
+    }
     const connections = yamlData.core_lib.connections
     const entities = yamlData.core_lib.entities
-    const fields = []
     const connection = ['']
     const entity = ['']
     const keyPrefix = `core_lib.data_accesses.${index}`
@@ -35,7 +38,8 @@ export const dataAccessFields = (path, yamlData) => {
         value: dataAccess.key,
         mandatory: true,
         key: keyPrefix + '.key',
-        // validatorCallback: validateFunc, onchange validator, predefined validation func for each types
+        toolTipTitle: "Edit Data Access Name (PascalCase)",
+        validatorCallback: isPascalCase,
     },
     {
         title: 'Connection',
@@ -45,7 +49,7 @@ export const dataAccessFields = (path, yamlData) => {
         mandatory: true,
         options: connection,
         key: keyPrefix + '.connection',
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Select connection for data access",
     })
     if(dataAccess['connection']){
         if(connections[connIndex - 1]['type'].includes('sql')){
@@ -58,6 +62,7 @@ export const dataAccessFields = (path, yamlData) => {
                     mandatory: true,
                     options: entity,
                     key: keyPrefix + '.entity',
+                    toolTipTitle: "Select DB entity for data access",
                 },
             )
         }
@@ -71,7 +76,6 @@ export const dataAccessFields = (path, yamlData) => {
             value: dataAccess.functions,
             mandatory: true,
             key: `${keyPrefix}.functions`,
-            // validatorCallback: validateFunc,
         }
     )
     if(isSql){
@@ -82,7 +86,7 @@ export const dataAccessFields = (path, yamlData) => {
             value: dataAccess['is_crud'],
             mandatory: true,
             key: keyPrefix + '.is_crud',
-            // validatorCallback: validateFunc,
+            toolTipTitle: {yes: "Will implement CRUD for this Data Access", no: "Will not implement CRUD for this Data Access"},
         })
         if(dataAccess['is_crud']){
             fields.push({
@@ -92,7 +96,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete',
-                // validatorCallback: validateFunc,
+                toolTipTitle: {yes: "Will implement CRUD Soft Delete for this Data Access", no: "Will not implement CRUD Soft Delete for this Data Access"},
             })
         }
         if(dataAccess['is_crud_soft_delete']){
@@ -103,7 +107,7 @@ export const dataAccessFields = (path, yamlData) => {
                 value: dataAccess['is_crud_soft_delete_token'],
                 mandatory: true,
                 key: keyPrefix + '.is_crud_soft_delete_token',
-                // validatorCallback: validateFunc,
+                toolTipTitle: {yes: "Will implement CRUD Soft Delete Token for this Data Access", no: "Will not implement CRUD Soft Delete Token for this Data Access"},
             })
         }
     }
