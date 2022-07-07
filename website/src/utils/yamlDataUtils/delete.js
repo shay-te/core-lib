@@ -1,19 +1,23 @@
 import { getValueAtPath } from "../commonUtils";
 
-export const deleteData = (path, delData, yamData) => {
+export const deleteData = (path, yamData) => {
     let data = JSON.parse(JSON.stringify(yamData))
+    const steps = path.split(".")
+    const delTarget = getValueAtPath(data, steps.slice(0, -1));
     if(path.includes('connections')){
         if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
+            const delData = delTarget.splice(steps.at(-1), 1);
             data = deleteConnData(delData, data)
-        } else {
-            data.core_lib.connections.splice(path.split('.').at(-1), 0, delData[0])
         }
-    } else if (path.includes('caches')){
-        data = deleteEnv(delData, data)
-    } else if (path.includes('data_accesses')){
-        data = deleteDataAccessData(delData, data)
-    } else if (path.includes('entities')){
-        data = deleteEntityData(delData, data)
+    } else {
+        const delData = delTarget.splice(steps.at(-1), 1);
+        if (path.includes('caches')){
+            data = deleteEnv(delData, data)
+        } else if (path.includes('data_accesses')){
+            data = deleteDataAccessData(delData, data)
+        } else if (path.includes('entities')){
+            data = deleteEntityData(delData, data)
+        }
     }
     return data
 }

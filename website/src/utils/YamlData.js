@@ -113,10 +113,7 @@ export class YamlData {
 
     delete(path) {
         let data = JSON.parse(JSON.stringify(this.yaml))
-        const steps = path.split(".")
-        const parent = getValueAtPath(data, steps.slice(0, -1));
-        const delData = parent.splice(steps.at(-1), 1);
-        data = deleteData(path, delData, data)
+        data = deleteData(path, data)
         this.yaml = data
     }
 
