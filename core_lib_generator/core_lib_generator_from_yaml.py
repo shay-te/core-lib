@@ -23,6 +23,7 @@ from core_lib_generator.file_generators.service_generator import ServiceGenerate
 from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.file_generators.test_config_generator import TestConfigGenerateTemplate
+from core_lib_generator.file_generators.test_config_override_generator import TestConfigOverrideGenerateTemplate
 from core_lib_generator.file_generators.test_generator import TestGenerateTemplate
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
@@ -190,13 +191,14 @@ class CoreLibGenerator:
             TestGenerateTemplate(),
         )
         self._generate_template(
-            f'{self.snake_core_lib_name}/tests/test_data/test_config/test_config.yaml',
-            {
-                'jobs': self.core_lib_jobs,
-                'cache': self.core_lib_caches,
-                'connections': self.core_lib_connections,
-            },
+            f'{self.snake_core_lib_name}/tests/test_data/test_config/config.yaml',
+            {},
             TestConfigGenerateTemplate(),
+        )
+        self._generate_template(
+            f'{self.snake_core_lib_name}/tests/test_data/test_config/{self.snake_core_lib_name}_override.yaml',
+            {},
+            TestConfigOverrideGenerateTemplate(),
         )
 
     def run_all(self):

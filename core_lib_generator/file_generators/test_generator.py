@@ -13,43 +13,9 @@ class TestGenerateTemplate(TemplateGenerator):
         updated_file = updated_file.replace('TemplateCoreLib', camel_core_lib)
         updated_file = updated_file.replace('template_snake_core_lib', core_lib_name)
         if get_dict_attr(yaml_data, 'services'):
-            service_imports_list = []
-            service_test_functions = []
-            for service in get_dict_attr(yaml_data, 'services'):
-                test_function = []
-                service_name = get_dict_attr(service, 'key')
-                snake_service_name = camel_to_snake(service_name)
-                service_imports_list.append(f'from {core_lib_name}.data_layers.service.{snake_service_name} import {service_name}')
-                test_function.append(add_tab_spaces(f'def test_{snake_service_name}(self):'))
-                test_function.append(
-                    add_tab_spaces(
-                        f'# here you can test the functions in {service_name} service, e.g. self.assertNone(self.{core_lib_name}.{snake_service_name}.your_function(data))',
-                        2
-                    )
-                )
-                test_function.append(add_tab_spaces('pass', 2))
-                service_test_functions.append('\n'.join(test_function))
-            updated_file = updated_file.replace('# template_test_imports', '\n'.join(service_imports_list))
-            updated_file = updated_file.replace('# template_test_functions', '\n\n'.join(service_test_functions))
+            updated_file = _generate_tests(updated_file, yaml_data, 'services', core_lib_name)
         elif get_dict_attr(yaml_data, 'data_accesses'):
-            da_imports_list = []
-            da_test_functions = []
-            for data_access in get_dict_attr(yaml_data, 'data_accesses'):
-                test_function = []
-                da_name = get_dict_attr(data_access, 'key')
-                snake_da_name = camel_to_snake(da_name)
-                da_imports_list.append(f'from {core_lib_name}.data_layers.data_access.{snake_da_name} import {da_name}')
-                test_function.append(add_tab_spaces(f'def test_{snake_da_name}(self):'))
-                test_function.append(
-                    add_tab_spaces(
-                        f'# here you can test the functions in {da_name} data access, e.g. self.assertNone(self.{core_lib_name}.{snake_da_name}.your_function(data))',
-                        2
-                    )
-                )
-                test_function.append(add_tab_spaces('pass', 2))
-                da_test_functions.append('\n'.join(test_function))
-            updated_file = updated_file.replace('# template_test_imports', '\n'.join(da_imports_list))
-            updated_file = updated_file.replace('# template_test_functions', '\n\n'.join(da_test_functions))
+            updated_file = _generate_tests(updated_file, yaml_data, 'data_accesses', core_lib_name)
         else:
             updated_file = remove_line('# template_test_imports', updated_file)
             test_instructions = f'# You can write tests for your Service functions or your DataAccess functions below, by using the Core-Lib instace created above'
@@ -58,3 +24,34 @@ class TestGenerateTemplate(TemplateGenerator):
 
     def get_template_file(self, yaml_data: dict) -> str:
         return 'template_core_lib/tests/test_template.py'
+
+def _generate_tests(template_content: str, yaml_data: dict, key: str, core_lib_name: str):
+    updated_file = template_content
+    imports_list = []
+    test_functions = []
+    for data_access in get_dict_attr(yaml_data, key):
+        test_function = []
+        name = get_dict_attr(data_access, 'key')
+        snake_name = camel_to_snake(name)
+        if key == 'data_accesses':
+            imports_list.append(f'from {core_lib_name}.data_layers.data_access.{snake_name} import {name}')
+        else:
+            imports_list.append(f'from {core_lib_name}.data_layers.service.{snake_name} import {name}')
+        test_function.append(add_tab_spaces(f'def test_{snake_name}(self):'))
+        test_function.append(
+            add_tab_spaces(
+                f'# here you can test the functions in {name}',
+                2
+            )
+        )
+        test_function.append(
+            add_tab_spaces(
+                f'# e.g. self.assertNone(self.{core_lib_name}.{snake_name}.your_function(data))',
+                2
+            )
+        )
+        test_function.append(add_tab_spaces('pass', 2))
+        test_functions.append('\n'.join(test_function))
+    updated_file = updated_file.replace('# template_test_imports', '\n'.join(imports_list))
+    updated_file = updated_file.replace('# template_test_functions', '\n\n'.join(test_functions))
+    return updated_file
