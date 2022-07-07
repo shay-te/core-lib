@@ -3,7 +3,7 @@ from datetime import date
 from time import sleep
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.test import sync_create_core_lib_config
+from core_lib.helpers.test import load_core_lib_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 from examples.test_core_lib.core_lib.test_core_lib import TestCoreLib
 
@@ -24,7 +24,7 @@ user_data = {
 class TestExamples(unittest.TestCase):
     @classmethod
     def setUp(cls):
-        config = sync_create_core_lib_config('../../examples/test_core_lib/config')
+        config = load_core_lib_config('../examples/test_core_lib/config')
         cls.test_core_lib = TestCoreLib(config)
 
     def test_example_crud(self):

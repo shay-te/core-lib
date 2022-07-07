@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import date
 from time import sleep
@@ -9,7 +10,7 @@ from core_lib.core_lib import CoreLib
 from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.config_instances import instantiate_config
-from core_lib.helpers.test import sync_create_core_lib_config
+from core_lib.helpers.test import load_core_lib_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
 dattime = date.today()
@@ -44,12 +45,12 @@ class CustomerClient(ClientBase):
 class TestInstantiateConfig(unittest.TestCase):
 
     def test_example_core_lib(self):
-        config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_example.yaml')
+        config = load_core_lib_config('./test_data/test_config', 'instantiate_config_example.yaml')
         self.example_core_lib = ExampleCoreLib(config)
         self.assertTrue(isinstance(self.example_core_lib.db_session, SqlAlchemyConnectionRegistry))
 
     def test_core_lib(self):
-        config = sync_create_core_lib_config('../test_data/test_config', 'instantiate_config_test_core_lib.yaml')
+        config = load_core_lib_config('./test_data/test_config', 'instantiate_config_test_core_lib.yaml')
         self.test_core_lib = instantiate_config(config.core_lib)
         user = self.test_core_lib.customer.create(user_data)
         db_data = self.test_core_lib.customer.get(user[User.id.key])
