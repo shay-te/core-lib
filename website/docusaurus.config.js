@@ -34,6 +34,14 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          onlyIncludeVersions: ['0.1.0'],
+          versions: {
+            current: {
+              banner: 'none',
+              label: 'Latest',
+              path: '0.1.0',
+            },
+          },
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
@@ -72,6 +80,10 @@ const config = {
           },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {to: '/generate', label: 'Generate', position: 'left'},
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+          },
           {
             href: 'https://github.com/shay-te/core-lib',
             label: 'GitHub',
