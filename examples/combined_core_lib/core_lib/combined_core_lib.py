@@ -5,8 +5,8 @@ from examples.test_core_lib.core_lib.test_core_lib import TestCoreLib
 
 
 class CombineCoreLib(CoreLib):
-
     def __init__(self, conf: DictConfig):
+        super().__init__()
         self.config = conf
 
         self.demo = DemoCoreLib(conf)

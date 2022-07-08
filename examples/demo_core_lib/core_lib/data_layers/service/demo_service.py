@@ -4,7 +4,6 @@ from examples.demo_core_lib.core_lib.data_layers.data_access.demo_data_access im
 
 
 class DemoService(Service):
-
     def __init__(self, data_access: DemoDataAccess):
         self.data_access = data_access
 

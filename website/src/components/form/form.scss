@@ -1,0 +1,64 @@
+@import './../../utils/css/variables.scss';
+
+.form-root{
+    width: 100%;
+    padding: $spacing-xs $spacing-xl $spacing-xl $spacing-xl;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-family: 'Lato', sans-serif;
+    overflow-y: scroll;
+}
+
+.form-title{
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-bottom: $spacing-2xl;
+}
+
+.form-subtitle{
+    color: #717171;
+    font-size: 1rem;
+    margin-bottom: $spacing-2xl;
+}
+
+.form-input-div{
+    padding-top: $spacing-s;
+    padding-bottom: $spacing-s;
+    width: 100%;
+    align-self: center;
+}
+
+.input-label{
+    display: inline-block;
+    align-self: flex-start;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-input{
+    display: inline-block;
+    min-width: 600px;
+}
+
+.form-input-small{
+    display: inline-block;
+}
+
+.mui-input{
+    border: 1px rgb(133, 226, 255) solid;
+    border-radius: 20px;
+}
+
+.form-input:focus{
+    border: 1px rgb(0, 0, 0) solid;
+}
+
+.submit-button{
+    background-color: rgb(105, 255, 205);
+    border: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px black solid;
+}

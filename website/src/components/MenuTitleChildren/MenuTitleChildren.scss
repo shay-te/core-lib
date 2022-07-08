@@ -1,0 +1,51 @@
+@import './../../utils/css/variables.scss';
+
+.title-children-root{
+    padding: $spacing-xs $spacing-l $spacing-l $spacing-l;
+    width: 100%;
+    .title-div{
+        padding: $spacing-xs;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: $spacing-xl;
+        font-weight: 600;
+        margin-bottom: $spacing-2xl;
+        .title{
+            width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .children{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        .child{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: $spacing-xs;
+            .child-name{
+                width: 80%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+        }
+        .child-info{
+            color: #717171;
+            font-style: italic;
+        }
+        .selected{
+            background-color: $accent-color;
+            border-radius: 5px;
+        }
+        &:hover{
+            cursor: pointer;
+        }
+    }
+}

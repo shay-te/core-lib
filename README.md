@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/core-lib)](https://pypi.org/project/bigpipe-response/)
+[![PyPI](https://img.shields.io/pypi/v/core-lib)](https://pypi.org/project/core-lib/)
 ![PyPI - License](https://img.shields.io/pypi/l/core-lib)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/core-lib)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/core-lib.svg)](https://pypistats.org/packages/core-lib)
@@ -9,4 +9,7 @@ CoreLib provides basic simple classes for creating a WEB Application as a Librar
 Check the [website](https://core-lib.netlify.com/) for more information
 
 ## License
-Core-Lib in licenced under [MIT](https://github.com/shacoshe/core-lib/blob/master/LICENSE)
+Core-Lib is licenced under [MIT](https://github.com/shay-te/core-lib/blob/master/LICENSE)
+
+# Running tests
+`python -m unittest discover -v`

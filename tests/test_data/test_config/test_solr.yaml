@@ -1,0 +1,8 @@
+core_lib:
+  solr:
+    _target_: core_lib.connection.solr_connection_registry.SolrConnectionRegistry
+    config:
+      always_commit: true
+      url:
+        host: localhost
+        port: 8983

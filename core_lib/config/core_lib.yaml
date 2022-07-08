@@ -1,3 +1,4 @@
+# @package _global_
 core_lib:
   mode_production: false
 
@@ -5,17 +6,29 @@ core_lib:
   date_format: null
   time_format: null
 
+  cache:
+    no_cache: null
+
+    ram: null
+
+    memcached:
+      url:
+        host: ${oc.env:MEMCACHED_HOST}
+        port: 11211
+
   data:
     sqlalchemy:
       log_queries: false
       create_db: false
-
       session:
         pool_recycle: 3600
-        pool_pre_ping: False
-
+        pool_pre_ping: false
       url:
         protocol: 'sqlite'
+
+    solr:
+      always_commit: true
+      url: ~
 
   alembic:
     version_table: alembic_version
@@ -102,6 +115,15 @@ core_lib:
           formatter: generic
 
     version_file_name: '.migration_ver'
+    render_as_batch: false
+
+#  jobs:
+#    - initial_delay: 2h32m # https://pypi.org/project/pytimeparse/
+#      frequency: 1h32m
+#      handler:
+#        class: some_package.SomeClass
+#        params:
+#          some_param: some value
 
 hydra:
   run:

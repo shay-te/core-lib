@@ -1,0 +1,11 @@
+core_lib:
+  neo4j:
+    _target_: core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry
+    config:
+      credentials:
+        username: test_name
+        password: test_password
+      url:
+        protocol: neo4j
+        host: localhost
+        port: 7474

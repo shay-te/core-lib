@@ -11,7 +11,7 @@ class SecurityHandler(object):
         SecurityHandler.user_security = user_security
 
     @staticmethod
-    def get():
+    def get() -> UserSecurity:
         if not SecurityHandler.user_security:
             raise ValueError("SecurityHandler was not set")
         return SecurityHandler.user_security

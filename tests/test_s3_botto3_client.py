@@ -2,7 +2,7 @@
 #
 # import boto3
 # from dotenv import load_dotenv
-# from core_lib.data_layers.data_access.session.object_data_session_factory import ObjectDataSessionFactory
+# from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
 # from examples.objects_core_lib.core_lib.data_layers.data_access.objects_data_access import ObjectsDataAccess
 #
 # current_path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
@@ -12,8 +12,8 @@
 # load_dotenv(dotenv_path=env_path)
 #
 # print('Connecting with boto3...')
-# session = boto3.session.Session()
-# s3_client = session.client(
+# handler = boto3.handler.Session()
+# s3_client = handler.client(
 #     service_name='s3',
 #     region_name='ap-northeast-1',
 #     aws_access_key_id='test',
@@ -22,6 +22,6 @@
 # print('List Buckets.')
 # print(s3_client.list_buckets())
 
-# object_data_session_factory = ObjectDataSessionFactory(s3_client)
+# object_data_session_factory = ObjectConnectionRegistry(s3_client)
 # ob = ObjectsDataAccess(object_data_session_factory)
 # ob.set_object('x', 'xxxx')

@@ -1,12 +1,11 @@
 import unittest
 from contextlib import suppress
 
-from sqlalchemy import create_engine, Integer, Column, VARCHAR
+from sqlalchemy import Integer, Column, VARCHAR
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
 
-# path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_output", "db.db")
+from tests.test_data.test_utils import connect_to_mem_db
 
 
 class Test(Base):
@@ -17,14 +16,10 @@ class Test(Base):
     test_name = Column(VARCHAR(length=255), nullable=False, default="")
 
 
-class TestDBRuleValidator(unittest.TestCase):
-
+class TestDBDataSession(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.engine = create_engine("sqlite://", echo=True)
-        cls.engine.connect()
-        Base.metadata.create_all(cls.engine)
-        cls.db_data_session = DBDataSessionFactory(cls.engine)
+        cls.db_data_session = connect_to_mem_db()
 
     def test_query(self):
         with self.__class__.db_data_session.get() as session:

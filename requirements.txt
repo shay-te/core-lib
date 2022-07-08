@@ -1,9 +1,13 @@
 #Core lib
 hydra-core
 python-dateutil
-schedule
 PyJWT
 argh
+pytimeparse
+parsedatetime
+omegaconf
+neo4j
+redis
 
 # Connectors
 sqlalchemy
@@ -15,11 +19,19 @@ pymongo
 python-memcached
 cryptography
 boto3
+geoalchemy2
+shapely
+setuptools
+
 
 # web
 django
 flask
+flask_cors
+requests
 
 
 # Test
 python-dotenv
+moto
+freezegun

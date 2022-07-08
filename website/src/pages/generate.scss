@@ -1,0 +1,52 @@
+.generate-wrap {
+    width: auto;
+	.footer {
+		display: none;
+	}
+}
+.generate-root {
+    margin: 1rem;
+}
+
+.generate-divider{
+    margin-top: 1rem;
+}
+
+.upload-root{
+    margin-top: 2rem;
+}
+
+.core-lib-list{
+    margin-top: 2rem;
+}
+
+.cl-btn{
+    width: fit-content;
+    margin: 0.5rem;
+    border: none;
+    font-weight: bold;    
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: rgb(96, 96, 96);
+
+    &:hover{
+        color: black;
+    }
+}
+
+.custom-file-upload {
+    border: 2px solid #0ca3f7;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    width: 200px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.create-cl-btn{
+    color: #1c1e21;
+    background-color: #ebedf0;
+    width: 200px;
+}

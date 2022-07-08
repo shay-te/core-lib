@@ -1,15 +1,13 @@
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.session.object_data_session_factory import ObjectDataSessionFactory
+from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
 
 
 class DemoSearchDataAccess(DataAccess):
-    def __init__(self, data_session_factory: ObjectDataSessionFactory):
+    def __init__(self, data_session_factory: ObjectConnectionRegistry):
         self.solr = data_session_factory
 
     def search(self, demo_info: str):
         with self.solr.get() as session:
             filter_queries = ["demo_info_1:*{}*".format(demo_info), "demo_info_2:*{}*".format(demo_info)]
-            query = {
-                'fq': filter_queries
-            }
+            query = {'fq': filter_queries}
             return session.search("*:*", **query)

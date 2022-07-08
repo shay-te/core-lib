@@ -1,0 +1,35 @@
+@import './../../utils/css/variables.scss';
+
+.icons-list-root{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    height: 100%;
+    border-right: 1px solid #cccccc;
+    overflow-y: auto;
+    overflow-x: hidden;
+    .top-icons-list{
+        display: flex;
+        flex-direction: column;
+    }
+    .bottom-icons-list{
+        display: flex;
+        flex-direction: column;
+        margin-bottom: $spacing-xs;
+    }
+    .list-icon{
+        align-self: center;
+        padding: $spacing-s;
+        margin: $spacing-xs;
+        font-size: 20px;
+        &:hover{
+            cursor: pointer;
+        }
+    }
+
+    .selected{
+        background-color: $accent-color;
+        border-radius: 10px;
+    }
+}

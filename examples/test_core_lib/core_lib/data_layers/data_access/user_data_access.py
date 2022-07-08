@@ -3,12 +3,19 @@ import logging
 from http import HTTPStatus
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.validation import valid_email
+from core_lib.helpers.validation import is_email, is_int_enum
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.rule_validator.rule_validator_decorator import ParameterRuleValidator
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
+
+
+def enum_gender_converter(value):
+    if isinstance(value, str):
+        return User.Gender.MALE if (value.lower() == 'male') else User.Gender.FEMALE
+    else:
+        return User.Gender(value)
 
 
 user_rule_validators = [
@@ -18,20 +25,21 @@ user_rule_validators = [
     ValueRuleValidator(User.first_name.key, str, nullable=False),
     ValueRuleValidator(User.middle_name.key, str),
     ValueRuleValidator(User.last_name.key, str),
-    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: valid_email(value)),  # Email included in prohibited_keys, .
+    ValueRuleValidator(User.email.key, str, nullable=False, custom_validator=lambda value: is_email(value)),
     ValueRuleValidator(User.birthday.key, datetime.date),
-    ValueRuleValidator(User.gender.key,
-                       User.Gender,
-                       custom_converter=lambda value: User.Gender(value),  # Convert int to enum
-                       custom_validator=lambda value: 0 <= value.value <= len(User.Gender))  # Working with enum after conversion.
+    ValueRuleValidator(
+        User.gender.key,
+        int,
+        custom_converter=lambda value: enum_gender_converter(value),
+        custom_validator=lambda value: is_int_enum(value, User.Gender),
+    ),
 ]
 
 user_rule_validator = RuleValidator(user_rule_validators)
 
 
 class UserDataAccess(DataAccess):
-
-    def __init__(self, db: DBDataSessionFactory):
+    def __init__(self, db: SqlAlchemyConnectionRegistry):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -67,5 +75,4 @@ class UserDataAccess(DataAccess):
             if user:
                 return user
             else:
-                raise StatusCodeException(HTTPStatus.NOT_FOUND, 'User not found by id [{}]'.format(user_id))
-
+                raise StatusCodeException(HTTPStatus.NOT_FOUND, f'User not found by id [{user_id}]')

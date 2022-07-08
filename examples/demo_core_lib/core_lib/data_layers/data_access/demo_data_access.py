@@ -1,7 +1,7 @@
 import logging
 
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.data_layers.data.session.db_data_session_factory import DBDataSessionFactory
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 from core_lib.rule_validator.rule_validator_decorator import ParameterRuleValidator
 from examples.demo_core_lib.core_lib.data_layers.data.db.demo_info import DemoInfo
@@ -13,14 +13,13 @@ demo_rule_validators = [
     ValueRuleValidator(DemoInfo.demo_info_3.key, str),
     ValueRuleValidator(DemoInfo.demo_info_4.key, str),
     ValueRuleValidator(DemoInfo.demo_info_5.key, str),
-    ValueRuleValidator(DemoInfo.demo_info_6.key, str)
+    ValueRuleValidator(DemoInfo.demo_info_6.key, str),
 ]
 demo_rule_validator = RuleValidator(demo_rule_validators)
 
 
 class DemoDataAccess(DataAccess):
-
-    def __init__(self, db: DBDataSessionFactory):
+    def __init__(self, db: SqlAlchemyConnectionRegistry):
         self.db = db
         self.logger = logging.getLogger(self.__class__.__name__)
 

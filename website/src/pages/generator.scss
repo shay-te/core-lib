@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@100;400&display=swap');
+@import '../utils/css/variables.scss';
+.App {
+	text-align: center;
+}
+
+.hide {
+	display: none;
+}
+
+.generator-wrap {
+	height: 100vh;
+	overflow: hidden;
+	.main-wrapper {
+		height: calc(100% - 50px);
+		.app-root {
+            font-family: 'Lato', sans-serif;
+			height: 100%;
+            display: flex;
+		}
+	}
+	.footer {
+		display: none;
+	}
+}
+
+.close-generator-btn{
+	z-index: 1;
+	position: absolute;
+	font-size: 1rem;
+	color: #ff7948;
+	top: 10%;
+	right: 2%;
+    border: 1px solid $primary-color;
+    padding: $spacing-xs;
+    border-radius: 15px;
+    a{
+        text-decoration: none;
+    }
+    
+}
+
+.custom-scrollbar {
+	&::-webkit-scrollbar {
+		width: 5px;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-radius: 10px;
+		background-color: rgb(113, 113, 113);
+		width: 5px;
+	}
+	&::-webkit-scrollbar-thumb:hover {
+		background: rgb(71, 71, 71);
+	}
+}

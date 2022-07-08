@@ -4,7 +4,7 @@ import pymysql
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from sqlalchemy import create_engine
 
 from core_lib.data_layers.data.data_helpers import build_url
@@ -14,22 +14,24 @@ pymysql.install_as_MySQLdb()
 
 
 class Alembic(object):
-
     def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
         self.config = core_lib_config.core_lib.alembic
+        OmegaConf.set_struct(self.config, False)
         self.alembic_cfg = Config()
 
-        self.config['sqlalchemy.url'] = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
+        server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
+        self.config['sqlalchemy.url'] = server_url
 
-        self.__engine = create_engine(self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries)
+        self.__engine = create_engine(
+            self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries
+        )
 
         self.script_location = None
-        if self.config.script_location:
-            if not os.path.isdir(self.config.script_location) is not os.path.isabs(self.config.script_location):
-                self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
+        if self.config.script_location and not os.path.isabs(self.config.script_location):
+            self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
-            raise ValueError("config.alembic.script_location dose not exists `{}`".format(self.script_location))
+            raise ValueError(f'config.alembic.script_location dose not exists `{self.script_location}`')
 
         if not self.config.version_file_name:
             raise ValueError("config.alembic.version_file_name cannot be None")
@@ -57,10 +59,13 @@ class Alembic(object):
             script = ScriptDirectory.from_config(self.alembic_cfg)
 
             from alembic.runtime.environment import EnvironmentContext
-            with EnvironmentContext(self.alembic_cfg,
-                                    script,
-                                    fn=callback) as context:
-                context.configure(version_table=self.config.version_table, connection=connection)
+
+            with EnvironmentContext(self.alembic_cfg, script, fn=callback) as context:
+                context.configure(
+                    version_table=self.config.version_table,
+                    connection=connection,
+                    render_as_batch=self.config.render_as_batch,
+                )
                 with context.begin_transaction():
                     context.run_migrations()
 
@@ -69,6 +74,9 @@ class Alembic(object):
 
     def downgrade(self, revision: str = "base"):
         self.__migrate_to_revision(revision, False)
+
+    def history(self):
+        return command.history(self.alembic_cfg)
 
     def create_migration(self, migration_name):
         if not migration_name:
@@ -79,7 +87,7 @@ class Alembic(object):
         command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
         self._write_version(new_version)
 
-    def _read_version(self):
+    def _read_version(self) -> int:
         script = ScriptDirectory.from_config(self.alembic_cfg)
         count = 0
         for _ in script.walk_revisions():
