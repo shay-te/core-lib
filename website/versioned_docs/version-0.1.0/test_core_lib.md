@@ -54,10 +54,6 @@ class UserService(Service):
     def delete(self, user_id: int):
         return self.data_access.delete(user_id)
 ```
-
-## Main Class
-Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
-
 ### Config
 `user_core_lib.yaml`
 ```yaml
@@ -88,6 +84,9 @@ core_lib:
         _target_: user_core_lib.UserCoreLib.UserClient
         base_url: https://example.com/
 ```
+
+## Main Class
+Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
 `user_core_lib.py`
 ```python
@@ -163,7 +162,7 @@ import unittest
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from user_core_lib.user_core_lib import UserCoreLib
-from tests.test_data.test_utils import sync_create_core_lib_config
+from core_lib.helpers.test import load_core_lib_config
 from core_lib.client.client_base import ClientBase
 from core_lib.helpers.config_instances import instantiate_config
 
@@ -187,7 +186,7 @@ class TestCoreLib(unittest.TestCase):
     
     def setUp(self):
         # util that will clear all the earlier Core-Lib data and return DictConfig
-        self.config = sync_create_core_lib_config('./test/config', 'test_config.yaml')
+        self.config = load_core_lib_config('./test/config', 'test_config.yaml')
         # here we initialize the Core-Lib
         self.user_core_lib = UserCoreLib(self.config)
     
