@@ -9,17 +9,7 @@ CoreLib provides basic simple classes for creating a WEB Application as a Librar
 Check the [website](https://core-lib.netlify.com/) for more information
 
 ## License
-Core-Lib in licenced under [MIT](https://github.com/shay-te/core-lib/blob/master/LICENSE)
-
-# Starting the Flask server
-
-You'll find a file named `generator_server.py` under the `website` directory.
-This is responsible for starting the flask server which provides APIs for generating and downloading a `Core-lib` zip file.
-
-To start the server use the following commands:
-```
-python website/generator_server.py # from root core-lib folder 
-```
+Core-Lib is licenced under [MIT](https://github.com/shay-te/core-lib/blob/master/LICENSE)
 
 # Running tests
 `python -m unittest discover -v`
