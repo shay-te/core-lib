@@ -1,4 +1,4 @@
-def get_dict_attr(obj: dict, path: str):
+def get_dict_attr(obj: dict, path: str, default=None):
     path_list = path.split('.')
     obj_temp = obj
     try:
@@ -6,7 +6,7 @@ def get_dict_attr(obj: dict, path: str):
             obj_temp = obj_temp[elem]
         return obj_temp
     except KeyError as e:
-        return None
+        return default
 
 
 def set_dict_attr(obj: dict, path: str, value) -> dict:

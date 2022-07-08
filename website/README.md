@@ -39,3 +39,13 @@ $ GIT_USER=<Your GitHub username> yarn deploy
 ```
 
 If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+
+## Starting the Flask server
+
+You'll find a file named `generator_server.py` under the `website` directory.
+This is responsible for starting the flask server which provides APIs for generating and downloading a `Core-lib` zip file.
+
+To start the server use the following commands:
+```
+python website/generator_server.py # from root core-lib folder 
+```

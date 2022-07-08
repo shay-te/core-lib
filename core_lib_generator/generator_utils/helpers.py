@@ -23,14 +23,15 @@ def generate_functions(template_content: str, functions: list) -> str:
             cache_key = get_dict_attr(function, 'cache_key')
             cache_invalidate = get_dict_attr(function, 'cache_invalidate')
             invalidate_str = ', invalidate=True' if cache_invalidate else ''
-            func_str_list.append(add_tab_spaces(f'@Cache(\'{cache_key}\'{invalidate_str})', 1))
+            func_str_list.append(add_tab_spaces(f'@Cache({cache_key.upper()}{invalidate_str})', 1))
         if get_dict_attr(function, 'result_to_dict'):
             imports.append('from core_lib.data_transform.result_to_dict import ResultToDict')
             func_str_list.append(add_tab_spaces('@ResultToDict()', 1))
         func_str_list.append(add_tab_spaces(f'def {name}(self):', 1))
         func_str_list.append(add_tab_spaces('pass', 2))
         func_list.append('\n'.join(func_str_list))
-    updated_file = template_content.replace('# template_functions', '\n\n'.join(func_list))
+    func_str = '\n\n'.join(func_list)
+    updated_file = template_content.replace('# template_functions', f'\n{func_str}')
     if not imports:
         updated_file = remove_line('# template_function_imports', updated_file)
     else:
@@ -38,7 +39,7 @@ def generate_functions(template_content: str, functions: list) -> str:
     return updated_file
 
 
-def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
+def input_function(ask_cache: bool, validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
     function_data = {}
     function_name = input_str('What is the name of the function?', None, False, validate_value_callback,
                               'Function with this name already exists')
@@ -47,11 +48,12 @@ def input_function(validate_value_callback: Callable[[dict], Awaitable[dict]] = 
         'key': function_name,
         'result_to_dict': result_to_dict,
     })
-    if input_yes_no('Do you want to cache the data?', False):
-        cache_key = input_str('Enter the name of the cache key')
-        cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
-        function_data.update({
-            'cache_key': cache_key,
-            'cache_invalidate': cache_invalidate,
-        })
+    if ask_cache:
+        if input_yes_no('Do you want to cache the data?', False):
+            cache_key = input_str('Enter the name of the cache key (CAPITAL_LETTERS)')
+            cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
+            function_data.update({
+                'cache_key': cache_key,
+                'cache_invalidate': cache_invalidate,
+            })
     return function_data

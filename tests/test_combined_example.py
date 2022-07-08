@@ -6,10 +6,10 @@ from hydra.core.utils import configure_log
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.generate_data import generate_email, generate_random_string
+from core_lib.helpers.test import load_core_lib_config
 from examples.combined_core_lib.core_lib.combined_core_lib import CombineCoreLib
 
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
-from tests.test_data.test_utils import sync_create_core_lib_config
 
 configure_log(None, True)
 
@@ -31,7 +31,7 @@ user_data_crud = {
 class TestCombinedExample(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config = sync_create_core_lib_config('../../examples/combined_core_lib/config')
+        config = load_core_lib_config('../examples/combined_core_lib/config')
         cls.combined_core_lib = CombineCoreLib(config)
 
     def test_01_group_services(self):

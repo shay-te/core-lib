@@ -1,6 +1,6 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_yes_no
+from core_lib.helpers.shell_utils import input_str, input_yes_no, input_list
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.generator_utils.helpers import is_exists
 
@@ -11,10 +11,18 @@ def generate_data_access_template(db_entities: list) -> list:
     def is_exists_data_access(user_input: str):
         return is_exists(user_input, data_access)
 
+    entity_list = []
     if db_entities:
         for entity in db_entities:
-            entity_name = entity['key']
-            db_conn = entity['db_connection']
+            name = entity['key']
+            conn = entity['db_connection']
+            entity_list.append(f'{name} -> {conn}')
+        add_da = True
+        while add_da:
+            entity_input = input_list(entity_list, 'Select the Entity to create DataAccess for')
+            entity_data = db_entities[entity_input]
+            entity_name = entity_data.get('key')
+            db_conn = entity_data.get('db_connection')
             default = (
                 f'{any_to_pascal(entity_name)}DataAccess'
                 if is_exists_data_access(f'{any_to_pascal(entity_name)}DataAccess')
@@ -36,18 +44,19 @@ def generate_data_access_template(db_entities: list) -> list:
             add_function = input_yes_no('Do you want to add a function to your data access?', True)
             while add_function:
                 functions.append({
-                    'key': input_str('What is the name of the function?', None, False, is_exists_function, 'Function with this name already exists')
+                    'key': input_str('What is the name of the function?', None, False, is_exists_function,
+                                     'Function with this name already exists')
                 })
                 add_function = input_yes_no('Do you want to add another function to your data access?', True)
             is_crud_soft_delete_token = False
             is_crud_soft_delete = False
-            if entity.get('is_soft_delete') and entity.get('is_soft_delete_token'):
+            if entity_data.get('is_soft_delete') and entity_data.get('is_soft_delete_token'):
                 is_crud_soft_delete_token = input_yes_no(
                     'Do you want to implement CRUD Soft Delete Token on your data access?', False
                 )
                 is_crud_soft_delete = is_crud_soft_delete_token
                 is_crud = is_crud_soft_delete_token
-            elif entity.get('is_soft_delete') and not entity.get('is_soft_delete_token'):
+            elif entity_data.get('is_soft_delete') and not entity_data.get('is_soft_delete_token'):
                 is_crud_soft_delete = input_yes_no(
                     'Do you want to implement CRUD Soft Delete on your data access?', False
                 )
@@ -57,9 +66,11 @@ def generate_data_access_template(db_entities: list) -> list:
 
             data_access.append(
                 _generate_data_access_config(
-                    data_access_name, functions, entity_name, db_conn, is_crud, is_crud_soft_delete, is_crud_soft_delete_token
+                    data_access_name, functions, entity_name, db_conn, is_crud, is_crud_soft_delete,
+                    is_crud_soft_delete_token
                 )
             )
+            add_da = input_yes_no('Do you want to add another DataAccess?', True)
     return data_access
 
 

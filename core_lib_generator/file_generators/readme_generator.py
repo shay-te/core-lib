@@ -1,4 +1,4 @@
-from core_lib.helpers.string import snake_to_camel
+from core_lib.helpers.string import snake_to_camel, camel_to_snake
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.generator_utils.formatting_utils import remove_line
 
@@ -10,7 +10,7 @@ class ReadmeGenerateTemplate(TemplateGenerator):
         return _add_function_calls(updated_file, yaml_data, core_lib_name)
 
     def get_template_file(self, yaml_data: dict) -> str:
-        return 'core_lib_generator/template_core_lib/README.md'
+        return 'template_core_lib/README.md'
 
 
 def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):
@@ -18,9 +18,8 @@ def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):
     func_call_list = []
     if yaml_data:
         for data_access in yaml_data:
-            db_conn = data_access['db_connection']
-            db_entity = data_access['entity']
-            func_call_list.append(f'{core_lib_name}.{db_conn}_{db_entity}.your_function()')
+            da = data_access['key']
+            func_call_list.append(f'{core_lib_name}.{camel_to_snake(da)}.your_function()')
         updated_file = updated_file.replace('# function_call', '\n'.join(func_call_list))
     else:
         updated_file = remove_line('# function_call', updated_file)

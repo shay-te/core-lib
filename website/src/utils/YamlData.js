@@ -2,6 +2,7 @@ import { isObject, getValueAtPath } from "./commonUtils"
 import {rename} from './yamlDataUtils/rename'
 import * as update from './yamlDataUtils/update'
 import * as create from './yamlDataUtils/create'
+import {deleteData} from './yamlDataUtils/delete'
 export class YamlData {
 
     init(data) {
@@ -9,15 +10,18 @@ export class YamlData {
         this.coreLibName = data.core_lib.name
     }
 
-    set(path, value, isEnv, addOrRemove) {
+    set(path, value, isEnv, addOrRemove, isBool) {
         let data = JSON.parse(JSON.stringify(this.yaml))
         const steps = path.split(".")
         if (path === 'core_lib.name') {
             data.core_lib.name = value
-            this.yaml = data
+            this.yaml = update.updateCoreLibName(value, this.coreLibName, this.yaml)
             this.coreLibName = value
         }
         else {
+            if(isBool){
+                value = value.toLowerCase() === 'true'
+            }
             const objField = getValueAtPath(data, steps)
             const fieldName = steps[steps.length - 1]
             if (isObject(objField)) {
@@ -58,10 +62,16 @@ export class YamlData {
                 data = rename(path, value, data, this.yaml)
                 this.yaml = data
                 if (path.includes('url.protocol') && path.includes('core_lib.connections')) {
-                    this.yaml = update.updateDBConn(path, value, this.yaml)
+                    this.yaml = update.updateConnectionProtocol(path, value, this.yaml)
                 }
                 if (path.includes('core_lib.caches')){
                     this.yaml = update.updateCache(path, this.yaml)
+                }
+                if (path.includes('core_lib.data_accesses')){
+                    this.yaml = update.updateDataAccess(path, value, this.yaml)
+                }
+                if (path.includes('core_lib.services')){
+                    this.yaml = update.updateService(path, value, this.yaml)
                 }
                 return steps.join('.')
             }
@@ -69,16 +79,16 @@ export class YamlData {
         return path
     }
 
-    createEntity(dbConn) {
-        this.yaml = create.entity(dbConn, this.yaml)
+    createEntity(connection) {
+        this.yaml = create.entity(this.yaml, connection)
     }
 
     createDataAccess() {
         this.yaml = create.dataAccess(this.yaml)
     }
 
-    createDBConnection() {
-        this.yaml = create.dbConnection(this.yaml)
+    createConnection() {
+        this.yaml = create.connection(this.yaml)
     }
 
     createCache() {
@@ -97,50 +107,14 @@ export class YamlData {
         this.yaml = create.functions(path, this.yaml)
     }
 
-    createServices(path){
+    createServices(){
         this.yaml = create.services(this.yaml)
     }
 
     delete(path) {
-        const data = JSON.parse(JSON.stringify(this.yaml))
-        const steps = path.split(".")
-        const parent = getValueAtPath(data, steps.slice(0, -1));
-        parent.splice(steps.at(-1), 1);
+        let data = JSON.parse(JSON.stringify(this.yaml))
+        data = deleteData(path, data)
         this.yaml = data
-    }
-
-    get(path) {
-        return path.split('.').reduce((obj, key) => {
-            return obj && obj[key];
-        }, this.yaml);
-    }
-
-    listChildrenUnderPath(path) {
-        const res = []
-        const list = this.get(path) 
-        if(!list){
-            return res
-        }
-        if (path === 'core_lib.entities') {
-            const entityRes = []
-            list.forEach((entity, index) => {
-                entityRes.push({ name: entity.key, path: path + '.' + index, dbConnection: entity.db_connection })
-            })
-            return entityRes
-        }
-        if (path === 'core_lib.connections') {
-            list.forEach((dbConn, index) => {
-                res.push({ name: dbConn.key, path: path + '.' + index, hasEntity: true })
-            })
-            return res
-
-        }
-        if(list instanceof Array){
-            list.forEach((item, index )=> {
-                res.push({ name: item.key, path: path + '.' + index })
-            })
-        }
-        return res
     }
 
     toJSON() {

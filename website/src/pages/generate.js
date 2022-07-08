@@ -10,10 +10,9 @@ import {
 } from "./../components/slices/treeSlice";
 import { useDispatch } from "react-redux";
 import { newCL } from './../newCoreLib';
-
-
 import './generate.scss'
 import { useHistory } from '@docusaurus/router';
+
 const yaml = require('js-yaml');
 
 function Generate() {
@@ -81,7 +80,7 @@ function Generate() {
                             <h2>
                                 Create
                             </h2>
-                            <div className={`button button--secondary button--lg `} onClick={() => addNew(newCL)}>
+                            <div className={`create-cl-btn button button--secondary button--lg `} onClick={() => addNew(newCL)}>
                                 Create New
                             </div>
                         </div>

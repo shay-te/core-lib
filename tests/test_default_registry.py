@@ -4,6 +4,7 @@ from datetime import datetime, date
 
 from geoalchemy2 import WKTElement
 
+from core_lib.core_lib import CoreLib
 from core_lib.registry.default_registry import DefaultRegistry
 
 

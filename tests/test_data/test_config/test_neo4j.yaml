@@ -6,5 +6,6 @@ core_lib:
         username: test_name
         password: test_password
       url:
-        host: neo4j
+        protocol: neo4j
+        host: localhost
         port: 7474

@@ -1,4 +1,5 @@
 import { getENVValue } from "../utils/commonUtils";
+import { isNotNull, isNumber, isSnakeCase } from "../utils/validatorUtils";
 
 export const cacheFields = (path, yamlData) => {
     const pathSplit = path.split('.')
@@ -6,6 +7,9 @@ export const cacheFields = (path, yamlData) => {
     const fields = []
     const keyPrefix = `core_lib.caches.${index}`
     const cache = yamlData.core_lib.caches[index]
+    if(!cache){
+        return fields
+    }
     const cacheName = yamlData.core_lib.caches[index].key
     const envPrefix =  `core_lib.env.${cacheName.toUpperCase()}`
     fields.push({
@@ -15,7 +19,8 @@ export const cacheFields = (path, yamlData) => {
         value: cacheName,
         mandatory: true,
         key: `${keyPrefix}.key`,
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Edit Cache Name (snake_case)",
+        validatorCallback: isSnakeCase,
     },
     {
         title: "Select Cache Type",
@@ -29,7 +34,7 @@ export const cacheFields = (path, yamlData) => {
             'redis',
         ],
         key: `${keyPrefix}.type`,
-        // validatorCallback: validateFunc,
+        toolTipTitle: "Select type of your cache for this Core-Lib",
     })
     if(cache['type'] !== 'memory'){
         fields.push(
@@ -41,7 +46,7 @@ export const cacheFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.url.port`,
                 env: `${envPrefix}_PORT`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNumber,
             },
             {
                 title: "Enter host of your cache server",
@@ -51,7 +56,7 @@ export const cacheFields = (path, yamlData) => {
                 mandatory: true,
                 key: `${keyPrefix}.url.host`,
                 env: `${envPrefix}_HOST`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         )
     }
@@ -64,7 +69,7 @@ export const cacheFields = (path, yamlData) => {
                 value: cache["url"]["protocol"],
                 mandatory: true,
                 key: `${keyPrefix}.url.protocol`,
-                // validatorCallback: validateFunc,
+                validatorCallback: isNotNull,
             },
         )
     }
