@@ -30,6 +30,7 @@ const sidebars = {
         'core_lib',
         'core_lib_listener',
         'core_lib_main',
+        'test_core_lib',
         'alembic',
         'cache',
         {
