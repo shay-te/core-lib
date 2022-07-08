@@ -54,7 +54,7 @@ class UserService(Service):
     def delete(self, user_id: int):
         return self.data_access.delete(user_id)
 ```
-### Config
+## Config
 `user_core_lib.yaml`
 ```yaml
 # @package _global_
