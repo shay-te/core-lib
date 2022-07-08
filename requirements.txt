@@ -27,6 +27,7 @@ setuptools
 # web
 django
 flask
+flask_cors
 requests
 
 
