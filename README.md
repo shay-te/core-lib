@@ -18,8 +18,7 @@ This is responsible for starting the flask server which provides APIs for genera
 
 To start the server use the following commands:
 ```
-python website/generator_server.py # from root folder or
-python generator_server.py # from website folder
+python website/generator_server.py # from root core-lib folder 
 ```
 
 # Running tests
