@@ -1,7 +1,7 @@
 ---
 id: test_core_lib
-title: Test Core Lib
-sidebar_label: Test Core Lib
+title: Testing Core Lib
+sidebar_label: Testing Core Lib
 ---
 
 Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.
