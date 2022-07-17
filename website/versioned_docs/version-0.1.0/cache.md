@@ -4,33 +4,28 @@ title: Cache
 sidebar_label: Cache
 ---
 
-`Core-Lib` provide plug-able cache functionalists that can be extended. And used as a decorator and as an instance.
+`Core-Lib` provides plug-able cache functionalists that can use as a decorator and as an instance.
+
+
+## Using The Cache decorator.
+
+```python
+
+# return cached value or generate result and store in cache
+@Cache(key="test_cache_param_{foo_id}", expire=timedelta(houers=3, minutes=2, seconds=1))
+def get_foo(foo_id):
+    value = ... # Do some calculation
+    return value
+
+# Clear the cache 
+@Cache(key="test_cache_param_{foo_id}", invalidate=True)
+def set_foo(self, foo_id, foo_value):
+    ... # update the value
+```
 
 ## CacheHandler
 
 *core_lib.cache.cache_handler.CacheHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler.py#L5)
-
-`CacheHandler` base class provides the basic API functions used by `Core-Lib`.
-
-```python
-class CacheHandler(ABC):
-
-    # Fetch data from the cache using the `key`, returns None when no value was found
-    @abstractmethod
-    def get(self, key):
-        pass
-
-    # Store the `value` to cache by the `key`.
-    # None `expire` will tell the storage to hold the value "forever" or after the designated period expires
-    @abstractmethod
-    def set(self, key: str, value, expire: timedelta):
-        pass
-
-    # Remove the value from the cache using the `key`
-    @abstractmethod
-    def delete(self, key: str):
-        pass
-```
 
 By default, `Core-Lib` provides three `CacheHandler` implementations.   
 1. `core_lib.cache.cache_client_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6)
@@ -58,8 +53,52 @@ cache_registry.register("mem2", CacheHandlerRam())
 cache_registry.get() # returns None. Multiple client registered.
 ``` 
 
+## Cache Initialization
 
-## Cache
+The `Cache` decorator is using the `CacheRegistry` to get the designated `CacheHandler`   
+Initializing `Core-Lib` with `Cache` example: 
+
+```python
+from memcache import Client
+...
+
+class DemoCoreLib(CoreLib):
+
+    def __init__(self, conf: DictConfig):
+        self.config = conf
+
+        cache_client_memcached = CacheHandlerMemcached(build_url(**self.config.memcached))
+        cache_registry = CacheRegistry()
+        cache_registry.register("memcached", cache_client_memcached)
+        ...
+``` 
+
+ 
+## Writing a Custom CacheHandler
+`CacheHandler` base class provides the basic API functions used by `Core-Lib`.
+
+```python
+class CacheHandler(ABC):
+
+    # Fetch data from the cache using the `key`, returns None when no value was found
+    @abstractmethod
+    def get(self, key):
+        pass
+
+    # Store the `value` to cache by the `key`.
+    # None `expire` will tell the storage to hold the value "forever" or after the designated period expires
+    @abstractmethod
+    def set(self, key: str, value, expire: timedelta):
+        pass
+
+    # Remove the value from the cache using the `key`
+    @abstractmethod
+    def delete(self, key: str):
+        pass
+```
+
+
+## Cache Decorator
 
 *core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L34)
 
@@ -90,41 +129,3 @@ class Cache(object):
 - **`invalidate`** *`(bool)`*: Remove the value from the cache using the key.
 - **`handler_name`** *`(str)`*: Name of the handler, will specify what `CacheHandler` to use, using the `CoreLib.cache_registry`.
 - **`cache_empty_result`** *`(bool)`*: Default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
-
-## Cache Initialization
-
-The `Cache` decorator is using the `CacheRegistry` to get the designated `CacheHandler`   
-Initializing `Core-Lib` with `Cache` example: 
-
-```python
-from memcache import Client
-...
-
-class DemoCoreLib(CoreLib):
-
-    def __init__(self, conf: DictConfig):
-        self.config = conf
-
-        cache_client_memcached = CacheHandlerMemcached(Client([build_url(**self.config.memcached)]))
-        cache_registry = CacheRegistry()
-        cache_registry.register("memcached", cache_client_memcached)
-        ...
-``` 
-
-## Using The Cache decorator.
-
-```python
-
-# return cached value or generate result and store in cache
-@Cache(key="test_cache_param_{foo_id}", expire=timedelta(houers=3, minutes=2, seconds=1))
-def get_foo(foo_id):
-    value = ... # Do some calculation
-    return value
-
-# Clear the cache 
-@Cache(key="test_cache_param_{foo_id}", invalidate=True)
-def set_foo(self, foo_id, foo_value):
-    ... # update the value
-
-```
- 
