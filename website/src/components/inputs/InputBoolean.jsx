@@ -3,7 +3,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
-import ToolTip from '@mui/material/ToolTip';
+import Tooltip from '@mui/material/Tooltip';
 
 
 const InputBoolean = (props) => {
@@ -14,7 +14,7 @@ const InputBoolean = (props) => {
                 aria-labelledby="bool-radio-grp"
                 name="bool-radio-grp"
             >
-                <ToolTip title={props.toolTipTitle.yes} placement="right" arrow>
+                <Tooltip title={props.toolTipTitle.yes} placement="right" arrow>
                     <div>
                         <FormControlLabel 
                             value={true} 
@@ -33,8 +33,8 @@ const InputBoolean = (props) => {
                             label="Yes" 
                         />
                     </div>
-                </ToolTip>
-                 <ToolTip title={props.toolTipTitle.no} placement="right" arrow>
+                </Tooltip>
+                 <Tooltip title={props.toolTipTitle.no} placement="right" arrow>
                     <div>
                         <FormControlLabel 
                             value={true} 
@@ -53,7 +53,7 @@ const InputBoolean = (props) => {
                             label="No" 
                         />
                     </div>
-                </ToolTip>
+                </Tooltip>
             </RadioGroup>
         </div>
     );

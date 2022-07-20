@@ -17,7 +17,7 @@ import { store } from './../components/store/store';
 import 'react-reflex/styles.css'
 import Link from '@docusaurus/Link';
 import { Key } from '../utils/Key';
-import DoubleMenu from '../components/doubleMenu/DoubleMenu';
+import DoubleMenu from './../components/DoubleMenu/DoubleMenu';
 
 
 function GeneratorElements() {
