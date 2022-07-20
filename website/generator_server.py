@@ -5,7 +5,7 @@ import shutil
 import hydra
 from flask import Flask, Response
 from flask import request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from hydra import initialize_config_dir, compose
 from omegaconf import OmegaConf
 from tempfile import TemporaryDirectory
@@ -14,7 +14,7 @@ from core_lib.helpers.string import camel_to_snake
 from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
 
 app = Flask(__name__)
-cors = CORS(app)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}}, support_credentials=True)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
@@ -39,6 +39,7 @@ def get_archive_content(config: dict):
 
 
 @app.route('/api/download_zip', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def download_zip():
     archive = get_archive_content(request.json['config'])
     return Response(archive, mimetype='application/zip',
