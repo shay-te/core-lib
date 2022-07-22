@@ -1,5 +1,5 @@
 import { current } from '@reduxjs/toolkit'
-import { download } from "./../../utils/commonUtils";
+import { download, getValueAtPath } from "./../../utils/commonUtils";
 import YAML from "yaml";
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { YamlData } from "./../../utils/YamlData";
@@ -32,6 +32,18 @@ const createNewEntry = (path, yamlData) => {
     if (path.includes('services')) { return yamlData.createServices() }
     return [];
 }
+
+const setNewEntryField = (path, state) => {
+    if(!path.includes('function') && !path.includes('columns')){
+        let newPath = `core_lib.${path}`
+        if(path.includes('db_entities')){
+            newPath = `core_lib.entities`
+        }
+        const newIndex = getValueAtPath(state.yaml, newPath.split('.')).length - 1
+        return `${newPath}.${newIndex}`
+    }
+    return state.selectedField
+} 
 
 const yamlData = new YamlData()
 
@@ -115,6 +127,7 @@ export const treeSlice = createSlice({
             createNewEntry(action.payload, yamlData)
             state.yaml = yamlData.toJSON()
             setTreeState(state, yamlData)
+            state.selectedField = setNewEntryField(action.payload, state)
         },
         setStorageIndex: (state, action) => {
             state.localStorageIndex = action.payload;
