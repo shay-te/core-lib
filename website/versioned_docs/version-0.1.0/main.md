@@ -43,15 +43,15 @@ Everyone who is interested in working with simple implementation and single arch
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct and the process for submitting pull requests to us.
 
 
 ## Authors
 
-**Shay Tessler**  - [github](https://github.com/shay-te)
+**Shay Tessler**  - [GitHub](https://github.com/shay-te)
 
 
 ## License
 
-This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE) file for details
+This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE) file for details.
 

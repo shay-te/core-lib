@@ -8,26 +8,26 @@ sidebar_label: Advantages
 
 
 
-#### Can be deployed anywhere
+#### It can be deployed anywhere.
 
-Running `Core-Lib` is simple as running a `__main__` function inside the `IDE`. `Core-Lib` code instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
+Running `Core-Lib` is simple as running a `__main__` function inside the `IDE`. `Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
 
+#### Unit test your entire product.
 
-
-#### Unit test your entire product
-
-Unit-testing and debugging of the entire product locally on your `IDE` saves resources such as money and time. 
+Unit-testing and debugging the entire product locally on your `IDE` saves time = ?. 
 
 
 #### Write code that matters.
 
-`Core-Lib` delegates operations that frequently repeat into tools and decorators such as  `Cache`, `Transform Data`, `RuleValidator`, And more. Leaving you to write your product code alone.
-
-
+`Core-Lib` delegates operations that frequently repeat into tools and decorators such as  `Cache`, `Transform Data`, `RuleValidator`, etc. Leaving you to to focus on the problem at hand.
 
 #### Short learning curve.
 
 `Core-Lib` provides out-of-the-box a tiny subset of simple tools that make it easy to master. 
+
+#### Risk management
+
+`Core-Lib` provides simple tools to solve problems without abstracting third-party dependencies. Relying on multiple dependencies rather than one is risk management. When one dependence is obsolete, it affects only a subset of the code. 
 
 
 #### Shared knowledge
@@ -37,26 +37,13 @@ Architecture, code structure, state of mind, approach, knowledge, experience, an
 
 #### Divide and Conquer
 
-`Core-Lib` module can be easily broken into `Services`, `Data-Layers`, And other `Core-Libs`.  
-A small subset of chunks is easier to read, pinpoint a problem, and test.
+`Core-Lib` makes it easy to break a product into `Services`, ` Data-Layers`, And other `Core-Libs`. Creating smaller units that are easier to read, develop, pinpoint a problem, and test.
 
 #### Easy to scale, And Longevity
 
-`Core-Lib` embraces the `Onion Architecture` for data flow across your library. By expanding/changing branches and leaves of `Services`, ` DataAccess`. We are spreading the logic across the library, preventing busy and complex code while encouraging code reuse. 
+`Core-Lib` embraces the `Onion Architecture` for data flow across libraries. By rewiring and expending data layers. Such as `Services` and `DataAccess.` We are spreading the logic across the library, preventing busy and complex code while encouraging code reuse. 
 
-#### Risk management
+#### Configuration on adtroied 
 
-`Core-Lib` provides simple helpers tools to use dependencies. Without abstraction of third-party code.
-
-direct use of multiple third-party changes holds advantages such as
-
-- Changing a third-party dependency will affect only a subset of our code. 
-
-- Learning third-party libraries directly without also learning the abstraction as well
-
-
-
-
-
-
+`Core-Lib` uses [hydra](https://hydra.cc/) for config, discovering and inheriting other Core-Libs configurations, and instantiating dependencies from config.
 
