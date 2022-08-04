@@ -5,6 +5,63 @@ sidebar_label: Job
 ---
 
 
+
+# Configuration 
+
+Jobs can be configured to run from the `core_lib.yaml` file. for example: 
+
+`CoreLib` to run this job at startup by providing the `initial_deplay` parameter with one of the values `boot` or `startup` 
+
+```yaml
+core_lib:
+  ...
+  jobs:
+    - initial_delay: 2h32m
+      frequency: 16:00
+      handler:
+        class: some_package.MyJob
+        params:
+          some_param: some value
+
+    - initial_delay: startup
+      frequency: None
+      handler:
+        class: some_package.SomeJob
+        params:
+```
+
+
+
+### load_jobs()
+
+*core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L26)
+
+Used to load instantiate all the jobs present in the config file using `instantiate_config_group_generator_dict` and start to schedule them based on the frequency.
+
+```python
+def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
+```
+
+**Arguments**
+
+- **`config`** *`(DictConfig)`*: `jobs` sections from the `Core-Lib` config.
+- **`job_to_data_handler`** *`(dict)`*: Data handlers for the jobs listed in the config, the `key` should be the `job name` and the `value` should be the `handler name`.
+
+**Example**
+
+```python
+from core_lib.core_lib import CoreLib
+
+class YourCoreLib(CoreLib):
+   def __init__(self, config: DictConfig):
+        ...
+        self.load_jobs(self.config.core_lib.your_core_lib.jobs, {'job_name': self,...})
+```
+
+
+
+
+
 Core-Lib provides `core_lib.jobs.JobScheduler` class that can schedule `core_lib.jobs.Job` instances to run in a separate thread.
 
 # Job class
@@ -80,29 +137,7 @@ scheduler.stop()# stops the ongoing job schedule
 ```
 >If a job fails while running the `Exception` and the message will be logged by the `JobScheduler` for the same.
 
-# Configuration 
 
-Jobs can be configured to run from the `core_lib.yaml` file. for example: 
-
-`CoreLib` to run this job at startup by providing the `initial_deplay` parameter with one of the values `boot` or `startup` 
-
-```yaml
-core_lib:
-  ...
-  jobs:
-    - initial_delay: 2h32m
-      frequency: 16:00
-      handler:
-        class: some_package.MyJob
-        params:
-          some_param: some value
-
-    - initial_delay: startup
-      frequency: None
-      handler:
-        class: some_package.SomeJob
-        params:
-```
 
 # Core-Lib Instance
 

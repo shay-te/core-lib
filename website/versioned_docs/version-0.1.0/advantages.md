@@ -19,11 +19,11 @@ Unit-testing and debugging the entire product locally on your `IDE` saves time =
 
 #### Write code that matters.
 
-`Core-Lib` delegates operations that frequently repeat into tools and decorators such as  `Cache`, `Transform Data`, `RuleValidator`, etc. Leaving you to to focus on the problem at hand.
+`Core-Lib` delegates operations that frequently repeat into tools and decorators such as  `Cache`, `Transform Data`, `RuleValidator`, etc. Leaving you to focus on the problem at hand.
 
 #### Short learning curve.
 
-`Core-Lib` provides out-of-the-box a tiny subset of simple tools that make it easy to master. 
+`Core-Lib` provides out-of-the-box a tiny subset of simple tools that are easy to master. 
 
 #### Risk management
 
@@ -45,5 +45,5 @@ Architecture, code structure, state of mind, approach, knowledge, experience, an
 
 #### Configuration on adtroied 
 
-`Core-Lib` uses [hydra](https://hydra.cc/) for config, discovering and inheriting other Core-Libs configurations, and instantiating dependencies from config.
+`Core-Lib` uses [hydra](https://hydra.cc/) for config, discovering, inheriting other Core-Libs configurations, and instantiating dependencies from config.
 

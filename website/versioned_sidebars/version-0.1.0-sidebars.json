@@ -116,6 +116,7 @@
         }
       ]
     },
-    "test_core_lib"
+    "test_core_lib",
+    "cli"
   ]
 }

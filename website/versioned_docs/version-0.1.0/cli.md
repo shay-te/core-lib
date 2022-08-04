@@ -1,14 +1,14 @@
 ---
-id: core_lib_main
-title: Core Lib Main
-sidebar_label: Core Lib Main
+id: cli
+title: Command Line
+sidebar_label: Command Line
 ---
 
 `core_lib_main` is the single gateway to interact with `Core-Lib` using the command line.  
 It offers the following tools:
 
 - Generating `Core-Lib` from YAML will create a `Core-Lib` folder with your `Core-Lib` inside.
-- Run Migration, `Alembic` upgrade or downgrade for migrations.
+- Run Migration, `Alembic` upgrade, or downgrade for migrations.
 - List Migrations created until now.
 
 
