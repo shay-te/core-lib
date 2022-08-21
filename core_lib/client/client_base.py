@@ -8,12 +8,16 @@ class ClientBase(object):
         self.session = requests.Session()
         self.headers = None
         self.timeout = None
+        self.auth = None
 
     def set_headers(self, headers: dict):
         self.headers = headers
 
     def set_timeout(self, timeout: int):
         self.timeout = timeout
+
+    def set_auth(self, auth: dict):
+        self.auth = auth
 
     def _get(self, path: str, *args, **kwargs) -> Response:
         return self.session.get(self.__build_url(path), *args, **self.process_kwargs(**kwargs))
@@ -38,4 +42,8 @@ class ClientBase(object):
                 kwargs['headers'] = self.headers
 
         kwargs['timeout'] = kwargs.get('timeout', self.timeout)
+
+        if self.auth:
+            kwargs['auth'] = self.auth
+
         return kwargs
