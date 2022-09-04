@@ -4,11 +4,11 @@ title: Project Structure
 sidebar_label: Project Structure
 ---
 
-## Core-Lib recommended Folder Structure
+## Core-Lib Folder Structure
 
-The following folder structure is the same for the base `Core-Lib`, And many other `CoreLibs`
+Below the folder stracture of `Core-Lib`.
 
-
+**Note:** Generated `Core-Libs` will adopt the same folder stracture, it is recomended to follow the same across all of your `Core-Libs`
 
 ```
 core_lib // root folder of our library

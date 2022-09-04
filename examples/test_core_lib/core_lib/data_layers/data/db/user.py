@@ -31,5 +31,5 @@ class User(SoftDeleteMixin, Base):
     @validates('email')
     def validate_email(self, key, email):
         if not email or not is_email(email):
-            raise AssertionError('email must be ser and valid')
+            raise AssertionError(f'email is invalid. {email}')
         return email

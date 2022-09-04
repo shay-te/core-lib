@@ -6,19 +6,115 @@ sidebar_label: Getting started
 #
 
 # Why Core-Lib?
-`To follow an effective workflow. So our day-to-day work will matter.`
-
-`Core-Lib` began from the belief that the `"work itself"` is an essential factor when selecting a "Back-end Framework".
-The efficiency and speed of your day-to-day work affect how fast the organizations move.
+`Core-Lib` began from the belief that the day-to-day work, the `"work itself."` is a factor to consider when selecting a framework. 
 
 # What is Core-Lib?
-`Core-Lib` is a plugin and plug-able to other `Core-Lib`'s. It provides basic/simple/loose tools without wrapping or rewriting third-party libraries. It is easy to develop, test and can deploy anywhere.
+`Core-Lib` is a framework for creating back-end applications as libraries. 
 
 # How Core-Lib?
-In summary, `Core-Lib` provides architecture, guidelines, and a collection of essential tools to arrange our code more efficiently while building applications as libraries.
+- `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 
+- `Core-Lib` can discover and merge other `Core-Lib` configurations. 
+- `Core-Lib` provides basic/simple/loose tools. 
+- `Core-Lib` is not delegating third-party libraries. 
+- `Core-Lib` is easy to develop and unit-test.
+- `Core-Lib` deploys anywhere.
+- `Core-Lib` recommends architecture and guidelines. 
 
-## Who Is This For?
-Everyone who is interested in working with simple implementation and single architecture.
+
+
+## Usage	
+
+```python
+from core_lib.core_lib import CoreLib
+from core_lib.helpers.config_instances import instantiate_config
+...
+
+class ExampleCoreLib(CoreLib):
+    def __init__(self, config: DictConfig):
+        CoreLib.__init__(self)
+        self.email = instantiate_config(self.config, EmailCoreLib)
+        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry))
+        self.user = UserService(user_da)
+        self.user_photos = UserPhotosService(user_da)  
+```
+
+
+
+#### From Main
+
+```python
+@hydra.main(config_path='.', config_name='core_lib_config.yaml')
+def main(cfg):
+	example_core_lib = ExampleCoreLib(cfg)
+  ...
+
+if __name__ == '__main__':
+	main()
+```
+
+
+
+#### Unit-Test
+
+```python
+import unittest
+import hydra
+from hydra.core.global_hydra import GlobalHydra
+
+def get_config():
+  GlobalHydra.instance().clear()
+  hydra.initialize(config_path=os.path.join('..', 'data', 'config'), caller_stack_depth=1)
+  return hydra.compose('config.yaml')
+
+config = get_config()
+
+class TestCrud(unittest.TestCase):
+	def setUp(self):
+    	self.example_core_lib = ExampleCoreLib(config)  
+    
+  def test_example_core_lib(self):
+			user = self.example_core_lib.user.create({User.name.key: 'John Dow'})
+      self.assertDictEqual(user, self.example_core_lib.user.get(user[User.id.key]))
+```
+
+#### Django
+
+```python
+from django.views.decorators.http import require_POST, require_GET
+from http import HTTPStatus
+
+class ExampleCoreLibInstance(object):
+    _app_instance = None
+    
+		@staticmethod
+    def init(core_lib_cfg):
+        if not ExampleCoreLibInstance._app_instance:
+          AppInstance._app_instance = ExampleCoreLib(core_lib_cfg)
+
+    @staticmethod
+    def get() -> ObjectiveLoveCoreLib:
+        return ExampleCoreLibInstance._app_instance        
+
+      
+# view_user.py
+example_core_lib = ExampleCoreLibInstance.get()
+
+@require_POST
+@RequireLogin()
+@HandleException()
+def api_update_user(request):
+    example_core_lib.user.update(request.user.u_id, request_body_dict(request))
+    return response_status(HTTPStatus.NO_CONTENT)
+
+@require_GET
+@RequireLogin()
+@HandleException()
+def api_update_user(request):
+    objective_love_core_lib.user.update(request.user.u_id, request_body_dict(request))
+    return response_ok()
+```
+
+
 
 
 ## Installing

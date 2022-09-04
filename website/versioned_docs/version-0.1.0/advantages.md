@@ -10,11 +10,12 @@ sidebar_label: Advantages
 
 #### It can be deployed anywhere.
 
-Running `Core-Lib` is simple as running a `__main__` function inside the `IDE`. `Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
+Running/Debuging `Core-Lib` is simple as running `__main__` function inside the `IDE`.
+`Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
 
-#### Unit test your entire product.
+#### Unit test the entire product.
 
-Unit-testing and debugging the entire product locally on your `IDE` saves time = ?. 
+All of the `Core-Lib` API's are executed as plain python functions that can be called from Unit-tests. 
 
 
 #### Write code that matters.
@@ -27,7 +28,7 @@ Unit-testing and debugging the entire product locally on your `IDE` saves time =
 
 #### Risk management
 
-`Core-Lib` provides simple tools to solve problems without abstracting third-party dependencies. Relying on multiple dependencies rather than one is risk management. When one dependence is obsolete, it affects only a subset of the code. 
+`Core-Lib` dose not delegate third-party dependencies. Relying on multiple dependencies rather than one add risk management when main dependence becomes obsolete. 
 
 
 #### Shared knowledge
@@ -37,13 +38,13 @@ Architecture, code structure, state of mind, approach, knowledge, experience, an
 
 #### Divide and Conquer
 
-`Core-Lib` makes it easy to break a product into `Services`, ` Data-Layers`, And other `Core-Libs`. Creating smaller units that are easier to read, develop, pinpoint a problem, and test.
+`Core-Lib` makes it easy to break a product into other `Core-Libs`,  `Services` and ` Data-Layers`. Creating smaller units that are easier to seperate, read, develop, pinpoint a problem, and test.
 
 #### Easy to scale, And Longevity
 
-`Core-Lib` embraces the `Onion Architecture` for data flow across libraries. By rewiring and expending data layers. Such as `Services` and `DataAccess.` We are spreading the logic across the library, preventing busy and complex code while encouraging code reuse. 
+`Core-Lib` embraces the `Onion Architecture` for data flow across libraries. Make it easy to rewire and expend logic across data layers (`Core-Lib`/ `Services`/`DataAccess`.), preventing busy/complex code and encouraging code reuse.
 
 #### Configuration on adtroied 
 
-`Core-Lib` uses [hydra](https://hydra.cc/) for config, discovering, inheriting other Core-Libs configurations, and instantiating dependencies from config.
+`Core-Lib` uses [hydra](https://hydra.cc/) to discover other `Core-Libs` configurations. And instantiate `Core-Lib` and its dependencies from config.
 
