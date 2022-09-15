@@ -6,7 +6,7 @@ sidebar_label: Getting started
 #
 
 # Why Core-Lib?
-`Core-Lib` began from the belief that the day-to-day work, the `"work itself."` is a factor to consider when selecting a framework. 
+`Core-Lib` was born of the idea that the day-to-day work, The  `"work itself."`, Can be easier to chew.
 
 # What is Core-Lib?
 `Core-Lib` is a framework for creating back-end applications as libraries. 
@@ -16,7 +16,7 @@ sidebar_label: Getting started
 - `Core-Lib` can discover and merge other `Core-Lib` configurations. 
 - `Core-Lib` provides basic/simple/loose tools. 
 - `Core-Lib` is not delegating third-party libraries. 
-- `Core-Lib` is easy to develop and unit-test.
+- `Core-Lib` unit-test the entire library.
 - `Core-Lib` deploys anywhere.
 - `Core-Lib` recommends architecture and guidelines. 
 

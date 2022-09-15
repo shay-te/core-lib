@@ -21,7 +21,7 @@ from core_lib.helpers.config_instances import instantiate_config
 class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
         CoreLib.__init__(self)
-        self.email = instantiate_config(self.config, EmailCoreLib)
+        self.email = instantiate_config(self.config, EmailCoreLib)  # create `EmailCoreLib` instance from config
         user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry))
         self.user = UserService(user_da)
         self.user_photos = UserPhotosService(user_da)        

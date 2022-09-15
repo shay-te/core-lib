@@ -6,29 +6,28 @@ sidebar_label: Project Structure
 
 ## Core-Lib Folder Structure
 
-Below the folder stracture of `Core-Lib`.
-
-**Note:** Generated `Core-Libs` will adopt the same folder stracture, it is recomended to follow the same across all of your `Core-Libs`
+**Note:** Generated `Core-Libs` will adopt the same folder structure, it is recommended to follow the same across all of your `Core-Libs`
 
 ```
-core_lib // root folder of our library
+core_lib # root folder of our library
 └─── data_layers
-|    └─── data // store all connector, definition, mapping to data sources
-|    │    └─── db // store database ORM entities
-|    │       └─── migrations // data base migration scripts
-|    │    └─── elastic // store elastice search base classes
-|    │    // etc..
-|    └─── data_access // expose API that uses data layer
-|	 |    └─── user // grather user data access
+|    └─── data # store all connector, definition, mapping to data sources
+|    │    └─── db # store database ORM entities
+|    │       └─── migrations # database migration scripts
+|    │    └─── elastic # store elastic search base classes
+|    │    # etc..
+|    └─── data_access # expose API that uses data layer
+|	 |    └─── user # grather user data access
 |	 |    	   └─── user_data_access.py
 |	 |    	   └─── user_list_data_access.py
 |	 |    └─── some_data_access.py 
-|    └─── service // expost the core-lib services
-|	 |    └─── user // gather user services
+|    └─── service # expost the core-lib services
+|	 |    └─── user # gather user services
 |	 |    	   └─── user_service.py
 |	 |    	   └─── user_list_service.py
 |	 |    └─── some_service.py 
-|    app_core_lib.py //The file that glow the entire up togther 
-└─── job // jobs defenitions
-tests // Unit test the enttire data_layers 
+|    app_core_lib.py # The file that glows the entire together 
+└─── job # jobs definitions
+tests # Unit test the entire data_layers 
 ```
+

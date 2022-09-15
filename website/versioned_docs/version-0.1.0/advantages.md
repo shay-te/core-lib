@@ -10,12 +10,12 @@ sidebar_label: Advantages
 
 #### It can be deployed anywhere.
 
-Running/Debuging `Core-Lib` is simple as running `__main__` function inside the `IDE`.
+Running/Debugging `Core-Lib` is simple as running the `__main__` function inside the `IDE`.
 `Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
 
 #### Unit test the entire product.
 
-All of the `Core-Lib` API's are executed as plain python functions that can be called from Unit-tests. 
+Cover all your library code and dependent libraries with `unit-test`. 
 
 
 #### Write code that matters.
@@ -28,7 +28,7 @@ All of the `Core-Lib` API's are executed as plain python functions that can be c
 
 #### Risk management
 
-`Core-Lib` dose not delegate third-party dependencies. Relying on multiple dependencies rather than one add risk management when main dependence becomes obsolete. 
+`Core-Lib` does not delegate third-party dependencies. Relying on multiple dependencies rather than one adds risk management when primary dependence becomes obsolete. 
 
 
 #### Shared knowledge
@@ -38,7 +38,7 @@ Architecture, code structure, state of mind, approach, knowledge, experience, an
 
 #### Divide and Conquer
 
-`Core-Lib` makes it easy to break a product into other `Core-Libs`,  `Services` and ` Data-Layers`. Creating smaller units that are easier to seperate, read, develop, pinpoint a problem, and test.
+`Core-Lib` makes it easy to break a product into other `Core-Libs`,  `Services,` and ` Data-Layers`. Creating smaller units that are easier to separate, read, develop, pinpoint a problem, and test.
 
 #### Easy to scale, And Longevity
 
