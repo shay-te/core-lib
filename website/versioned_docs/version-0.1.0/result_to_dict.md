@@ -1,13 +1,62 @@
 ---
 id: result_to_dict
-title: Result to Dictionary
-sidebar_label: Result to Dictionary
+title: Result to Dict
+sidebar_label: Result to Dict
 ---
+`@ResultToDict()` decorator attampt to convert any returned value as a `dict` using the `result_to_dict` function.
+
+### Example:
+
+##### user_service.py
+
+```python
+from core_lib.data_transform.result_to_dict import ResultToDict
+
+class UserService(Service):
+    def __init__(self, data_access: UserDataAccess):
+        self.data_access = data_access
+
+    @ResultToDict()
+    def create(self, user_data):
+        return self.data_access.create(user_data)
+
+    @ResultToDict()
+    def get(self, user_id):
+        return self.data_access.get(user_id)
+```
+
+
+
+## ResultToDict Decorator
+
+*core_lib.data_transform.result_to_dict.ResultToDict* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L116)
+
+The `ResultToDict` decorator uses `result_to_dict` function to carry out the formatting.
+
+```python
+class ResultToDict(object):
+    
+    def __init__(self, callback: Callable[[dict], Awaitable[dict]] = None):
+        self.callback = callback
+
+    def __call__(self, func, *args, **kwargs):
+        ...
+```
+
+**Arguments**
+
+- **`func`**: The decorated function that's returning the data.
+- __`*args, **kwargs`__: the args and kwargs of the decorated function.
+
+
+
+
+
 ## result_to_dict() Function
 
 *core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L74)
 
-Will format any value a function returns.
+Convert any value returned by the decorated function as a `dict`
 
 ```python 
 def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
@@ -24,22 +73,12 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 Formatted data provided to the function.  
 For e.g., will return tuple as a tuple, dict as a dict
 
+
+
 ### Datatypes supported
 
-**SQLAlchemy**
- - Varchar
- - ENUM
- - Integer
- - Float
- - Text
- - JSON ( converted to `dict` )
- - BLOB/Binary
- - Boolean
- - Unicode
- - Date ( converted to `timestamp` )
- - Datetime ( converted to `timestamp` )
-
 **Python**
+
  - WKBElement / WKTElement (Geographical point) ( converted to Point )
  - Float
  - Tuple
@@ -56,7 +95,21 @@ For e.g., will return tuple as a tuple, dict as a dict
  - Datetime ( converted to `timestamp` )
  - Objects ( converted to `dict` )
 
- 
+**SQLAlchemy**
+
+ - Varchar
+ - ENUM
+ - Integer
+ - Float
+ - Text
+ - JSON ( converted to `dict` )
+ - BLOB/Binary
+ - Boolean
+ - Unicode
+ - Date ( converted to `timestamp` )
+ - Datetime ( converted to `timestamp` )
+
+
 ### Example
 
 >For custom conversion, the `callback` function has to be implemented by the user for handling different types of data nested inside the given object.
@@ -118,35 +171,3 @@ print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data
 
 ```
 
-## ResultToDict Decorator
-
-*core_lib.data_transform.result_to_dict.ResultToDict* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L116)
-
-The `ResultToDict` decorator uses `result_to_dict` function to carry out the formatting.
-
-```python
-class ResultToDict(object):
-    
-    def __init__(self, callback: Callable[[dict], Awaitable[dict]] = None):
-        self.callback = callback
-
-    def __call__(self, func, *args, **kwargs):
-        ...
-```
-**Arguments**
-
-- **`func`**: The decorated function that's returning the data.
-- __`*args, **kwargs`__: the args and kwargs of the decorated function.
-
-### Example
-```python
-from core_lib.data_transform.result_to_dict import ResultToDict
-
-@ResultToDict()
-def format_data(self, param: tuple = ("apple", "orange")):
-    return param
-
-print(format_data()) # ("apple", "orange") 
-
-print(format_data(("red", "blue"))) # ("red", "blue")
-```
