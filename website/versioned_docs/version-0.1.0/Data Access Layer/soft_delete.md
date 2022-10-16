@@ -5,8 +5,7 @@ sidebar_label: Soft Delete Handler
 ---
 
 # Soft Delete
-In `Core-Lib`, the classes `SoftDeleteMixin` and `SoftDeleteTokenMixin` handle soft deletes. These two classes can be imported 
-and passed to a `SQLAlchemy` Base class to create the appropriate soft delete fields.
+`SoftDeleteMixin` and `SoftDeleteTokenMixin` handle soft deletes automaticly by maintaining the `created_at`, `updated_at` and `deleted_at` columns
 
 ## SoftDeleteMixin
 

@@ -99,7 +99,7 @@ class RuleValidator(object):
                 ) from ex
 
         elif value and not isinstance(parsed_value, rule.value_type):
-            raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}`')
+            raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}` expected {rule.value_type}')
 
         try:
             if rule.custom_validator and rule.custom_validator(parsed_value) is not True:

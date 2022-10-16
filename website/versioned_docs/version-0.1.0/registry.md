@@ -6,6 +6,17 @@ sidebar_label: Registry
 `Registry` Provide base class for a simple `Registry pattern` with single abstract `get` function. 
 It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
 
+## Registry
+
+*core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py)
+
+By default, `Core-Lib` provides three `Registry` implementations.   
+
+1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py)
+2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py)
+3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py)
+4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py)
+
 
 
 ## Default Registry
