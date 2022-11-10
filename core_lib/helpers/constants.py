@@ -19,6 +19,7 @@ class MediaType(enum.Enum):
     SERVER_SENT_EVENTS = 'text/event-stream'
 
     IMAGE_JPEG = 'image/jpeg'
+    IMAGE_PNG = 'image/png'
 
 
 class HttpMethod(enum.Enum):

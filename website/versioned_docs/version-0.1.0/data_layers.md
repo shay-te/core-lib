@@ -4,9 +4,7 @@ title: Data Layers
 sidebar_label: Data Layers
 ---
 
-Imagine that Data is moving and transforming from the physical disk until it meets the user's screen. in each step of the way the data is transforming it's raw state according to the application needs. 
-
-With `Core-Lib`  transformation of the data is organized in `data-layers`  using Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs) to define what is the responsebilities of each  `"Data-Layer"` 
+With `Core-Lib`  transformation of the data is organized in `data-layers`  using Onion Architecture. [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs) . Below the responsebilities of each  `"Data-Layer"` 
 
 
 
@@ -20,7 +18,7 @@ With `Core-Lib`  transformation of the data is organized in `data-layers`  using
 
 ## `Data` Layer
 
-The Data layer define low-level assets that are used to connect to various third party sources. For example connection, entities, migration, mapping, etc.. 
+The `Data` layer define low-level assets that are used to connect to various third party sources. For example connection, entities, migration, mapping, etc.. 
 
 #### Responsibilities: 
 
