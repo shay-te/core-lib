@@ -27,7 +27,7 @@ class Observer(object):
             try:
                 observer.update(key, value)
             except Exception as ex:
-                logger.error(f'error while Observer.notify on key: `{key}`')
+                logger.error(f'error while Observer.notify on key: `{key}`', ex)
                 raise ex
 
     def _validate(self, listener: ObserverListener):

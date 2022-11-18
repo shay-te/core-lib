@@ -56,7 +56,7 @@ def _instantiate_config(
             return instance, settings
         return None, settings
     except Exception as ex:
-        raise ValueError('unable to instantiate with config: `{}`'.format(settings)) from ex
+        raise ValueError(f'unable to instantiate {class_settings}, with config: `{settings}`') from ex
 
 
 def instantiate_config(
