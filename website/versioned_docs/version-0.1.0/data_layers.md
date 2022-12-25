@@ -18,7 +18,7 @@ With `Core-Lib`  transformation of the data is organized in `data-layers`  using
 
 ## `Data` Layer
 
-The `Data` layer define low-level assets that are used to connect to various third party sources. For example connection, entities, migration, mapping, etc.. 
+The `Data` layer defines low-level assets that are used to connect to various third-party sources. For example connection, entities, migration, mapping, etc.. 
 
 #### Responsibilities: 
 
@@ -26,7 +26,7 @@ The `Data` layer define low-level assets that are used to connect to various thi
 
 
 
-#### Example define database entity under the db connection
+#### Example define a database entity under the DB connection
 
 ##### <project_dir>/data_layers/data/db/user.py
 
@@ -71,7 +71,7 @@ class UserDataAccess(DataAccess):
 
 ## `Service` Layer
 
-The `Service` layer provide an API's that his users can access.  And it will use  `DataLayer`/Other `Services`/`Connection` to do so. 
+The `Service` layer provides an API that its users can access.  And it will use  `DataLayer`/Other `Services`/`Connection` to do so. 
 
 #### Responsibilities: 
 

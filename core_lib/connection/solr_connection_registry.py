@@ -9,8 +9,7 @@ from core_lib.data_layers.data.data_helpers import build_url
 class SolrConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
         self._config = config
-        solr_address = build_url(**config.url)
-        self._solr_client = Solr(solr_address, always_commit=config.always_commit)
+        self._solr_client = Solr(build_url(**config.url), always_commit=config.always_commit)
 
     @property
     def client(self) -> Solr:
