@@ -24,7 +24,7 @@ core_lib:
         pool_recycle: 3600
         pool_pre_ping: false
       url:
-        protocol: 'sqlite'
+        protocol: sqlite
 
     solr:
       always_commit: true
