@@ -27,7 +27,7 @@ core_lib:
         protocol: 'sqlite'
 
     solr:
-      always_commit: false
+      always_commit: true
       url: ~
 
   alembic:
