@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 class Neo4jConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
         self._config = config
-        logger.info(f'Neo4jConnectionRegistry: {build_url(**config.url)}, config: {config}')
         self._neo4j_driver = GraphDatabase.driver(
             build_url(**config.url),
             auth=basic_auth(config.credentials.username, config.credentials.password),
