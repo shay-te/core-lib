@@ -29,9 +29,8 @@ class ParameterRuleValidator(object):
     def __call__(self, func):
         @wraps(func)
         def __wrapper(*args, **kwargs):
-
             parameter_index = get_func_parameter_index_by_name(func, self.parameter_name)
-            update_dict = args[parameter_index]
+            update_dict = args[parameter_index] if parameter_index in args else None
             if not isinstance(update_dict, dict):
                 raise ValueError(
                     f'`ParameterRuleValidator`. function `{func.__name__}`, '
