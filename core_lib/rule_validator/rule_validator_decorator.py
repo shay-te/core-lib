@@ -30,7 +30,14 @@ class ParameterRuleValidator(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             parameter_index = get_func_parameter_index_by_name(func, self.parameter_name)
-            update_dict = args[parameter_index] if parameter_index in args else None
+            update_dict = args[parameter_index] if parameter_index < len(args) else None
+            if not update_dict:
+                raise ValueError(
+                    f'`ParameterRuleValidator`. function `{func.__name__}`, '
+                    f'parameter `{self.parameter_name}`.'
+                    f'Not found'
+                )
+
             if not isinstance(update_dict, dict):
                 raise ValueError(
                     f'`ParameterRuleValidator`. function `{func.__name__}`, '
