@@ -6,9 +6,7 @@ sidebar_label: Core Lib Class
 
 *core_lib.core_lib.CoreLib* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L17)
 
- `CoreLib` class is the main interface to the entire library, it exposes all the "Services" of your library.  
-
-It uses simple assignment of `Services`, ` DataAccess,` and `Clients` to `YourCoreLib` class. You define your library interface. 
+`CoreLib` class is the front of the entire library. It exposes all the "Services" your library offers by using simple `Services`, `DataAccess`, and `Clients` assignments to YourCoreLib class. You define your library interface. 
 
 
 
@@ -21,8 +19,8 @@ from core_lib.helpers.config_instances import instantiate_config
 class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
         CoreLib.__init__(self)
-        self.email = instantiate_config(self.config, EmailCoreLib)  # create `EmailCoreLib` instance from config
-        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry))
+        self.email = instantiate_config(self.config, EmailCoreLib)  # instantiate `EmailCoreLib` from config
+        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry)) 
         self.user = UserService(user_da)
         self.user_photos = UserPhotosService(user_da)        
         ...
@@ -34,7 +32,7 @@ class YourCoreLib(CoreLib):
 
 *core_lib.core_lib.CoreLib.\_\_init\_\_()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L22)
 
-When extending  `CoreLib` class call  `CoreLib.__init__(self)` to enjoy event listeners and utilities. 
+When extending  `CoreLib` class call  `CoreLib.__init__(self)` to initilize event listeners and set the `core_lib_started` flag to `False` . 
 
 ```python
 class YourCoreLib(CoreLib):

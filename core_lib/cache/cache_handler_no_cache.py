@@ -15,3 +15,6 @@ class CacheHandlerNoCache(CacheHandler):
 
     def delete(self, key: str):
         pass
+
+    def flush_all(self):
+        pass

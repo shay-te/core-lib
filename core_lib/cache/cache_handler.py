@@ -21,5 +21,6 @@ class CacheHandler(ABC):
         pass
 
     # Empty the cache
+    @abstractmethod
     def flush_all(self):
         pass

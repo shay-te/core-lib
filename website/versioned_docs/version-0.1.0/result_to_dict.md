@@ -3,7 +3,7 @@ id: result_to_dict
 title: Result to Dict
 sidebar_label: Result to Dict
 ---
-`@ResultToDict()` decorator attampt to convert any returned value as a `dict` using the `result_to_dict` function.
+`@ResultToDict()` decorator transforms any value returned from the decorated function to a `dict` using the `result_to_dict` utility function.
 
 ### Example:
 
@@ -27,36 +27,11 @@ class UserService(Service):
 
 
 
-## ResultToDict Decorator
-
-*core_lib.data_transform.result_to_dict.ResultToDict* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L116)
-
-The `ResultToDict` decorator uses `result_to_dict` function to carry out the formatting.
-
-```python
-class ResultToDict(object):
-    
-    def __init__(self, callback: Callable[[dict], Awaitable[dict]] = None):
-        self.callback = callback
-
-    def __call__(self, func, *args, **kwargs):
-        ...
-```
-
-**Arguments**
-
-- **`func`**: The decorated function that's returning the data.
-- __`*args, **kwargs`__: the args and kwargs of the decorated function.
-
-
-
-
-
-## result_to_dict() Function
+### result_to_dict() Function
 
 *core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L74)
 
-Convert any value returned by the decorated function as a `dict`
+return any value passed into the `return_val` parameter as a `dict`
 
 ```python 
 def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
@@ -65,21 +40,18 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 **Arguments**
 
 - **`return_val`** *`(any)`*: Value to format.
-- **`properties_as_dict`** *`(bool)`*: Optional argument.
+- **`properties_as_dict`** *`(bool)`*: Default `True` , Will call `result_to_dict` for any property in the result `dict`.
 - **`callback`** *`(Callable[[dict], Awaitable[dict]])`*: A custom callback for formatting nested objects.
 
 **Returns**
 
-Formatted data provided to the function.  
+A formatted `dict` transformation of the `return_val` parameter
 For e.g., will return tuple as a tuple, dict as a dict
-
-
 
 ### Datatypes supported
 
 **Python**
 
- - WKBElement / WKTElement (Geographical point) ( converted to Point )
  - Float
  - Tuple
  - List
@@ -141,12 +113,6 @@ print(formatted_data)  # {"apple", "cherry"}
 data = {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': datetime.datetime.utcnow()}}
 formatted_data = result_to_dict(data)
 print(formatted_data)  # {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': '{timestamp of the datetime}'}
-
-#Enum, POINT
-point = WKTElement('POINT(5 45)')
-data = {'enum': MyEnum.one, 'point': point}
-formatted_data = result_to_dict(data)
-print(formatted_data) # {'enum': 1, 'point': point_value}
 
 #Base/Database object
 # query to select data from your DB

@@ -6,10 +6,10 @@ sidebar_label: Getting started
 #
 
 # Why Core-Lib?
-`Core-Lib` was born of the idea that the day-to-day work, The  `"work itself."`, Can be easier to chew.
+`Core-Lib` was born to make the day-to-day work, The  `"work itself."` easy to master.
 
 # What is Core-Lib?
-`Core-Lib` is a framework for creating back-end applications as libraries. 
+`Core-Lib` is a framework for creating python applications as libraries. 
 
 # How Core-Lib?
 - `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 

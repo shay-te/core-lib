@@ -3,19 +3,37 @@ id: registry
 title: Registry
 sidebar_label: Registry
 ---
-`Registry` Provide base class for a simple `Registry pattern` with single abstract `get` function. 
+`Registry` provide base class for a simple `Registry pattern` with single abstract `get` function. 
 It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
 
 ## Registry
 
 *core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py)
 
-By default, `Core-Lib` provides three `Registry` implementations.   
+`Core-Lib`  basic `Registry` class is used by most of `Core-Lib` modules
 
 1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py)
+
+   Base basic implementation of the `Registry` class with four basic functions `register`, `unregister`, `get`, `registered`
+
+
 2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py)
+
+​	Extends the `Registry` and a base class for all  `ConnectionRegistry` classes.
+
+  - `SqlAlchemyConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/sql_alchemy_connection_registry.py)
+  - `Neo4jConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/neo4j_connection_registry.py)
+  - `MongoDBConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/mongodb_connection_registry.py)
+  - `SolrConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/solr_connection_registry.py)
+  - `ObjectConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/object_connection_registry.py)
+
 3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py)
+
+Extends the `DefaultRegistry` and is limited to storing only `CacheHandler` instances using an `object_type` parameter
+
 4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py)
+
+Extends the `DefaultRegistry` and is limited to storing only `Observer` instances using an `object_type` parameter
 
 
 
@@ -23,10 +41,9 @@ By default, `Core-Lib` provides three `Registry` implementations.
 
 *core_lib.registry.default_registry.DefaultRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L4)
 
- `DefaultRegistry` is impletemeting the `Registry` abstract class and provide boilerplate baseclass. 
-it is being used by `CacheRegistry`, `ObserverRegistry` and more.
+`DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
 
-The `DefaultRegistry` constructor:
+### Constractor:
 
 ```python
 class DefaultRegistry(Registry):
@@ -47,13 +64,11 @@ from core_lib.registry.default_registry import DefaultRegistry
 class Customer(object):
     ...
         
-        
 class CustomerRegistry(DefaultRegistry):
 
     def __init__(self):
         DefaultRegistry.__init__(self, Customer)
 ```
-
 
 
 ### Functions:
@@ -106,10 +121,9 @@ def register(self, key: str, object, is_default: bool = False):
 
 **Arguments**
 
-- **`key`** *`(str)`*: Sets the key of the registry entry passed to the function, registering the same key again will raise an `ValueError`.
-- **`object`**: Is the actual data to be passed to the function to store in registry.
-- **`is_default`** *`(bool)`*: For multiple entries in a same registry `is_default` can be used to set the default value to be
-returned by the `get` function when calling it without parameters.
+- **`key`** *`(str)`*: A unique string to identify the registered object; duplicate key's are not allowed and will cause an `ValueError`.
+- **`object`**: Any value we wish to store with the attached key
+- **`is_default`** *`(bool)`*: For multiple entries in a same registry `is_default` can be used to set the default value to  mark this object as default, default value can be fetched when calling `get` without a `key` parameter.
 
 #### Usage
 ```python
@@ -156,6 +170,8 @@ Returns all the registered entities in the registry in the type `list`.
 ```python
 def registered(self):
 ```
+
+#### Usage
 
 ```python
 registry_factory.registered()

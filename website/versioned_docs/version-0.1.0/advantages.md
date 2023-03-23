@@ -10,10 +10,10 @@ sidebar_label: Advantages
 
 #### It can be deployed anywhere.
 
-Running/Debugging `Core-Lib` is simple as running the `__main__` function inside the `IDE`.
+Running/Debugging `Core-Lib` is simple as running the `__main__` function.
 `Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
 
-#### Unit test the entire product.
+#### Unit test your entire product.
 
 Cover all your library code and dependent libraries with `unit-test`. 
 
@@ -28,23 +28,24 @@ Cover all your library code and dependent libraries with `unit-test`.
 
 #### Risk management
 
-`Core-Lib` does not delegate third-party dependencies. Relying on multiple dependencies rather than one adds risk management when primary dependence becomes obsolete. 
-
-
-#### Shared knowledge
-
-Architecture, code structure, state of mind, approach, knowledge, experience, and problem resolution will be almost the same from one `Core-Lib` to another.
+`Core-Lib` does not delegate any third-party dependencies. It provides unique tools to manage multiple dependencies rather than being dependent on a single dependency with a risk of becoming obsolete. 
 
 
 #### Divide and Conquer
 
-`Core-Lib` makes it easy to break a product into other `Core-Libs`,  `Services,` and ` Data-Layers`. Creating smaller units that are easier to separate, read, develop, pinpoint a problem, and test.
+With `Core-Lib`, it's easy to break, separate or change an existing product into smaller libraries (`Core-Libs`) and `Data-Layers` that are easier to read, develop, pinpoint a problem, and test.
 
-#### Easy to scale, And Longevity
+#### Longevity
 
-`Core-Lib` embraces the `Onion Architecture` for data flow across libraries. Make it easy to rewire and expend logic across data layers (`Core-Lib`/ `Services`/`DataAccess`.), preventing busy/complex code and encouraging code reuse.
+`Core-Lib` embraces the `Onion Architecture` for code reuse and data flow across libraries. Reusing code and moving logic from one `Data-Layer` to another is straightforward.
 
-#### Configuration on adtroied 
+#### Discover other Core-Lib's
 
 `Core-Lib` uses [hydra](https://hydra.cc/) to discover other `Core-Libs` configurations. And instantiate `Core-Lib` and its dependencies from config.
 
+#### Shared knowledge
+
+Architecture, code structure, problem resolution, state of mind, approach, knowledge, and experience will be almost the same from one `Core-Lib` to another.
+
+
+#### 
