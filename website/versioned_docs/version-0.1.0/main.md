@@ -22,20 +22,38 @@ sidebar_label: Getting started
 
 
 
-## Usage	
+## Example
+
+##### your_core_lib.yaml
+
+```yaml
+# @package _global_
+core_lib:
+  ...
+	data:
+    sqlalchemy:
+      log_queries: false
+      create_db: true      
+      session:
+        pool_recycle: 3600
+        pool_pre_ping: false      
+      url:
+        protocol: sqlite
+  ...
+```
+
+##### your_core_lib.py
 
 ```python
 from core_lib.core_lib import CoreLib
-from core_lib.helpers.config_instances import instantiate_config
-...
+from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
 
-class ExampleCoreLib(CoreLib):
+class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
         CoreLib.__init__(self)
-        self.email = instantiate_config(self.config, EmailCoreLib)
-        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry))
-        self.user = UserService(user_da)
-        self.user_photos = UserPhotosService(user_da)  
+        db_connection = SqlAlchemyConnectionRegistry(self.config.core_lib.data.sqlalchemy)
+        self.user = UserDataAccess(db_connection)
+        ...
 ```
 
 
@@ -45,7 +63,7 @@ class ExampleCoreLib(CoreLib):
 ```python
 @hydra.main(config_path='.', config_name='core_lib_config.yaml')
 def main(cfg):
-	example_core_lib = ExampleCoreLib(cfg)
+	your_core_lib = YourCoreLib(cfg)
   ...
 
 if __name__ == '__main__':
@@ -70,47 +88,53 @@ config = get_config()
 
 class TestCrud(unittest.TestCase):
 	def setUp(self):
-    	self.example_core_lib = ExampleCoreLib(config)  
+		self.your_core_lib = YourCoreLib(config)  
     
-  def test_example_core_lib(self):
-			user = self.example_core_lib.user.create({User.name.key: 'John Dow'})
-      self.assertDictEqual(user, self.example_core_lib.user.get(user[User.id.key]))
+  def test_your_core_lib(self):
+		user = self.your_core_lib.user.create({User.name.key: 'John Dow'})
+    self.assertDictEqual(user, self.your_core_lib.user.get(user[User.id.key]))
 ```
 
-#### Django
+### Django
+
+##### your_core_lib_instance.py
 
 ```python
 from django.views.decorators.http import require_POST, require_GET
 from http import HTTPStatus
 
-class ExampleCoreLibInstance(object):
+class YourCoreLibInstance(object):
     _app_instance = None
     
 		@staticmethod
     def init(core_lib_cfg):
-        if not ExampleCoreLibInstance._app_instance:
-          AppInstance._app_instance = ExampleCoreLib(core_lib_cfg)
+        if not YourCoreLibInstance._app_instance:
+          AppInstance._app_instance = YourCoreLib(core_lib_cfg)
 
     @staticmethod
-    def get() -> ObjectiveLoveCoreLib:
-        return ExampleCoreLibInstance._app_instance        
+    def get() -> YourCoreLib:
+        return YourCoreLibInstance._app_instance        
+```
 
-      
-# view_user.py
-example_core_lib = ExampleCoreLibInstance.get()
+##### view_user.py
+
+```python
+from core_lib.web_helpers.request_response_helpers import request_body_dict, response_ok, response_status
+
+your_core_lib = YourCoreLibInstance.get()
 
 @require_POST
 @RequireLogin()
 @HandleException()
 def api_update_user(request):
-    example_core_lib.user.update(request.user.u_id, request_body_dict(request))
+    your_core_lib.user.update(request.user.u_id, request_body_dict(request))
     return response_status(HTTPStatus.NO_CONTENT)
 
 @require_GET
 @RequireLogin()
 @HandleException()
 def api_update_user(request):
-    objective_love_core_lib.user.update(request.user.u_id, request_body_dict(request))
+    your_core_lib.user.update(request.user.u_id, request_body_dict(request))
     return response_ok()
 ```
 
