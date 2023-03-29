@@ -1,0 +1,9 @@
+core_lib:
+  mongodb:
+    _target_: core_lib.connection.mongodb_connection_registry.MongoDBConnectionRegistry
+    config:
+      url:
+        protocol: mongodb+srv
+        host: cluster0.cv6ae.mongodb.net
+        username: ansh
+        password: ansh123

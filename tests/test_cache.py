@@ -243,6 +243,11 @@ class TestCache(unittest.TestCase):
     def clear_cache(self):
         pass
 
+    # CACHE_TEST2 = 'test_cache_2'
+    # @Cache(key=CACHE_TEST2,invalidate=True)
+    # def set_cache(self,CACHE_TEST2,test_cache_hello):
+    #     return TestCache.test.value
+
     CACHE_WITH_PARAMS = 'test_cache_param_{param_1}'
 
     @Cache(key=CACHE_WITH_PARAMS, expire=timedelta(seconds=2), handler_name=cache_client_name)

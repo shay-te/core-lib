@@ -10,7 +10,7 @@ neo4j
 redis
 
 # Connectors
-sqlalchemy==1.4.44
+sqlalchemy
 alembic
 pymysql
 psycopg2-binary

@@ -4,6 +4,7 @@ from collections import Iterable
 from functools import wraps
 from typing import Callable, Awaitable
 
+import pymongo
 from geoalchemy2 import WKBElement
 from sqlalchemy import inspect
 
@@ -41,6 +42,10 @@ def __dict_to_dict(collect) -> dict:
     for key, value in dict(collect).items():
         result[key] = __convert_value(value)
     return result
+
+
+def __pymongo_to_dict(raw_data) -> list:
+    return [entry for entry in raw_data]
 
 
 def __base_to_dict(obj, found=None) -> dict:
@@ -99,6 +104,11 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
         results = __dict_to_dict(return_val)
     else:
         results = return_val
+
+    if isinstance(return_val, pymongo.cursor.Cursor):
+        results = __pymongo_to_dict(return_val)
+        return results
+        print(results, "__here inside")
 
     if isinstance(results, dict):
         if properties_as_dict:

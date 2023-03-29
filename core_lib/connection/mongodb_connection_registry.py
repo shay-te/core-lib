@@ -2,6 +2,7 @@ from omegaconf import DictConfig
 from pymongo import MongoClient
 
 from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.mongodb_connection import MongoDBConnection
 from core_lib.data_layers.data.data_helpers import build_url
 
 
@@ -15,4 +16,4 @@ class MongoDBConnectionRegistry(ConnectionRegistry):
         return self._mongo_client
 
     def get(self, *args, **kwargs):
-        self._mongo_client
+        return self._mongo_client

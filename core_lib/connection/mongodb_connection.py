@@ -4,7 +4,7 @@ from core_lib.connection.connection import Connection
 
 
 class MongoDBConnection(Connection):
-    def __init__(self, mongo_client):
+    def __init__(self, mongo_client: MongoClient):
         self.mongo_client = mongo_client
 
     def __enter__(self) -> MongoClient:
