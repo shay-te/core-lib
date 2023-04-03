@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-
 from core_lib.connection.connection import Connection
 
 

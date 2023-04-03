@@ -35,3 +35,4 @@ requests
 python-dotenv
 moto
 freezegun
+mongomock
