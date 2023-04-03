@@ -4,6 +4,9 @@ import os.path
 import unittest
 import datetime
 
+import mongomock
+import pymongo
+
 from sqlalchemy import Integer, Column, VARCHAR, DateTime, Enum, JSON, TEXT, Date, BLOB, Float, Boolean, Unicode
 from geoalchemy2 import WKTElement
 
@@ -199,6 +202,17 @@ class TestResultToDict(unittest.TestCase):
         }
         data = result_to_dict(json_value_without_str_obj, callback=convert_return_none)
         self.assertDictEqual(data, json_value_without_str_obj)
+
+    @mongomock.patch(servers=(('serverdb.example.com', 27017), ))
+    def test_pymongo_to_dict(self):
+        client = pymongo.MongoClient('serverdb.example.com')
+        collection = client.testing_collection.example
+        data = result_to_dict(collection.find())
+        self.assertEqual(len(data), 0)
+        self.assertEqual(type(data), type([1, 2, 3]))
+        collection.insert_one({'name': 'ansh'})
+        new_data = result_to_dict(collection.find())
+        self.assertEqual(new_data[0]['name'], 'ansh')
 
     @ResultToDict()
     def get_from_params(self, param):
