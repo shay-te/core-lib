@@ -4,7 +4,7 @@ from collections import Iterable
 from functools import wraps
 from typing import Callable, Awaitable
 
-import mongomock.collection
+import mongomock
 import pymongo
 from geoalchemy2 import WKBElement
 from sqlalchemy import inspect
@@ -13,6 +13,7 @@ from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from sqlalchemy.engine.row import Row
 
 from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+
 
 
 def __convert_value(value):
@@ -106,7 +107,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
     else:
         results = return_val
 
-    if isinstance(return_val, mongomock.collection.Cursor):
+    if isinstance(return_val, (mongomock.collection.Cursor, pymongo.cursor.Cursor)):
         results = __pymongo_to_dict(return_val)
         return results
 

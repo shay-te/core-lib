@@ -19,19 +19,18 @@ class TestMongoDBConnection(unittest.TestCase):
         self.assertIsInstance(mongodb, MongoDBConnectionRegistry)
         with mongodb.get() as client:
             collection = client.testing_collection.example
-
             data = result_to_dict(collection.find())
             self.assertEqual(type(data), type([1, 2, 3]))
 
-            inserted_id = collection.insert_one({'name': 'ansh', 'age': 18}).inserted_id
-            entry = collection.find_one({'_id': inserted_id})
+            user_id = collection.insert_one({'name': 'ansh', 'age': 18}).inserted_id
+            entry = collection.find_one({'_id': user_id})
             self.assertEqual(entry['name'], 'ansh')
             self.assertEqual(entry['age'], 18)
 
-            collection.update_one({'_id': inserted_id}, {'$set': {'name': "rohan"}})
-            updated_entry = collection.find_one({'_id': inserted_id})
+            collection.update_one({'_id': user_id}, {'$set': {'name': "rohan"}})
+            updated_entry = collection.find_one({'_id': user_id})
             self.assertEqual(updated_entry['name'], 'rohan')
 
-            collection.delete_one({'_id': inserted_id})
-            deleted_entry = collection.find_one({'_id': inserted_id})
+            collection.delete_one({'_id': user_id})
+            deleted_entry = collection.find_one({'_id': user_id})
             self.assertEqual(deleted_entry, None)

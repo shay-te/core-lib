@@ -13,7 +13,7 @@ from geoalchemy2 import WKTElement
 from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-from tests.test_data.test_utils import connect_to_mem_db
+from tests.test_data.test_utils import connect_to_mem_db, connect_to_mongo
 
 
 class MyEnum(enum.Enum):
@@ -203,17 +203,16 @@ class TestResultToDict(unittest.TestCase):
         data = result_to_dict(json_value_without_str_obj, callback=convert_return_none)
         self.assertDictEqual(data, json_value_without_str_obj)
 
-    @mongomock.patch(servers=(('serverdb.example.com', 27017), ))
     def test_pymongo_to_dict(self):
-        client = pymongo.MongoClient('serverdb.example.com')
-        collection = client.testing_collection.example
-        data = result_to_dict(collection.find())
-        self.assertEqual(len(data), 0)
-        self.assertEqual(type(data), type([1, 2, 3]))
-        collection.insert_one({'name': 'ansh'})
-        new_data = result_to_dict(collection.find())
-        self.assertEqual(new_data[0]['name'], 'ansh')
+        with connect_to_mongo().get() as client:
+            collection = client.testing_db.example
+            data_not_converted = collection.find()
+            data_converted = result_to_dict(collection.find())
+            self.assertEqual(type(data_converted), type([1, 2, 3]))
+            self.assertNotEqual(type(data_not_converted), type(data_converted))
+            self.assertNotEqual(data_not_converted, data_converted)
+            collection.insert_one({'name': 'rahul'})
+            new_data = result_to_dict(collection.find())
+            self.assertEqual(type(new_data[0]), type({'name': 'rahul'}))
+            self.assertEqual(new_data[0]['name'], 'rahul')
 
-    @ResultToDict()
-    def get_from_params(self, param):
-        return param
