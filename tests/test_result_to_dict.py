@@ -216,3 +216,6 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(type(new_data[0]), type({'name': 'rahul'}))
             self.assertEqual(new_data[0]['name'], 'rahul')
 
+    @ResultToDict()
+    def get_from_params(self, param):
+        return param
