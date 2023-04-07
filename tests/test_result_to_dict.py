@@ -4,7 +4,6 @@ import os.path
 import unittest
 import datetime
 
-import mongomock
 import pymongo
 
 from sqlalchemy import Integer, Column, VARCHAR, DateTime, Enum, JSON, TEXT, Date, BLOB, Float, Boolean, Unicode
@@ -208,13 +207,14 @@ class TestResultToDict(unittest.TestCase):
             collection = client.testing_db.example
             data_not_converted = collection.find()
             data_converted = result_to_dict(collection.find())
-            self.assertEqual(type(data_converted), type([1, 2, 3]))
-            self.assertNotEqual(type(data_not_converted), type(data_converted))
+            sample_entry = {'name': 'rahul'}
+            self.assertIsInstance(data_converted, list)
+            self.assertNotIsInstance(data_converted, pymongo.cursor.Cursor)
             self.assertNotEqual(data_not_converted, data_converted)
-            collection.insert_one({'name': 'rahul'})
+            collection.insert_one(sample_entry)
             new_data = result_to_dict(collection.find())
-            self.assertEqual(type(new_data[0]), type({'name': 'rahul'}))
-            self.assertEqual(new_data[0]['name'], 'rahul')
+            self.assertIsInstance(new_data[0], dict)
+            self.assertEqual(new_data[0]['name'], sample_entry['name'])
 
     @ResultToDict()
     def get_from_params(self, param):

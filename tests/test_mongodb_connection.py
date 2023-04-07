@@ -20,16 +20,18 @@ class TestMongoDBConnection(unittest.TestCase):
         with mongodb.get() as client:
             collection = client.testing_collection.example
             data = result_to_dict(collection.find())
-            self.assertEqual(type(data), type([1, 2, 3]))
+            self.assertIsInstance(data, list)
 
-            user_id = collection.insert_one({'name': 'ansh', 'age': 18}).inserted_id
-            entry = collection.find_one({'_id': user_id})
-            self.assertEqual(entry['name'], 'ansh')
-            self.assertEqual(entry['age'], 18)
+            test_insert_entry = {'name': 'ansh', 'age': 18}
+            user_id = collection.insert_one(test_insert_entry).inserted_id
+            user_entry = collection.find_one({'_id': user_id})
+            self.assertEqual(user_entry['name'], test_insert_entry['name'])
+            self.assertEqual(user_entry['age'], test_insert_entry['age'])
 
-            collection.update_one({'_id': user_id}, {'$set': {'name': "rohan"}})
+            test_update_entry = {'name': 'rohan'}
+            collection.update_one({'_id': user_id}, {'$set': test_update_entry})
             updated_entry = collection.find_one({'_id': user_id})
-            self.assertEqual(updated_entry['name'], 'rohan')
+            self.assertEqual(updated_entry['name'], test_update_entry['name'])
 
             collection.delete_one({'_id': user_id})
             deleted_entry = collection.find_one({'_id': user_id})
