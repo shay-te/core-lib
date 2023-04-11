@@ -208,6 +208,7 @@ class TestResultToDict(unittest.TestCase):
             data_not_converted = collection.find()
             data_converted = result_to_dict(collection.find())
             sample_entry = {'name': 'rahul'}
+
             self.assertIsInstance(data_converted, list)
             self.assertNotIsInstance(data_converted, pymongo.cursor.Cursor)
             self.assertNotEqual(data_not_converted, data_converted)

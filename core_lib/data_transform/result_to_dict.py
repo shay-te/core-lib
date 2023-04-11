@@ -15,7 +15,6 @@ from sqlalchemy.engine.row import Row
 from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 
 
-
 def __convert_value(value):
     if isinstance(value, enum.Enum):
         return value.value

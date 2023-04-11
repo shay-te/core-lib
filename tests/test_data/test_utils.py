@@ -15,16 +15,12 @@ def connect_to_mem_db():
     return SqlAlchemyConnectionRegistry(OmegaConf.create(conf))
 
 
-host = 'server.example.com'
-port = 27017
-
-
-@mongomock.patch(servers=((host, port), ))
+@mongomock.patch(servers=(('server.example.com', 27017), ))
 def connect_to_mongo():
     conf = {
             'url': {
-                'host': host,
-                'port': port
+                'host': 'server.example.com',
+                'port': 27017
             }
     }
     return MongoDBConnectionRegistry(OmegaConf.create(conf))

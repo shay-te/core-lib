@@ -22,16 +22,16 @@ class TestMongoDBConnection(unittest.TestCase):
             data = result_to_dict(collection.find())
             self.assertIsInstance(data, list)
 
-            test_insert_entry = {'name': 'ansh', 'age': 18}
-            user_id = collection.insert_one(test_insert_entry).inserted_id
+            new_created_user = {'name': 'ansh', 'age': 18}
+            user_id = collection.insert_one(new_created_user).inserted_id
             user_entry = collection.find_one({'_id': user_id})
-            self.assertEqual(user_entry['name'], test_insert_entry['name'])
-            self.assertEqual(user_entry['age'], test_insert_entry['age'])
+            self.assertEqual(user_entry['name'], new_created_user['name'])
+            self.assertEqual(user_entry['age'], new_created_user['age'])
 
-            test_update_entry = {'name': 'rohan'}
-            collection.update_one({'_id': user_id}, {'$set': test_update_entry})
+            updated_user = {'name': 'rohan'}
+            collection.update_one({'_id': user_id}, {'$set': updated_user})
             updated_entry = collection.find_one({'_id': user_id})
-            self.assertEqual(updated_entry['name'], test_update_entry['name'])
+            self.assertEqual(updated_entry['name'], updated_user['name'])
 
             collection.delete_one({'_id': user_id})
             deleted_entry = collection.find_one({'_id': user_id})
