@@ -217,19 +217,17 @@ class TestResultToDict(unittest.TestCase):
             new_data = result_to_dict(collection.find())
             self.assertIsInstance(new_data[0], dict)
             self.assertEqual(new_data[0]['name'], sample_entry['name'])
+            self.assertIsInstance(new_data, list)
+            self.assertNotIsInstance(new_data, pymongo.cursor.Cursor)
 
             collection.delete_one(sample_entry)
             db_data = result_to_dict(collection.find())
             self.assertEqual(len(db_data), 0)
-            self.assertIsInstance(db_data, list)
-            self.assertNotIsInstance(db_data, pymongo.cursor.Cursor)
 
             new_users = [{'name': 'robin'}, {'name': 'adam'}, {'name': 'robert'}]
             collection.insert_many(new_users)
             current_db_data = result_to_dict(collection.find())
             self.assertEqual(len(current_db_data), 3)
-            self.assertIsInstance(current_db_data, list)
-            self.assertNotIsInstance(current_db_data, pymongo.cursor.Cursor)
             self.assertEqual(current_db_data[0]['name'], 'robin')
             self.assertEqual(current_db_data[1]['name'], 'adam')
             self.assertEqual(current_db_data[2]['name'], 'robert')
@@ -237,8 +235,6 @@ class TestResultToDict(unittest.TestCase):
             collection.delete_many({})
             curr_db_data = result_to_dict(collection.find())
             self.assertEqual(len(curr_db_data), 0)
-            self.assertIsInstance(curr_db_data, list)
-            self.assertNotIsInstance(curr_db_data, pymongo.cursor.Cursor)
 
     @ResultToDict()
     def get_from_params(self, param):
