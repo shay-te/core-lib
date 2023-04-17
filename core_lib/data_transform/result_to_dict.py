@@ -108,7 +108,6 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
     if isinstance(return_val, (mongomock.collection.Cursor, pymongo.cursor.Cursor)):
         results = __pymongo_to_dict(return_val)
-        return results
 
     if isinstance(results, dict):
         if properties_as_dict:
