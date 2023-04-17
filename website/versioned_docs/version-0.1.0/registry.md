@@ -21,12 +21,6 @@ It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
 
 ​	Extends the `Registry` and a base class for all  `ConnectionRegistry` classes.
 
-  - `SqlAlchemyConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/sql_alchemy_connection_registry.py)
-  - `Neo4jConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/neo4j_connection_registry.py)
-  - `MongoDBConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/mongodb_connection_registry.py)
-  - `SolrConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/solr_connection_registry.py)
-  - `ObjectConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/object_connection_registry.py)
-
 3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py)
 
 Extends the `DefaultRegistry` and is limited to storing only `CacheHandler` instances using an `object_type` parameter

@@ -37,7 +37,7 @@ With `Core-Lib`, it's easy to break, separate or change an existing product into
 
 #### Longevity
 
-`Core-Lib` embraces the `Onion Architecture` for code reuse and data flow across libraries. Reusing code and moving logic from one `Data-Layer` to another is straightforward.
+`Core-Lib` embraces the `Onion Architecture` [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html) [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs)  for code reuse and data flow across libraries. Reusing code and moving logic from one `Data-Layer` to another is straightforward.
 
 #### Discover other Core-Lib's
 
