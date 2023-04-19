@@ -4,13 +4,15 @@ import os.path
 import unittest
 import datetime
 
+import pymongo
+
 from sqlalchemy import Integer, Column, VARCHAR, DateTime, Enum, JSON, TEXT, Date, BLOB, Float, Boolean, Unicode
 from geoalchemy2 import WKTElement
 
 from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-from tests.test_data.test_utils import connect_to_mem_db
+from tests.test_data.test_utils import connect_to_mem_db, connect_to_mongo
 
 
 class MyEnum(enum.Enum):
@@ -199,6 +201,40 @@ class TestResultToDict(unittest.TestCase):
         }
         data = result_to_dict(json_value_without_str_obj, callback=convert_return_none)
         self.assertDictEqual(data, json_value_without_str_obj)
+
+    def test_pymongo_to_dict(self):
+        with connect_to_mongo().get() as client:
+            collection = client.testing_db.example
+            data_not_converted = collection.find()
+            data_converted = result_to_dict(collection.find())
+            self.assertEqual(len(data_converted), 0)
+            self.assertIsInstance(data_converted, list)
+            self.assertNotIsInstance(data_converted, pymongo.cursor.Cursor)
+            self.assertNotEqual(data_not_converted, data_converted)
+
+            sample_entry = {'name': 'rahul'}
+            collection.insert_one(sample_entry)
+            new_data = result_to_dict(collection.find())
+            self.assertIsInstance(new_data[0], dict)
+            self.assertEqual(new_data[0]['name'], sample_entry['name'])
+            self.assertIsInstance(new_data, list)
+            self.assertNotIsInstance(new_data, pymongo.cursor.Cursor)
+
+            collection.delete_one(sample_entry)
+            db_data = result_to_dict(collection.find())
+            self.assertEqual(len(db_data), 0)
+
+            new_users = [{'name': 'robin'}, {'name': 'adam'}, {'name': 'robert'}]
+            collection.insert_many(new_users)
+            current_db_data = result_to_dict(collection.find())
+            self.assertEqual(len(current_db_data), 3)
+            self.assertEqual(current_db_data[0]['name'], 'robin')
+            self.assertEqual(current_db_data[1]['name'], 'adam')
+            self.assertEqual(current_db_data[2]['name'], 'robert')
+
+            collection.delete_many({})
+            curr_db_data = result_to_dict(collection.find())
+            self.assertEqual(len(curr_db_data), 0)
 
     @ResultToDict()
     def get_from_params(self, param):
