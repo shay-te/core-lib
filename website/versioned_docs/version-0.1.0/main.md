@@ -100,16 +100,13 @@ class TestCrud(unittest.TestCase):
 ##### your_core_lib_instance.py
 
 ```python
-from django.views.decorators.http import require_POST, require_GET
-from http import HTTPStatus
-
 class YourCoreLibInstance(object):
     _app_instance = None
     
 		@staticmethod
     def init(core_lib_cfg):
         if not YourCoreLibInstance._app_instance:
-          AppInstance._app_instance = YourCoreLib(core_lib_cfg)
+          YourCoreLibInstance._app_instance = YourCoreLib(core_lib_cfg)
 
     @staticmethod
     def get() -> YourCoreLib:
