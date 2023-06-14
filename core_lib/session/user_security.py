@@ -1,6 +1,8 @@
 import logging
+import os
 from abc import ABC, abstractmethod
 from core_lib.session.token_handler import TokenHandler
+import jwt
 
 
 class UserSecurity(ABC):
@@ -35,9 +37,17 @@ class UserSecurity(ABC):
             self.logger.error(ex)
             return None
 
-    def _secure_entry(self, request, policies):
-        session_obj = None
-        if self.cookie_name in request.COOKIES:
-            token = request.COOKIES[self.cookie_name]
-            session_obj = self.from_session_data(self.token_handler.decode(token))
-        return self.secure_entry(request, session_obj, policies)
+    def _secure_entry(self, request, policies, frame_work_type='django'):
+        if frame_work_type == 'django':
+            session_obj = None
+            if self.cookie_name in request.COOKIES:
+                token = request.COOKIES[self.cookie_name]
+                session_obj = self.from_session_data(self.token_handler.decode(token))
+            return self.secure_entry(request, session_obj, policies)
+        else:
+            session_obj = None
+            if request.cookies.get(self.cookie_name):
+                token = request.cookies.get(self.cookie_name)
+                session_obj = jwt.decode(token, os.environ.get('SECRET_KEY'), algorithms=["HS256"])
+            return self.secure_entry(request, session_obj, policies)
+
