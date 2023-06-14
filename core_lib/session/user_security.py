@@ -38,16 +38,14 @@ class UserSecurity(ABC):
             return None
 
     def _secure_entry(self, request, policies, frame_work_type='django'):
+        session_obj = None
         if frame_work_type == 'django':
-            session_obj = None
             if self.cookie_name in request.COOKIES:
                 token = request.COOKIES[self.cookie_name]
                 session_obj = self.from_session_data(self.token_handler.decode(token))
         else:
-            session_obj = None
             if request.cookies.get(self.cookie_name):
                 token = request.cookies.get(self.cookie_name)
                 session_obj = self.from_session_data(self.token_handler.decode(token))
 
         return self.secure_entry(request, session_obj, policies)
-
