@@ -36,3 +36,4 @@ python-dotenv
 moto
 freezegun
 mongomock
+Werkzeug
