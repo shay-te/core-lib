@@ -1,4 +1,4 @@
-from werkzeug.wrappers import Request
+from flask import Request
 from core_lib.session.security_handler import SecurityHandler
 
 
