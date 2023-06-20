@@ -1,8 +1,5 @@
 import React, {useEffect} from 'react';
-import Head from '@docusaurus/Head';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import { useHistory } from '@docusaurus/router';
-import Layout from "@theme/Layout";
+import { Link, useNavigate } from 'react-router-dom';
 
 import './generator.scss';
 import Form from './../components/form/Form';
@@ -15,7 +12,6 @@ import {
 import { useDispatch, Provider, useSelector } from "react-redux";
 import { store } from './../components/store/store';
 import 'react-reflex/styles.css'
-import Link from '@docusaurus/Link';
 import { Key } from '../utils/Key';
 import DoubleMenu from './../components/DoubleMenu/DoubleMenu';
 
@@ -23,7 +19,7 @@ import DoubleMenu from './../components/DoubleMenu/DoubleMenu';
 function GeneratorElements() {
     const yaml = useSelector((state) => state.treeData.yaml);
     const dispatch = useDispatch();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if(JSON.stringify(yaml) === '{}'){
@@ -31,7 +27,7 @@ function GeneratorElements() {
             if(recentCoreLib){
                 dispatch(init(recentCoreLib))
             } else {
-                history.push('/generate')
+                navigate('/generate')
             }
         }
         dispatch(setList('core_lib'));
@@ -52,7 +48,7 @@ function GeneratorElements() {
 	return (
 		<>
 			<div className='close-generator-btn'>
-				<Link to='/generate'>
+				<Link to='/'>
 					Close
 				</Link>
 			</div>
@@ -66,17 +62,14 @@ function GeneratorElements() {
 }
 
 function Generator() {
-	const { siteConfig } = useDocusaurusContext();
 	return (
 		<Provider store={store}>
-			<div className='generator-wrap'>
-				<Layout>
-					<Head>
-						<script src="https://kit.fontawesome.com/9ff5ab3bcf.js" crossorigin="anonymous"></script>
-					</Head>
-					<GeneratorElements />
-				</Layout>
-			</div>
+            <div>
+                <div className='generator-wrap'>
+                    <GeneratorElements />
+                </div>
+            </div>
+			
 		</Provider>
 	)
 }
