@@ -42,8 +42,7 @@ class UserSecurity(ABC):
             if self.cookie_name in request.COOKIES:
                 token = request.COOKIES[self.cookie_name]
                 session_obj = self.from_session_data(self.token_handler.decode(token))
-        else:
-            if request.cookies.get(self.cookie_name):
-                token = request.cookies.get(self.cookie_name)
-                session_obj = self.from_session_data(self.token_handler.decode(token))
+        elif request.cookies.get(self.cookie_name):
+            token = request.cookies.get(self.cookie_name)
+            session_obj = self.from_session_data(self.token_handler.decode(token))
         return self.secure_entry(request, session_obj, policies)
