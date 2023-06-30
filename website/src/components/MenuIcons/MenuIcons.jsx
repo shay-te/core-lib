@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import MenuIconsList from "../MenuIconsList/MenuIconsList"
 import './MenuIcons.scss'
 
@@ -78,7 +78,7 @@ const MenuIcons = () => {
     const topMenuItems = [
         {
             tooltipTitle: 'Edit Core-Lib',
-            item: <img className={`core-lib-image icon`} src={require('@site/static/img/core-lib-black.png').default}/>,
+            item: <img className={`core-lib-image icon`} src={require('../../assets/img/core-lib-black.png')}/>,
             selected: selected === 'core_lib',
             onClick: onCoreLibClick,
         },
@@ -134,7 +134,7 @@ const MenuIcons = () => {
         topMenuItems.splice(4, 0, entityIcon)
     } else {
         if(topMenuItems.length === 8){
-            arr.splice(4, 1)
+            topMenuItems.splice(4, 1)
         }
     }
 

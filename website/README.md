@@ -1,44 +1,15 @@
-# Website
+# Getting Started with Create React App
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+## Staring the web application
 
-### Installation
+Run the following commands to start the web application.
 
-```
-$ yarn
-```
-
-### Local Development
-
-```
-$ yarn start
+```bash
+cd core-lib/website
+npm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-### Build
-
-```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+And the application will be visible on port `3000`, if you want to take advantage of exporting zip files from the application you can start the flask server which will generate the `Core-lib` zip file for you.
 
 ## Starting the Flask server
 
@@ -46,6 +17,7 @@ You'll find a file named `generator_server.py` under the `website` directory.
 This is responsible for starting the flask server which provides APIs for generating and downloading a `Core-lib` zip file.
 
 To start the server use the following commands:
-```
+
+```bash
 python website/generator_server.py # from root core-lib folder 
 ```

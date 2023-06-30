@@ -1,6 +1,4 @@
 import React from 'react';
-import Head from '@docusaurus/Head';
-import Layout from "@theme/Layout";
 
 import { store } from './../components/store/store';
 import { Provider } from 'react-redux';
@@ -8,15 +6,15 @@ import {
     init,
     setStorageIndex,
 } from "./../components/slices/treeSlice";
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { newCL } from './../newCoreLib';
 import './generate.scss'
-import { useHistory } from '@docusaurus/router';
 
 const yaml = require('js-yaml');
 
 function Generate() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const dispatch = useDispatch()
     const coreLibs = (JSON.parse(localStorage.getItem('core_libs')) === null ? [] : JSON.parse(localStorage.getItem('core_libs')))
     const recent_core_libs = [];
@@ -51,7 +49,7 @@ function Generate() {
     const navigateGenerator = (data, index) => {
         dispatch(setStorageIndex(index))
         dispatch(init(data));
-        history.push('/generator')
+        navigate('/generator')
     }
 
     const handleYamlInput = (files) => {
@@ -70,38 +68,33 @@ function Generate() {
 
     return (
         <div className='generate-wrap'>
-            <Layout>
-                <Head>
-                    <script src="https://kit.fontawesome.com/9ff5ab3bcf.js" crossorigin="anonymous"></script>
-                </Head>
-                <div className='generate-root'>
-                    <div className='generate-divider'>
-                        <div>
-                            <h2>
-                                Create
-                            </h2>
-                            <div className={`create-cl-btn button button--secondary button--lg `} onClick={() => addNew(newCL)}>
-                                Create New
-                            </div>
-                        </div>
-                        <div className='upload-root'>
+            <div className='generate-root'>
+                <div className='generate-divider'>
+                    <div>
                         <h2>
-                            Upload
+                            Create
                         </h2>
-                        <label className="custom-file-upload">
-                            <input type={'file'} accept=".yaml, .yml" className='hide' onChange={(e) => handleYamlInput(e.target.files)} />
-                            Yaml Upload
-                        </label>
-                    </div>
-                        <div className='core-lib-list'>
-                            <h2>
-                                History:
-                            </h2>
-                            {recent_core_libs}
+                        <div className={`create-cl-btn button--secondary button--lg `} onClick={() => addNew(newCL)}>
+                            Create New
                         </div>
+                    </div>
+                    <div className='upload-root'>
+                    <h2>
+                        Upload
+                    </h2>
+                    <label className="custom-file-upload">
+                        <input type={'file'} accept=".yaml, .yml" className='hide' onChange={(e) => handleYamlInput(e.target.files)} />
+                        Yaml Upload
+                    </label>
+                </div>
+                    <div className='core-lib-list'>
+                        <h2>
+                            History:
+                        </h2>
+                        {recent_core_libs}
                     </div>
                 </div>
-            </Layout>
+            </div>
         </div>
     )
 }

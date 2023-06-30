@@ -11,14 +11,11 @@
 .generator-wrap {
 	height: 100vh;
 	overflow: hidden;
-	.main-wrapper {
-		height: calc(100% - 50px);
-		.app-root {
-            font-family: 'Lato', sans-serif;
-			height: 100%;
-            display: flex;
-		}
-	}
+    .app-root {
+        font-family: 'Lato', sans-serif;
+        height: 100%;
+        display: flex;
+    }
 	.footer {
 		display: none;
 	}
@@ -29,7 +26,7 @@
 	position: absolute;
 	font-size: 1rem;
 	color: #ff7948;
-	top: 10%;
+	top: 0.5rem;
 	right: 2%;
     border: 1px solid $primary-color;
     padding: $spacing-xs;

@@ -1,0 +1,186 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+    - title: sidebar
+      product: Core-Lib Documentation
+      version: 0.1.0
+      folders:
+          - title: Overview
+            output: web
+            folderitems:
+                - title: Getting started
+                  url: /index.html
+                  output: web
+                  type: homepage
+
+                - title: Advantages
+                  url: /advantages.html
+                  output: web
+
+                - title: Project Structure
+                  url: /project_structure.html
+                  output: web
+
+                - title: Testing Core-Lib
+                  url: /test_core_lib.html
+                  output: web
+
+          - title: Core-Lib
+            output: web
+            folderitems:
+                - title: Core Lib Class
+                  url: /core_lib_main_class.html
+                  output: web
+
+                - title: Registry
+                  url: /registry.html
+                  output: web
+              
+                - title: Cache
+                  url: /cache.html
+                  output: web
+                
+                - title: Result to Dict
+                  url: /result_to_dict.html
+                  output: web
+                
+                - title: Rules Validator
+                  url: /rules_validator.html
+                  output: web
+                
+                - title: Job
+                  url: /job.html
+                  output: web
+                
+                - title: Command Line
+                  url: /cli.html
+                  output: web
+
+          - title: Connection
+            output: web
+            folderitems:
+                - title: Connection
+                  url: /connection.html
+                  output: web
+
+                - title: SqlAlchemy Connection Registry
+                  url: /sql_alchemy_connection.html
+                  output: web
+
+                - title: MongoDB Connection Registry
+                  url: /mongodb_connection_registry.html
+                  output: web
+                
+                - title: Solr Connection Registry
+                  url: /solr_connection_registry.html
+                  output: web
+
+                - title: Neo4j Connection Registry
+                  url: /neo4j_connection_registry.html
+                  output: web
+        
+          - title: Data Layers
+            output: web
+            folderitems:
+                - title: Data Layers
+                  url: /data_layers.html
+                  output: web
+
+                - title: CRUD Data Access
+                  url: /crud.html
+                  output: web
+
+                - title: Soft Delete
+                  url: /soft_delete.html
+                  output: web
+        
+          - title: Client
+            output: web
+            folderitems:
+                - title: Client Base
+                  url: /client_base.html
+                  output: web
+        
+          - title: CLI
+            output: web
+            folderitems:
+                - title: Alembic
+                  url: /alembic.html
+                  output: web
+
+          - title: Error Handling
+            output: web
+            folderitems:
+                - title: Error Handlers
+                  url: /error_handler.html
+                  output: web
+
+          - title: Helpers
+            output: web
+            folderitems:
+                - title: Helpers
+                  url: /data_transform_helpers.html
+                  output: web
+
+                - title: Datetime Utilities
+                  url: /datetime_utils.html
+                  output: web
+
+                - title: Files
+                  url: /files.html
+                  output: web
+
+                - title: Function Utilities
+                  url: /function_utils.html
+                  output: web
+
+                - title: Generate Data
+                  url: /enerate_data.html
+                  output: web
+
+                - title: Instantiate Config
+                  url: /instantiate_config.html
+                  output: web
+
+                - title: Logging
+                  url: /logger.html
+                  output: web
+
+                - title: String Helpers
+                  url: /strings.html
+                  output: web
+
+                - title: Validation Helpers
+                  url: /validation.html
+                  output: web
+
+          - title: Observer
+            output: web
+            folderitems:
+                - title: Observer
+                  url: /observer.html
+                  output: web
+
+                - title: Core Lib Listener
+                  url: /core_lib_listener.html
+                  output: web
+
+          - title: Session
+            output: web
+            folderitems:
+                - title: User Security
+                  url: /user_security.html
+                  output: web
+
+          - title: handle_exception Decorator
+            output: web
+            folderitems:
+                - title: HandleException Decorator
+                  url: /handle_exceptions.html
+                  output: web
+
+                - title: Web Helpers
+                  url: /web.html
+                  output: web
+
+

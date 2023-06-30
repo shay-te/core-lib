@@ -8,6 +8,8 @@ CoreLib provides basic simple classes for creating a WEB Application as a Librar
 
 Check the [website](https://core-lib.netlify.com/) for more information
 
+Read the documentation for `Core-Lib` [here](https://shay-te.github.io/core-lib/)
+
 ## License
 Core-Lib is licenced under [MIT](https://github.com/shay-te/core-lib/blob/master/LICENSE)
 
