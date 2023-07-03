@@ -1,7 +1,6 @@
 from functools import wraps
-import logging
-
 from core_lib.session.security_handler import SecurityHandler
+import logging
 from core_lib.web_helpers.decorators import handle_exception
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,9 @@ class RequireLogin(object):
                 try:
                     return func(request, *args, **kwargs)
                 except Exception:
-                    logger.error(f'error while loading target page for controller entry name `{func.__name__}`', exc_info=True)
+                    logger.error(
+                        f'error while loading target page for controller entry name `{func.__name__}`', exc_info=True
+                    )
             return response
 
         return __wrapper
