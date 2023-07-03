@@ -1,6 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
+from http import HTTPStatus
 from core_lib.session.token_handler import TokenHandler
+from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 
@@ -38,13 +40,12 @@ class UserSecurity(ABC):
 
     def _secure_entry(self, request, policies):
         session_obj = None
-        if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
-            if self.cookie_name in request.COOKIES:
-                token = request.COOKIES[self.cookie_name]
-                session_obj = self.from_session_data(self.token_handler.decode(token))
+        if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO and self.cookie_name in request.COOKIES:
+            token = request.COOKIES[self.cookie_name]
+            session_obj = self.from_session_data(self.token_handler.decode(token))
         elif request.cookies.get(self.cookie_name):
             token = request.cookies.get(self.cookie_name)
             session_obj = self.from_session_data(self.token_handler.decode(token))
         else:
-            return None
+            return response_status(HTTPStatus.UNAUTHORIZED)
         return self.secure_entry(request, session_obj, policies)
