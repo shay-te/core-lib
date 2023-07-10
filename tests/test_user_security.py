@@ -69,9 +69,10 @@ class TestUserSecurity(unittest.TestCase):
         cls.user_inactive.update({'exp': exp})
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
-        cls.app = Flask(__name__)
+        app = Flask(__name__)
         csrf = CSRFProtect()
-        csrf.init_app(cls.app)
+        csrf.init_app(app)
+        cls.app = app
 
         cls.map_function = {
             'flask': {
