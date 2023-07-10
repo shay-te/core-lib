@@ -28,6 +28,7 @@ setuptools
 django
 flask
 flask_cors
+flask_wtf
 requests
 
 

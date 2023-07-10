@@ -4,6 +4,7 @@ import jwt
 from django.conf import settings
 from django.http import HttpRequest
 from flask import request, Flask
+from flask_wtf.csrf import CSRFProtect
 from freezegun import freeze_time
 from werkzeug.http import dump_cookie
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
@@ -69,7 +70,8 @@ class TestUserSecurity(unittest.TestCase):
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
         cls.app = Flask(__name__)
-        cls.app.config['WTF_CSRF_ENABLED'] = True
+        csrf = CSRFProtect()
+        csrf.init_app(cls.app)
 
         cls.map_function = {
             'flask': {
