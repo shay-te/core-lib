@@ -167,11 +167,12 @@ class TestUserSecurity(unittest.TestCase):
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
             header = dump_cookie(cookie_name, token)
             with self.app.test_request_context(environ_base={'HTTP_COOKIE': header}):
-                assert request.cookies[cookie_name] == token
+                self.assertEqual(request.cookies[cookie_name], token)
                 return self.map_function[WebHelpersUtils.ServerType.FLASK.value][func_type]()
         else:
             request_object = HttpRequest
             request_object.COOKIES = {cookie_name: token}
+            self.assertEqual(request_object.COOKIES[cookie_name], token)
             return self.map_function[WebHelpersUtils.ServerType.DJANGO.value][func_type](request_object)
 
     def _test_secure_entry(self):
