@@ -339,69 +339,111 @@ class TestUserSecurity(unittest.TestCase):
 
 @RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
 def create_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
 def update_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
 def user_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def multiple_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginDjango(policies=[])
 def no_policy_entry_django(request):
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
 def create_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
 def update_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
 def user_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def multiple_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
 
 
 @RequireLoginFlask(policies=[])
 def no_policy_entry_flask():
+    """
+    Skipped because this is a testing function and returns nothing
+    """
     pass
