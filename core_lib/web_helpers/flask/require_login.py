@@ -1,7 +1,7 @@
 from functools import wraps
 import logging
 from flask import request
-from core_lib.web_helpers.helpers import require_login_helper
+from core_lib.web_helpers.require_login_helper import require_login
 logger = logging.getLogger(__name__)
 
 
@@ -14,5 +14,5 @@ class RequireLogin(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            return require_login_helper(request, self.policies, func, *args, **kwargs)
+            return require_login(request, self.policies, func, *args, **kwargs)
         return __wrapper

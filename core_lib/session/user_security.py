@@ -39,15 +39,11 @@ class UserSecurity(ABC):
             return None
 
     def _secure_entry(self, request, policies):
-        cookies = {'token': None}
-        session_obj = None
+        cookies = {}
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
-            cookies['token'] = request.COOKIES[self.cookie_name]
+            cookies = request.COOKIES
         elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
-            cookies['token'] = request.cookies.get(self.cookie_name)
-
-        if cookies['token']:
-            session_obj = self.from_session_data(self.token_handler.decode(cookies['token']))
-        else:
-            return response_status(HTTPStatus.UNAUTHORIZED)
+            cookies = request.cookies
+        token = cookies.get(self.cookie_name)
+        session_obj = self.from_session_data(self.token_handler.decode(token)) if token else None
         return self.secure_entry(request, session_obj, policies)
