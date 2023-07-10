@@ -40,6 +40,7 @@ class UserSecurity(ABC):
 
     def _secure_entry(self, request, policies):
         cookies = {'token': None}
+        session_obj = None
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
             cookies['token'] = request.COOKIES[self.cookie_name]
         elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
