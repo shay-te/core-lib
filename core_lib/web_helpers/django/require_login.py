@@ -5,7 +5,9 @@ logger = logging.getLogger(__name__)
 
 
 class RequireLogin(object):
-    def __init__(self, policies: list = []):
+    def __init__(self, policies=None):
+        if policies is None:
+            policies = []
         self.policies = policies
 
     def __call__(self, func, *args, **kwargs):

@@ -69,6 +69,7 @@ class TestUserSecurity(unittest.TestCase):
 
         CoreLib.cache_registry.register('test_user_security', CacheHandlerRam())
         cls.app = Flask(__name__)
+        cls.app.config['WTF_CSRF_ENABLED'] = True
 
         cls.map_function = {
             'flask': {
