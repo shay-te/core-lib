@@ -15,4 +15,5 @@ class RequireLogin(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             return require_login(request, self.policies, func, *args, **kwargs)
+
         return __wrapper

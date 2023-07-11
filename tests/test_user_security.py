@@ -1,5 +1,7 @@
 import unittest
 from datetime import timedelta, datetime
+from typing import Callable
+
 import jwt
 from django.conf import settings
 from django.http import HttpRequest
@@ -13,6 +15,7 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.web_helpers.django.require_login import RequireLogin as RequireLoginDjango
 from core_lib.web_helpers.flask.require_login import RequireLogin as RequireLoginFlask
+from core_lib.web_helpers.require_login_helper import require_login
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_user_security_utils import CustomerSecurity, user_data_access, User, has_access
 
@@ -73,27 +76,6 @@ class TestUserSecurity(unittest.TestCase):
         csrf = CSRFProtect()
         csrf.init_app(app)
         cls.app = app
-
-        cls.map_function = {
-            'flask': {
-                'admin_entry': admin_entry_flask,
-                'delete_entry': delete_entry_flask,
-                'update_entry': update_entry_flask,
-                'multiple_entry': multiple_entry_flask,
-                'create_entry': create_entry_flask,
-                'no_policy_entry': no_policy_entry_flask,
-                'user_entry': user_entry_flask
-            },
-            'django': {
-                'admin_entry': admin_entry_django,
-                'delete_entry': delete_entry_django,
-                'update_entry': update_entry_django,
-                'multiple_entry': multiple_entry_django,
-                'create_entry': create_entry_django,
-                'no_policy_entry': no_policy_entry_django,
-                'user_entry': user_entry_django
-            }
-        }
 
     def test_has_access(self):
         self.assertTrue(
@@ -162,293 +144,147 @@ class TestUserSecurity(unittest.TestCase):
         self._test_secure_entry()
         self._test_expiry()
 
-    def _create_and_send_request(self, payload: dict, func_type: str):
+    def _create_and_send_request(self, payload: dict, policies: list):
         token = jwt.encode(payload, secret_key)
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
             header = dump_cookie(cookie_name, token)
             with self.app.test_request_context(environ_base={'HTTP_COOKIE': header}):
                 self.assertEqual(request.cookies[cookie_name], token)
-                return self.map_function[WebHelpersUtils.ServerType.FLASK.value][func_type]()
+                return require_login(request, policies, entry_as_per_policies)
         else:
             request_object = HttpRequest
             request_object.COOKIES = {cookie_name: token}
             self.assertEqual(request_object.COOKIES[cookie_name], token)
-            return self.map_function[WebHelpersUtils.ServerType.DJANGO.value][func_type](request_object)
+            return require_login(request_object, policies, entry_as_per_policies)
 
     def _test_secure_entry(self):
+
+        POLICIES_ADMIN = [User.PolicyRoles.ADMIN, User.Status.ACTIVE]
+        POLICIES_DELETE = [User.PolicyRoles.DELETE, User.Status.ACTIVE]
+        POLICIES_CREATE = [User.PolicyRoles.CREATE, User.Status.ACTIVE]
+        POLICIES_UPDATE = [User.PolicyRoles.UPDATE, User.Status.ACTIVE]
+        POLICIES_USER = [User.PolicyRoles.USER, User.Status.ACTIVE]
+        POLICIES_MULTIPLE = [User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE]
+        POLICIES_NO = []
+
         # Admin
-        response = self._create_and_send_request(self.admin, 'admin_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_ADMIN).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'delete_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_DELETE).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'create_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_CREATE).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'update_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_UPDATE).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'user_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_USER).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'multiple_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_MULTIPLE).status_code, 200)
 
-        response = self._create_and_send_request(self.admin, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 200)
 
         # Delete
-        response = self._create_and_send_request(self.delete, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.delete, 'delete_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_DELETE).status_code, 200)
 
-        response = self._create_and_send_request(self.delete, 'create_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_CREATE).status_code, 200)
 
-        response = self._create_and_send_request(self.delete, 'update_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_UPDATE).status_code, 200)
 
-        response = self._create_and_send_request(self.delete, 'user_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_USER).status_code, 200)
 
-        response = self._create_and_send_request(self.delete, 'multiple_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_MULTIPLE).status_code, 200)
 
-        response = self._create_and_send_request(self.delete, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_NO).status_code, 200)
 
         # Create
-        response = self._create_and_send_request(self.create, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.create, 'delete_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_DELETE).status_code, 401)
 
-        response = self._create_and_send_request(self.create, 'create_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_CREATE).status_code, 200)
 
-        response = self._create_and_send_request(self.create, 'update_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_UPDATE).status_code, 200)
 
-        response = self._create_and_send_request(self.create, 'user_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_USER).status_code, 200)
 
-        response = self._create_and_send_request(self.create, 'multiple_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_MULTIPLE).status_code, 200)
 
-        response = self._create_and_send_request(self.create, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.create, POLICIES_NO).status_code, 200)
 
         # Update
-        response = self._create_and_send_request(self.update, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.update, 'delete_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_DELETE).status_code, 401)
 
-        response = self._create_and_send_request(self.update, 'create_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_CREATE).status_code, 401)
 
-        response = self._create_and_send_request(self.update, 'update_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_UPDATE).status_code, 200)
 
-        response = self._create_and_send_request(self.update, 'user_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_USER).status_code, 200)
 
-        response = self._create_and_send_request(self.update, 'multiple_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_MULTIPLE).status_code, 200)
 
-        response = self._create_and_send_request(self.update, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.update, POLICIES_NO).status_code, 200)
 
         # User
-        response = self._create_and_send_request(self.user, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.user, 'delete_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_DELETE).status_code, 401)
 
-        response = self._create_and_send_request(self.user, 'create_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_CREATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user, 'update_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_UPDATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user, 'user_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_USER).status_code, 200)
 
-        response = self._create_and_send_request(self.user, 'multiple_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_MULTIPLE).status_code, 401)
 
-        response = self._create_and_send_request(self.user, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.user, POLICIES_NO).status_code, 200)
 
         # Banned users
-        response = self._create_and_send_request(self.user_ban, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'delete_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_DELETE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'create_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_CREATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'update_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_UPDATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'user_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_USER).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'multiple_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_MULTIPLE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_ban, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_NO).status_code, 200)
 
         # Not active users
-        response = self._create_and_send_request(self.user_inactive, 'admin_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_ADMIN).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'delete_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_DELETE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'create_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_CREATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'update_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_UPDATE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'user_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_USER).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'multiple_entry')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_MULTIPLE).status_code, 401)
 
-        response = self._create_and_send_request(self.user_inactive, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_NO).status_code, 200)
 
     def _test_expiry(self):
-        response = self._create_and_send_request(self.admin, 'no_policy_entry')
-        self.assertEqual(response.status_code, 200)
+        POLICIES_NO = []
+        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 200)
 
         with freeze_time(datetime.now() + timedelta(seconds=31)):
             with self.assertLogs() as cm:
-                resp_json = self._create_and_send_request(self.admin, 'no_policy_entry')
-                self.assertEqual(resp_json.status_code, 401)
+                self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 401)
             self.assertIn('ExpiredSignatureError', str(cm.output))
             self.assertIn('handle_exception got error for function', str(cm.output))
 
 
-@RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
-def admin_entry_django(request):
+def entry_as_per_policies():
     """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
-def delete_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
-def create_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
-def update_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
-def user_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE])
-def multiple_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginDjango(policies=[])
-def no_policy_entry_django(request):
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
-def admin_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
-def delete_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
-def create_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
-def update_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
-def user_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[User.PolicyRoles.UPDATE, User.PolicyRoles.DELETE, User.Status.ACTIVE])
-def multiple_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
-    """
-    pass
-
-
-@RequireLoginFlask(policies=[])
-def no_policy_entry_flask():
-    """
-    Skipped because this is a testing function and returns nothing
+    Skipped because this a testing function and returns nothing
     """
     pass
