@@ -5,7 +5,7 @@ from typing import Callable
 import jwt
 from django.conf import settings
 from django.http import HttpRequest
-from flask import request, Flask
+from flask import request as flask_request, Flask
 from flask_wtf.csrf import CSRFProtect
 from freezegun import freeze_time
 from werkzeug.http import dump_cookie
@@ -31,31 +31,31 @@ class TestUserSecurity(unittest.TestCase):
     def setUp(cls):
         CoreLib.cache_registry.unregister('test_user_security')
 
-        cls.admin = result_to_dict(
+        cls.user_admin = result_to_dict(
             user_data_access.create({'username': 'admin', 'email': 'admin@def.com', 'role': User.PolicyRoles.ADMIN})
         )
-        cls.delete = result_to_dict(
+        cls.user_delete = result_to_dict(
             user_data_access.create({'username': 'delete', 'email': 'delete@def.com', 'role': User.PolicyRoles.DELETE})
         )
-        cls.create = result_to_dict(
+        cls.user_create = result_to_dict(
             user_data_access.create({'username': 'create', 'email': 'create@def.com', 'role': User.PolicyRoles.CREATE})
         )
-        cls.update = result_to_dict(
+        cls.user_update = result_to_dict(
             user_data_access.create({'username': 'update', 'email': 'update@def.com', 'role': User.PolicyRoles.UPDATE})
         )
-        cls.user = result_to_dict(
+        cls.user_user = result_to_dict(
             user_data_access.create({'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER})
         )
         cls.user_ban = result_to_dict(
             user_data_access.create(
-                {'username': 'user', 'email': 'user@def.com', 'role': User.PolicyRoles.USER, 'status': User.Status.BAN}
+                {'username': 'user_ban', 'email': 'user_ban@def.com', 'role': User.PolicyRoles.USER, 'status': User.Status.BAN}
             )
         )
         cls.user_inactive = result_to_dict(
             user_data_access.create(
                 {
-                    'username': 'user',
-                    'email': 'user@def.com',
+                    'username': 'user_inactive',
+                    'email': 'user_inactive@def.com',
                     'role': User.PolicyRoles.USER,
                     'status': User.Status.NOT_ACTIVE,
                 }
@@ -63,11 +63,11 @@ class TestUserSecurity(unittest.TestCase):
         )
 
         exp = datetime.now() + timedelta(seconds=30)
-        cls.admin.update({'exp': exp})
-        cls.delete.update({'exp': exp})
-        cls.create.update({'exp': exp})
-        cls.update.update({'exp': exp})
-        cls.user.update({'exp': exp})
+        cls.user_admin.update({'exp': exp})
+        cls.user_delete.update({'exp': exp})
+        cls.user_create.update({'exp': exp})
+        cls.user_update.update({'exp': exp})
+        cls.user_user.update({'exp': exp})
         cls.user_ban.update({'exp': exp})
         cls.user_inactive.update({'exp': exp})
 
@@ -79,41 +79,41 @@ class TestUserSecurity(unittest.TestCase):
 
     def test_has_access(self):
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
         )
-        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.DELETE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.CREATE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.UPDATE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.USER]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_delete), [User.PolicyRoles.DELETE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_create), [User.PolicyRoles.CREATE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_update), [User.PolicyRoles.UPDATE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_user), [User.PolicyRoles.USER]))
 
-        self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.ADMIN]))
-        self.assertFalse(has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.DELETE]))
-        self.assertFalse(has_access(security_handler.from_session_data(self.user), [User.PolicyRoles.CREATE]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.user_user), [User.PolicyRoles.ADMIN]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.user_update), [User.PolicyRoles.DELETE]))
+        self.assertFalse(has_access(security_handler.from_session_data(self.user_user), [User.PolicyRoles.CREATE]))
         self.assertFalse(
-            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE])
+            has_access(security_handler.from_session_data(self.user_admin), [User.PolicyRoles.ADMIN, User.Status.NOT_ACTIVE])
         )
 
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_delete), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
         )
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.update), [User.PolicyRoles.USER, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_update), [User.PolicyRoles.USER, User.Status.ACTIVE])
         )
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.admin), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_admin), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
         )
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.create), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_create), [User.PolicyRoles.UPDATE, User.Status.ACTIVE])
         )
         self.assertTrue(
-            has_access(security_handler.from_session_data(self.delete), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
+            has_access(security_handler.from_session_data(self.user_delete), [User.PolicyRoles.CREATE, User.Status.ACTIVE])
         )
 
-        self.assertTrue(has_access(security_handler.from_session_data(self.admin), [User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.delete), [User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.create), [User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.update), [User.Status.ACTIVE]))
-        self.assertTrue(has_access(security_handler.from_session_data(self.user), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_admin), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_delete), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_create), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_update), [User.Status.ACTIVE]))
+        self.assertTrue(has_access(security_handler.from_session_data(self.user_user), [User.Status.ACTIVE]))
 
     def test_session_data(self):
         time_stamp = datetime.utcnow().timestamp()
@@ -136,6 +136,7 @@ class TestUserSecurity(unittest.TestCase):
 
         self._test_secure_entry()
         self._test_expiry()
+        self._test_decorator_django()
 
     def test_secure_flask(self):
         # FLASK INIT
@@ -143,19 +144,24 @@ class TestUserSecurity(unittest.TestCase):
 
         self._test_secure_entry()
         self._test_expiry()
+        self._test_decorator_flask()
 
-    def _create_and_send_request(self, payload: dict, policies: list):
-        token = jwt.encode(payload, secret_key)
+    def _require_login(self, user: dict, policies: list, func: Callable[[], object] = None):
+        token = jwt.encode(user, secret_key)
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
             header = dump_cookie(cookie_name, token)
             with self.app.test_request_context(environ_base={'HTTP_COOKIE': header}):
-                self.assertEqual(request.cookies[cookie_name], token)
-                return require_login(request, policies, entry_as_per_policies)
+                self.assertEqual(flask_request.cookies[cookie_name], token)
+                if func:
+                    return func()
+                return require_login(flask_request, policies, lambda: True)
         else:
-            request_object = HttpRequest
-            request_object.COOKIES = {cookie_name: token}
-            self.assertEqual(request_object.COOKIES[cookie_name], token)
-            return require_login(request_object, policies, entry_as_per_policies)
+            django_request = HttpRequest
+            django_request.COOKIES = {cookie_name: token}
+            self.assertEqual(django_request.COOKIES[cookie_name], token)
+            if func:
+                return func(django_request)
+            return require_login(django_request, policies, lambda: True)
 
     def _test_secure_entry(self):
 
@@ -168,122 +174,155 @@ class TestUserSecurity(unittest.TestCase):
         POLICIES_NO = []
 
         # Admin
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_ADMIN).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_ADMIN).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_DELETE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_DELETE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_CREATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_CREATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_UPDATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_UPDATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_USER).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_USER).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_MULTIPLE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_MULTIPLE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_NO).status_code, 200)
 
         # Delete
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_DELETE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_DELETE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_CREATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_CREATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_UPDATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_UPDATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_USER).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_USER).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_MULTIPLE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_MULTIPLE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.delete, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_delete, POLICIES_NO).status_code, 200)
 
         # Create
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_DELETE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_DELETE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_CREATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_CREATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_UPDATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_UPDATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_USER).status_code, 200)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_USER).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_MULTIPLE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_MULTIPLE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.create, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_create, POLICIES_NO).status_code, 200)
 
         # Update
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_DELETE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_DELETE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_CREATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_CREATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_UPDATE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_UPDATE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_USER).status_code, 200)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_USER).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_MULTIPLE).status_code, 200)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_MULTIPLE).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.update, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_update, POLICIES_NO).status_code, 200)
 
         # User
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_DELETE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_DELETE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_CREATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_CREATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_UPDATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_UPDATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_USER).status_code, 200)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_USER).status_code, 200)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_MULTIPLE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_MULTIPLE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_user, POLICIES_NO).status_code, 200)
 
         # Banned users
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_DELETE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_DELETE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_CREATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_CREATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_UPDATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_UPDATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_USER).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_USER).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_MULTIPLE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_MULTIPLE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_ban, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_ban, POLICIES_NO).status_code, 200)
 
         # Not active users
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_ADMIN).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_ADMIN).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_DELETE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_DELETE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_CREATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_CREATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_UPDATE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_UPDATE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_USER).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_USER).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_MULTIPLE).status_code, 401)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_MULTIPLE).status_code, 401)
 
-        self.assertEqual(self._create_and_send_request(self.user_inactive, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_inactive, POLICIES_NO).status_code, 200)
 
     def _test_expiry(self):
         POLICIES_NO = []
-        self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 200)
+        self.assertEqual(self._require_login(self.user_admin, POLICIES_NO).status_code, 200)
 
         with freeze_time(datetime.now() + timedelta(seconds=31)):
             with self.assertLogs() as cm:
-                self.assertEqual(self._create_and_send_request(self.admin, POLICIES_NO).status_code, 401)
+                self.assertEqual(self._require_login(self.user_admin, POLICIES_NO).status_code, 401)
             self.assertIn('ExpiredSignatureError', str(cm.output))
             self.assertIn('handle_exception got error for function', str(cm.output))
 
+    def _test_decorator_flask(self):
+        self.assertEqual(self._require_login(self.user_delete, [], admin_entry_flask).status_code, 401)
+        self.assertEqual(self._require_login(self.user_delete, [], delete_entry_flask).status_code, 200)
 
-def entry_as_per_policies():
+    def _test_decorator_django(self):
+        self.assertEqual(self._require_login(self.user_delete, [], admin_entry_django).status_code, 401)
+        self.assertEqual(self._require_login(self.user_delete, [], delete_entry_django).status_code, 200)
+
+
+@RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+def admin_entry_django(request):
+    """
+    Skipped because this a testing function and returns nothing
+    """
+    pass
+
+
+@RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
+def delete_entry_django(request):
+    """
+    Skipped because this a testing function and returns nothing
+    """
+    pass
+
+
+@RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+def admin_entry_flask():
+    """
+    Skipped because this a testing function and returns nothing
+    """
+    pass
+
+
+@RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
+def delete_entry_flask():
     """
     Skipped because this a testing function and returns nothing
     """
