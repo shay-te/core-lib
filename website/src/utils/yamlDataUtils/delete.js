@@ -5,7 +5,7 @@ export const deleteData = (path, yamData) => {
     const steps = path.split(".")
     const delTarget = getValueAtPath(data, steps.slice(0, -1));
     if(path.includes('connections')){
-        if(confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
+        if(window.confirm('Deleting this connection will delete the enitites attached to this connection.') === true){
             const delData = delTarget.splice(steps.at(-1), 1);
             data = deleteConnData(delData, data)
         }
