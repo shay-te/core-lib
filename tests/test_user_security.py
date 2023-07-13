@@ -146,21 +146,21 @@ class TestUserSecurity(unittest.TestCase):
         self._test_expiry()
         self._test_decorator_flask()
 
-    def _require_login(self, user: dict, policies: list, func: Callable[[], object] = None):
+    def _require_login(self, user: dict, policies: list, decorated_function: Callable[[], object] = None):
         token = jwt.encode(user, secret_key)
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
             header = dump_cookie(cookie_name, token)
             with self.app.test_request_context(environ_base={'HTTP_COOKIE': header}):
                 self.assertEqual(flask_request.cookies[cookie_name], token)
-                if func:
-                    return func()
+                if decorated_function:
+                    return decorated_function()
                 return require_login(flask_request, policies, lambda: True)
         else:
             django_request = HttpRequest
             django_request.COOKIES = {cookie_name: token}
             self.assertEqual(django_request.COOKIES[cookie_name], token)
-            if func:
-                return func(django_request)
+            if decorated_function:
+                return decorated_function(django_request)
             return require_login(django_request, policies, lambda: True)
 
     def _test_secure_entry(self):

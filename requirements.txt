@@ -28,7 +28,6 @@ setuptools
 django
 flask
 flask_cors
-flask_wtf
 requests
 
 
@@ -37,3 +36,4 @@ python-dotenv
 moto
 freezegun
 mongomock
+flask_wtf
