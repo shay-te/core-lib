@@ -3,7 +3,6 @@ import logging
 import os
 from core_lib.alembic.alembic import Alembic
 from hydra import compose, initialize
-from core_lib_template.core_lib_generate import CoreLibGenerate
 import click
 
 from core_lib.helpers.validation import is_int
@@ -14,15 +13,6 @@ def list_to_string(lst: list):
     for n in lst:
         name = name + n + ' '
     return name
-
-
-def on_create(value):
-    CoreLibGenerate().new(list_to_string(value))
-
-
-def on_generate(value):
-    CoreLibGenerate().generate(list_to_string(value))
-
 
 
 def get_rev_options():
@@ -65,13 +55,15 @@ def load_config():
 def main():
     pass
 
-@click.command()
-def create():
-    click.echo('Initialized the database')
-
-@click.command()
-def generate():
-    click.echo('Dropped the database')
+# @click.command()
+# @click.option('--value', help=' '.join(get_rev_options()))
+# def create(value):
+#     CoreLibGenerate().new(list_to_string(value))
+#
+# @click.command()
+# @click.option('--value', help=' '.join(get_rev_options()))
+# def generate(value):
+#     CoreLibGenerate().generate(list_to_string(value))
 
 @click.command()
 @click.option('--rev', help=' '.join(get_rev_options()))
@@ -102,6 +94,6 @@ def migrate(rev, name):
         else:
             click.echo(f'--name parameter is mandatory when creating a new revision')
 
-main.add_command(create)
-main.add_command(generate)
+# main.add_command(create)
+# main.add_command(generate)
 main.add_command(migrate)
