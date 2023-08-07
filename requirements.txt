@@ -8,6 +8,7 @@ parsedatetime
 omegaconf
 neo4j
 redis
+click
 
 # Connectors
 sqlalchemy==1.4.44
