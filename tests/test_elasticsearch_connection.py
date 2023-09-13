@@ -37,7 +37,7 @@ class TestElasticsearchConnection(unittest.TestCase):
         client = connection.client
         self.assertIsInstance(client, Elasticsearch)
 
-        # Testing indexes
+        # Testing if the index is being created
         self.assertIsNotNone(self.create_index(client))
 
         # Testing if adding data to elasticsearch works
@@ -49,25 +49,36 @@ class TestElasticsearchConnection(unittest.TestCase):
         query1 = self.get_data_from_elasticsearch(client, query1_search_key, query1_search_value)
         self.assertEqual(int(query1['hits']['total']['value']), 1)
         self.assertEqual(query1['hits']['hits'][0]['_source'][query1_search_key], query1_search_value)
+        self.assertEqual(query1['hits']['hits'][0]['_source']['name'], 'albert')
 
         query2_search_key = 'name'
         query2_search_value = 'john'
         query2 = self.get_data_from_elasticsearch(client, query2_search_key, query2_search_value)
         self.assertEqual(int(query2['hits']['total']['value']), 3)
         self.assertEqual(query2['hits']['hits'][0]['_source'][query2_search_key], query2_search_value)
+        self.assertEqual(query2['hits']['hits'][0]['_source']['username'], 'test1')
+        self.assertEqual(query2['hits']['hits'][1]['_source'][query2_search_key], query2_search_value)
+        self.assertEqual(query2['hits']['hits'][1]['_source']['username'], 'test3')
+        self.assertEqual(query2['hits']['hits'][2]['_source'][query2_search_key], query2_search_value)
+        self.assertEqual(query2['hits']['hits'][2]['_source']['username'], 'test6')
 
         query3_search_key = 'name'
         query3_search_value = 'albert'
         query3 = self.get_data_from_elasticsearch(client, query3_search_key, query3_search_value)
         self.assertEqual(int(query3['hits']['total']['value']), 2)
         self.assertEqual(query3['hits']['hits'][0]['_source'][query3_search_key], query3_search_value)
+        self.assertEqual(query3['hits']['hits'][0]['_source']['username'], 'test2')
+        self.assertEqual(query3['hits']['hits'][1]['_source'][query3_search_key], query3_search_value)
+        self.assertEqual(query3['hits']['hits'][1]['_source']['username'], 'test5')
 
         query4_search_key = 'name'
         query4_search_value = 'lewis'
         query4 = self.get_data_from_elasticsearch(client, query4_search_key, query4_search_value)
         self.assertEqual(int(query4['hits']['total']['value']), 1)
         self.assertEqual(query4['hits']['hits'][0]['_source'][query4_search_key], query4_search_value)
+        self.assertEqual(query4['hits']['hits'][0]['_source']['username'], 'test4')
 
+        # Testing if the index is being deleted
         self.delete_index(client)
 
     def add_data_to_elasticsearch(self, client):
