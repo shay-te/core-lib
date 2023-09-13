@@ -1,0 +1,10 @@
+core_lib:
+  elasticsearch:
+    _target_: core_lib.connection.elasticsearch_connection_registry.ElasticSearchConnectionRegistry
+    config:
+      url:
+        protocol: http
+        host: localhost
+        port: 9200
+        username: elastic
+        password: password
