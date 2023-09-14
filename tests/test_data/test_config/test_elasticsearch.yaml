@@ -4,5 +4,5 @@ core_lib:
     config:
       url:
         protocol: http
-        host: ${oc.env:ELASTIC_HOST}
-        port: ${oc.env:ELASTIC_PORT}
+        host: localhost
+        port: 9200
