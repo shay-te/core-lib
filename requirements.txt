@@ -38,3 +38,4 @@ moto
 freezegun
 mongomock
 flask_wtf
+elasticsearch~=8.9.0
