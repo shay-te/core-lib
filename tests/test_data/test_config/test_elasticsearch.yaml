@@ -6,5 +6,3 @@ core_lib:
         protocol: http
         host: ${oc.env:ELASTIC_HOST}
         port: ${oc.env:ELASTIC_PORT}
-        username: ${oc.env:ELASTIC_USER}
-        password: ${oc.env:ELASTIC_PASSWORD}
