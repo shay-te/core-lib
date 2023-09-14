@@ -10,4 +10,7 @@ class ElasticSearchConnection(Connection):
         return self.elastic_search_client
 
     def __exit__(self, exec_type, exec_value, traceback):
+        """
+        Skipped because this a exit function and returns nothing
+        """
         pass
