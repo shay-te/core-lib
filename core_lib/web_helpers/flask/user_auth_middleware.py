@@ -2,7 +2,7 @@ from flask import Request
 from core_lib.session.security_handler import SecurityHandler
 
 
-class UserAuthMiddleware():
+class UserAuthMiddleware:
 
     def __init__(self, app, cookie_name):
         self.app = app

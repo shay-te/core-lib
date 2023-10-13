@@ -4,9 +4,12 @@ import os
 from core_lib.alembic.alembic import Alembic
 from hydra import compose, initialize
 import click
+from dotenv import load_dotenv
 
 from core_lib.helpers.validation import is_int
 
+import json
+from omegaconf import OmegaConf
 
 def list_to_string(lst: list):
     name = ''
@@ -29,27 +32,8 @@ def load_config():
     path_cwd = os.getcwd()
     path_folder = os.path.dirname(os.path.abspath(__file__))
     path_rel = os.path.relpath(path_cwd, path_folder)
-    # initialize(config_path=os.path.join(path_rel))
-    initialize(config_path=path_rel)
+    initialize(config_path=path_rel, version_base='1.1')
     return compose('core_lib_config.yaml')
-
-#
-# def main():
-#     parser = argparse.ArgumentParser(description="Core-Lib")
-#     g = parser.add_mutually_exclusive_group()
-#     g.add_argument('-c', '--create', nargs=1, help='Create new core-lib')
-#     g.add_argument('-g', '--generate', nargs=1, help='Generate core-lib classes')
-#     g.add_argument('-r', '--revision', nargs=1, choices=get_rev_options(), help=f'Database migration.')
-#     args = parser.parse_args()
-#     if args.create:
-#         on_create(args.create)
-#     elif args.generate:
-#         on_generate(args.generate)
-#     elif args.revision:
-#         on_revision(args.revision)
-#     else:
-#         print(parser.print_help())
-
 
 @click.group()
 def main():
@@ -66,13 +50,15 @@ def main():
 #     CoreLibGenerate().generate(list_to_string(value))
 
 @click.command()
-@click.option('--rev', help=' '.join(get_rev_options()))
+@click.option('--rev', required=True, help=' '.join(get_rev_options()))
 @click.option('--name', help='name of new revision')
-def migrate(rev, name):
+@click.option('--env_file', help='what environment variable to load, default ".env"')
+def migrate(rev, name, env_file):
+    load_dotenv(os.path.abspath(env_file or '.env'))
     config = load_config()
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
-    logging.getLogger('alembic').setLevel(logging.INFO)
 
+    logging.getLogger('alembic').setLevel(logging.INFO)
     if rev == 'head':
         click.echo(f'revision to `{rev}`')
         alembic.upgrade('head')
@@ -89,7 +75,6 @@ def migrate(rev, name):
     elif rev == 'new':
         if name:
             click.echo(f'new revision named `{name}`')
-            click.echo(f'\n\n\n------------{os.environ["POSTGRES_USER"]}')
             alembic.create_migration(name)
         else:
             click.echo(f'--name parameter is mandatory when creating a new revision')
