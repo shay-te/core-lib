@@ -5,11 +5,8 @@ from core_lib.alembic.alembic import Alembic
 from hydra import compose, initialize
 import click
 from dotenv import load_dotenv
-
 from core_lib.helpers.validation import is_int
 
-import json
-from omegaconf import OmegaConf
 
 def list_to_string(lst: list):
     name = ''
@@ -39,15 +36,6 @@ def load_config():
 def main():
     pass
 
-# @click.command()
-# @click.option('--value', help=' '.join(get_rev_options()))
-# def create(value):
-#     CoreLibGenerate().new(list_to_string(value))
-#
-# @click.command()
-# @click.option('--value', help=' '.join(get_rev_options()))
-# def generate(value):
-#     CoreLibGenerate().generate(list_to_string(value))
 
 @click.command()
 @click.option('--rev', required=True, help=' '.join(get_rev_options()))
@@ -79,6 +67,16 @@ def migrate(rev, name, env_file):
         else:
             click.echo(f'--name parameter is mandatory when creating a new revision')
 
+# @click.command()
+# @click.option('--value', help=' '.join(get_rev_options()))
+# def create(value):
+#     CoreLibGenerate().new(list_to_string(value))
+#
+# @click.command()
+# @click.option('--value', help=' '.join(get_rev_options()))
+# def generate(value):
+#     CoreLibGenerate().generate(list_to_string(value))
+#
 # main.add_command(create)
 # main.add_command(generate)
 main.add_command(migrate)
