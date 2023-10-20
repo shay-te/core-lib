@@ -14,19 +14,19 @@ def handle_exception(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except StatusCodeException as n:
-        logger.error(f'handle_exception got error for function `{func}`')
+        logger.error(f'handle_exception got StatusCodeException error for function `{func}`')
         logger.exception(n, exc_info=True)
         return response_message(status=n.status_code)
     except AssertionError as n:
-        logger.error(f'handle_exception got error for function `{func}`')
+        logger.error(f'handle_exception got AssertionError error for function `{func}`')
         logger.exception(n, exc_info=True)
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except ExpiredSignatureError as ese:
-        logger.error(f'handle_exception got error for function `{func}`')
+        logger.error(f'handle_exception got ExpiredSignatureError error for function `{func}`')
         logger.exception(ese, exc_info=True)
         return response_message(status=HTTPStatus.UNAUTHORIZED)
     except BaseException as bx:
-        logger.error(f'handle_exception got error for function `{func}`')
+        logger.error(f'handle_exception got BaseException error for function `{func}`')
         logger.exception(bx, exc_info=True)
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
