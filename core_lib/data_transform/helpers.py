@@ -1,3 +1,4 @@
+import enum
 from core_lib.helpers.string import camel_to_snake
 
 
@@ -23,9 +24,9 @@ def set_dict_attr(obj: dict, path: str, value) -> dict:
     return obj
 
 
-def enums_to_dict(enums: list) -> dict:
+def enum_to_dict(enum: enum) -> dict:
     result = {}
-    for enum in enums:
-        enum_name = camel_to_snake(enum.__name__).lower()
-        result[enum_name] = {e.name: e.value for e in enum}
-    return result
+    enum_name = camel_to_snake(enum.__name__).lower()
+    for name, enumItem in enum.__members__.items():
+        result[name] = enumItem.value
+    return {enum_name: result}
