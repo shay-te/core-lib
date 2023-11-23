@@ -1,7 +1,7 @@
 import enum
 import unittest
 
-from core_lib.data_transform.helpers import get_dict_attr, set_dict_attr, enums_to_dict
+from core_lib.data_transform.helpers import get_dict_attr, set_dict_attr, enum_to_dict
 
 
 class TestHelpers(unittest.TestCase):
@@ -74,19 +74,20 @@ class TestHelpers(unittest.TestCase):
             BAT = 3
 
         class CarsTypes(enum.Enum):
-            BMW = 1
-            TOYOTA = 2
-            VOLVO = 3
+            BMW = 0
+            TOYOTA = 1
+            VOLVO = 2
 
-        converted_enums = enums_to_dict([Animals, CarsTypes])
-        self.assertIn('animals', converted_enums)
-        self.assertIn('cars_types', converted_enums)
-        self.assertDictEqual(converted_enums['animals'], {
+        converted_enum = enum_to_dict(Animals)
+        self.assertIn('animals', converted_enum)
+        self.assertDictEqual(converted_enum['animals'], {
             Animals.DOG.name: Animals.DOG.value,
             Animals.CAT.name: Animals.CAT.value,
             Animals.BAT.name: Animals.BAT.value,
         })
-        self.assertDictEqual(converted_enums['cars_types'], {
+        converted_enum = enum_to_dict(CarsTypes)
+        self.assertIn('cars_types', converted_enum)
+        self.assertDictEqual(converted_enum['cars_types'], {
             CarsTypes.BMW.name: CarsTypes.BMW.value,
             CarsTypes.TOYOTA.name: CarsTypes.TOYOTA.value,
             CarsTypes.VOLVO.name: CarsTypes.VOLVO.value,
