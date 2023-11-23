@@ -26,7 +26,6 @@ def set_dict_attr(obj: dict, path: str, value) -> dict:
 
 def enum_to_dict(enum: enum) -> dict:
     result = {}
-    enum_name = camel_to_snake(enum.__name__).lower()
     for name, enumItem in enum.__members__.items():
         result[name] = enumItem.value
-    return {enum_name: result}
+    return  result

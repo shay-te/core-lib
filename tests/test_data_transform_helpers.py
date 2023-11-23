@@ -79,15 +79,13 @@ class TestHelpers(unittest.TestCase):
             VOLVO = 2
 
         converted_enum = enum_to_dict(Animals)
-        self.assertIn('animals', converted_enum)
-        self.assertDictEqual(converted_enum['animals'], {
+        self.assertDictEqual(converted_enum, {
             Animals.DOG.name: Animals.DOG.value,
             Animals.CAT.name: Animals.CAT.value,
             Animals.BAT.name: Animals.BAT.value,
         })
         converted_enum = enum_to_dict(CarsTypes)
-        self.assertIn('cars_types', converted_enum)
-        self.assertDictEqual(converted_enum['cars_types'], {
+        self.assertDictEqual(converted_enum, {
             CarsTypes.BMW.name: CarsTypes.BMW.value,
             CarsTypes.TOYOTA.name: CarsTypes.TOYOTA.value,
             CarsTypes.VOLVO.name: CarsTypes.VOLVO.value,
