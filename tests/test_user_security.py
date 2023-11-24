@@ -286,7 +286,7 @@ class TestUserSecurity(unittest.TestCase):
             with self.assertLogs() as cm:
                 self.assertEqual(self._require_login(self.user_admin, POLICIES_NO).status_code, 401)
             self.assertIn('ExpiredSignatureError', str(cm.output))
-            self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('handle_exception got ExpiredSignatureError error for function', str(cm.output))
 
     def _test_decorator_flask(self):
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_flask).status_code, 401)

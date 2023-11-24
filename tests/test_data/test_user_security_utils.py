@@ -18,6 +18,7 @@ from core_lib.web_helpers.request_response_helpers import response_status
 # CRUD SETUP
 class User(Base):
     __tablename__ = 'user_security'
+    __table_args__ = {'extend_existing': True}
 
     class PolicyRoles(enum.Enum):
         ADMIN = 1
