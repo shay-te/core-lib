@@ -39,6 +39,9 @@ class ParameterRuleValidator(object):
                     f'Apply only when updating the database with `dict` parameters '
                 )
 
+            if 'additional_validators' in kwargs and type(kwargs['additional_validators']) is list:
+                self.rule_validator.update(kwargs['additional_validators'])
+
             updated_dict = self.rule_validator.validate_dict(
                 update_dict,
                 strict_mode=self.strict_mode,

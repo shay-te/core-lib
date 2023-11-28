@@ -1,5 +1,5 @@
 #Core lib
-hydra-core
+hydra-core==1.2
 python-dateutil
 PyJWT
 argh
@@ -38,4 +38,3 @@ moto
 freezegun
 mongomock
 flask_wtf
-elasticsearch~=8.9.0

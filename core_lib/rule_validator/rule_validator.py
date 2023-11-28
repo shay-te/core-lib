@@ -26,7 +26,10 @@ class RuleValidator(object):
         self.prohibited_keys = prohibited_keys
 
         self.rules = {}
-        for rule_validator in value_rule_validators:
+        self.update(value_rule_validators)
+
+    def update(self, additional_validators):
+        for rule_validator in additional_validators:
             if not isinstance(rule_validator, ValueRuleValidator):
                 raise ValueError(
                     f'RuleValidator.value_rule_validators can only be from type '

@@ -38,11 +38,11 @@ def is_int(val) -> bool:
 #
 # complex
 #
+EMAIL_CHECK_REGEX = r'^\b[\w\D][^<>\[\]]+@[\w.-]+\.[A-Z|a-z]{2,}\b$'
 def is_email(email: str) -> bool:
-    regex = r'\b[\w\D][^<>\[\]]+@[\w.-]+\.[A-Z|a-z]{2,}\b'
     if email is None:
         return False
-    return True if re.fullmatch(regex, email) else False
+    return True if re.fullmatch(EMAIL_CHECK_REGEX, email) else False
 
 
 def is_int_enum(int_value: int, enum: IntEnum) -> bool:

@@ -16,8 +16,9 @@ class JWTTokenHandler(TokenHandler):
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def encode(self, message: dict) -> str:
-        if 'exp' not in message and self._expiration_time:
+        if self._expiration_time:
             message['exp'] = (datetime.utcnow() + self._expiration_time).timestamp()
+
         return jwt.encode(message, self._secret, algorithm=self._algorithm)
 
     def decode(self, encoded):
