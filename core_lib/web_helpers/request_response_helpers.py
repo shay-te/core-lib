@@ -19,7 +19,7 @@ def response_ok(status: int = HTTPStatus.OK.value):
     return response_message('ok', status)
 
 
-def response_error(message='', status: int = HTTPStatus.BAD_REQUEST.value):
+def response_error(message='', status: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
     if not message:
         message = responses[status] if status in responses else ''
     return response_json({'error': message}, status)
