@@ -24,8 +24,8 @@ class TestHandleException(unittest.TestCase):
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
             self.assertIsInstance(resp_json_data, dict)
             self.assertEqual(resp_json_data['error'], 'Internal Server Error')
-        self.assertIn('BaseException', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('BaseException', str(cm.output))
+            self.assertIn('handle_exception got BaseException error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(AssertionError)
@@ -33,8 +33,8 @@ class TestHandleException(unittest.TestCase):
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
             self.assertIsInstance(resp_json_data, dict)
             self.assertEqual(resp_json_data['error'], 'Internal Server Error')
-        self.assertIn('AssertionError', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('AssertionError', str(cm.output))
+            self.assertIn('handle_exception got AssertionError error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(StatusCodeException(HTTPStatus.NOT_FOUND))
@@ -42,8 +42,8 @@ class TestHandleException(unittest.TestCase):
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
             self.assertIsInstance(resp_json_data, dict)
             self.assertEqual(resp_json_data['message'], 'Not Found')
-        self.assertIn('StatusCodeException', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('StatusCodeException', str(cm.output))
+            self.assertIn('handle_exception got StatusCodeException error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_assertion()
@@ -51,8 +51,8 @@ class TestHandleException(unittest.TestCase):
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
             self.assertIsInstance(resp_json_data, dict)
             self.assertEqual(resp_json_data['error'], 'Internal Server Error')
-        self.assertIn('AssertionError', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('AssertionError', str(cm.output))
+            self.assertIn('handle_exception got AssertionError error for function', str(cm.output))
 
     def test_raises_exception_flask(self):
         web_util = WebHelpersUtils()
@@ -65,8 +65,8 @@ class TestHandleException(unittest.TestCase):
             resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
             self.assertIsInstance(resp_msg_data, dict)
             self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-        self.assertIn('BaseException', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('BaseException', str(cm.output))
+            self.assertIn('handle_exception got BaseException error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(AssertionError)
@@ -75,8 +75,8 @@ class TestHandleException(unittest.TestCase):
             resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
             self.assertIsInstance(resp_msg_data, dict)
             self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-        self.assertIn('AssertionError', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('AssertionError', str(cm.output))
+            self.assertIn('handle_exception got AssertionError error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(StatusCodeException(HTTPStatus.NOT_FOUND))
@@ -85,8 +85,8 @@ class TestHandleException(unittest.TestCase):
             resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
             self.assertIsInstance(resp_msg_data, dict)
             self.assertEqual(resp_msg_data['message'], 'Not Found')
-        self.assertIn('StatusCodeException', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('StatusCodeException', str(cm.output))
+            self.assertIn('handle_exception got StatusCodeException error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_assertion()
@@ -95,8 +95,8 @@ class TestHandleException(unittest.TestCase):
             resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
             self.assertIsInstance(resp_msg_data, dict)
             self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-        self.assertIn('AssertionError', str(cm.output))
-        self.assertIn('handle_exception got error for function', str(cm.output))
+            self.assertIn('AssertionError', str(cm.output))
+            self.assertIn('handle_exception got AssertionError error for function', str(cm.output))
 
     @HandleException()
     def raise_exception(self, excp_type):
