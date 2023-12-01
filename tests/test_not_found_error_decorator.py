@@ -9,16 +9,10 @@ tuple_value = ("fruit", "apple")
 
 class TestNotFoundErrorDecorator(unittest.TestCase):
 
-    def test_error_handler_string(self):
+    def test_error_handler(self):
         with self.assertRaises(StatusCodeException):
             self.get_nothing()
-
         self.assertEqual(self.get_string(), str_value)
-
-    def test_error_handler_tuple(self):
-        with self.assertRaises(StatusCodeException):
-            self.get_nothing()
-
         self.assertTupleEqual(self.get_tuple(), tuple_value)
 
     @NotFoundErrorHandler()
