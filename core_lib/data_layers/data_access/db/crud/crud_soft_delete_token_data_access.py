@@ -17,7 +17,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
-                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)
+                .filter(self._db_entity.id == id, self._db_entity.deleted_at_token == 0)
                 .first()
             )
 
