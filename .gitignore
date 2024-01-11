@@ -1,4 +1,5 @@
 .git-credentials
+.env
 
 # IDEA
 .idea/
