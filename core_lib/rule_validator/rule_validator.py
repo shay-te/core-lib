@@ -37,6 +37,10 @@ class RuleValidator(object):
                 )
             self.rules[rule_validator.key] = rule_validator
 
+    def remove(self, rule_validator_key: str):
+        if rule_validator_key in self.rules:
+            del self.rules[rule_validator_key]
+
     def validate_dict(
         self,
         update_dict: dict,
