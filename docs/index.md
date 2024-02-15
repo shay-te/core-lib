@@ -43,6 +43,15 @@ core_lib:
         protocol: sqlite
   ...
 ```
+`your_core_lib.yaml` Explained:<br>
+<b>Defining settings related to a database connection using SQLAlchemy, a popular Python SQL toolkit and Object-Relational Mapper (ORM). Let's break it down</b>
+- <b>log_queries:</b> Setting to control whether SQLAlchemy logs the SQL queries it executes. In this case, it's set to false, meaning that SQL queries won't be logged.
+- <b>create_db:</b> Configuring whether SQLAlchemy should create the database if it doesn't already exist. It's set to true, indicating that the database should be created if it doesn't exist.
+- <b>session:</b> Configuration options related to SQLAlchemy sessions, which represent a "workspace" for interacting with the database.
+- <b>pool_recycle:</b> Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour).
+- <b>pool_pre_ping:</b> Control whether SQLAlchemy will "ping" the database before giving a connection from the pool to check if it's still valid. It's set to false, meaning that pre-pinging is disabled.
+- <b>url:</b> Define the database connection URL.
+- <b>protocol:</b> Specifies the protocol used for the database connection. In this case, it's set to sqlite, indicating the usage of SQLite as the database backend.
 
 `your_core_lib.py`
 
@@ -57,7 +66,17 @@ class YourCoreLib(CoreLib):
         self.user = UserDataAccess(db_connection)
         ...
 ```
-
+`your_core_lib.yaml` Explained:<br>
+<b>Python script or application that uses a custom CoreLib class and a SqlAlchemyConnectionRegistry class to manage database connections.</b>
+- <b>Importing necessary modules:</b>
+CoreLib from core_lib.core_lib
+SqlAlchemyConnectionRegistry from core_lib.connection.sql_alchemy_connection_registry
+#### Defining a new class YourCoreLib that inherits from CoreLib.
+  - Defining an __init__ method for YourCoreLib that takes a config argument of type DictConfig. DictConfig is a custom configuration class or type used to pass configuration parameters.
+  - Calling the parent class CoreLib's __init__ method using CoreLib.__init__(self) to initialize the base class.
+  - Creating a db_connection object by initializing an instance of SqlAlchemyConnectionRegistry with the SQLAlchemy configuration provided in self.config.core_lib.data.sqlalchemy (In Python, self is a reference to the current instance of a class). 
+  - This suggests that SqlAlchemyConnectionRegistry is responsible for managing SQLAlchemy database connections based on the provided configuration.
+  - Initializing a UserDataAccess object, presumably a class responsible for accessing user data from the database, passing the db_connection object to it.
 
 
 ### From Main
@@ -71,8 +90,17 @@ def main(cfg):
 if __name__ == '__main__':
 	main()
 ```
+`From Main` Explained:<br>
+<b>Using the Hydra library to manage configuration for your script.</b>
 
-
+#### Decorator: @hydra.main:
+- This decorator tells Hydra to use the specified YAML configuration file (core_lib_config.yaml) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
+- def main(cfg): This is the main function of your script, which takes a cfg argument. This argument will hold the configuration provided by Hydra.
+#### Inside the main function:
+  - <b>your_core_lib = YourCoreLib(cfg):</b> This line initializes an instance of the YourCoreLib class (defined earlier) using the configuration cfg provided by Hydra. This means that your application will use the configuration parameters specified in core_lib_config.yaml to set up the YourCoreLib instance.
+  - <b>...:</b> This ellipsis (...) represents the rest of your main function, where you would perform other actions or operations specific to your application.
+  - <b>`if __name__ == '__main__':`:</b> This conditional statement checks if the script is being executed directly (as opposed to being imported as a module). It ensures that the main function is only called when the script is run directly.
+  - <b>main():</b> This line calls the main function when the script is executed directly, starting the execution of your application.
 
 ### Unit-Test
 
@@ -96,6 +124,29 @@ class TestCrud(unittest.TestCase):
 		user = self.your_core_lib.user.create({User.name.key: 'John Dow'})
     self.assertDictEqual(user, self.your_core_lib.user.get(user[User.id.key]))
 ```
+<b>Writing unit tests for your YourCoreLib class using the unittest framework, alongside Hydra for configuration management.</b>
+- <b>Importing necessary modules:</b>
+
+  - <b>unittest:</b> Standard Python module for writing unit tests.
+  - <b>hydra:</b> Hydra library for managing configurations.
+  - <b>GlobalHydra:</b> A class from Hydra used for global configuration management.
+- <b>Defining a function get_config():</b>
+  - This function clears any existing Hydra configuration.
+  - It initializes Hydra with a configuration path pointing to ../data/config and using config.yaml.
+  - Then, it composes the configuration, presumably loading it into memory, and returns it.
+  - Creating an instance of YourCoreLib using the configuration obtained from get_config(). This is done outside the test case class, ensuring the configuration is set up before running any tests.
+
+- Defining a test case class TestCrud that inherits from unittest.TestCase.
+
+- <b>Implementing the setUp method:</b>
+  - This method is called before each test method is executed.
+  - It initializes an instance of YourCoreLib using the configuration obtained earlier and assigns it to self.your_core_lib, making it available to all test methods within the class.
+- <b>Defining the test method test_your_core_lib:</b>
+
+  - This method tests functionality related to creating and retrieving a user.
+  - It creates a user using self.your_core_lib.user.create() method, passing in a dictionary with user data.
+  - Then, it retrieves the user using self.your_core_lib.user.get() method with the user's ID obtained from the creation step.
+  - Finally, it asserts that the retrieved user matches the created user.
 
 ### Django
 
@@ -114,6 +165,15 @@ class YourCoreLibInstance(object):
     def get() -> YourCoreLib:
         return YourCoreLibInstance._app_instance        
 ```
+<b>Implementing a singleton pattern for your YourCoreLib class using a separate class YourCoreLibInstance.</b>
+- <b>init(core_lib_cfg):</b>
+
+  - This is a static method (decorated with @staticmethod) responsible for initializing the singleton instance of YourCoreLib.
+  - It takes a core_lib_cfg argument, presumably a configuration needed to initialize YourCoreLib.
+  - If _app_instance is not already set (i.e., it's None), it initializes _app_instance by creating an instance of YourCoreLib with the provided configuration.
+- <b>get() -> YourCoreLib:</b>
+  - This is another static method responsible for returning the singleton instance of YourCoreLib.
+  - It simply returns the _app_instance, which is the singleton instance of YourCoreLib.
 
 ##### view_user.py
 
@@ -136,9 +196,26 @@ def api_update_user(request):
     your_core_lib.user.update(request.user.u_id, request_body_dict(request))
     return response_ok()
 ```
+<b>Defining API endpoints using Flask (or a similar framework) to handle requests related to updating a user. </b>
+- <b>Importing necessary functions from core_lib.web_helpers.request_response_helpers:</b>
+  - request_body_dict: A function that extracts and parses the request body into a dictionary.
+  - response_ok: A function that generates a successful response with an appropriate status code.
+  - response_status: A function that generates a response with a specified HTTP status code.
+  - Getting the singleton instance of YourCoreLib using YourCoreLibInstance.get(). This ensures that you're using the same instance of YourCoreLib throughout your application.
 
-
-
+- <b>Defining two API endpoint functions: api_update_user.</b>
+  - <b><i>api_update_user (for POST requests):</i></b>
+    - <i>Decorated with @require_POST:</i> This decorator ensures that the endpoint only responds to POST requests.
+    - <i>Decorated with @RequireLogin():</i> This decorator ensures that the user must be logged in to access this endpoint.
+    - <i>Decorated with @HandleException():</i> This decorator handles any exceptions that occur within the endpoint function.
+    - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
+    - Finally, it returns a response with HTTP status code NO_CONTENT using response_status(HTTPStatus.NO_CONTENT).
+  - <b><i>api_update_user (for GET requests):</i></b>
+    - <i>Decorated with @require_GET:</i> This decorator ensures that the endpoint only responds to GET requests.
+    - <i>Decorated with @RequireLogin():</i> This decorator ensures that the user must be logged in to access this endpoint.
+    - <i>Decorated with @HandleException():</i> This decorator handles any exceptions that occur within the endpoint function.
+    - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
+    - Finally, it returns a successful response using response_ok().
 
 ## Installing
 
@@ -151,6 +228,9 @@ def api_update_user(request):
 ## Running tests
 
     python -m unittest discover
+
+- <b>python -m unittest:</b> This invokes Python's built-in unittest module as a script. The -m flag tells Python to run a module as a script, and unittest is the module we're running.
+- <b>discover:</b> This is a command provided by the unittest module for automatically discovering and running tests. When you run discover, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
 
 ## The source
 

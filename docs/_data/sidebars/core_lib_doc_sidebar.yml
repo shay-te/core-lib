@@ -21,10 +21,6 @@ entries:
                   url: /project_structure.html
                   output: web
 
-                - title: Testing Core-Lib
-                  url: /test_core_lib.html
-                  output: web
-
           - title: Core-Lib
             output: web
             folderitems:
@@ -135,7 +131,7 @@ entries:
                   output: web
 
                 - title: Generate Data
-                  url: /enerate_data.html
+                  url: /generate_data.html
                   output: web
 
                 - title: Instantiate Config
@@ -152,6 +148,13 @@ entries:
 
                 - title: Validation Helpers
                   url: /validation.html
+                  output: web
+          
+          - title: Testing Core-lib
+            output: web
+            folderitems:
+                - title: Testing Core-lib
+                  url: /test_core_lib.html
                   output: web
 
           - title: Observer

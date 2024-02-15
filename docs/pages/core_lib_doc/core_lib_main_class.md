@@ -28,7 +28,14 @@ class YourCoreLib(CoreLib):
         self.user_photos = UserPhotosService(user_da)        
         ...
 ```
-
+#### Code Explained:
+- `YourCoreLib` class is extending CoreLib class
+- __init__ method:
+  - services are being instantiated, such as EmailCoreLib, UserDataAccess, UserService, and UserPhotosService.
+- <b>self.email:</b> An instance of EmailCoreLib is instantiated using instantiate_config function, passing self.config as a parameter.
+- <b>user_da:</b> An instance of UserDataAccess is created, utilizing SqlAlchemyConnectionRegistry instantiated from self.config.core_lib.data.db.
+- <b>self.user:</b> An instance of UserService is created, passing user_da as a parameter.
+- <b>self.user_photos:</b> An instance of UserPhotosService is created, also passing user_da as a parameter.
 
 
 ## init()
@@ -44,4 +51,5 @@ class YourCoreLib(CoreLib):
       CoreLib.__init__(self)
 			...
 ```
-
+#### Code Explained:
+- __init__ method of the parent class CoreLib using CoreLib.__init__(self)
