@@ -8,7 +8,9 @@ toc: false
 ---
 
 # Why Core-Lib?
-`Core-Lib` was born to make the day-to-day work, The  `"work itself."` easy to master.
+<p>When envisioning the development of an app or website, seamless integration between the front end and the database is essential. This integration should facilitate easy querying and fetching of data while ensuring compatibility and mitigating data type issues.</p>
+`Core-Lib` a solution designed to simplify and streamline such tasks, making the development process a breeze. Core-Lib's primary goal is to empower developers by abstracting away the complexities of database connectivity and data handling. By adopting Core-Lib, developers can focus on building the core functionality of their applications without being bogged down by technical intricacies.<br><br>
+Ultimately, Core-Lib aims to make the `"work itself"` of app and website development easy to master, ensuring a smooth and efficient development experience.
 
 # What is Core-Lib?
 `Core-Lib` is a framework for creating python applications as libraries. 
@@ -43,7 +45,7 @@ core_lib:
         protocol: sqlite
   ...
 ```
-`your_core_lib.yaml` Explained:<br>
+#### `your_core_lib.yaml` Explained:
 <b>Defining settings related to a database connection using SQLAlchemy, a popular Python SQL toolkit and Object-Relational Mapper (ORM). Let's break it down</b>
 - <b>log_queries:</b> Setting to control whether SQLAlchemy logs the SQL queries it executes. In this case, it's set to false, meaning that SQL queries won't be logged.
 - <b>create_db:</b> Configuring whether SQLAlchemy should create the database if it doesn't already exist. It's set to true, indicating that the database should be created if it doesn't exist.
@@ -66,7 +68,7 @@ class YourCoreLib(CoreLib):
         self.user = UserDataAccess(db_connection)
         ...
 ```
-`your_core_lib.yaml` Explained:<br>
+#### `your_core_lib.yaml` Explained:
 <b>Python script or application that uses a custom CoreLib class and a SqlAlchemyConnectionRegistry class to manage database connections.</b>
 - <b>Importing necessary modules:</b>
 CoreLib from core_lib.core_lib
@@ -90,7 +92,7 @@ def main(cfg):
 if __name__ == '__main__':
 	main()
 ```
-`From Main` Explained:<br>
+#### `From Main` Explained:
 <b>Using the Hydra library to manage configuration for your script.</b>
 
 #### Decorator: @hydra.main:
@@ -124,6 +126,7 @@ class TestCrud(unittest.TestCase):
 		user = self.your_core_lib.user.create({User.name.key: 'John Dow'})
     self.assertDictEqual(user, self.your_core_lib.user.get(user[User.id.key]))
 ```
+#### Code Explained:
 <b>Writing unit tests for your YourCoreLib class using the unittest framework, alongside Hydra for configuration management.</b>
 - <b>Importing necessary modules:</b>
 
@@ -165,6 +168,7 @@ class YourCoreLibInstance(object):
     def get() -> YourCoreLib:
         return YourCoreLibInstance._app_instance        
 ```
+#### Code Explained:
 <b>Implementing a singleton pattern for your YourCoreLib class using a separate class YourCoreLibInstance.</b>
 - <b>init(core_lib_cfg):</b>
 
@@ -196,6 +200,7 @@ def api_update_user(request):
     your_core_lib.user.update(request.user.u_id, request_body_dict(request))
     return response_ok()
 ```
+#### Code Explained:
 <b>Defining API endpoints using Flask (or a similar framework) to handle requests related to updating a user. </b>
 - <b>Importing necessary functions from core_lib.web_helpers.request_response_helpers:</b>
   - request_body_dict: A function that extracts and parses the request body into a dictionary.
