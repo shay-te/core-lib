@@ -15,33 +15,33 @@ toc: false
     <code>
     <a href="#core-lib-root-directory">core_lib</a> # Core-Lib Root Directory
     └───  <a href="#core-lib-main-directory">core_lib</a> # Core-Lib Main Directory
-    | 	 └─── <a href="#config">config</a>
-    |	 	 |    └─── <a href="#corelibyaml">core_lib.yaml</a>
-    |		 └─── <a href="#data-layers">data_layers</a>
-    |		 |    └─── <a href="#data">data</a> # store all connector, definition, mapping to data sources
-    |		 |    │    └─── <a href="#db">db</a> # store database ORM entities
-    |		 |    │    |    └─── <a href="#migrations">migrations</a> # database migration scripts
-    |		 |    │    └─── <a href="#elastic">elastic</a> # store elastic search base classes
-    |		 |    │    └─── <a href="#mongo">mongo</a> # store mongo base classes
-    |		 |    └─── <a href="#data_access">data access</a> # expose API that uses data layer
-    |		 |	  |    └─── <a href="#user">user</a> # grather user data access
-    |		 |	  |    |    └─── <a href="#user_data_accesspy">user_data_access.py</a>
-    |		 |	  |    |    └─── <a href="#user_list_data_accesspy">user_list_data_access.py</a>
-    |		 |	  |    └─── some_data_access.py 
-    |		 |    └─── <a href="#service">service</a> # expost the core-lib services
-    |		 |	  |    └─── <a href="#user-1">user</a> # gather user services
-    |		 |	  |    |    └─── <a href="#user_servicepy">user_service.py</a>
-    |		 |	  |    |    └─── <a href="#user_list_servicepy">user_list_service.py</a>
-    |		 |	  |    └─── <a href="#some_servicepy">some_service.py</a>
-    |		 └─── <a href="#jobs">jobs</a> # jobs definitions
-    |		 |	  |    └─── <a href="#update_something_jobpy">update_something_job.py</a>
-    |		 |	  |    └─── <a href="#another_jobpy">another_job.py</a>
-    |		 └─── <a href="#client">client</a> # client definitions
-    |		 |	  |    └─── <a href="#server_a_clientpy">server_a_client.py</a>
-    |		 |	  |    └─── <a href="#another_clientpy">another_client.py</a>
-    |		 └─── <a href="#app_core_libpy">app_core_lib.py</a> # Main Core-Lib file that glows the entire library 
+    |       |   └─── <a href="#config">config</a>
+    |       |	   └─── <a href="#corelibyaml">core_lib.yaml</a>
+    |       └─── <a href="#data-layers">data_layers</a>
+    |       |        |   └─── <a href="#data">data</a> # store all connector, definition, mapping to data sources
+    |       |        |          └─── <a href="#db">db</a> # store database ORM entities
+    |       |        |          |     └─── <a href="#migrations">migrations</a> # database migration scripts
+    |       |        |          └─── <a href="#elastic">elastic</a> # store elastic search base classes
+    |       |        |          └─── <a href="#mongo">mongo</a> # store mongo base classes
+    |       |        └─── <a href="#data_access">data access</a> # expose API that uses data layer
+    |       |        |	    └─── <a href="#user">user</a> # grather user data access
+    |       |        |	    |    └─── <a href="#user_data_accesspy">user_data_access.py</a>
+    |       |        |	    |    └─── <a href="#user_list_data_accesspy">user_list_data_access.py</a>
+    |       |        |	    └─── some_data_access.py 
+    |       |        └─── <a href="#service">service</a> # expost the core-lib services
+    |       |               └─── <a href="#user-1">user</a> # gather user services
+    |       |               |    └─── <a href="#user_servicepy">user_service.py</a>
+    |       |        	    |    └─── <a href="#user_list_servicepy">user_list_service.py</a>
+    |       |        	    └─── <a href="#some_servicepy">some_service.py</a>
+    |       └─── <a href="#jobs">jobs</a> # jobs definitions
+    |       |	  └─── <a href="#update_something_jobpy">update_something_job.py</a>
+    |       |	  └─── <a href="#another_jobpy">another_job.py</a>
+    |       └─── <a href="#client">client</a> # client definitions
+    |       |	  └─── <a href="#server_a_clientpy">server_a_client.py</a>
+    |       |	  └─── <a href="#another_clientpy">another_client.py</a>
+    |       └─── <a href="#app_core_libpy">app_core_lib.py</a> # Main Core-Lib file that glows the entire library 
     └─── <a href="#tests">tests</a> # Unit test the entire data_layers
-    | 	 └─── config # config file for the tests
+     	 └─── config # config file for the tests
     </code>
 </pre>
 
