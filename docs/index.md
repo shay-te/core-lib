@@ -8,9 +8,21 @@ toc: false
 ---
 
 # Why Core-Lib?
-<p>When envisioning the development of an app or website, seamless integration between the front end and the database is essential. This integration should facilitate easy querying and fetching of data while ensuring compatibility and mitigating data type issues.</p>
-`Core-Lib` a solution designed to simplify and streamline such tasks, making the development process a breeze. Core-Lib's primary goal is to empower developers by abstracting away the complexities of database connectivity and data handling. By adopting Core-Lib, developers can focus on building the core functionality of their applications without being bogged down by technical intricacies.<br><br>
-Ultimately, Core-Lib aims to make the `"work itself"` of app and website development easy to master, ensuring a smooth and efficient development experience.
+There are a variety of tools and frameworks available to you when building a web application. However, we believe Core-Lib is the best choice for building modern, full-stack web applications.
+
+<b>`Core-Lib` was born to make the day-to-day work, The `"work itself."` easy to master.</b>
+
+### Componentization
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Core-Lib facilitates modular development by breaking down functionalities into smaller, manageable components. This componentization enhances code organization and makes it easier to understand and maintain code.
+
+### Reusability
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Core-Lib helps developers reuse components within the core-lib across different modules, reducing redundancy and saving development time. This reusability fosters consistency and standardization across projects.
+
+### Ease of Test & Debug
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The componentized structure of the core-lib enables developers to test individual components in isolation, allowing for more targeted and effective testing. This leads to higher code quality and fewer bugs in the final product.
+
+### Scalability
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As the project grows, the core-lib scales with it. Small core-libs can be created for microservices and called inside a main core-lib. New core-libs (features) can be added without significantly impacting existing functionalities, making it easier to maintain and extend the project over time.
 
 # What is Core-Lib?
 `Core-Lib` is a framework for creating python applications as libraries. 
@@ -46,14 +58,26 @@ core_lib:
   ...
 ```
 #### `your_core_lib.yaml` Explained:
-<b>Defining settings related to a database connection using SQLAlchemy, a popular Python SQL toolkit and Object-Relational Mapper (ORM). Let's break it down</b>
-- <b>log_queries:</b> Setting to control whether SQLAlchemy logs the SQL queries it executes. In this case, it's set to false, meaning that SQL queries won't be logged.
-- <b>create_db:</b> Configuring whether SQLAlchemy should create the database if it doesn't already exist. It's set to true, indicating that the database should be created if it doesn't exist.
+<b>your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/):</b>
+- <b>log_queries:</b>False, meaning that SQL queries won't be logged. True, [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag) is set to true.
+- <b>create_db:</b> Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all)
 - <b>session:</b> Configuration options related to SQLAlchemy sessions, which represent a "workspace" for interacting with the database.
 - <b>pool_recycle:</b> Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour).
 - <b>pool_pre_ping:</b> Control whether SQLAlchemy will "ping" the database before giving a connection from the pool to check if it's still valid. It's set to false, meaning that pre-pinging is disabled.
-- <b>url:</b> Define the database connection URL.
-- <b>protocol:</b> Specifies the protocol used for the database connection. In this case, it's set to sqlite, indicating the usage of SQLite as the database backend.
+- <b>url:</b> Define the database connection URL. It might be a single URL or a URL structure defined.
+```
+data:
+  sqlalchemy:
+    log_queries: false
+    url:
+      protocol: postgresql
+      username: ${oc.env:POSTGRES_USER}
+      password: ${oc.env:POSTGRES_PASSWORD}
+      host: ${oc.env:POSTGRES_HOST}
+      port: ${oc.env:POSTGRES_PORT}
+      file: ${oc.env:POSTGRES_DB}
+```
+  - <b>protocol:</b> Specifies the protocol used for the database connection. In this case, it's set to sqlite, indicating the usage of SQLite as the database backend.
 
 `your_core_lib.py`
 
@@ -74,8 +98,11 @@ class YourCoreLib(CoreLib):
 CoreLib from core_lib.core_lib
 SqlAlchemyConnectionRegistry from core_lib.connection.sql_alchemy_connection_registry
 #### Defining a new class YourCoreLib that inherits from CoreLib.
-  - Defining an __init__ method for YourCoreLib that takes a config argument of type DictConfig. DictConfig is a custom configuration class or type used to pass configuration parameters.
+  - Defining an __init__ method for YourCoreLib that takes a config argument of type DictConfig. [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1) is a dictionary type from omegaconf that used by Hydra.
   - Calling the parent class CoreLib's __init__ method using CoreLib.__init__(self) to initialize the base class.
+    - Mark core-lib started
+    - Enable use of CoreLibListeners
+    - Enable use of core-lib observers
   - Creating a db_connection object by initializing an instance of SqlAlchemyConnectionRegistry with the SQLAlchemy configuration provided in self.config.core_lib.data.sqlalchemy (In Python, self is a reference to the current instance of a class). 
   - This suggests that SqlAlchemyConnectionRegistry is responsible for managing SQLAlchemy database connections based on the provided configuration.
   - Initializing a UserDataAccess object, presumably a class responsible for accessing user data from the database, passing the db_connection object to it.
@@ -93,7 +120,7 @@ if __name__ == '__main__':
 	main()
 ```
 #### `From Main` Explained:
-<b>Using the Hydra library to manage configuration for your script.</b>
+<b>Using the [Hydra](https://hydra.cc/docs/intro/) library to manage configuration for your script.</b>
 
 #### Decorator: @hydra.main:
 - This decorator tells Hydra to use the specified YAML configuration file (core_lib_config.yaml) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
@@ -133,17 +160,18 @@ class TestCrud(unittest.TestCase):
   - <b>unittest:</b> Standard Python module for writing unit tests.
   - <b>hydra:</b> Hydra library for managing configurations.
   - <b>GlobalHydra:</b> A class from Hydra used for global configuration management.
-- <b>Defining a function get_config():</b>
-  - This function clears any existing Hydra configuration.
-  - It initializes Hydra with a configuration path pointing to ../data/config and using config.yaml.
-  - Then, it composes the configuration, presumably loading it into memory, and returns it.
-  - Creating an instance of YourCoreLib using the configuration obtained from get_config(). This is done outside the test case class, ensuring the configuration is set up before running any tests.
+- <b>Defining a function `get_config()` to use Hydra for loading testing `config.yaml` located under the testing folder.</b>
+  - Clearing any existing Hydra configuration.
+  - Initializing Hydra with a configuration path pointing to `../data/config and using config.yaml`.
+  - Composing configuration, presumably loading it into memory, and returning it.
+  - Creating an instance of YourCoreLib using the configuration obtained from get_config().
+  - Processing outside the test case class, ensuring the configuration is set up before running any tests.
 
-- Defining a test case class TestCrud that inherits from unittest.TestCase.
+- <b>Defining a test case class TestCrud that inherits from unittest.TestCase.</b>
 
-- <b>Implementing the setUp method:</b>
-  - This method is called before each test method is executed.
-  - It initializes an instance of YourCoreLib using the configuration obtained earlier and assigns it to self.your_core_lib, making it available to all test methods within the class.
+  - <b>Implementing the setUp method:</b>
+    - Called before each test method is executed.
+    - Initializes an instance of YourCoreLib using the configuration obtained earlier and assigns it to self.your_core_lib.
 - <b>Defining the test method test_your_core_lib:</b>
 
   - This method tests functionality related to creating and retrieving a user.

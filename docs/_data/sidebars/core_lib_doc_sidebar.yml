@@ -31,10 +31,6 @@ entries:
                 - title: Registry
                   url: /registry.html
                   output: web
-              
-                - title: Cache
-                  url: /cache.html
-                  output: web
                 
                 - title: Result to Dict
                   url: /result_to_dict.html
@@ -44,12 +40,22 @@ entries:
                   url: /rules_validator.html
                   output: web
                 
-                - title: Job
-                  url: /job.html
-                  output: web
-                
                 - title: Command Line
                   url: /cli.html
+                  output: web
+
+          - title: Cache
+            output: web
+            folderitems:
+                - title: Cache
+                  url: /cache.html
+                  output: web
+
+          - title: Job
+            output: web
+            folderitems:
+                - title: Job
+                  url: /job.html
                   output: web
 
           - title: Connection
@@ -97,7 +103,7 @@ entries:
                   url: /client_base.html
                   output: web
         
-          - title: CLI
+          - title: CLI Alembic
             output: web
             folderitems:
                 - title: Alembic
