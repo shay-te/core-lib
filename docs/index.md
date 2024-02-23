@@ -8,26 +8,29 @@ toc: false
 ---
 
 # Why Core-Lib?
-There are a variety of tools and frameworks available to you when building a web application. However, we believe Core-Lib is the best choice for building modern, full-stack web applications.
 
 <b>`Core-Lib` was born to make the day-to-day work, The `"work itself."` easy to master.</b>
 
-### Componentization
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Core-Lib facilitates modular development by breaking down functionalities into smaller, manageable components. This componentization enhances code organization and makes it easier to understand and maintain code.
-
-### Reusability
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Core-Lib helps developers reuse components within the core-lib across different modules, reducing redundancy and saving development time. This reusability fosters consistency and standardization across projects.
-
-### Ease of Test & Debug
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The componentized structure of the core-lib enables developers to test individual components in isolation, allowing for more targeted and effective testing. This leads to higher code quality and fewer bugs in the final product.
-
-### Scalability
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As the project grows, the core-lib scales with it. Small core-libs can be created for microservices and called inside a main core-lib. New core-libs (features) can be added without significantly impacting existing functionalities, making it easier to maintain and extend the project over time.
+# Pain & Solutions:
+## <b>Legacy Code Labyrinth:</b>
+Taming complexity and ensuring longevity through structured delegation.
+## <b>Code Chaos:</b>
+Streamlining development to prevent code morphing with each developer's touch.
+## <b>Redundant Rewrites:</b>
+Ending the cycle of repetitive code creation.
+## <b>Deployment Dilemma:</b>
+Simplifying deployment with flexible containerization.
+## <b>Testing Tethered:</b>
+Streamlining testing without the hassle of complex setups.
+## <b>Microservice Maze:</b>
+Simplifying the transition to microservices for existing projects.
 
 # What is Core-Lib?
-`Core-Lib` is a framework for creating python applications as libraries. 
+`Core-Lib` is a framework for creating python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
 
 # How Core-Lib?
+Core-Lib acts as your project's trusted ally, weaving simplicity and efficiency through its flexible plugins, easy configuration, thorough testing, and helpful architectural advice, ensuring smoother development every step of the way.
+
 - `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 
 - `Core-Lib` can discover and merge other `Core-Lib` configurations. 
 - `Core-Lib` provides basic/simple/loose tools. 
@@ -36,7 +39,20 @@ There are a variety of tools and frameworks available to you when building a web
 - `Core-Lib` deploys anywhere.
 - `Core-Lib` recommends architecture and guidelines. 
 
+## Installing
 
+    pip install core-lib
+
+## Requirements
+
+    python > 3.7
+
+## Running tests
+
+    python -m unittest discover
+
+- <b>python -m unittest:</b> This invokes Python's built-in unittest module as a script. The -m flag tells Python to run a module as a script, and unittest is the module we're running.
+- <b>discover:</b> This is a command provided by the unittest module for automatically discovering and running tests. When you run discover, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
 
 ## Example
 
@@ -58,13 +74,13 @@ core_lib:
   ...
 ```
 #### `your_core_lib.yaml` Explained:
-<b>your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/):</b>
-- <b>log_queries:</b>False, meaning that SQL queries won't be logged. True, [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag) is set to true.
-- <b>create_db:</b> Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all)
-- <b>session:</b> Configuration options related to SQLAlchemy sessions, which represent a "workspace" for interacting with the database.
-- <b>pool_recycle:</b> Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour).
-- <b>pool_pre_ping:</b> Control whether SQLAlchemy will "ping" the database before giving a connection from the pool to check if it's still valid. It's set to false, meaning that pre-pinging is disabled.
-- <b>url:</b> Define the database connection URL. It might be a single URL or a URL structure defined.
+<b>your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/){:target="_blank"}:</b>
+- <b>log_queries:</b> Default `True`, [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} is set to true. Set to false, SQL queries won’t be logged.
+- <b>create_db:</b> Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all){:target="_blank"}.
+- <b>session:</b>  Session establishes all conversations with the database and represents a “holding zone” for all the objects which you’ve loaded or associated with it during its lifespan. It provides the interface where SELECT and other queries are made that will return and modify ORM-mapped objects[1](https://docs.sqlalchemy.org/en/20/orm/session_basics.html){:target="_blank"}.
+  - <b>pool_recycle:</b> Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour)[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_recycle){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#setting-pool-recycle){:target="_blank"}.
+  - <b>pool_pre_ping:</b> Default `False`. Set to `True` enables the connection pool “pre-ping” feature that tests connections for liveness upon each checkout[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_pre_ping){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic){:target="_blank"}.
+- <b>url:</b> It is used to established a connection with the database. It can be defined in a single string or a structured format[1](https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.engine.URL){:target="_blank"}.
 ```
 data:
   sqlalchemy:
@@ -77,7 +93,6 @@ data:
       port: ${oc.env:POSTGRES_PORT}
       file: ${oc.env:POSTGRES_DB}
 ```
-  - <b>protocol:</b> Specifies the protocol used for the database connection. In this case, it's set to sqlite, indicating the usage of SQLite as the database backend.
 
 `your_core_lib.py`
 
@@ -92,20 +107,17 @@ class YourCoreLib(CoreLib):
         self.user = UserDataAccess(db_connection)
         ...
 ```
-#### `your_core_lib.yaml` Explained:
-<b>Python script or application that uses a custom CoreLib class and a SqlAlchemyConnectionRegistry class to manage database connections.</b>
-- <b>Importing necessary modules:</b>
-CoreLib from core_lib.core_lib
-SqlAlchemyConnectionRegistry from core_lib.connection.sql_alchemy_connection_registry
+#### `your_core_lib.py` Explained:
+<b>In your_core_lib.py, a `custom CoreLib class` and a `SqlAlchemyConnectionRegistry class` are defined to manage database connections.</b>
+
 #### Defining a new class YourCoreLib that inherits from CoreLib.
-  - Defining an __init__ method for YourCoreLib that takes a config argument of type DictConfig. [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1) is a dictionary type from omegaconf that used by Hydra.
+  - Defining an __init__ method for YourCoreLib that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from omegaconf that used by Hydra.
   - Calling the parent class CoreLib's __init__ method using CoreLib.__init__(self) to initialize the base class.
     - Mark core-lib started
     - Enable use of CoreLibListeners
     - Enable use of core-lib observers
-  - Creating a db_connection object by initializing an instance of SqlAlchemyConnectionRegistry with the SQLAlchemy configuration provided in self.config.core_lib.data.sqlalchemy (In Python, self is a reference to the current instance of a class). 
-  - This suggests that SqlAlchemyConnectionRegistry is responsible for managing SQLAlchemy database connections based on the provided configuration.
-  - Initializing a UserDataAccess object, presumably a class responsible for accessing user data from the database, passing the db_connection object to it.
+  - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from s`elf.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
+  - Initializing a `UserDataAccess` class responsible for accessing user data from the database, passing the `db_connection` object to it.
 
 
 ### From Main
@@ -120,7 +132,7 @@ if __name__ == '__main__':
 	main()
 ```
 #### `From Main` Explained:
-<b>Using the [Hydra](https://hydra.cc/docs/intro/) library to manage configuration for your script.</b>
+<b>Using the [Hydra](https://hydra.cc/docs/intro/){:target="_blank"} library to manage configuration for your script.</b>
 
 #### Decorator: @hydra.main:
 - This decorator tells Hydra to use the specified YAML configuration file (core_lib_config.yaml) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
@@ -155,17 +167,10 @@ class TestCrud(unittest.TestCase):
 ```
 #### Code Explained:
 <b>Writing unit tests for your YourCoreLib class using the unittest framework, alongside Hydra for configuration management.</b>
-- <b>Importing necessary modules:</b>
-
-  - <b>unittest:</b> Standard Python module for writing unit tests.
-  - <b>hydra:</b> Hydra library for managing configurations.
-  - <b>GlobalHydra:</b> A class from Hydra used for global configuration management.
 - <b>Defining a function `get_config()` to use Hydra for loading testing `config.yaml` located under the testing folder.</b>
   - Clearing any existing Hydra configuration.
   - Initializing Hydra with a configuration path pointing to `../data/config and using config.yaml`.
   - Composing configuration, presumably loading it into memory, and returning it.
-  - Creating an instance of YourCoreLib using the configuration obtained from get_config().
-  - Processing outside the test case class, ensuring the configuration is set up before running any tests.
 
 - <b>Defining a test case class TestCrud that inherits from unittest.TestCase.</b>
 
@@ -187,7 +192,7 @@ class TestCrud(unittest.TestCase):
 class YourCoreLibInstance(object):
     _app_instance = None
     
-		@staticmethod
+    @staticmethod
     def init(core_lib_cfg):
         if not YourCoreLibInstance._app_instance:
           YourCoreLibInstance._app_instance = YourCoreLib(core_lib_cfg)
@@ -250,40 +255,24 @@ def api_update_user(request):
     - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
     - Finally, it returns a successful response using response_ok().
 
-## Installing
-
-    pip install core-lib
-
-## Requirements
-
-    python > 3.7
-
-## Running tests
-
-    python -m unittest discover
-
-- <b>python -m unittest:</b> This invokes Python's built-in unittest module as a script. The -m flag tells Python to run a module as a script, and unittest is the module we're running.
-- <b>discover:</b> This is a command provided by the unittest module for automatically discovering and running tests. When you run discover, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
-
 ## The source
 
-[https://github.com/shay-te/core-lib](https://github.com/shay-te/core-lib)
+[https://github.com/shay-te/core-lib](https://github.com/shay-te/core-lib){:target="_blank"}
 
 ## Example project
 
-[https://github.com/shay-te/core-lib/examples](https://github.com/shay-te/core-lib/examples)
+[https://github.com/shay-te/core-lib/examples](https://github.com/shay-te/core-lib/examples){:target="_blank"}
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426){:target="_blank"} for details on our code of conduct and the process for submitting pull requests to us.
 
 
 ## Authors
 
-**Shay Tessler**  - [GitHub](https://github.com/shay-te)
+**Shay Tessler**  - [GitHub](https://github.com/shay-te){:target="_blank"}
 
 
 ## License
 
-This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE) file for details.
-
+This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE){:target="_blank"} file for details.
