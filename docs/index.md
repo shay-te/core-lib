@@ -11,26 +11,22 @@ toc: false
 
 <b>`Core-Lib` was born to make the day-to-day work, The `"work itself."` easy to master.</b>
 
-# Pain & Solutions:
-## <b>Legacy Code Labyrinth:</b>
-Taming complexity and ensuring longevity through structured delegation.
-## <b>Code Chaos:</b>
-Streamlining development to prevent code morphing with each developer's touch.
-## <b>Redundant Rewrites:</b>
-Ending the cycle of repetitive code creation.
-## <b>Deployment Dilemma:</b>
-Simplifying deployment with flexible containerization.
-## <b>Testing Tethered:</b>
-Streamlining testing without the hassle of complex setups.
-## <b>Microservice Maze:</b>
-Simplifying the transition to microservices for existing projects.
+# What problems Core-Lib is solving:
+#### <b>Building Block-by-Block:</b>
+Ensuring longevity through structured development.
+#### <b>Code Chaos:</b>
+Ending the cycle of repetitive code creation, preventing code morphing with each developer's touch.
+#### <b>Loose Coupling:</b>
+Flexible containerization, easy plug-in and plug-out.
+#### <b>Testing Trouble:</b>
+Unit tests your entire application, avoiding complicated environment setups and dependencies.
+#### <b>Robust Deployment:</b>
+Code is like a Python library, which can be used anywhere.
 
 # What is Core-Lib?
-`Core-Lib` is a framework for creating python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
+`Core-Lib` is a framework for creating Python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
 
 # How Core-Lib?
-Core-Lib acts as your project's trusted ally, weaving simplicity and efficiency through its flexible plugins, easy configuration, thorough testing, and helpful architectural advice, ensuring smoother development every step of the way.
-
 - `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 
 - `Core-Lib` can discover and merge other `Core-Lib` configurations. 
 - `Core-Lib` provides basic/simple/loose tools. 
@@ -51,8 +47,8 @@ Core-Lib acts as your project's trusted ally, weaving simplicity and efficiency 
 
     python -m unittest discover
 
-- <b>python -m unittest:</b> This invokes Python's built-in unittest module as a script. The -m flag tells Python to run a module as a script, and unittest is the module we're running.
-- <b>discover:</b> This is a command provided by the unittest module for automatically discovering and running tests. When you run discover, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
+- <b>python -m unittest:</b> This invokes Python's built-in [unittest](https://docs.python.org/3/library/unittest.html#module-unittest){:target="_blank"} module as a script. 
+- <b>discover:</b> This is a command provided by the unittest module for automatically discovering and running tests. When you run [discover](https://docs.python.org/3/library/unittest.html#test-discovery){:target="_blank"}, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
 
 ## Example
 
@@ -75,12 +71,16 @@ core_lib:
 ```
 #### `your_core_lib.yaml` Explained:
 <b>your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/){:target="_blank"}:</b>
-- <b>log_queries:</b> Default `True`, [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} is set to true. Set to false, SQL queries won’t be logged.
-- <b>create_db:</b> Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all){:target="_blank"}.
-- <b>session:</b>  Session establishes all conversations with the database and represents a “holding zone” for all the objects which you’ve loaded or associated with it during its lifespan. It provides the interface where SELECT and other queries are made that will return and modify ORM-mapped objects[1](https://docs.sqlalchemy.org/en/20/orm/session_basics.html){:target="_blank"}.
-  - <b>pool_recycle:</b> Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour)[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_recycle){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#setting-pool-recycle){:target="_blank"}.
-  - <b>pool_pre_ping:</b> Default `False`. Set to `True` enables the connection pool “pre-ping” feature that tests connections for liveness upon each checkout[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_pre_ping){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic){:target="_blank"}.
-- <b>url:</b> It is used to established a connection with the database. It can be defined in a single string or a structured format[1](https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.engine.URL){:target="_blank"}.
+- **`log_queries`**: Default `False`, When `log_queries` are set to `True [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} is also set to true.
+
+- **`create_db`**: Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all){:target="_blank"}.
+
+- **`session`**:  Session establishes all conversations with the database and represents a “holding zone” for all the objects which you’ve loaded or associated with it during its lifespan. It provides the interface where SELECT and other queries are made that will return and modify ORM-mapped objects[1](https://docs.sqlalchemy.org/en/20/orm/session_basics.html){:target="_blank"}.
+
+  - **`pool_recycle`**: Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour)[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_recycle){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#setting-pool-recycle){:target="_blank"}.
+  - **`pool_pre_ping`**: Default `False`. Set to `True` enables the connection pool “pre-ping” feature that tests connections for liveness upon each checkout[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_pre_ping){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic){:target="_blank"}.
+
+- **`url`**: Establishing a connection with the database. It can be defined in a single string or a structured format[1](https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.engine.URL){:target="_blank"}.
 ```
 data:
   sqlalchemy:
@@ -111,12 +111,12 @@ class YourCoreLib(CoreLib):
 <b>In your_core_lib.py, a `custom CoreLib class` and a `SqlAlchemyConnectionRegistry class` are defined to manage database connections.</b>
 
 #### Defining a new class YourCoreLib that inherits from CoreLib.
-  - Defining an __init__ method for YourCoreLib that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from omegaconf that used by Hydra.
+  - Defining an __init__ method for YourCoreLib that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from [omegaconf](https://omegaconf.readthedocs.io/en/2.3_branch/index.html){:target="_blank"} that used by [Hydra](https://hydra.cc/docs/intro/){:target="_blank"}.
   - Calling the parent class CoreLib's __init__ method using CoreLib.__init__(self) to initialize the base class.
     - Mark core-lib started
     - Enable use of CoreLibListeners
     - Enable use of core-lib observers
-  - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from s`elf.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
+  - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from `self.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
   - Initializing a `UserDataAccess` class responsible for accessing user data from the database, passing the `db_connection` object to it.
 
 
@@ -135,12 +135,12 @@ if __name__ == '__main__':
 <b>Using the [Hydra](https://hydra.cc/docs/intro/){:target="_blank"} library to manage configuration for your script.</b>
 
 #### Decorator: @hydra.main:
-- This decorator tells Hydra to use the specified YAML configuration file (core_lib_config.yaml) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
-- def main(cfg): This is the main function of your script, which takes a cfg argument. This argument will hold the configuration provided by Hydra.
+- This decorator tells `Hydra` to use the specified `YAML` configuration file (`core_lib_config.yaml`) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
+- **`def main(cfg)`**: This is the main function of your script, which takes a `cfg` argument. This argument will hold the configuration provided by Hydra.
 #### Inside the main function:
-  - <b>your_core_lib = YourCoreLib(cfg):</b> This line initializes an instance of the YourCoreLib class (defined earlier) using the configuration cfg provided by Hydra. This means that your application will use the configuration parameters specified in core_lib_config.yaml to set up the YourCoreLib instance.
-  - <b>...:</b> This ellipsis (...) represents the rest of your main function, where you would perform other actions or operations specific to your application.
-  - <b>`if __name__ == '__main__':`:</b> This conditional statement checks if the script is being executed directly (as opposed to being imported as a module). It ensures that the main function is only called when the script is run directly.
+  - **`your_core_lib = YourCoreLib(cfg)`**: This line initializes an instance of the YourCoreLib class (defined earlier) using the configuration cfg provided by Hydra. This means that your application will use the configuration parameters specified in core_lib_config.yaml to set up the YourCoreLib instance.
+  - **`...`**: This ellipsis (...) represents the rest of your main function, where you would perform other actions or operations specific to your application.
+  - **`if __name__ == '__main__'`**: This conditional statement checks if the script is being executed directly (as opposed to being imported as a module). It ensures that the main function is only called when the script is run directly.
   - <b>main():</b> This line calls the main function when the script is executed directly, starting the execution of your application.
 
 ### Unit-Test
@@ -203,12 +203,12 @@ class YourCoreLibInstance(object):
 ```
 #### Code Explained:
 <b>Implementing a singleton pattern for your YourCoreLib class using a separate class YourCoreLibInstance.</b>
-- <b>init(core_lib_cfg):</b>
+- **`init(core_lib_cfg)`**:
 
   - This is a static method (decorated with @staticmethod) responsible for initializing the singleton instance of YourCoreLib.
   - It takes a core_lib_cfg argument, presumably a configuration needed to initialize YourCoreLib.
   - If _app_instance is not already set (i.e., it's None), it initializes _app_instance by creating an instance of YourCoreLib with the provided configuration.
-- <b>get() -> YourCoreLib:</b>
+- **`get() -> YourCoreLib`**:
   - This is another static method responsible for returning the singleton instance of YourCoreLib.
   - It simply returns the _app_instance, which is the singleton instance of YourCoreLib.
 
@@ -236,22 +236,22 @@ def api_update_user(request):
 #### Code Explained:
 <b>Defining API endpoints using Flask (or a similar framework) to handle requests related to updating a user. </b>
 - <b>Importing necessary functions from core_lib.web_helpers.request_response_helpers:</b>
-  - request_body_dict: A function that extracts and parses the request body into a dictionary.
-  - response_ok: A function that generates a successful response with an appropriate status code.
-  - response_status: A function that generates a response with a specified HTTP status code.
+  - **`request_body_dict`**: A function that extracts and parses the request body into a dictionary.
+  - **`response_ok`**: A function that generates a successful response with an appropriate status code.
+  - **`response_status`**: A function that generates a response with a specified HTTP status code.
   - Getting the singleton instance of YourCoreLib using YourCoreLibInstance.get(). This ensures that you're using the same instance of YourCoreLib throughout your application.
 
 - <b>Defining two API endpoint functions: api_update_user.</b>
-  - <b><i>api_update_user (for POST requests):</i></b>
-    - <i>Decorated with @require_POST:</i> This decorator ensures that the endpoint only responds to POST requests.
-    - <i>Decorated with @RequireLogin():</i> This decorator ensures that the user must be logged in to access this endpoint.
-    - <i>Decorated with @HandleException():</i> This decorator handles any exceptions that occur within the endpoint function.
+  - <i>**api_update_user (for POST requests)**:</i>
+    - **`Decorated with @require_POST`**: This decorator ensures that the endpoint only responds to POST requests.
+    - **`Decorated with @RequireLogin()`**: This decorator ensures that the user must be logged in to access this endpoint.
+    - **`Decorated with @HandleException()`**: This decorator handles any exceptions that occur within the endpoint function.
     - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
     - Finally, it returns a response with HTTP status code NO_CONTENT using response_status(HTTPStatus.NO_CONTENT).
-  - <b><i>api_update_user (for GET requests):</i></b>
-    - <i>Decorated with @require_GET:</i> This decorator ensures that the endpoint only responds to GET requests.
-    - <i>Decorated with @RequireLogin():</i> This decorator ensures that the user must be logged in to access this endpoint.
-    - <i>Decorated with @HandleException():</i> This decorator handles any exceptions that occur within the endpoint function.
+  - <i>**api_update_user (for GET requests)**:</i>
+    - **`Decorated with @require_GET`**: This decorator ensures that the endpoint only responds to GET requests.
+    - **`Decorated with @RequireLogin()`**: This decorator ensures that the user must be logged in to access this endpoint.
+    - **`Decorated with @HandleException()`**: This decorator handles any exceptions that occur within the endpoint function.
     - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
     - Finally, it returns a successful response using response_ok().
 
