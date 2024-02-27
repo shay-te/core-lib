@@ -6,22 +6,11 @@ permalink: index.html
 folder: core_lib_doc
 toc: false
 ---
+<p><img src="images/core-lib.png" alt="Company logo" width="240"/></p>
 
 # Why Core-Lib?
 
 <b>`Core-Lib` was born to make the day-to-day work, The `"work itself."` easy to master.</b>
-
-# What problems Core-Lib is solving:
-#### <b>Building Block-by-Block:</b>
-Ensuring longevity through structured development.
-#### <b>Code Chaos:</b>
-Ending the cycle of repetitive code creation, preventing code morphing with each developer's touch.
-#### <b>Loose Coupling:</b>
-Flexible containerization, easy plug-in and plug-out.
-#### <b>Testing Trouble:</b>
-Unit tests your entire application, avoiding complicated environment setups and dependencies.
-#### <b>Robust Deployment:</b>
-Code is like a Python library, which can be used anywhere.
 
 # What is Core-Lib?
 `Core-Lib` is a framework for creating Python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
@@ -34,6 +23,16 @@ Code is like a Python library, which can be used anywhere.
 - `Core-Lib` unit-test the entire library.
 - `Core-Lib` deploys anywhere.
 - `Core-Lib` recommends architecture and guidelines. 
+
+# What problems Core-Lib is solving:
+#### <b>Code Chaos:</b>
+Ending the cycle of repetitive code creation, ensuring longevity through structured development, and preventing code morphing with each developer's touch.
+#### <b>Tight Coupling:</b>
+Minimizing dependencies by using flexible containers and allowing easy addition or removal of components. This ensures smoother integration and maintenance of the system.
+#### <b>Testing Trouble:</b>
+Unit tests your entire application, avoiding complicated environment setups and dependencies.
+#### <b>Sluggish Deployment:</b>
+Core-Lib is just code that can be run and tested easily anywhere.
 
 ## Installing
 
@@ -71,13 +70,14 @@ core_lib:
 ```
 #### `your_core_lib.yaml` Explained:
 <b>your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/){:target="_blank"}:</b>
-- **`log_queries`**: Default `False`, When `log_queries` are set to `True [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} is also set to true.
+
+- **`log_queries`**: Default `False`, `log_queries` represent and control the [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} in `sqlalchemy`.
 
 - **`create_db`**: Create all tables stored in this project-defined entities metadata.[1](https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.MetaData.create_all){:target="_blank"}.
 
-- **`session`**:  Session establishes all conversations with the database and represents a “holding zone” for all the objects which you’ve loaded or associated with it during its lifespan. It provides the interface where SELECT and other queries are made that will return and modify ORM-mapped objects[1](https://docs.sqlalchemy.org/en/20/orm/session_basics.html){:target="_blank"}.
+- **`session`**: It is a group to configure the `session` settings[1](https://docs.sqlalchemy.org/en/20/orm/session_basics.html){:target="_blank"}.
 
-  - **`pool_recycle`**: Specifies the number of seconds after which a connection will be recycled. In this case, connections will be recycled every 3600 seconds (1 hour)[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_recycle){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#setting-pool-recycle){:target="_blank"}.
+  - **`pool_recycle`**: Default `-1`, no timeout. Set to `specific the number of seconds` after which a connection will be recycled [1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_recycle){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#setting-pool-recycle){:target="_blank"}.
   - **`pool_pre_ping`**: Default `False`. Set to `True` enables the connection pool “pre-ping” feature that tests connections for liveness upon each checkout[1](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine.params.pool_pre_ping){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic){:target="_blank"}.
 
 - **`url`**: Establishing a connection with the database. It can be defined in a single string or a structured format[1](https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls){:target="_blank"}[2](https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.engine.URL){:target="_blank"}.
@@ -114,8 +114,7 @@ class YourCoreLib(CoreLib):
   - Defining an __init__ method for YourCoreLib that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from [omegaconf](https://omegaconf.readthedocs.io/en/2.3_branch/index.html){:target="_blank"} that used by [Hydra](https://hydra.cc/docs/intro/){:target="_blank"}.
   - Calling the parent class CoreLib's __init__ method using CoreLib.__init__(self) to initialize the base class.
     - Mark core-lib started
-    - Enable use of CoreLibListeners
-    - Enable use of core-lib observers
+    - Enable the use of core-lib observers
   - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from `self.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
   - Initializing a `UserDataAccess` class responsible for accessing user data from the database, passing the `db_connection` object to it.
 
@@ -138,10 +137,9 @@ if __name__ == '__main__':
 - This decorator tells `Hydra` to use the specified `YAML` configuration file (`core_lib_config.yaml`) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
 - **`def main(cfg)`**: This is the main function of your script, which takes a `cfg` argument. This argument will hold the configuration provided by Hydra.
 #### Inside the main function:
-  - **`your_core_lib = YourCoreLib(cfg)`**: This line initializes an instance of the YourCoreLib class (defined earlier) using the configuration cfg provided by Hydra. This means that your application will use the configuration parameters specified in core_lib_config.yaml to set up the YourCoreLib instance.
-  - **`...`**: This ellipsis (...) represents the rest of your main function, where you would perform other actions or operations specific to your application.
-  - **`if __name__ == '__main__'`**: This conditional statement checks if the script is being executed directly (as opposed to being imported as a module). It ensures that the main function is only called when the script is run directly.
-  - <b>main():</b> This line calls the main function when the script is executed directly, starting the execution of your application.
+  - **`your_core_lib = YourCoreLib(cfg)`**: This line initializes an instance of the `YourCoreLib` class (defined earlier) using the configuration `cfg` provided by `Hydra`. This means that your application will use the configuration parameters specified in `core_lib_config.yaml` to set up the `YourCoreLib` instance.
+
+  - <b>main():</b> This line calls the `main` function when the script is executed directly, starting the execution of your application.
 
 ### Unit-Test
 
@@ -166,27 +164,25 @@ class TestCrud(unittest.TestCase):
     self.assertDictEqual(user, self.your_core_lib.user.get(user[User.id.key]))
 ```
 #### Code Explained:
-<b>Writing unit tests for your YourCoreLib class using the unittest framework, alongside Hydra for configuration management.</b>
+<b>Writing unit tests for your `YourCoreLib` class using the `unittest` framework, alongside Hydra for configuration management.</b>
 - <b>Defining a function `get_config()` to use Hydra for loading testing `config.yaml` located under the testing folder.</b>
-  - Clearing any existing Hydra configuration.
-  - Initializing Hydra with a configuration path pointing to `../data/config and using config.yaml`.
-  - Composing configuration, presumably loading it into memory, and returning it.
+  - Clearing any existing `Hydra` configuration.
+  - Initializing `Hydra` with a configuration path pointing to `../data/config and using config.yaml`.
+  - Composing configuration and returning it.
 
-- <b>Defining a test case class TestCrud that inherits from unittest.TestCase.</b>
+- <b>Defining a test case class `TestCrud` that inherits from `unittest.TestCase`.</b>
 
   - <b>Implementing the setUp method:</b>
     - Called before each test method is executed.
-    - Initializes an instance of YourCoreLib using the configuration obtained earlier and assigns it to self.your_core_lib.
+    - Initializes an instance of `YourCoreLib` using the configuration obtained earlier and assigns it to `self.your_core_lib`.
 - <b>Defining the test method test_your_core_lib:</b>
 
   - This method tests functionality related to creating and retrieving a user.
-  - It creates a user using self.your_core_lib.user.create() method, passing in a dictionary with user data.
-  - Then, it retrieves the user using self.your_core_lib.user.get() method with the user's ID obtained from the creation step.
+  - It creates a user using `self.your_core_lib.user.create()` method, passing in a dictionary with user data.
+  - Then, it retrieves the user using `self.your_core_lib.user.get()` method with the user's ID obtained from the creation step.
   - Finally, it asserts that the retrieved user matches the created user.
 
-### Django
-
-##### your_core_lib_instance.py
+##### **your_core_lib_instance.py**
 
 ```python
 class YourCoreLibInstance(object):
@@ -207,12 +203,14 @@ class YourCoreLibInstance(object):
 
   - This is a static method (decorated with @staticmethod) responsible for initializing the singleton instance of YourCoreLib.
   - It takes a core_lib_cfg argument, presumably a configuration needed to initialize YourCoreLib.
-  - If _app_instance is not already set (i.e., it's None), it initializes _app_instance by creating an instance of YourCoreLib with the provided configuration.
+  - If `_app_instance` is not already set (i.e., it's None), it initializes `_app_instance` by creating an instance of `YourCoreLib` with the provided configuration.
 - **`get() -> YourCoreLib`**:
   - This is another static method responsible for returning the singleton instance of YourCoreLib.
-  - It simply returns the _app_instance, which is the singleton instance of YourCoreLib.
+  - It simply returns the `_app_instance`, which is the `singleton` instance of `YourCoreLib`.
 
-##### view_user.py
+### Django
+
+##### **view_user.py**
 
 ```python
 from core_lib.web_helpers.request_response_helpers import request_body_dict, response_ok, response_status
@@ -235,25 +233,67 @@ def api_update_user(request):
 ```
 #### Code Explained:
 <b>Defining API endpoints using Flask (or a similar framework) to handle requests related to updating a user. </b>
-- <b>Importing necessary functions from core_lib.web_helpers.request_response_helpers:</b>
+- <b>Importing necessary functions from `core_lib.web_helpers.request_response_helpers`:</b>
   - **`request_body_dict`**: A function that extracts and parses the request body into a dictionary.
   - **`response_ok`**: A function that generates a successful response with an appropriate status code.
   - **`response_status`**: A function that generates a response with a specified HTTP status code.
-  - Getting the singleton instance of YourCoreLib using YourCoreLibInstance.get(). This ensures that you're using the same instance of YourCoreLib throughout your application.
+  - Getting the `singleton` instance of `YourCoreLib` using `YourCoreLibInstance.get()`. This ensures that you're using the same instance of YourCoreLib throughout your application.
 
 - <b>Defining two API endpoint functions: api_update_user.</b>
   - <i>**api_update_user (for POST requests)**:</i>
     - **`Decorated with @require_POST`**: This decorator ensures that the endpoint only responds to POST requests.
     - **`Decorated with @RequireLogin()`**: This decorator ensures that the user must be logged in to access this endpoint.
     - **`Decorated with @HandleException()`**: This decorator handles any exceptions that occur within the endpoint function.
-    - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
+    - Inside the function, `your_core_lib.user.update()` is called to update the user information using the data from the request body (request_body_dict(request)).
     - Finally, it returns a response with HTTP status code NO_CONTENT using response_status(HTTPStatus.NO_CONTENT).
   - <i>**api_update_user (for GET requests)**:</i>
     - **`Decorated with @require_GET`**: This decorator ensures that the endpoint only responds to GET requests.
     - **`Decorated with @RequireLogin()`**: This decorator ensures that the user must be logged in to access this endpoint.
     - **`Decorated with @HandleException()`**: This decorator handles any exceptions that occur within the endpoint function.
-    - Inside the function, your_core_lib.user.update() is called to update the user information using the data from the request body (request_body_dict(request)).
-    - Finally, it returns a successful response using response_ok().
+    - Inside the function, `your_core_lib.user.update()` is called to update the user information using the data from the request body (request_body_dict(request)).
+    - Finally, it returns a successful response using `response_ok()`.
+
+### Flask
+
+##### **view_user.py**
+
+```python
+from flask import request
+from http import HTTPStatus
+from flask import jsonify
+
+from core_lib.web_helpers.request_response_helpers import request_body_dict, response_ok, response_status
+
+your_core_lib = YourCoreLibInstance.get() # retrieve an instance of YourCoreLib
+
+@app.route('/api/update_user', methods=['POST'])
+@require_login
+@handle_exception
+def api_update_user():
+    your_core_lib.user.update(request.user.u_id, request_body_dict(request))
+    return '', HTTPStatus.NO_CONTENT
+
+@app.route('/api/get_user', methods=['GET'])
+@require_login
+@handle_exception
+def api_get_user():
+    user_data = your_core_lib.user.get(request.user.u_id)
+    return jsonify(user_data), HTTPStatus.OK
+```
+#### Code Explained:
+- **`Two routes`**: `/api/update_user` for handling `POST` requests and `/api/get_user` for handling `GET` requests.
+Decorators such as `@app.route`, `@require_login`, and `@handle_exception` are used to define the route behavior, similar to decorators in Django.
+
+- **`Inside each route function`**:
+  - For `/api/update_user`, we call `your_core_lib.user.update()` method to update user data using the request body. We return an empty response with HTTP status code 204 (NO_CONTENT).
+  - For `/api/get_user`, we call `your_core_lib.user.get()` method to retrieve user data based on the user ID extracted from the request. We return the user data as a JSON response with HTTP status code 200 (OK).
+
+- **`Request Handling`**:
+  - **`request object`**: We use Flask's request object to access request data such as request body (request_body_dict(request)) and user ID (request.user.u_id).
+
+- **`Response Handling`**:
+  - **`api_update_user`**: We return an empty response with HTTP status code 204 (NO_CONTENT) to indicate that the update operation was successful.
+  - **`api_get_user`**: We return the retrieved user data as a JSON response with HTTP status code 200 (OK) using jsonify() function.
 
 ## The source
 

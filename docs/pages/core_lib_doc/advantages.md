@@ -13,8 +13,8 @@ toc: false
 
 #### It can be deployed anywhere.
 
-Running/Debugging `Core-Lib` is simple as running the `__main__` function.
-`Core-Lib` class instance can be placed after any interface such as `UnitTest`, ` WEB`, `Microservice`, And more.
+Running/Debugging `Core-Lib` is as simple as running the `__main__` function.
+`Core-Lib` class instance can be placed after any interface such as `UnitTest`, `WEB`, `Microservice`, And more.
 
 #### Unit test your entire product.
 
@@ -50,5 +50,3 @@ With `Core-Lib`, it's easy to break, separate or change an existing product into
 
 Architecture, code structure, problem resolution, state of mind, approach, knowledge, and experience will be almost the same from one `Core-Lib` to another.
 
-
-#### 

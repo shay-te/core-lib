@@ -13,23 +13,23 @@ toc: false
 
 <pre>
     <code>
-    <a href="#core-lib-root-directory">core_lib</a> # Core-Lib Root Directory
-    └───  <a href="#core-lib-main-directory">core_lib</a> # Core-Lib Main Directory
-    |       |   └─── <a href="#config">config</a>
-    |       |	   └─── <a href="#corelibyaml">core_lib.yaml</a>
+    <a href="#core-lib-project-directory">core_lib</a> # Core-Lib Project Directory
+    └───  <a href="#core-lib-main-code-directory">core_lib</a> # Core-Lib Main Code Directory
+    |       └─── <a href="#config">config</a>
+    |       |       └─── <a href="#corelibyaml">core_lib.yaml</a>
     |       └─── <a href="#data-layers">data_layers</a>
-    |       |        |   └─── <a href="#data">data</a> # store all connector, definition, mapping to data sources
-    |       |        |          └─── <a href="#db">db</a> # store database ORM entities
-    |       |        |          |     └─── <a href="#migrations">migrations</a> # database migration scripts
-    |       |        |          └─── <a href="#elastic">elastic</a> # store elastic search base classes
-    |       |        |          └─── <a href="#mongo">mongo</a> # store mongo base classes
+    |       |        └─── <a href="#data">data</a> # store all connector, definition, mapping to data sources
+    |       |        |      └─── <a href="#db">db</a> # store database ORM entities
+    |       |        |      |     └─── <a href="#migrations">migrations</a> # database migration scripts
+    |       |        |      └─── <a href="#elastic">elastic</a> # store elastic search base classes
+    |       |        |      └─── <a href="#mongo">mongo</a> # store mongo base classes
     |       |        └─── <a href="#data_access">data access</a> # expose API that uses data layer
-    |       |        |	    └─── <a href="#user">user</a> # grather user data access
+    |       |        |	    └─── <a href="#user">user</a> # group user data access
     |       |        |	    |    └─── <a href="#user_data_accesspy">user_data_access.py</a>
     |       |        |	    |    └─── <a href="#user_list_data_accesspy">user_list_data_access.py</a>
     |       |        |	    └─── some_data_access.py 
     |       |        └─── <a href="#service">service</a> # expost the core-lib services
-    |       |               └─── <a href="#user-1">user</a> # gather user services
+    |       |               └─── <a href="#user-1">user</a> # group user services
     |       |               |    └─── <a href="#user_servicepy">user_service.py</a>
     |       |        	    |    └─── <a href="#user_list_servicepy">user_list_service.py</a>
     |       |        	    └─── <a href="#some_servicepy">some_service.py</a>
@@ -45,17 +45,17 @@ toc: false
     </code>
 </pre>
 
-## Core-Lib Root Directory:
-This root directory serves as the foundational structure for the Core-Lib, encompassing all its components and resources. It acts as the primary container for organizing and managing the various modules, configurations, and assets that constitute the Core-Lib framework. Here, developers can find the core files and directories essential for building, configuring, and extending the functionality of the Core-Lib.
+## Core-Lib Project Directory:
+This root directory serves as the foundational structure for the Core-Lib project, encompassing all its project code and resources. It is a standard primary container for organizing and managing any Python project. Here, developers can find the core files and directories essential for building, configuring, and extending the functionality of the Core-Lib.
 
-### Core-Lib Main Directory:
+### Core-Lib Main Code Directory:
 This subdirectory houses the main source code and modules of the Core-Lib, serving as the heart of the library. Developers will find key Python files and subdirectories containing the core functionalities and implementations that power the Core-Lib framework.
 
 ### Tests:
 This directory contains the unit tests for the Core-Lib, allowing developers to verify the correctness and integrity of the library's functionalities. It includes test cases and configurations necessary for testing various components and features of the Core-Lib framework.
 
 ## Config:
-This directory contains essential configuration files crucial for configuring and customizing the Core-Lib to suit specific requirements.
+This directory contains your Core-Lib configuration file crucial for configuring and customizing the Core-Lib to suit specific requirements.
 ### Core.lib.yaml:
 A pivotal configuration file housing settings specific to the Core-Lib, facilitating easy customization and configuration of core functionalities.
 
