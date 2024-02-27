@@ -1013,6 +1013,10 @@ span.label.label-primary {
     color: black;
     }
 
+code {
+    color: #0ca2f9;
+}
+
 a code {
     color: #248EC2;
 }
@@ -1040,7 +1044,6 @@ ol li ul li ol li ul li{
 table thead th code.highlighter-rouge {
     background-color: transparent;
 }
-
 
 .box {
     padding: 10px;

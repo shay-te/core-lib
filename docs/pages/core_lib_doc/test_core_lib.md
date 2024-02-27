@@ -89,7 +89,7 @@ core_lib:
 ```
 
 ## Main Class
-Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
+Here you'll have all the `DataAccess`, `Service`,  `Connection`, and `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
 `user_core_lib.py`
 ```python
@@ -299,27 +299,27 @@ def sync_create_start_core_lib() -> UserCoreLib:
 ```
 #### Global Variables and Classes:
 
-- threadLock: A threading lock to prevent race conditions when accessing shared resources.
-- UserInstange: A class that manages a singleton instance of UserCoreLib.
-    - instance: Variable to hold the singleton instance of UserCoreLib.
-    - config: Variable to hold the configuration data.
+- **`threadLock`**: A threading lock to prevent race conditions when accessing shared resources.
+- **`UserInstange`**: A class that manages a singleton instance of UserCoreLib.
+    - **`instance`**: Variable to hold the singleton instance of UserCoreLib.
+    - **`config`**: Variable to hold the configuration data.
 
 #### Function load_config():
-- This function loads the configuration data from a .env file and a config.yaml file using Hydra.
+- This function loads the configuration data from a `.env` file and a `config.yaml` file using `Hydra`.
 - It returns the loaded configuration.
 
 #### Function sync_create_start_core_lib():
-- This function is responsible for creating and starting the UserCoreLib instance.
+- This function is responsible for creating and starting the `UserCoreLib` instance.
 - It first acquires the thread lock to ensure that only one thread executes this block of code at a time.
-- If UserInstange.instance is not set (i.e., the UserCoreLib instance has not been created yet):
-    - It clears any existing registrations from the CoreLib.cache_registry and CoreLib.observer_registry.
-    - Initializes the AdminCoreLibInstance with the loaded configuration.
-    - Starts the UserCoreLib instance.
+- If the `UserInstange.instance` is not set (i.e., the UserCoreLib instance has not been created yet):
+    - It clears any existing registrations from the `CoreLib.cache_registry` and `CoreLib.observer_registry`.
+    - Initializes the `AdminCoreLibInstance` with the loaded configuration.
+    - Starts the `UserCoreLib` instance.
     - If an exception occurs during this process, it prints the traceback and re-raises the exception.
-- After creating the instance, it clears the cache of CoreLib.cache_registry.
-- Finally, it releases the thread lock and returns the UserInstange.instance.
+- After creating the instance, it clears the cache of `CoreLib.cache_registry`.
+- Finally, it releases the thread lock and returns the `UserInstange.instance`.
 
-### Example, You need to create 3 Services having names:
+### For Example, You need to create 3 Services having names:
 - UserService
 - CustomerService
 - NotificationService
@@ -377,6 +377,3 @@ class TestCoreLib(unittest.TestCase):
         # testing everything realted to notification_service
         pass
 ```
-
-
-If you want to check out more usages of `Core-Lib` you can check out our examples here.

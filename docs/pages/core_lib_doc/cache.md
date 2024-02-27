@@ -28,18 +28,18 @@ def set_foo(self, foo_id, foo_value):
     ... # update the value
 ```
 #### Code Explained:
-- <b>CACHE_KEY_FOO:</b> This variable holds a string representing the cache key format. It contains a placeholder {foo_id} which will be replaced with the actual foo_id value.
+- **`CACHE_KEY_FOO`**: This variable holds a string representing the cache key format. It contains a placeholder {foo_id} which will be replaced with the actual foo_id value.
 
-- <b>@Cache:</b> This is a decorator function used for caching. It takes parameters such as key, expire, and invalidate. The key parameter specifies the cache key format, expire specifies the expiration time for cached values, and invalidate is a flag indicating whether to invalidate the cache.
+- **`@Cache`**: This is a decorator function used for caching. It takes parameters such as key, expire, and invalidate. The key parameter specifies the cache key format, expire specifies the expiration time for cached values, and invalidate is a flag indicating whether to invalidate the cache.
 
-- <b>get_foo:</b> This function is decorated with @Cache. It computes a value based on foo_id and returns it. The decorator caches the return value of this function using the specified cache key and expiration time.
+- **`get_foo`**: This function is decorated with @Cache. It computes a value based on foo_id and returns it. The decorator caches the return value of this function using the specified cache key and expiration time.
 
-- <b>set_foo:</b> This function is also decorated with @Cache. It is responsible for updating the value associated with a given foo_id. When invalidate=True, it indicates that the cache for the specified key (CACHE_KEY_FOO) should be cleared, ensuring that the next call to get_foo retrieves the updated value.
+- **`set_foo`**: This function is also decorated with @Cache. It is responsible for updating the value associated with a given foo_id. When invalidate=True, it indicates that the cache for the specified key (CACHE_KEY_FOO) should be cleared, ensuring that the next call to get_foo retrieves the updated value.
 <br>
 <br>
 <br>
 
-*core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L34)
+*core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L34){:target="_blank"}
 
 ```python
 class Cache(object):
@@ -76,25 +76,25 @@ class Cache(object):
 
 ### CacheHandler
 
-*core_lib.cache.cache_handler.CacheHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler.py#L5)
+*core_lib.cache.cache_handler.CacheHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler.py#L5){:target="_blank"}
 
 `CacheHandler` is an empty base abstract class with `get`, `set`, `delete`, and `flush_all` operations. You can implement it to support any caching service  
 
 By default, `Core-Lib` provides four built-in `CacheHandler` implementations.
 
-1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6)
+1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6){:target="_blank"}
 
 ​		Cache data inside the memory will get invalidated upon the termination of the running process.
 
-2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py#L8)
+2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py#L8){:target="_blank"}
 
-   Cache data inside [memcached](https://memcached.org) server
+   Cache data inside [memcached](https://memcached.org){:target="_blank"} server
 
-3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py#L9)
+3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py#L9){:target="_blank"}
 
-   Cache data inside [redis](https://redis.io) server
+   Cache data inside [redis](https://redis.io){:target="_blank"} server
 
-4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L9)
+4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L9){:target="_blank"}
 
 ​		A dummy class, without implementation, used for testing purposes
 
@@ -112,9 +112,9 @@ def action(self):
 
 ### CacheRegistry
 
-*core_lib.cache.cache_registry.CacheRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py#L5)
+*core_lib.cache.cache_registry.CacheRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py#L5){:target="_blank"}
 
-The `Cache` decorator uses of `CoreLib`'s `CacheRegistry` to fetch the correct `CacheHandler`. So before using the `Cache` decorator, we must register our `CacheHandler` of choice inside the CoreLib `CacheRegistry.`
+The `Cache` decorator uses `CoreLib's` `CacheRegistry` to fetch the correct `CacheHandler`. So before using the `Cache` decorator, we must register our `CacheHandler` of choice inside the CoreLib `CacheRegistry.`
 By default `CoreLib` class already comes with a predefined static instance of the `CacheRegistry`
 
 The `Cache` decorator knows what `CacheHandler` to get by the `handler_name` parameter. If `handler_hanler` is neglected, the CacheRegistry will return the default `CacheHandler`
@@ -135,21 +135,16 @@ cache_registry.register("mem2", CacheHandlerRam())
 cache_registry.get() # returns None. Multiple client registered with no default
 ```
 
-- <b>Imports:</b> The code imports necessary modules for cache management, likely part of a larger cache library (core_lib.cache.cache_registry.CacheRegistry and core_lib.cache.cache_handler_ram.CacheHandlerRam).
+- **`Cache Registry Initialization`**: An instance of CacheRegistry is created (`cache_registry`). This registry is intended to hold references to different cache handlers.
 
-- <b>Cache Registry Initialization:</b> An instance of CacheRegistry is created (cache_registry). This registry is intended to hold references to different cache handlers.
+- **`Cache Handler Registration`**: A cache handler is registered with a specific key ("mem") using `cache_registry`.`register("mem", CacheHandlerRam()`). This associates the key "mem" with a `CacheHandlerRam` instance.
 
-- <b>Cache Handler Registration:</b> A cache handler is registered with a specific key ("mem") using cache_registry.register("mem", CacheHandlerRam()). This associates the key "mem" with a CacheHandlerRam instance.
+- **`Retrieving Cache Handlers`**:
 
-- <b>Retrieving Cache Handlers:<b>
-
-    - cache_registry.get("mem") returns the cache handler associated with the key "mem", which is an instance of CacheHandlerRam.
-    - cache_registry.get() returns the default cache handler. However, in the code snippet, there is no default specified, so it might return None or a predefined default if set elsewhere.
-    - cache_registry.get("mem2") would return the cache handler associated with the key "mem2" if it were registered.
-    - Multiple Registrations: Another cache handler is registered with the key "mem2" using cache_registry.register("mem2", CacheHandlerRam()). This allows for multiple cache handlers to be registered within the same CacheRegistry instance.
-
-- <b>Handling Default Registry Behavior:</b> The comment // See DefaultRegistry documentation suggests that there might be additional documentation or specifications regarding the default behavior of the cache registry, which is not explicitly defined in the provided code snippet.
-
+    - **`cache_registry.get("mem")`**: Returns the cache handler associated with the key "mem", which is an instance of CacheHandlerRam.
+    - **`cache_registry.get()`**: Returns the default cache handler. However, in the code snippet, there is no default specified, so it might return None or a predefined default if set elsewhere.
+    - **`cache_registry.get("mem2")`**: Returns the cache handler associated with the key "mem2" if it were registered.
+    - **`Multiple Registrations`**: Another cache handler is registered with the key "mem2" using `cache_registry.register`(`"mem2", CacheHandlerRam()`). This allows for multiple cache handlers to be registered within the same `CacheRegistry` instance.
 
 ##### demo_core_lib.py
 
@@ -168,17 +163,13 @@ class DemoCoreLib(CoreLib):
         ...
 ```
 
- - <b>Imports:</b> The code likely imports necessary modules. Unfortunately, the imports are not shown in the snippet (from memcache import Client suggests importing a Memcached client, but the rest is omitted).
+- **`Class Definition`**: DemoCoreLib is defined, and it seems to inherit from CoreLib (assuming CoreLib is a pre-existing class).
 
-- <b>Class Definition:</b> DemoCoreLib is defined, and it seems to inherit from CoreLib (assuming CoreLib is a pre-existing class).
+ - **`Constructor`**: The `__init__` method is defined to initialize instances of DemoCoreLib. It takes a configuration dictionary (conf) as input.
 
- - <b>Constructor:</b> The __init__ method is defined to initialize instances of DemoCoreLib. It takes a configuration dictionary (conf) as input.
+- **`Configuration Handling`**: The configuration dictionary is stored as an attribute `(self.config)` of the DemoCoreLib instance.
 
-- <b>Configuration Handling:</b> The configuration dictionary is stored as an attribute (self.config) of the DemoCoreLib instance.
-
-- <b>Cache Initialization:</b>
-
-    - A CacheHandlerMemcached instance (cache_client_memcached) is created using the configuration provided in self.config.memcached. This suggests that DemoCoreLib utilizes Memcached for caching.
-    - A CacheRegistry instance (cache_registry) is created.
-    - The cache_client_memcached is registered with the key "memcached" within the cache_registry.
-    - Additional Logic: There might be additional logic or code after this snippet within the DemoCoreLib class that utilizes the registered cache handlers for caching purposes.
+- **`Cache Initialization`**:
+    - A `CacheHandlerMemcached` instance (`cache_client_memcached`) is created using the configuration provided in `self.config.memcached`. This suggests that DemoCoreLib utilizes `Memcached `for caching.
+    - A CacheRegistry instance (`cache_registry`) is created.
+    - The `cache_client_memcached` is registered with the key "memcached" within the `cache_registry`.
