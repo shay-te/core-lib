@@ -11,12 +11,12 @@ toc: false
 
 ### instantiate_config()
 
-*core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62)
+*core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62){:target="_blank"}
 
-`instantiate_config` produces a class object instance with the configuration specified in a yaml [link](https://github.com/facebookresearch/hydra/blob/740f1446189e26d3e4a3d8c6222a50560a521820/hydra/_internal/instantiate/_instantiate2.py#L148).
+`instantiate_config` produces a class object instance with the configuration specified in a yaml [link](https://github.com/facebookresearch/hydra/blob/740f1446189e26d3e4a3d8c6222a50560a521820/hydra/_internal/instantiate/_instantiate2.py#L148){:target="_blank"}.
 It is a wrapper for the hydra's `instantiate()` for creating objects, with added capabilities of checking the 
 subtype and instantiating multiple instances using the `instantiate_config_group_generator_list()` , `instantiate_config_group_generator_dict()`. 
-For more info about hydra's `instantiate()` [click here](https://hydra.cc/docs/advanced/instantiate_objects/overview/)
+For more info about hydra's `instantiate()` [click here](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"}
 
 ```python
 def instantiate_config(
@@ -30,7 +30,7 @@ def instantiate_config(
 **Arguments**
 
 - **`settings`** *`(dict)`*: A dictionary with the key `_target_` that contains the class package path and the configuration for the `_target_` class.
-Can be loaded from a YAML file using [hydra compose](https://hydra.cc/docs/1.0/experimental/compose_api/).
+Can be loaded from a YAML file using [hydra compose](https://hydra.cc/docs/1.0/experimental/compose_api/){:target="_blank"}.
 
 - **`instance_base_class`** *`(object)`*: An abstract class object (if any) used to validate if the `_target_` is a subclass of this type.
 
@@ -135,7 +135,7 @@ isinstance(customer_core_lib.db_session, SqlAlchemyConnectionRegistry)  # True
 
 ### instantiate_config_group_generator_dict()
 
-*core_lib.helpers.config_instances.instantiate_config_group_generator_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L5)
+*core_lib.helpers.config_instances.instantiate_config_group_generator_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L5){:target="_blank"}
 
 Similar to `instantiate_config` used for creating multiple instances for multiple classes.
 
@@ -151,7 +151,7 @@ def instantiate_config_group_generator_dict(
 
 ### instantiate_config_group_generator_list()
 
-*core_lib.helpers.config_instances.instantiate_config_group_generator_list()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L20)
+*core_lib.helpers.config_instances.instantiate_config_group_generator_list()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L20){:target="_blank"}
 
 Similar to `instantiate_config_group_generator_dict`, gets a `ListConfig` instead of `DictConfig` for multiple set
 

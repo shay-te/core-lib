@@ -11,7 +11,7 @@ Web Helpers provides various response functions that help the users return data 
 
 # WebHelpersUtils
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4)
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4){:target="_blank"}
 
 This class is used to set the type of web framework that will be utilized in the application i.e. `Django` or `Flask`.
 
@@ -19,7 +19,7 @@ This class is used to set the type of web framework that will be utilized in the
 
 ### init()
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L13)
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L13){:target="_blank"}
 
 Used to set the server type used in the application, users must select the server type from the `ServerType` class provided by the `WebHelpersUtils` class.
 
@@ -49,7 +49,7 @@ WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 
 ### get_server_type()
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L17)
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L17){:target="_blank"}
 
 Returns the server type set by the `init()`.
 
@@ -77,9 +77,9 @@ Depending on the server type set in `WebHelpersUtils` class, request and respons
 
 ### response_status()
 
-*core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L14)
+*core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L14){:target="_blank"}
 
-Returns empty data with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus) value provided, as a response object.
+Returns empty data with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
 
 ```python
 def response_status(status: int = HTTPStatus.OK.value):
@@ -110,9 +110,9 @@ response_status(HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with empt
 
 ### response_ok()
 
-*core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L18)
+*core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L18){:target="_blank"}
 
-Returns message `ok` with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus) value provided, as a response object.
+Returns message `ok` with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
 
 ```python
 def response_ok(status: int = HTTPStatus.OK.value):
@@ -141,9 +141,9 @@ response_ok(HTTPStatus.OK) # returns status 200 with data {'message': 'ok'}
 
 ### response_message()
 
-*core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22)
+*core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
 
-Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus) value provided, as a response object.
+Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
 
 ```python
 def response_message(message='', status: int = HTTPStatus.OK.value):
@@ -176,9 +176,9 @@ response_message('some error occurred', HTTPStatus.INTERNAL_SERVER_ERROR) # retu
 
 ### response_json()
 
-*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22)
+*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
 
-Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus) value provided, and data transformed to JSON.
+Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, and data transformed to JSON.
 
 ```python
 def response_json(data: dict, status: int = HTTPStatus.OK.value):

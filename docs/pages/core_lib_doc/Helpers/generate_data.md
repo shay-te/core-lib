@@ -13,7 +13,7 @@ This helper provides functions that generate different types of data for us.
 
 ### generate_random_string()
 
-*core_lib.helpers.generate_data.generate_random_string()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L6)
+*core_lib.helpers.generate_data.generate_random_string()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L6){:target="_blank"}
 
 Generates a random string of length `10` by default. Has options to add uppercase, numeric and special characters to the generated string too.
 
@@ -45,7 +45,7 @@ generate_random_string(10, True, True, True) # returns a string with length 10, 
 
 ### generate_email()
 
-*core_lib.helpers.generate_data.generate_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L17)
+*core_lib.helpers.generate_data.generate_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L17){:target="_blank"}
 
 Generates an Email with the provided domain name. The length of the Email ID name will be 10 characters.
 
@@ -71,7 +71,7 @@ generate_email('core-lib.com') # returns an email id => qsrhbaykhg@core-lib.com
 
 ### generate_datetime()
 
-*core_lib.helpers.generate_data.generate_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L21)
+*core_lib.helpers.generate_data.generate_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L21){:target="_blank"}
 
 Generates a `datetime` within a specified range, if no range is provided the function will generate a `datetime` between `today - 10 days` and `today + 10 days` period.
 

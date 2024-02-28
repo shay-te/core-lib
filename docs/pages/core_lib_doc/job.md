@@ -37,7 +37,7 @@ core_lib:
 
 ### load_jobs()
 
-*core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L26)
+*core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L26){:target="_blank"}
 
 Used to load instantiate all the jobs present in the config file using `instantiate_config_group_generator_dict` and start to schedule them based on the frequency.
 
@@ -69,7 +69,7 @@ Core-Lib provides `core_lib.jobs.JobScheduler` class that can schedule `core_lib
 
 # Job class
 
-*core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job.py#L4)
+*core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job.py#L4){:target="_blank"}
 
 `Job` class provide an abstract method called `run`. to create a custom Job simply do.
 
@@ -88,15 +88,15 @@ In case you want to create the job manually. pass the `CoreLib` instance using t
 
 # JobScheduler class
 
-*core_lib.jobs.job_scheduler.JobScheduler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L10)
+*core_lib.jobs.job_scheduler.JobScheduler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L10){:target="_blank"}
 
 `JobScheduler` provides 2 main functions 
 
 1. `schedule()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L22)
+*core_lib.jobs.job_scheduler.JobScheduler.schedule() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L22){:target="_blank"}
 
 2. `schedule_once()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule_once() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L27)
+*core_lib.jobs.job_scheduler.JobScheduler.schedule_once() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L27){:target="_blank"}
 
 ````python
 # Run the job, and repeat by frequency
@@ -113,7 +113,7 @@ def schedule_once(self, initial_delay: str, job: Job):
 - **`frequency`** *`(str)`*: The time interval after which `run()` function will be called.
 - **`job`** *`(Job)`*: Is the instance of `Job` class created by user that implements `run()` and `initialized()`
 
-The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse).
+The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse){:target="_blank"}.
 
 **Example**
 ```python

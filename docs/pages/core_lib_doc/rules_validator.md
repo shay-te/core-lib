@@ -84,7 +84,7 @@ class User(Base):
 
 # ValueRuleValidator
 
-*core_lib.rule_validator.rule_validator.ValueRuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L5)
+*core_lib.rule_validator.rule_validator.ValueRuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L5){:target="_blank"}
 
 `ValueRuleValidator` defines the validation rule for a specific field in the validated `dict` object
 
@@ -115,13 +115,13 @@ class ValueRuleValidator(object):
 
 # RuleValidator
 
-*core_lib.rule_validator.rule_validator.RuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L14)
+*core_lib.rule_validator.rule_validator.RuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L14){:target="_blank"}
 
 `RuleValidator` class will be configured in the constructor with the following parameters 
 
 ### RuleValidator.\_\_init\_\_
 
-*core_lib.rule_validator.rule_validator.RuleValidator.\_\_init\_\_* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L15)
+*core_lib.rule_validator.rule_validator.RuleValidator.\_\_init\_\_* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L15){:target="_blank"}
 
 ```python
 class RuleValidator(object):
@@ -148,7 +148,7 @@ class RuleValidator(object):
 
 ### RuleValidator.validate_dict
 
-*core_lib.rule_validator.rule_validator.RuleValidator.validate_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L37)
+*core_lib.rule_validator.rule_validator.RuleValidator.validate_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L37){:target="_blank"}
 
 `validate_dict` function will perform the `dict` validation and conversion 
 

@@ -9,9 +9,9 @@ toc: false
 
 # Alembic
 
-*core_lib.alembic.alembic.Alembic* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L16)
+*core_lib.alembic.alembic.Alembic* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L16){:target="_blank"}
 
-This class provides functions that wrap the [Sqlalchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/).
+This class provides functions that wrap the [Sqlalchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"}.
 
 ## Initializing
 
@@ -27,7 +27,7 @@ def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
 **Configuration**
 
 This section in the config YAML holds all the configurations for the Alembic. You can override your values in your specific `Core-Lib` config file.
-For more information, you can check the official documentation [here](https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file).
+For more information, you can check the official documentation [here](https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file){:target="_blank"}.
 
 > `script_location` property must be set to the location where the migration folder exists.
 
@@ -35,7 +35,7 @@ For more information, you can check the official documentation [here](https://al
 
 `core_lib.yaml`
 
-*core_lib.config.core_lib.yaml* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/config/core_lib.yaml#L33) 
+*core_lib.config.core_lib.yaml* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/config/core_lib.yaml#L33){:target="_blank"} 
 
 `Core-Lib` default configuration.
 
@@ -163,7 +163,7 @@ class YourCoreLib(CoreLib):
 
 ### upgrade()
 
-*core_lib.alembic.alembic.Alembic.upgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L72)
+*core_lib.alembic.alembic.Alembic.upgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L72){:target="_blank"}
 
 This function will carry out the upgrade revisions of the alembic.
 
@@ -177,7 +177,7 @@ def upgrade(self, revision: str = "head"):
 
 ### downgrade()
 
-*core_lib.alembic.alembic.Alembic.downgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L75)
+*core_lib.alembic.alembic.Alembic.downgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L75){:target="_blank"}
 
 This function will carry out the downgrade revisions of the alembic.
 
@@ -191,7 +191,7 @@ def downgrade(self, revision: str = "base"):
 
 ### history()
 
-*core_lib.alembic.alembic.Alembic.history()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L78)
+*core_lib.alembic.alembic.Alembic.history()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L78){:target="_blank"}
 
 This function returns the history of the revisions carried out.
 
@@ -211,7 +211,7 @@ INFO:core_lib.core_lib_main:revision to `list`
 
 ### create_migration()
 
-*core_lib.alembic.alembic.Alembic.create_migration()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L81)
+*core_lib.alembic.alembic.Alembic.create_migration()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L81){:target="_blank"}
 
 Will create a migration with the provided name.
 

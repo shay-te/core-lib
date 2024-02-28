@@ -12,7 +12,7 @@ toc: false
 
 ## StatusCodeException
 
-*core_lib.error_handling.status_code_exception.StatusCodeException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_exception.py#L1)
+*core_lib.error_handling.status_code_exception.StatusCodeException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_exception.py#L1){:target="_blank"}
 
 `StatusCodeException` is the primary and single exception used by any `Core-Lib`.
 
@@ -47,7 +47,7 @@ raise StatusCodeException(HTTPStatus.BAD_REQUEST, 'Input parameter is invalid')
 
 ## NotFoundErrorHandler Decorator
 
-*core_lib.error_handling.not_found_decorator.NotFoundErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/not_found_decorator.py#L11)
+*core_lib.error_handling.not_found_decorator.NotFoundErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/not_found_decorator.py#L11){:target="_blank"}
 
 
 `NotFoundErrorHandler` decorator will raise `StatusCodeException` when the decorated function is not returning anything.  
@@ -69,7 +69,7 @@ raise_expection() # will raise a StatusCodeException for parameter NOT_FOUND
 
 ## StatusCodeAssert Function
 
-*core_lib.error_handling.status_code_assert.StatusCodeAssert* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_assert.py#L9)
+*core_lib.error_handling.status_code_assert.StatusCodeAssert* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_assert.py#L9){:target="_blank"}
 
 Using `StatusCodeAssert` along with the `with` statement will capture any `AssertionError` and raise `StatusCodeException` with the status and message relevant to the application needs.
 
