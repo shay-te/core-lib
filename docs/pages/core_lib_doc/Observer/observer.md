@@ -9,13 +9,13 @@ toc: false
 
 # Observer
 
-*core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer.py#L10)
+*core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer.py#L10){:target="_blank"}
 
 Using the `Observer` class to `attach`, `detach`, `notify` to register events. 
 
 ## ObserverListener
 
-*core_lib.observer.observer_listener.ObserverListener* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_listener.py#L4)
+*core_lib.observer.observer_listener.ObserverListener* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_listener.py#L4){:target="_blank"}
 
 
 `ObserverListener` listener class to be implemented by the user. 
@@ -57,7 +57,7 @@ class MyCoreLib(CoreLib):
 
 ## Observe Decorator
 
-*core_lib.observer.observer_decorator.Observe* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_decorator.py#L7)
+*core_lib.observer.observer_decorator.Observe* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_decorator.py#L7){:target="_blank"}
 
 
 ```python

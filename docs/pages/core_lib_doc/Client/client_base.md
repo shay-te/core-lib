@@ -9,7 +9,7 @@ toc: false
 
 # Client Base
 
-*core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L5)
+*core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L5){:target="_blank"}
 
 `Client Base` class provides functions by which we can interface with the `HTTP` APIs.
 
@@ -35,7 +35,7 @@ client = ClientBase('https://example.com/')
 
 ### _get()
 
-*core_lib.client.client_base.ClientBase._get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L18)
+*core_lib.client.client_base.ClientBase._get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L18){:target="_blank"}
 
 Will make a `GET` request to the path provided. Used to fetch data.
 
@@ -64,7 +64,7 @@ print(user_data) # will print the response returned by the API.
 
 ### _put()
 
-*core_lib.client.client_base.ClientBase._put()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L21)
+*core_lib.client.client_base.ClientBase._put()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L21){:target="_blank"}
 
 Will make a `PUT` request to the path provided. Used to create or replace data.
 
@@ -93,7 +93,7 @@ print(data) # will print the response returned by the API.
 
 ### _post()
 
-*core_lib.client.client_base.ClientBase._post()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L24)
+*core_lib.client.client_base.ClientBase._post()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L24){:target="_blank"}
 
 Will make a `POST` request to the path provided. Used to send data to the backend.
 
@@ -122,7 +122,7 @@ print(data) # will print the response returned by the API.
 
 ### _delete()
 
-*core_lib.client.client_base.ClientBase._delete()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L24)
+*core_lib.client.client_base.ClientBase._delete()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L24){:target="_blank"}
 
 Will make a `DELETE` request to the path provided. Used to delete data.
 

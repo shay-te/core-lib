@@ -9,7 +9,7 @@ toc: false
 
 ## HandleException Decorator
 
-*core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34)
+*core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34){:target="_blank"}
 
 `Core-Lib`'s `web_helpers` provides `HandleException` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
 with error message and appropriate status code.
@@ -58,7 +58,7 @@ def validate_user(user_id):
 
 ## handle_exception Function
 
-*core_lib.web_helpers.decorators.handle_exception()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L13)
+*core_lib.web_helpers.decorators.handle_exception()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L13){:target="_blank"}
 
 `handle_exception` function is also being used by the `HandleException` decorator, this function is responsible for
 returning HTTP response for the raised exception.

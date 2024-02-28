@@ -32,7 +32,7 @@ class UserService(Service):
 
 ### result_to_dict() Function
 
-*core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L74)
+*core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L74){:target="_blank"}
 
 return any value passed into the `return_val` parameter as a `dict`
 

@@ -9,7 +9,7 @@ toc: false
 
 # Datetime Utility Functions
 
-*core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py)
+*core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py){:target="_blank"}
 
 `Core-Lib` has various datetime utility functions that return `datetime` values in `UTC`. These functions will also set the returned value's `hour`, `minute`, `second` and `microsecond` to `0` where ever necessary.
 
@@ -50,7 +50,7 @@ print(beginning_of_the_year) # will print "2022-01-01 00:00:00"
 
 ### reset_datetime()
 
-*core_lib.helpers.datetime_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py#L148)
+*core_lib.helpers.datetime_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py#L148){:target="_blank"}
 
 Will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
 

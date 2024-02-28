@@ -11,24 +11,24 @@ It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
 
 ## Registry
 
-*core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py)
+*core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py){:target="_blank"}
 
 `Core-Lib`  basic `Registry` class is used by most of `Core-Lib` modules
 
-1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py)
+1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py){:target="_blank"}
 
    Base basic implementation of the `Registry` class with four basic functions `register`, `unregister`, `get`, `registered`
 
 
-2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py)
+2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py){:target="_blank"}
 
 ​	Extends the `Registry` and a base class for all  `ConnectionRegistry` classes.
 
-3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py)
+3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
 
 Extends the `DefaultRegistry` and is limited to storing only `CacheHandler` instances using an `object_type` parameter
 
-4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py)
+4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py){:target="_blank"}
 
 Extends the `DefaultRegistry` and is limited to storing only `Observer` instances using an `object_type` parameter
 
@@ -36,7 +36,7 @@ Extends the `DefaultRegistry` and is limited to storing only `Observer` instance
 
 ## Default Registry
 
-*core_lib.registry.default_registry.DefaultRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L4)
+*core_lib.registry.default_registry.DefaultRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L4){:target="_blank"}
 
 `DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
 
@@ -72,7 +72,7 @@ class CustomerRegistry(DefaultRegistry):
 
 ### get()
 
-*core_lib.registry.default_registry.DefaultRegistry.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L30)
+*core_lib.registry.default_registry.DefaultRegistry.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L30){:target="_blank"}
 
 Returns an fresh entry from the registry with the specified key.
 
@@ -107,7 +107,7 @@ registry_factory.get('user_name')
 
 ### register()
 
-*core_lib.registry.default_registry.DefaultRegistry.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L12)
+*core_lib.registry.default_registry.DefaultRegistry.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L12){:target="_blank"}
 
 Register's the key and value into the registry.
 
@@ -135,7 +135,7 @@ registry_factory.register('user_name', user_name)
 
 ### unregister()
 
-*core_lib.registry.default_registry.DefaultRegistry.unregister()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L24)
+*core_lib.registry.default_registry.DefaultRegistry.unregister()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L24){:target="_blank"}
 
 Unregisters/removes an entry present in the registry.
 
@@ -160,7 +160,7 @@ registry_factory.unregister('user_name')
 
 ### registered()
 
-*core_lib.registry.default_registry.DefaultRegistry.registered()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L36)
+*core_lib.registry.default_registry.DefaultRegistry.registered()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L36){:target="_blank"}
 
 Returns all the registered entities in the registry in the type `list`.
 

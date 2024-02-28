@@ -9,13 +9,13 @@ toc: false
 
 This helper provides us with functions that help us to download and compare files.
 
-*core_lib.helpers.files* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py)
+*core_lib.helpers.files* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py){:target="_blank"}
 
 ## Functions
 
 ### download_file()
 
-*core_lib.helpers.files.download_file()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py#L12)
+*core_lib.helpers.files.download_file()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py#L12){:target="_blank"}
 
 Downloads the file provided at the specific URL and saves it by the specified name.
 
@@ -39,7 +39,7 @@ download_file('https://path.to.file.pdf', 'mypdf.pdf') # will download ans save 
 
 ### get_file_md5()
 
-*core_lib.helpers.files.get_file_md5()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py#L21)
+*core_lib.helpers.files.get_file_md5()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py#L21){:target="_blank"}
 
 Compares 2 given files of any type and returns `True` and `False` as per the outcome of the comparison.
 

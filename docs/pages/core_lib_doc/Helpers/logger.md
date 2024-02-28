@@ -9,7 +9,7 @@ toc: false
 
 # Logging
 
-*core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7)
+*core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7){:target="_blank"}
 
 `Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
 
@@ -21,7 +21,7 @@ class Logging(object):
 
 - **`message`** *`(str)`*: The message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.  
 - **`level`** *`(int)`*: Default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
-to know about the logger values [click here](https://docs.python.org/3/library/logging.html#logging-levels).
+to know about the logger values [click here](https://docs.python.org/3/library/logging.html#logging-levels){:target="_blank"}.
 
 
 >**Warning** If you wish to log data, keep in mind that there's a potential that the data might include sensitive information, we recommend to use `Keyable` class implementation.

@@ -14,7 +14,7 @@ Here we have functions to validate the different datatypes and strings. Function
 
 ### is_bool()
 
-*core_lib.helpers.validation.is_bool()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L10)
+*core_lib.helpers.validation.is_bool()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L10){:target="_blank"}
 
 Will validate if the passed argument is type `boolean` or not.
 
@@ -42,7 +42,7 @@ print(is_bool("string")) # False
 
 ### is_float()
 
-*core_lib.helpers.validation.is_float()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L18)
+*core_lib.helpers.validation.is_float()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L18){:target="_blank"}
 
 Will validate if the passed argument is type `float` or not. 
 
@@ -69,7 +69,7 @@ print(is_float("string")) # False
 
 ### is_int()
 
-*core_lib.helpers.validation.is_int()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L28)
+*core_lib.helpers.validation.is_int()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L28){:target="_blank"}
 
 Will validate if the passed argument is type `int` or not. 
 
@@ -96,7 +96,7 @@ print(is_int("string")) # False
 
 ### is_email()
 
-*core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L41)
+*core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L41){:target="_blank"}
 
 Will validate if the passed string is a valid `email` or not. 
 
@@ -123,7 +123,7 @@ print(is_email("<asd>>@strange.com")) # False
 
 ### is_int_enum()
 
-*core_lib.helpers.validation.is_int_enum()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L48)
+*core_lib.helpers.validation.is_int_enum()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L48){:target="_blank"}
 
 Will validate if the passed value is present in the `enum`. 
 
@@ -158,7 +158,7 @@ print(is_int_enum(11, MyEnum)) # False
 
 ### is_url()
 
-*core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L55)
+*core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L55){:target="_blank"}
 
 Will validate if the passed value is an `url`. 
 

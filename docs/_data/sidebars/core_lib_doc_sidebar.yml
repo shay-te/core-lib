@@ -21,10 +21,6 @@ entries:
                   url: /project_structure.html
                   output: web
 
-                - title: Testing Core-Lib
-                  url: /test_core_lib.html
-                  output: web
-
           - title: Core-Lib
             output: web
             folderitems:
@@ -35,10 +31,6 @@ entries:
                 - title: Registry
                   url: /registry.html
                   output: web
-              
-                - title: Cache
-                  url: /cache.html
-                  output: web
                 
                 - title: Result to Dict
                   url: /result_to_dict.html
@@ -48,12 +40,22 @@ entries:
                   url: /rules_validator.html
                   output: web
                 
-                - title: Job
-                  url: /job.html
-                  output: web
-                
                 - title: Command Line
                   url: /cli.html
+                  output: web
+
+          - title: Cache
+            output: web
+            folderitems:
+                - title: Cache
+                  url: /cache.html
+                  output: web
+
+          - title: Job
+            output: web
+            folderitems:
+                - title: Job
+                  url: /job.html
                   output: web
 
           - title: Connection
@@ -101,7 +103,7 @@ entries:
                   url: /client_base.html
                   output: web
         
-          - title: CLI
+          - title: CLI Alembic
             output: web
             folderitems:
                 - title: Alembic
@@ -135,7 +137,7 @@ entries:
                   output: web
 
                 - title: Generate Data
-                  url: /enerate_data.html
+                  url: /generate_data.html
                   output: web
 
                 - title: Instantiate Config
@@ -152,6 +154,13 @@ entries:
 
                 - title: Validation Helpers
                   url: /validation.html
+                  output: web
+          
+          - title: Testing Core-lib
+            output: web
+            folderitems:
+                - title: Testing Core-lib
+                  url: /test_core_lib.html
                   output: web
 
           - title: Observer
