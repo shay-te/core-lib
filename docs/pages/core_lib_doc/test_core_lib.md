@@ -13,7 +13,7 @@ Let's understand how `Core-Lib` is initialized and tested and how to integrate i
 ## DataAccess
 The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
 
-`user_data_access.py`
+### `user_data_access.py`
 ```python
 from http import HTTPStatus
 
@@ -32,7 +32,7 @@ class UserDataAccess(CRUDDataAccess):
 ## Service 
 The `Service` layer is a facade of the `DataAccess` layer and connections. consisting of `API` functions that will handle business logic, data transformation, and caching.
 
-`user_service.py`
+### `user_service.py`
 ```python
 from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
@@ -58,7 +58,7 @@ class UserService(Service):
         return self.data_access.delete(user_id)
 ```
 ## Config
-`user_core_lib.yaml`
+### `user_core_lib.yaml`
 ```yaml
 # @package _global_
 core_lib:
@@ -91,7 +91,7 @@ core_lib:
 ## Main Class
 Here you'll have all the `DataAccess`, `Service`,  `Connection`, and `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
-`user_core_lib.py`
+### `user_core_lib.py`
 ```python
 from omegaconf import DictConfig
 
@@ -135,7 +135,7 @@ For initializing our `Core-Lib` and mocking the Client we will make use of a tes
 
 
 This config will override the `UserClient` config with the `UserClientMock`.
-`test_config_override.yaml`
+### `test_config_override.yaml`
 ```yaml
 # @package _global_
 core_lib:
@@ -156,7 +156,7 @@ core_lib:
         base_url: https://example.com/
 ```
 
-`test_config.yaml`
+### `test_config.yaml`
 ```yaml
 defaults:
  - user_core_lib
@@ -168,7 +168,7 @@ defaults:
 
 In your test file
 
-`test.py`
+### `test.py`
 ```python
 import unittest
 
@@ -243,7 +243,7 @@ This is a basic usage of how to initialize and test a `Core-Lib` and write `Data
 
 - In this case, we can `create a singleton core-lib instance and use it to test all services`.
 
-`utils.py`
+### `utils.py`
 ```python
 import os
 import threading
@@ -324,7 +324,7 @@ def sync_create_start_core_lib() -> UserCoreLib:
 - CustomerService
 - NotificationService
 
-`test_user.py`
+### `test_user.py`
 ```python
 import unittest
 
@@ -342,7 +342,7 @@ class TestCoreLib(unittest.TestCase):
         pass
 ```
 
-`test_customer.py`
+### `test_customer.py`
 ```python
 import unittest
 
@@ -360,7 +360,7 @@ class TestCoreLib(unittest.TestCase):
         pass
 ```
 
-`test_notification.py`
+### `test_notification.py`
 ```python
 import unittest
 

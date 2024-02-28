@@ -15,8 +15,8 @@ toc: false
 `Core-Lib` is a framework for creating Python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
 
 # How Core-Lib?
-- `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 
-- `Core-Lib` can discover and merge other `Core-Lib` configurations. 
+- `Core-Lib` is a plugin and plug-able to other Core-Libs. 
+- `Core-Lib` can discover and merge other `Core-Lib's` configurations. 
 - `Core-Lib` provides basic/simple/loose tools. 
 - `Core-Lib` is not delegating third-party libraries. 
 - `Core-Lib` unit-test the entire library.
@@ -27,9 +27,9 @@ toc: false
 #### **Code Chaos**:
 Ending the cycle of repetitive code creation, ensuring longevity through structured development, and preventing code morphing with each developer's touch.
 #### **Tight Coupling**:
-Minimizing dependencies by using flexible containers and allowing easy addition or removal of components. This ensures smoother integration and maintenance of the system.
+Minimizing reliance on third-party dependencies by providing its own unique tools for managing multiple dependencies, enabling easy addition or removal of components. Ensuring smoother integration and maintenance of the system.
 #### **Testing Trouble**:
-Unit tests your entire application, avoiding complicated environment setups and dependencies.
+Unit testing of your entire application, avoiding the need for complicated environments, setups, deployments, dependencies, and steep learning curves. Optimizing the testing process and saving time.
 #### **Sluggish Deployment**:
 Core-Lib is just code that can be run and tested easily anywhere.
 
@@ -45,12 +45,9 @@ Core-Lib is just code that can be run and tested easily anywhere.
 
     python -m unittest discover
 
-- **python -m unittest**: This invokes Python's built-in [unittest](https://docs.python.org/3/library/unittest.html#module-unittest){:target="_blank"} module as a script. 
-- **discover**: This is a command provided by the unittest module for automatically discovering and running tests. When you run [discover](https://docs.python.org/3/library/unittest.html#test-discovery){:target="_blank"}, Python searches for all test modules (files starting with test_ or ending with _test.py) within the current directory and its subdirectories, loads them, and runs all test cases they contain.
-
 ## Example
 
-`your_core_lib.yaml`
+### `your_core_lib.yaml`
 
 ```yaml
 # @package _global_
@@ -68,7 +65,7 @@ core_lib:
   ...
 ```
 #### `your_core_lib.yaml` Explained:
-**your_core_lib.yaml is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/){:target="_blank"}**:
+**`your_core_lib.yaml` is the setting for your entire Core-Lib library. The above example will show how to configure core-lib to connect to a database using [SQLAlchemy](https://docs.sqlalchemy.org/en/20/){:target="_blank"}**:
 
 - **`log_queries`**: Default `False`, `log_queries` represent and control the [echo flag](https://docs.sqlalchemy.org/en/20/core/engines.html#more-on-the-echo-flag){:target="_blank"} in `sqlalchemy`.
 
@@ -93,7 +90,7 @@ data:
       file: ${oc.env:POSTGRES_DB}
 ```
 
-`your_core_lib.py`
+### `your_core_lib.py`
 
 ```python
 from core_lib.core_lib import CoreLib
@@ -107,12 +104,12 @@ class YourCoreLib(CoreLib):
         ...
 ```
 #### `your_core_lib.py` Explained:
-**In your_core_lib.py, a `custom CoreLib class` and a `SqlAlchemyConnectionRegistry class` are defined to manage database connections.**
+**In `your_core_lib.py`, a `custom CoreLib class` and a `SqlAlchemyConnectionRegistry class` are defined to manage database connections.**
 
 #### Defining a new class YourCoreLib that inherits from CoreLib.
-  - Defining an __init__ method for YourCoreLib that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from [omegaconf](https://omegaconf.readthedocs.io/en/2.3_branch/index.html){:target="_blank"} that used by [Hydra](https://hydra.cc/docs/intro/){:target="_blank"}.
+  - Defining an `__init__` method for `YourCoreLib` that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from [omegaconf](https://omegaconf.readthedocs.io/en/2.3_branch/index.html){:target="_blank"} that used by [Hydra](https://hydra.cc/docs/intro/){:target="_blank"}.
   - Calling the parent class CoreLib's `__init__` method using `CoreLib.__init__(self)` to initialize the base class.
-    - Mark core-lib started
+    - Mark core-lib as started
     - Enable the use of core-lib observers
   - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from `self.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
   - Initializing a `UserDataAccess` class responsible for accessing user data from the database, passing the `db_connection` object to it.
@@ -130,11 +127,11 @@ if __name__ == '__main__':
 	main()
 ```
 #### `From Main` Explained:
-**Using the [Hydra](https://hydra.cc/docs/intro/){:target="_blank"} library to manage configuration for your script.**
+**Using the [Hydra](https://hydra.cc/docs/intro/){:target="_blank"} library to manage configuration for your Core-Lib library.**
 
 #### Decorator: @hydra.main:
-- This decorator tells `Hydra` to use the specified `YAML` configuration file (`core_lib_config.yaml`) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your script.
-- **`def main(cfg)`**: This is the main function of your script, which takes a `cfg` argument. This argument will hold the configuration provided by `Hydra`.
+- This decorator tells `Hydra` to use the specified `YAML` configuration file (`core_lib_config.yaml`) located in the current directory ('.') to configure your application. It's a convenient way to manage configurations for your Core-Lib library.
+- **`def main(cfg)`**: This is the main function of your Core-Lib library, which takes a `cfg` argument. This argument will hold the configuration provided by `Hydra`.
 #### Inside the main function:
   - **`your_core_lib = YourCoreLib(cfg)`**: This line initializes an instance of the `YourCoreLib` class (defined earlier) using the configuration `cfg` provided by `Hydra`. This means that your application will use the configuration parameters specified in `core_lib_config.yaml` to set up the `YourCoreLib` instance.
 
@@ -181,7 +178,7 @@ class TestCrud(unittest.TestCase):
   - Then, it retrieves the user using `self.your_core_lib.user.get()` method with the user's ID obtained from the creation step.
   - Finally, it asserts that the retrieved user matches the created user.
 
-##### **your_core_lib_instance.py**
+### `your_core_lib_instance.py`
 
 ```python
 class YourCoreLibInstance(object):
@@ -209,7 +206,7 @@ class YourCoreLibInstance(object):
 
 ### Flask
 
-##### **view_user.py**
+### `view_user.py`
 
 ```python
 from flask import request, Flask
@@ -246,7 +243,7 @@ if __name__ == "__main__":
 
 ```
 #### Code Explained:
-**Defining API endpoints using `Flask` (or a similar framework) to handle requests related to updating a user. **
+**Defining API endpoints using `Flask` (or a similar framework) to handle requests related to updating a user.**
 
 - **Importing necessary functions from `core_lib.web_helpers.request_response_helpers`**:
   - **`request_body_dict`**: A function that extracts and parses the request body into a dictionary.
@@ -269,7 +266,7 @@ if __name__ == "__main__":
 
 ### Django
 
-##### **view_user.py**
+### `view_user.py`
 
 ```python
 from core_lib.web_helpers.request_response_helpers import request_body_dict, response_ok, response_status

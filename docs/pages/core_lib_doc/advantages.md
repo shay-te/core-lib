@@ -11,7 +11,7 @@ toc: false
 
 
 
-#### It can be deployed anywhere.
+#### Robust Deployment.
 
 Running/Debugging `Core-Lib` is as simple as running the `__main__` function.
 `Core-Lib` class instance can be placed after any interface such as `UnitTest`, `WEB`, `Microservice`, And more.

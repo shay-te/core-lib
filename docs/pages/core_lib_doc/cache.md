@@ -11,7 +11,7 @@ The `Cache` decorator handles the `get`,` set`, and `delete` cache operations au
 
 ### Example:
 
-##### cache_example.py
+### `cache_example.py`
 
 ```python
 CACHE_KEY_FOO = 'test_cache_param_{foo_id}'
@@ -146,7 +146,7 @@ cache_registry.get() # returns None. Multiple client registered with no default
     - **`cache_registry.get("mem2")`**: Returns the cache handler associated with the key "mem2" if it were registered.
     - **`Multiple Registrations`**: Another cache handler is registered with the key "mem2" using `cache_registry.register`(`"mem2", CacheHandlerRam()`). This allows for multiple cache handlers to be registered within the same `CacheRegistry` instance.
 
-##### demo_core_lib.py
+### `demo_core_lib.py`
 
 ```python
 from memcache import Client
