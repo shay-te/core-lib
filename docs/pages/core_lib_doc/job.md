@@ -145,3 +145,8 @@ scheduler.stop()# stops the ongoing job schedule
 # Core-Lib Instance
 
 When a `Job` is run by the configuration file, it will automatically populate the local `core_lib` variable of a job 
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/cache.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/connection.html">Next >></a></button>
+</div>

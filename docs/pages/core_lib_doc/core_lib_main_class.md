@@ -52,3 +52,8 @@ class YourCoreLib(CoreLib):
 ```
 #### Code Explained:
 -The `__init__` method of the parent class CoreLib using `CoreLib.__init__(self)`
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/project_structure.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/registry.html">Next >></a></button>
+</div>

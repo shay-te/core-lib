@@ -11,7 +11,7 @@ toc: false
 
 ### Example
 
-##### user_data_access.py
+### `user_data_access.py`
 
 ```python
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
@@ -60,7 +60,7 @@ class UserDataAccess(DataAccess):
 
 
 
-##### user.py
+### `user.py`
 
 ```python
 from sqlalchemy import Column, Date, Integer, VARCHAR, BOOLEAN, LargeBinary
@@ -177,3 +177,7 @@ class RuleValidator(object):
 
 *`(dict)`*: Validated dict.
 
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/result_to_dict.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/migrations.html">Next >></a></button>
+</div>

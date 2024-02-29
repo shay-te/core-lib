@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Logging
-
 *core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7){:target="_blank"}
 
 `Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
@@ -60,3 +58,8 @@ customer.get_data(customer_id) # logs ["DEBUG:Customer.get_data:get_data_5 logs"
 # For not logging sensitive data
 customer.login_data(CustomerCreds('jon_doe')) # logs ['ERROR:Customer.login_data:login_data_CustomerCreds(u_name:jon_doe)']
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/instantiate_config.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/strings.html">Next >></a></button>
+</div>

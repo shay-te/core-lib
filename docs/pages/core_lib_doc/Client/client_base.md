@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Client Base
-
 *core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L5){:target="_blank"}
 
 `Client Base` class provides functions by which we can interface with the `HTTP` APIs.
@@ -148,3 +146,8 @@ client = ClientBase('https://example.com/')
 data = client._delete('user/1')
 print(data) # will print the response returned by the API.
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/soft_delete.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/error_handler.html">Next >></a></button>
+</div>

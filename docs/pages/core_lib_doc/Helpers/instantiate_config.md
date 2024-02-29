@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Instantiate Config
-
 ### instantiate_config()
 
 *core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62){:target="_blank"}
@@ -164,3 +162,8 @@ def instantiate_config_group_generator_list(
     params: dict = {},
 ):
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/generate_data.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/logger.html">Next >></a></button>
+</div>

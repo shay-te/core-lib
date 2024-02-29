@@ -95,3 +95,8 @@ from datetime import datetime, timedelta
 generate_datetime() # returns an datetime with from_date set to today - 10 days and to_date set to today + 10 days.
 generate_datetime(datetime.today(), datetime.today() + timedelta(days=10)) # returns an email id => qsrhbaykhg@core-lib.com
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/function_utils.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/instantiate_config.html">Next >></a></button>
+</div>

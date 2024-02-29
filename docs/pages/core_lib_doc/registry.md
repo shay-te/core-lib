@@ -174,3 +174,7 @@ def registered(self):
 registry_factory.registered()
 ```
 
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/core_lib_main_class.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/result_to_dict.html">Next >></a></button>
+</div>

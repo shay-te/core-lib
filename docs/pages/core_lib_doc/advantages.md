@@ -7,11 +7,8 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Advantages
 
-
-
-#### It can be deployed anywhere.
+#### Robust Deployment.
 
 Running/Debugging `Core-Lib` is as simple as running the `__main__` function.
 `Core-Lib` class instance can be placed after any interface such as `UnitTest`, `WEB`, `Microservice`, And more.
@@ -50,3 +47,7 @@ With `Core-Lib`, it's easy to break, separate or change an existing product into
 
 Architecture, code structure, problem resolution, state of mind, approach, knowledge, and experience will be almost the same from one `Core-Lib` to another.
 
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/index.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/project_structure.html">Next >></a></button>
+</div>

@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Datetime Utility Functions
-
 *core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py){:target="_blank"}
 
 `Core-Lib` has various datetime utility functions that return `datetime` values in `UTC`. These functions will also set the returned value's `hour`, `minute`, `second` and `microsecond` to `0` where ever necessary.
@@ -76,3 +74,8 @@ from core_lib.helpers.datetime_utils import reset_datetime
 formatted_datetime = reset_datetime(datetime.datetime.utcnow())
 print(formatted_datetime) #2022-02-07 00:00:00
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/data_transform_helpers.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/files.html">Next >></a></button>
+</div>

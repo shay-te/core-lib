@@ -1145,6 +1145,18 @@ div.box.box1 {
         font-size: 14px;
     }
 
+.pageNext-btn {
+    float:right;
+    border: none;
+    background: none;
+}
+
+.pagePrevious-btn {
+    float:left;
+    border: none;
+    background: none;
+} 
+
 /*
  * Let's target IE to respect aspect ratios and sizes for img tags containing SVG files
  *

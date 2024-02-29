@@ -7,7 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Validation Helpers
 Here we have functions to validate the different datatypes and strings. Functions will return `boolean` values based on the validation.
 
 ## Functions
@@ -183,3 +182,8 @@ from core_lib.helpers.validation import is_url
 print(is_url('https://google.com')) # True
 print(is_url('not a.url')) # False
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/strings.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/test_core_lib.html">Next >></a></button>
+</div>

@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Alembic
-
 *core_lib.alembic.alembic.Alembic* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L16){:target="_blank"}
 
 This class provides functions that wrap the [Sqlalchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"}.
@@ -222,3 +220,8 @@ def create_migration(self, migration_name):
 **Arguments**
 
 - **`migration_name`**: Name of the migration to create.
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/data_layers.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/crud.html">Next >></a></button>
+</div>

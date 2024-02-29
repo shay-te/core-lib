@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# String Helpers 
-
 In string helpers we have functions that will convert different naming conventions.
 
 ## Functions
@@ -93,3 +91,8 @@ from core_lib.helpers.string import any_to_pascal
 pascal_case = any_to_pascal("this_is_pascal")
 print(pascal_case) # "ThisIsPascal"
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/logger.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/validation.html">Next >></a></button>
+</div>
