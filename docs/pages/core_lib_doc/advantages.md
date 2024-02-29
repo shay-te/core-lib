@@ -7,9 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Advantages
-
-
 
 #### Robust Deployment.
 
