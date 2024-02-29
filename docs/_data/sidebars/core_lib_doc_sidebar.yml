@@ -39,9 +39,16 @@ entries:
                 - title: Rules Validator
                   url: /rules_validator.html
                   output: web
-                
-                - title: Command Line
-                  url: /cli.html
+
+          - title: Command Line
+            output: web
+            folderitems:
+                - title: Migrations
+                  url: /migrations.html
+                  output: web
+
+                - title: Generation
+                  url: /generation.html
                   output: web
 
           - title: Cache
@@ -88,6 +95,10 @@ entries:
                   url: /data_layers.html
                   output: web
 
+                - title: Alembic Migrations
+                  url: /alembic.html
+                  output: web
+
                 - title: CRUD Data Access
                   url: /crud.html
                   output: web
@@ -102,13 +113,6 @@ entries:
                 - title: Client Base
                   url: /client_base.html
                   output: web
-        
-          - title: CLI Alembic
-            output: web
-            folderitems:
-                - title: Alembic
-                  url: /alembic.html
-                  output: web
 
           - title: Error Handling
             output: web
@@ -120,7 +124,7 @@ entries:
           - title: Helpers
             output: web
             folderitems:
-                - title: Helpers
+                - title: Data Transform Helpers
                   url: /data_transform_helpers.html
                   output: web
 
@@ -181,7 +185,7 @@ entries:
                   url: /user_security.html
                   output: web
 
-          - title: handle_exception Decorator
+          - title: Web Helpers
             output: web
             folderitems:
                 - title: HandleException Decorator

@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-## HandleException Decorator
-
 *core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34){:target="_blank"}
 
 `Core-Lib`'s `web_helpers` provides `HandleException` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
@@ -99,3 +97,7 @@ def validate_user(user_id):
 handle_exception(validate_user(1))# function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
 ```
 
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/user_security.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/web.html">Next >></a></button>
+</div>

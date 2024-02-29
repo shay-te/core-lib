@@ -15,7 +15,7 @@ toc: false
 `Core-Lib` is a framework for creating Python applications as libraries. It is essentially a `POPO` (Plain Old Python Object) that serves as the central wrapper or facade for your application.
 
 # How Core-Lib?
-- `Core-Lib` is a plugin and plug-able to other Core-Libs. 
+- `Core-Lib` is a plugin and plug-able to other `Core-Libs`. 
 - `Core-Lib` can discover and merge other `Core-Lib's` configurations. 
 - `Core-Lib` provides basic/simple/loose tools. 
 - `Core-Lib` is not delegating third-party libraries. 
@@ -27,7 +27,7 @@ toc: false
 #### **Code Chaos**:
 Ending the cycle of repetitive code creation, ensuring longevity through structured development, and preventing code morphing with each developer's touch.
 #### **Tight Coupling**:
-Minimizing reliance on a single third-party dependencies that provide all tools. Core-lib provides its own unique tools to work with multiple dependencies that are easy to add or remove. Ensuring smoother integration and maintenance of the system.
+Minimizing reliance on a single third-party dependency. Core-lib provides its own unique tools to work with multiple dependencies that are easy to add or remove. Ensuring smoother integration and maintenance of the system.
 #### **Testing Trouble**:
 Unit testing of your entire application, avoiding the need for complicated environments, setups, deployments, dependencies, and steep learning curves. Optimizing the testing process and saving time.
 #### **Sluggish Deployment**:
@@ -335,3 +335,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## License
 
 This project is licensed under the MIT - see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE){:target="_blank"} file for details.
+
+<div style="margin-top:2em">
+  <button class="pageNext-btn"><a href="/advantages.html">Next >></a></button>
+</div>

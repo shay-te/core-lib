@@ -177,3 +177,7 @@ class RuleValidator(object):
 
 *`(dict)`*: Validated dict.
 
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/result_to_dict.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/migrations.html">Next >></a></button>
+</div>

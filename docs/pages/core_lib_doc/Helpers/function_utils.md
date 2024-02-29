@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Function Utils
-
 These functions provide a unified way to retrieve or format a function's parameters.
 
 ## Functions
@@ -158,3 +156,8 @@ def function_to_format(custom_key):
 formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe'))
 print(formatted_parameters)  # User(id:4, name:Rosa Doe)
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/files.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/generate_data.html">Next >></a></button>
+</div>

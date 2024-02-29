@@ -377,3 +377,7 @@ class TestCoreLib(unittest.TestCase):
         # testing everything realted to notification_service
         pass
 ```
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/validation.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/observer.html">Next >></a></button>
+</div>

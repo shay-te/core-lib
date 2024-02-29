@@ -27,7 +27,7 @@ toc: false
     |       |        |	    └─── <a href="#user">user</a> # group user data access
     |       |        |	    |    └─── <a href="#user_data_access-py">user_data_access.py</a>
     |       |        |	    |    └─── <a href="#user_list_data_access-py">user_list_data_access.py</a>
-    |       |        |	    └─── some_data_access.py 
+    |       |        |	    └─── <a href="#some_data_access-py">some_data_access.py</a>
     |       |        └─── <a href="#service">service</a> # expost the core-lib services
     |       |               └─── <a href="#user-1">user</a> # group user services
     |       |               |    └─── <a href="#user_service-py">user_service.py</a>
@@ -48,16 +48,16 @@ toc: false
 ## Core-Lib Project Directory:
 This root directory serves as the foundational structure for the `Core-lib` project, encompassing all its project code and resources. It is a standard way to manage any Python project. Here, developers can find the core files and directories essential for building, configuring, and extending the functionality of the `Core-lib`.
 
-- <h3>Core-Lib Main Code Directory:</h3>
+<h3>Core-Lib Main Code Directory:</h3>
 This directory contains the main source code and modules of `Core-lib`, serving as the heart of the library. Developers will find key Python files and subdirectories containing the core functionalities and implementations that power the `Core-lib` framework.
 
-- <h3>Tests:</h3>
+<h3>Tests:</h3>
 This directory contains the unit tests for `Core-lib`, allowing developers to verify the correctness and integrity of the library's functionalities. It includes test cases and configurations necessary for testing various components and features of the `Core-lib` framework.
 
 ## Config:
 This directory contains your `Core-lib` configuration file crucial for configuring and customizing `Core-lib` to suit specific requirements.
 
-- <h3>Core.lib.yaml:</h3>
+<h3>Core.lib.yaml:</h3>
 A main configuration file containing settings specific to `Core-lib`, facilitating easy customization and configuration of core functionalities.
 
 ## Data Layers:
@@ -114,3 +114,8 @@ Another client definition catering to interactions with a different external ser
 
 # app_core_lib.py:
 This main `Core-lib` file serves as the entry point for the entire library, orchestrating interactions between various components and providing essential functionalities to external modules or applications.
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/advantages.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/core_lib_main_class.html">Next >></a></button>
+</div>

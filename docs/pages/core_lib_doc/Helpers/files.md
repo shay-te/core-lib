@@ -61,3 +61,8 @@ from core_lib.helpers.files import get_file_md5
 
 get_file_md5(path_to_file) # returns md5 hash string of the file
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/datetime_utils.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/function_utils.html">Next >></a></button>
+</div>

@@ -7,8 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Observer
-
 *core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer.py#L10){:target="_blank"}
 
 Using the `Observer` class to `attach`, `detach`, `notify` to register events. 
@@ -89,3 +87,8 @@ class UserDataAccess(DataAccess):
             session.query(User).filter(User.id == user_id).update(update)
 
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/test_core_lib.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/core_lib_listener.html">Next >></a></button>
+</div>

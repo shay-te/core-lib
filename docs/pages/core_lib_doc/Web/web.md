@@ -207,3 +207,7 @@ response_json({'username': 'Jon Doe'}, HTTPStatus.OK) # returns status 200 with 
 response_json({'error': 'Server Error'}, HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with data {'error': 'Server Error'}
 response_json({'error': 'file not found'}, HTTPStatus.NOT_FOUND) # returns status 404 with data {'error': 'file not found'}
 ```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/handle_exceptions.html"><< Previous</a></button>
+</div>

@@ -7,7 +7,6 @@ folder: core_lib_doc
 toc: false
 ---
 
-# Error Handlers
 `Core-Lib` error handlers contain decorator and function which can raise exceptions for various scenarios.
 
 ## StatusCodeException
@@ -82,3 +81,55 @@ with StatusCodeAssert(status_code=500, message="User must be active"):
     assert user_status == 'active' # will raise an AssertionError because the status is inactive.
 ```
 
+## CoreLibInitException Function
+*core_lib.error_handling.core_lib_init_exception.CoreLibInitException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/core_lib_init_exception.py){:target="_blank"}
+
+`CoreLibInitException` decorator handles any exception raised while initialization of `core-lib`.
+
+**Example**
+ ```python
+class CoreLibInitException(Exception):
+    pass
+```
+
+## DuplicateErrorHandler Function
+*core_lib.error_handling.duplicate_error_handler.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
+
+`DuplicateErrorHandler` decorator will raise `StatusCodeException` when the decorated function adds the same value in the column of the database table which accepts unique values only.
+
+**Example**
+ ```python
+import logging
+from functools import wraps
+from http import HTTPStatus
+
+from sqlalchemy import exc
+
+from core_lib.error_handling.status_code_exception import StatusCodeException
+from core_lib.helpers.func_utils import build_function_key
+
+logger = logging.getLogger(__name__)
+
+
+class DuplicateErrorHandler(object):
+    def __init__(self, message: str = None):
+        self.message = message
+
+    def __call__(self, func, *args, **kwargs):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exc.IntegrityError as e:
+                logger.debug(f'DuplicateErrorHandler for function `{func.__qualname__}`.')
+                exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
+                raise StatusCodeException(HTTPStatus.CONFLICT, exception_message)
+
+        return _wrapper
+
+```
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/client_base.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next >></a></button>
+</div>

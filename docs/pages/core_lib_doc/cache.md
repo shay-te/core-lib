@@ -173,3 +173,8 @@ class DemoCoreLib(CoreLib):
     - A `CacheHandlerMemcached` instance (`cache_client_memcached`) is created using the configuration provided in `self.config.memcached`. This suggests that DemoCoreLib utilizes `Memcached `for caching.
     - A CacheRegistry instance (`cache_registry`) is created.
     - The `cache_client_memcached` is registered with the key "memcached" within the `cache_registry`.
+
+<div style="margin-top:2em">
+    <button class="pagePrevious-btn"><a href="/generation.html"><< Previous</a></button>
+    <button class="pageNext-btn"><a href="/job.html">Next >></a></button>
+</div>
