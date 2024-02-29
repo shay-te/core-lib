@@ -1,5 +1,4 @@
 import enum
-from core_lib.helpers.string import camel_to_snake
 
 
 def get_dict_attr(obj: dict, path: str, default=None):
