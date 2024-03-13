@@ -23,20 +23,20 @@ class TestWebHelpers(unittest.TestCase):
         resp_status = response_status(HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(resp_status.status_code, 500)
         self.assertEqual(resp_status.status, "500 INTERNAL SERVER ERROR")
-        resp_status_data = resp_status.data.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         resp_status = response_status(HTTPStatus.OK)
         self.assertEqual(resp_status.status_code, 200)
         self.assertEqual(resp_status.status, "200 OK")
-        resp_status_data = resp_status.data.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         resp_status = response_status(HTTPStatus.NOT_FOUND)
         self.assertEqual(resp_status.status_code, 404)
         self.assertEqual(resp_status.status, "404 NOT FOUND")
-        resp_status_data = resp_status.data.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         # Response Ok
         resp_ok = response_ok()
@@ -90,6 +90,21 @@ class TestWebHelpers(unittest.TestCase):
         self.assertIsInstance(resp_json_data, dict)
         self.assertEqual(resp_json_data['error'], 'file not found')
 
+        resp_json = response_json({})
+        resp_json_data = json.loads(resp_json.data.decode('utf-8'))
+        self.assertIsInstance(resp_json_data, dict)
+        self.assertEqual(resp_json_data, {})
+
+        resp_json = response_json([])
+        resp_json_data = json.loads(resp_json.data.decode('utf-8'))
+        self.assertIsInstance(resp_json_data, list)
+        self.assertEqual(resp_json_data, [])
+
+        resp_json = response_json(None)
+        resp_json_data = resp_json.data.decode('utf-8')
+        self.assertIsInstance(resp_json_data, str)
+        self.assertEqual(resp_json_data, '')
+
     def test_web_utils_django(self):
         web_util = WebHelpersUtils()
 
@@ -99,18 +114,18 @@ class TestWebHelpers(unittest.TestCase):
         # Response Status
         resp_status = response_status(HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(resp_status.status_code, 500)
-        resp_status_data = resp_status.content.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         resp_status = response_status(HTTPStatus.OK)
         self.assertEqual(resp_status.status_code, 200)
-        resp_status_data = resp_status.content.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         resp_status = response_status(HTTPStatus.NOT_FOUND)
         self.assertEqual(resp_status.status_code, 404)
-        resp_status_data = resp_status.content.decode('utf-8')
-        self.assertEqual(resp_status_data, '')
+        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
+        self.assertEqual(resp_status_data, {})
 
         # Response Ok
         resp_ok = response_ok()
@@ -156,3 +171,18 @@ class TestWebHelpers(unittest.TestCase):
         resp_json_data = json.loads(resp_json.content.decode('utf-8'))
         self.assertIsInstance(resp_json_data, dict)
         self.assertEqual(resp_json_data['error'], 'file not found')
+
+        resp_json = response_json({})
+        resp_json_data = json.loads(resp_json.content.decode('utf-8'))
+        self.assertIsInstance(resp_json_data, dict)
+        self.assertEqual(resp_json_data, {})
+
+        resp_json = response_json([])
+        resp_json_data = json.loads(resp_json.content.decode('utf-8'))
+        self.assertIsInstance(resp_json_data, list)
+        self.assertEqual(resp_json_data, [])
+
+        resp_json = response_json(None)
+        resp_json_data = resp_json.content.decode('utf-8')
+        self.assertIsInstance(resp_json_data, str)
+        self.assertEqual(resp_json_data, '')

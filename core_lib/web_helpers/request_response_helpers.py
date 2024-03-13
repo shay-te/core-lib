@@ -4,6 +4,8 @@
 import json
 from http import HTTPStatus
 from http.client import responses
+from typing import Union
+
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.helpers.constants import MediaType, HttpHeaders
 
@@ -37,7 +39,7 @@ def response_message(message='', status: int = HTTPStatus.OK.value):
     return response_json(data, status)
 
 
-def response_json(data: dict, status: int = HTTPStatus.OK.value):
+def response_json(data: Union[dict, list], status: int = HTTPStatus.OK.value):
     return generate_response(data, status, MediaType.APPLICATION_JSON)
 
 
@@ -47,7 +49,7 @@ def response_download_content(content, media_type: MediaType, file_name: str):
 
 
 def generate_response(data, status, media_type: MediaType, headers: dict = {}):
-    if not data:
+    if data is None:
         data = b''
     elif media_type == MediaType.APPLICATION_JSON:
         data = json.dumps(data)
