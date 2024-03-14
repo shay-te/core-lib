@@ -14,7 +14,7 @@ from flask import Flask
 
 
 def response_status(status: int = HTTPStatus.OK.value):
-    return response_json({}, status)
+    return generate_response(None, status)
 
 
 def response_ok(status: int = HTTPStatus.OK.value):
@@ -48,7 +48,7 @@ def response_download_content(content, media_type: MediaType, file_name: str):
     return generate_response(content, HTTPStatus.OK.value, media_type, headers)
 
 
-def generate_response(data, status, media_type: MediaType, headers: dict = {}):
+def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML, headers: dict = {}):
     if data is None:
         data = b''
     elif media_type == MediaType.APPLICATION_JSON:
