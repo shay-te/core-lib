@@ -23,20 +23,20 @@ class TestWebHelpers(unittest.TestCase):
         resp_status = response_status(HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(resp_status.status_code, 500)
         self.assertEqual(resp_status.status, "500 INTERNAL SERVER ERROR")
-        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.data.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         resp_status = response_status(HTTPStatus.OK)
         self.assertEqual(resp_status.status_code, 200)
         self.assertEqual(resp_status.status, "200 OK")
-        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.data.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         resp_status = response_status(HTTPStatus.NOT_FOUND)
         self.assertEqual(resp_status.status_code, 404)
         self.assertEqual(resp_status.status, "404 NOT FOUND")
-        resp_status_data = json.loads(resp_status.data.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.data.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         # Response Ok
         resp_ok = response_ok()
@@ -114,18 +114,18 @@ class TestWebHelpers(unittest.TestCase):
         # Response Status
         resp_status = response_status(HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertEqual(resp_status.status_code, 500)
-        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.content.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         resp_status = response_status(HTTPStatus.OK)
         self.assertEqual(resp_status.status_code, 200)
-        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.content.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         resp_status = response_status(HTTPStatus.NOT_FOUND)
         self.assertEqual(resp_status.status_code, 404)
-        resp_status_data = json.loads(resp_status.content.decode('utf-8'))
-        self.assertEqual(resp_status_data, {})
+        resp_status_data = resp_status.content.decode('utf-8')
+        self.assertEqual(resp_status_data, '')
 
         # Response Ok
         resp_ok = response_ok()
