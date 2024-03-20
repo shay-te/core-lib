@@ -23,7 +23,7 @@ class ConfigGenerateTemplate(TemplateGenerator):
                         conn.pop('migrate', None)
                         conn_data = {}
                         conn_type = get_dict_attr(conn, 'type')
-                        if conn['config_instantiate']:
+                        if conn.get('config_instantiate'):
                             conn.pop('config_instantiate', None)
                             conn['_target_'] = conn_type
                             conn.pop('type', None)
