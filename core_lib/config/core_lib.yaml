@@ -25,6 +25,11 @@ core_lib:
         pool_pre_ping: false
       url:
         protocol: 'sqlite'
+        username: ~
+        password: ~
+        host: ~
+        port: ~
+        file: ~
 
     solr:
       always_commit: true
