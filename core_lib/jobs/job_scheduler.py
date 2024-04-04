@@ -38,6 +38,7 @@ class JobScheduler(object):
 
     def _run_job(self, job: Job, frequency: str):
         try:
+            logger.info(f'Running job {job.__repr__() if job else "<None Job>"}')
             job.run()
         except BaseException as ex:
             logger.error(f'Error while running job {job.__repr__() if job else "<None Job>"}')
