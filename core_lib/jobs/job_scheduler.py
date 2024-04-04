@@ -20,11 +20,13 @@ class JobScheduler(object):
         self._lock.release()
 
     def schedule(self, initial_delay: str, frequency: str, job: Job):
+        logger.info(f'schedule {job.__repr__() if job else "<None Job>"}, initial_delay: {initial_delay}, frequency: {frequency} ')
         self._validate(initial_delay, job)
         self._validate_str_time(frequency, 'frequency')
         self._schedule(initial_delay, frequency, job)
 
     def schedule_once(self, initial_delay: str, job: Job):
+        logger.info(f'schedule_once {job.__repr__() if job else "<None Job>"}, initial_delay: {initial_delay}')
         self._validate(initial_delay, job)
         self._schedule(initial_delay, None, job)
 
