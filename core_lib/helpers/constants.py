@@ -12,6 +12,7 @@ class MediaType(enum.Enum):
     APPLICATION_FORM_URLENCODED = 'application/x-www-form-urlencoded'
     APPLICATION_JSON_PATCH_JSON = 'application/json-patch+json'
     APPLICATION_OCTET_STREAM = 'application/octet-stream'
+    APPLICATION_PDF = 'application/pdf'
     MULTIPART_FORM_DATA = 'multipart/form-data'
     TEXT_PLAIN = 'text/plain'
     TEXT_XML = 'text/xml'
