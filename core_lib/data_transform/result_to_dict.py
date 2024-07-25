@@ -23,8 +23,7 @@ def __convert_value(value):
     if isinstance(value, datetime.date):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
     if isinstance(value, datetime.time):
-        dt = datetime.datetime.combine(datetime.date.today(), value)
-        return dt.timestamp()
+        return value.strftime('%H:%M:%S')
     if isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
     return value
