@@ -109,8 +109,11 @@ class RuleValidator(object):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}` expected {rule.value_type}')
 
         try:
-            if rule.custom_validator and rule.custom_validator(parsed_value) is not True:
-                raise PermissionError(f'Update of key:`{key}` failed by custom validation')
+            if rule.custom_validator:
+                custom_valid = rule.custom_validator(parsed_value)
+                is_allow_null = parsed_value == None and rule.nullable
+                if custom_valid is not True and not is_allow_null:
+                    raise PermissionError(f'Update of key:`{key}` failed by custom validation')
         except BaseException as ex:
             raise PermissionError(f'Error running custom validator with  `{key}` and value `{parsed_value}`') from ex
 
