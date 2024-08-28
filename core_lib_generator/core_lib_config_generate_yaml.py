@@ -103,7 +103,7 @@ def create_yaml_file(core_lib_name: str):
         OmegaConf.save(config=conf, f=file.name)
 
 
-def get_data_from_user():
+def generate_core_lib_yaml():
     core_lib_name = any_to_pascal(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
 
     want_cache = input_yes_no('\nWould you like to use cache?', True)
@@ -125,4 +125,4 @@ def get_data_from_user():
 
 
 if __name__ == '__main__':
-    get_data_from_user()
+    generate_core_lib_yaml()
