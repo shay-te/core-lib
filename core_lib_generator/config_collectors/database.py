@@ -85,9 +85,14 @@ def _generate_db_config(
     migrate: bool = False
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
+    if db_type:
+        db_type: str = 'core_lib.connection'
+        if migrate:
+            db_type += '.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
     return {
         'env': config['env'],
         'connection': {
+            'type': db_type,
             'key': db_name,
             'migrate': migrate,
             'log_queries': db_log_queries,

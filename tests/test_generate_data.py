@@ -20,6 +20,10 @@ def has_special_chars(input_string: str):
 
 class TestGenerateData(unittest.TestCase):
 
+    def test_generate_yaml_connection(self):
+        from core_lib_generator.core_lib_config_generate_yaml import _get_data_layers_config
+        _get_data_layers_config()
+
     def test_generate_string(self):
         string = generate_random_string()
         self.assertEqual(10, len(string))

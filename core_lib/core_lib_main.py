@@ -44,7 +44,7 @@ def main():
 def generate(yaml):
     if yaml:
         if not os.path.exists(yaml):
-            click.echo(f"yaml file was not found\nmake sure you have the right path\npath:{yaml}\nexiting now...")
+            click.echo(f"yaml file was not found\nmake sure you have the right path (including .yaml or other extenions)\npath:{yaml}\nexiting now...")
             exit()
     else:
         yaml_file = generate_core_lib_yaml()
@@ -52,19 +52,12 @@ def generate(yaml):
 
     file_name = os.path.basename(yaml)
     absolute_folter_path = os.path.dirname(yaml)
-    relative_path = os.path.relpath(yaml, os.getcwd())
-    if file_name == relative_path:
-        relative_path = "./"
-    # CHECK AND DELETE >>>
-    DEV_PATH = '' # '../../../'
-    relative_path = DEV_PATH + relative_path   # TODO: change to upper folder instead of newfolder
-    # <<<<<
     hydra.core.global_hydra.GlobalHydra.instance().clear()
     initialize_config_dir(config_dir=absolute_folter_path)
     config = hydra.compose(file_name)
-    print(config)
-    # CoreLibGenerator(config).run_all()
-
+    CoreLibGenerator(config).run_all()
+    # copy required yaml file
+    # check how to change to actual yaml to work
 
 
 @click.command()
