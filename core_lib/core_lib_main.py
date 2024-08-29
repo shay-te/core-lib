@@ -3,7 +3,7 @@ import logging
 import os
 from core_lib.alembic.alembic import Alembic
 import hydra
-from hydra import compose, initialize
+from hydra import compose, initialize, initialize_config_dir
 import click
 from dotenv import load_dotenv
 from core_lib.helpers.validation import is_int
@@ -51,15 +51,20 @@ def generate(yaml):
         yaml = f'{os.getcwd()}/{yaml_file}'
 
     file_name = os.path.basename(yaml)
+    absolute_folter_path = os.path.dirname(yaml)
     relative_path = os.path.relpath(yaml, os.getcwd())
     if file_name == relative_path:
-        relative_path = "."
-    relative_path = "..\\..\\..\\newfolder\\" + relative_path   # TODO: change to upper folder instead of newfolder
-    print(f"relative_path={relative_path} | file name:{file_name} | cwd:{os.getcwd()}")
+        relative_path = "./"
+    # CHECK AND DELETE >>>
+    DEV_PATH = '' # '../../../'
+    relative_path = DEV_PATH + relative_path   # TODO: change to upper folder instead of newfolder
+    # <<<<<
     hydra.core.global_hydra.GlobalHydra.instance().clear()
-    hydra.initialize(config_path="..\\..\\..\\newfolder\\", caller_stack_depth=1, version_base='1.1')
+    initialize_config_dir(config_dir=absolute_folter_path)
     config = hydra.compose(file_name)
-    CoreLibGenerator(config).run_all()
+    print(config)
+    # CoreLibGenerator(config).run_all()
+
 
 
 @click.command()
