@@ -56,9 +56,6 @@ def generate(yaml):
     initialize_config_dir(config_dir=absolute_folter_path)
     config = hydra.compose(file_name)
     CoreLibGenerator(config).run_all()
-    # copy required yaml file
-    # check how to change to actual yaml to work
-
 
 @click.command()
 @click.option('--rev', required=True, help=' '.join(get_rev_options()))
