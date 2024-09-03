@@ -1,5 +1,5 @@
 import os
-
+import logging
 import pymysql
 from alembic import command
 from alembic.config import Config
@@ -15,6 +15,7 @@ pymysql.install_as_MySQLdb()
 
 class Alembic(object):
     def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
+        logging.basicConfig(level=logging.INFO)
         self.config = core_lib_config.core_lib.alembic
         OmegaConf.set_struct(self.config, False)
         self.alembic_cfg = Config()
@@ -71,21 +72,25 @@ class Alembic(object):
 
     def upgrade(self, revision: str = "head"):
         self.__migrate_to_revision(revision, True)
+        logging.info(f'Successfully upgraded migration to revision {revision}')
 
     def downgrade(self, revision: str = "base"):
         self.__migrate_to_revision(revision, False)
+        logging.info(f'Successfully downgraded migration to revision {revision}')
 
     def history(self):
         return command.history(self.alembic_cfg)
 
     def create_migration(self, migration_name):
         if not migration_name:
+            logging.ERROR("Value ERROR 'Migration name must be set'")
             raise ValueError("Migration name must be set")
 
         version = self._read_version()
         new_version = version + 1
         command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
         self._write_version(new_version)
+        logging.info(f'Successfully created migration "{migration_name}" version {new_version}')
 
     def _read_version(self) -> int:
         script = ScriptDirectory.from_config(self.alembic_cfg)
