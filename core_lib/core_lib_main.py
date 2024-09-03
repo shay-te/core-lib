@@ -2,10 +2,13 @@
 import logging
 import os
 from core_lib.alembic.alembic import Alembic
-from hydra import compose, initialize
+import hydra
+from hydra import compose, initialize, initialize_config_dir
 import click
 from dotenv import load_dotenv
 from core_lib.helpers.validation import is_int
+from core_lib_generator.core_lib_config_generate_yaml import generate_core_lib_yaml
+from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
 
 
 def list_to_string(lst: list):
@@ -36,6 +39,23 @@ def load_config():
 def main():
     pass
 
+@click.command()
+@click.option('--yaml', help='name of new revision')
+def generate(yaml):
+    if yaml:
+        if not os.path.exists(yaml):
+            click.echo(f"yaml file was not found\nmake sure you have the right path (including .yaml or other extenions)\npath:{yaml}\nexiting now...")
+            exit()
+    else:
+        yaml_file = generate_core_lib_yaml()
+        yaml = f'{os.getcwd()}/{yaml_file}'
+
+    file_name = os.path.basename(yaml)
+    absolute_folter_path = os.path.dirname(yaml)
+    hydra.core.global_hydra.GlobalHydra.instance().clear()
+    initialize_config_dir(config_dir=absolute_folter_path)
+    config = hydra.compose(file_name)
+    CoreLibGenerator(config).run_all()
 
 @click.command()
 @click.option('--rev', required=True, help=' '.join(get_rev_options()))
@@ -78,5 +98,5 @@ def migrate(rev, name, env_file):
 #     CoreLibGenerate().generate(list_to_string(value))
 #
 # main.add_command(create)
-# main.add_command(generate)
+main.add_command(generate)
 main.add_command(migrate)
