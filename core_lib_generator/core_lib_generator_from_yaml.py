@@ -200,6 +200,10 @@ class CoreLibGenerator:
             {},
             TestConfigOverrideGenerateTemplate(),
         )
+        self._generate_template(f'{self.snake_core_lib_name}/tests/test_data/helpers/util.py',
+                                {},
+                                TestGenerateTemplate(),
+                                )
 
     def run_all(self):
         self.generate_data_access()
