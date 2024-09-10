@@ -32,7 +32,6 @@ def generate_db_template() -> dict:
             db_password = input_str(
                 'Enter your DB password',
             )
-        print(f'Database type {DBTypes(db_type).name}')
         add_db = input_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name}'] = _generate_db_config(
             db_type,

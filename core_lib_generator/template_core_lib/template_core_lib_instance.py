@@ -1,5 +1,5 @@
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
-from template_core_lib.template_core_lib import Template
+# template_core_lib_import
 
 
 class TemplateCoreLibInstance(object):

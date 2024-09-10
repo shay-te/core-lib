@@ -21,10 +21,12 @@ from core_lib_generator.file_generators.readme_generator import ReadmeGenerateTe
 from core_lib_generator.file_generators.requirements_generator import RequirementsGenerateTemplate
 from core_lib_generator.file_generators.service_generator import ServiceGenerateTemplate
 from core_lib_generator.file_generators.setup_generator import SetupGenerateTemplate
+from core_lib_generator.file_generators.template_core_lib_instance_generator import CoreLibInstanceGenerate
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.file_generators.test_config_generator import TestConfigGenerateTemplate
 from core_lib_generator.file_generators.test_config_override_generator import TestConfigOverrideGenerateTemplate
 from core_lib_generator.file_generators.test_generator import TestGenerateTemplate
+from core_lib_generator.file_generators.test_util_generator import UtilTestGenerateTemplate
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
 
 
@@ -46,6 +48,8 @@ class CoreLibGenerator:
             self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
     ):
         file_dir_path = os.path.dirname(file_path)
+        if not file_dir_path:
+            file_dir_path = '.'
         os.makedirs(file_dir_path, exist_ok=True)
         excluded_init_dirs = template_generator.exclude_init_from_dirs()
         dir_names = file_dir_path.split('/')
@@ -202,8 +206,12 @@ class CoreLibGenerator:
         )
         self._generate_template(f'{self.snake_core_lib_name}/tests/test_data/helpers/util.py',
                                 {},
-                                TestGenerateTemplate(),
-                                )
+                                UtilTestGenerateTemplate(),
+        )
+        self._generate_template(f'{self.snake_core_lib_name}_instance.py',
+                                {},
+                                CoreLibInstanceGenerate(),
+        )
 
     def run_all(self):
         self.generate_data_access()
