@@ -1,3 +1,4 @@
+import os
 from core_lib.helpers.string import snake_to_camel
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
@@ -9,7 +10,7 @@ class UtilTestGenerateTemplate(TemplateGenerator):
         import_instance_string: str = f'from {core_lib_name}_instance import {camel_case_name}'
         template_content = template_content.replace('# template core_lib_instance', import_instance_string)
 
-        core_lib_import: str = f'from {core_lib_name}.{core_lib_name} import {camel_case_name}'
+        core_lib_import: str = f'from {os.path.basename(os.getcwd())}.{core_lib_name}.{core_lib_name}.{core_lib_name} import {camel_case_name}'
         template_content = template_content.replace('# template_core_lib_import', core_lib_import)
 
         template_class: str = f'{camel_case_name}Instance'

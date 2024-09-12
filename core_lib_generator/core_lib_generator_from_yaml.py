@@ -208,7 +208,7 @@ class CoreLibGenerator:
                                 {},
                                 UtilTestGenerateTemplate(),
         )
-        self._generate_template(f'{self.snake_core_lib_name}_instance.py',
+        self._generate_template(f'{self.snake_core_lib_name}/{self.snake_core_lib_name}_instance.py',
                                 {},
                                 CoreLibInstanceGenerate(),
         )

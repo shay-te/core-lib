@@ -62,7 +62,7 @@ def generate_db_entity_template(db: dict) -> list:
         entities.append(
             {
                 'key': entity_name,
-                'connection': db_conn,
+                'db_connection': db_conn,
                 'columns': columns,
                 'is_soft_delete': is_soft_delete,
                 'is_soft_delete_token': is_soft_delete_token,
