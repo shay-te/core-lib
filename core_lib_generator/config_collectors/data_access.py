@@ -15,14 +15,14 @@ def generate_data_access_template(db_entities: list) -> list:
     if db_entities:
         for entity in db_entities:
             name = entity['key']
-            conn = entity['db_connection']
+            conn = entity['connection']
             entity_list.append(f'{name} -> {conn}')
         add_da = True
         while add_da:
             entity_input = input_list(entity_list, 'Select the Entity to create DataAccess for')
             entity_data = db_entities[entity_input]
             entity_name = entity_data.get('key')
-            db_conn = entity_data.get('db_connection')
+            db_conn = entity_data.get('connection')
             default = (
                 f'{any_to_pascal(entity_name)}DataAccess'
                 if is_exists_data_access(f'{any_to_pascal(entity_name)}DataAccess')
@@ -94,7 +94,7 @@ def _generate_data_access_config(
         'key': data_access_name,
         'entity': entity_name,
         'functions': functions,
-        'db_connection': db_conn,
+        'connection': db_conn,
     }
     if crud_soft_delete_token:
         config.update({

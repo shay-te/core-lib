@@ -10,7 +10,7 @@ def generate_db_entity_template(db: dict) -> list:
 
     def is_exists_entity(user_input: str) -> bool:
         for entity in entities:
-            if entity.get('key') == user_input and entity.get('db_connection') == db_conn:
+            if entity.get('key') == user_input and entity.get('connection') == db_conn:
                 return False
         return True
     db_conn_list = []
@@ -62,7 +62,7 @@ def generate_db_entity_template(db: dict) -> list:
         entities.append(
             {
                 'key': entity_name,
-                'db_connection': db_conn,
+                'connection': db_conn,
                 'columns': columns,
                 'is_soft_delete': is_soft_delete,
                 'is_soft_delete_token': is_soft_delete_token,
