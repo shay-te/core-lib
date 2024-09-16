@@ -12,7 +12,7 @@ class CoreLibInstanceGenerate(TemplateGenerator):
 
         template_content = template_content.replace('TemplateCoreLibInstance', f'{camel_case_class}Instance')
 
-        template_content = template_content.replace('Template', f'{camel_case_class}')
+        template_content = template_content.replace('TemplateCoreLibClass', f'{camel_case_class}')
 
         return template_content
 

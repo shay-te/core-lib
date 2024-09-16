@@ -9,8 +9,8 @@ class TemplateCoreLibInstance(object):
     def init(core_lib_cfg):
         if not TemplateCoreLibInstance._app_instance:
             WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-            TemplateCoreLibInstance._app_instance = Template(core_lib_cfg)
+            TemplateCoreLibInstance._app_instance = TemplateCoreLibClass(core_lib_cfg)
 
     @staticmethod
-    def get() -> Template:
+    def get() -> TemplateCoreLibClass:
         return TemplateCoreLibInstance._app_instance
