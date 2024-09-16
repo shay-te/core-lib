@@ -1,3 +1,4 @@
+import os.path
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import snake_to_camel, camel_to_snake
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
@@ -8,8 +9,6 @@ class TestGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         updated_file = template_content
         camel_core_lib = snake_to_camel(core_lib_name)
-        core_lib_import = f'from {core_lib_name}.{core_lib_name} import {camel_core_lib}'
-        updated_file = updated_file.replace('# template_core_lib_import', core_lib_import)
         updated_file = updated_file.replace('TemplateCoreLib', camel_core_lib)
         updated_file = updated_file.replace('template_snake_core_lib', core_lib_name)
         if get_dict_attr(yaml_data, 'services'):
@@ -33,10 +32,12 @@ def _generate_tests(template_content: str, yaml_data: dict, key: str, core_lib_n
         test_function = []
         name = get_dict_attr(data_access, 'key')
         snake_name = camel_to_snake(name)
+        sync_core_lib_import = f'from {os.path.basename(os.getcwd())}.{core_lib_name}.tests.test_data.helpers.util import sync_create_start_core_lib'
+        updated_file = updated_file.replace('# sync_create_start_core_lib', sync_core_lib_import)
         if key == 'data_accesses':
-            imports_list.append(f'from {core_lib_name}.data_layers.data_access.{snake_name} import {name}')
+            imports_list.append(f'from {os.path.basename(os.getcwd())}.{core_lib_name}.{core_lib_name}.data_layers.data_access.{snake_name} import {name}')
         else:
-            imports_list.append(f'from {core_lib_name}.data_layers.service.{snake_name} import {name}')
+            imports_list.append(f'from {os.path.basename(os.getcwd())}.{core_lib_name}.{core_lib_name}.data_layers.service.{snake_name} import {name}')
         test_function.append(add_tab_spaces(f'def test_{snake_name}(self):'))
         test_function.append(
             add_tab_spaces(

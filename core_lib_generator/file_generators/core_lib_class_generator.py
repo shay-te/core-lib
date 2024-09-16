@@ -165,9 +165,9 @@ def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         'from core_lib.connection.mongodb_connection_registry import MongoDBConnectionRegistry'
     )
     mongo_conn = []
-    for db_connection in yaml_data:
-        db_conn_name = get_dict_attr(db_connection, 'key')
-        if get_dict_attr(db_connection, 'url.protocol') == 'mongodb':
+    for connection in yaml_data:
+        db_conn_name = get_dict_attr(connection, 'key')
+        if get_dict_attr(connection, 'url.protocol') == 'mongodb':
             conn_str = f'self.{db_conn_name} = MongoDBConnectionRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
             mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
