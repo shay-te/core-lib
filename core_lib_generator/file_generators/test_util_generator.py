@@ -15,6 +15,11 @@ class UtilTestGenerateTemplate(TemplateGenerator):
         template_class: str = f'{camel_case_name}Instance'
         template_content = template_content.replace('TemplateInstance', template_class)
 
+        template_content = template_content.replace(
+            '# import sync core lib',
+            f'from {core_lib_name}.tests.test_data.helpers.util import sync_create_start_core_lib'
+        )
+
         return template_content
 
     def get_template_file(self, yaml_data: dict) -> str:
