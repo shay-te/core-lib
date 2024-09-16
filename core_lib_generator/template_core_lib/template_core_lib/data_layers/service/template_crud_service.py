@@ -1,6 +1,6 @@
 from core_lib.data_layers.service.service import Service
 from core_lib.data_transform.result_to_dict import ResultToDict
-from template_core_lib import TemplateCRUDDataAccess
+from core_lib_generator.template_core_lib import TemplateCRUDDataAccess
 
 
 class TemplateCrudService(Service):
