@@ -16,7 +16,7 @@ class UtilTestGenerateTemplate(TemplateGenerator):
         template_content = template_content.replace('TemplateInstance', template_class)
 
         template_content = template_content.replace(
-            '# import sync core lib',
+            '# template_sync_create_core_lib_import',
             f'from {core_lib_name}.tests.test_data.helpers.util import sync_create_start_core_lib'
         )
 

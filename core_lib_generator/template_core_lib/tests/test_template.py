@@ -2,7 +2,7 @@ import unittest
 # template_core_lib_import
 # template_test_imports
 from core_lib.helpers.test import load_core_lib_config
-# import sync core lib
+# template_sync_create_core_lib_import
 
 
 class TestTemplate(unittest.TestCase):
