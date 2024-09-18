@@ -14,6 +14,8 @@ class CoreLibInstanceGenerate(TemplateGenerator):
                 template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)')
             elif yaml_data['server_type'] == 1:
                 template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)')
+        else:
+            template_content = template_content.replace('# web_helper_template', '')
 
         core_lib_import = f'from {os.path.basename(os.getcwd())}.{core_lib_name}.{core_lib_name}.{core_lib_name} import {camel_case_class}'
         template_content = template_content.replace('# template_core_lib_import', core_lib_import)
