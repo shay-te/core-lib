@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
-
-from core_lib.helpers.shell_utils import input_str, input_yes_no
+from enum import Enum
+from core_lib.helpers.shell_utils import input_str, input_yes_no, input_enum
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.config_collectors.cache import generate_cache_template
 from core_lib_generator.config_collectors.data_access import generate_data_access_template
@@ -21,6 +21,12 @@ def _get_env_variables(data):
         return env_variables
 
 
+class ServerType(Enum):
+    DJANGO = 1
+    FLASK = 2
+    NOSERVER = 3
+
+
 config = {}
 config.setdefault('data', [])
 config.setdefault('cache', [])
@@ -32,6 +38,7 @@ data_layers = {}
 data_layers.setdefault('data', [])
 data_layers.setdefault('data_access', [])
 data_layers.setdefault('service', [])
+server_type: int
 
 
 def _get_data_layers_config():
@@ -95,12 +102,23 @@ def create_yaml_file(core_lib_name: str):
                 'data_accesses': data_layers['data_access'],
                 'services': data_layers['service'],
                 'setup': setup['data'],
+                'server_type': server_type,
             }
         }
     )
 
     with open(f'{core_lib_name}.yaml', 'w+') as file:
         OmegaConf.save(config=conf, f=file.name)
+
+
+def ask_server_type() -> int:
+    return input_enum(ServerType,
+                      '\nWhat kind of server type would you like?\n'
+                      '1-Django\n'
+                      '2-Flask\n'
+                      '3-None\n',
+                      default_value=ServerType.NOSERVER.value,
+                      )
 
 
 def generate_core_lib_yaml():
@@ -115,6 +133,9 @@ def generate_core_lib_yaml():
     want_job = input_yes_no('\nWould you like to create a Job?', False)
     if want_job:
         _get_jobs_config(core_lib_name)
+
+    global server_type
+    server_type = ask_server_type()
 
     want_setup = input_yes_no('\nDo you want to add setup.py?', True)
     if want_setup:

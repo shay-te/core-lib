@@ -43,6 +43,7 @@ class CoreLibGenerator:
         self.core_lib_caches = get_dict_attr(config['core_lib'], 'caches')
         self.core_lib_setup = get_dict_attr(config['core_lib'], 'setup')
         self.core_lib_services = get_dict_attr(config['core_lib'], 'services')
+        self.core_lib_server_type = get_dict_attr(config['core_lib'], 'server_type')
 
     def _generate_template(
             self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
@@ -56,12 +57,12 @@ class CoreLibGenerator:
         init_path = ''
         for filename in dir_names:
             init_path = os.path.join(init_path, filename)
-            init_file_path = f'{init_path}/__init__.py'
+            init_file_path = os.path.join(init_path, '__init__.py')
             if not os.path.isfile(init_file_path) and filename not in excluded_init_dirs:
                 open(init_file_path, 'w').close()
 
         location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(location, template_generator.get_template_file(yaml_data)), 'r') as template_file:
+        with open(os.path.normpath(os.path.join(location, template_generator.get_template_file(yaml_data))), 'r') as template_file:
             new_file = template_generator.generate(template_file.read(), yaml_data, self.snake_core_lib_name, file_name)
         with open(file_path, 'w') as file:
             file.write(new_file)
@@ -209,7 +210,7 @@ class CoreLibGenerator:
                                 UtilTestGenerateTemplate(),
         )
         self._generate_template(f'{self.snake_core_lib_name}/{self.snake_core_lib_name}_instance.py',
-                                {},
+                                {'server_type': self.core_lib_server_type},
                                 CoreLibInstanceGenerate(),
         )
 
