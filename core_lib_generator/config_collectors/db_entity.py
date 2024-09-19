@@ -13,12 +13,13 @@ def generate_db_entity_template(db: dict) -> list:
             if entity.get('key') == user_input and entity.get('connection') == db_conn:
                 return False
         return True
-    db_conn_list = []
+    db_conn_list: list[str] = []
     for db_conn in db:
         db_conn_list.append(db_conn)
     add_entity = True
     while add_entity:
-        db_conn = input_list(db_conn_list, 'Select the Connection to create Entity for')
+        db_conn: int = input_list(db_conn_list, 'Select the Connection to create Entity for')
+        db_conn: str = db_conn_list[db_conn]
         is_soft_delete = False
         is_soft_delete_token = False
         entity_name = input_str(
