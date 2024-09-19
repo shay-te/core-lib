@@ -12,6 +12,10 @@ class TestGenerateTemplate(TemplateGenerator):
         updated_file = updated_file.replace('# template_core_lib_import', core_lib_import)
         updated_file = updated_file.replace('TemplateCoreLib', camel_core_lib)
         updated_file = updated_file.replace('template_snake_core_lib', core_lib_name)
+        updated_file = updated_file.replace(
+            '# template_sync_create_core_lib_import',
+            f'from {core_lib_name}.tests.test_data.helpers.util import sync_create_start_core_lib'
+        )
         if get_dict_attr(yaml_data, 'services'):
             updated_file = _generate_tests(updated_file, yaml_data, 'services', core_lib_name)
         elif get_dict_attr(yaml_data, 'data_accesses'):
