@@ -38,7 +38,7 @@ class SqlAlchemyConnectionRegistry(ConnectionRegistry):
         pool_size = session.get('pool_size', 5)
         max_overflow = session.get('max_overflow', 10)
 
-        _engine = create_engine(
+        return create_engine(
             build_url(**config.url),
             pool_recycle=pool_recycle,
             echo=log_queries,
@@ -46,4 +46,3 @@ class SqlAlchemyConnectionRegistry(ConnectionRegistry):
             pool_size=pool_size,
             max_overflow=max_overflow,
         )
-        return _engine
