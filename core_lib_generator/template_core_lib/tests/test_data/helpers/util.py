@@ -23,7 +23,7 @@ def load_config():
         load_dotenv(dotenv_path=os.path.join(path, '.env'))
 
         GlobalHydra.instance().clear()
-        hydra.initialize(config_path=os.path.join('../../../../ob-love-admin-backend', 'data', 'config'), caller_stack_depth=1)
+        hydra.initialize(config_path=os.path.join(f'../../../../{core_lib_name}', 'data', 'config'), caller_stack_depth=1)
         TemplateInstance.config = hydra.compose('config.yaml')
     return TemplateInstance.config
 
