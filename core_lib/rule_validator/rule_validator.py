@@ -96,7 +96,7 @@ class RuleValidator(object):
             else:
                 raise PermissionError(f'Invalid update key:`{key}` expected `int`, got `{type(value)}`')
         # `str` to `datetime`
-        elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
+        elif value and rule.value_type in [datetime.datetime, datetime.date, datetime.time] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
             except BaseException as ex:
