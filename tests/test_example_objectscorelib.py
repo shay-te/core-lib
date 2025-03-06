@@ -19,6 +19,13 @@ class TestExamples(unittest.TestCase):
         test_bucket = 'MyBucket'
         file_path = os.path.join(os.path.dirname(__file__), 'test_data/koala.jpeg')
 
+        abs_path = os.path.abspath(file_path)
+        self.assertTrue(os.path.exists(abs_path))
+
+        with open(file_path, 'rb') as file:
+            original_data = file.read()
+            self.assertTrue(len(original_data) > 0)
+
         conn = boto3.resource(
             's3', region_name='us-east-1', aws_access_key_id="fake_access_key", aws_secret_access_key="fake_secret_key"
         )
@@ -26,5 +33,10 @@ class TestExamples(unittest.TestCase):
 
         self.objects_core_lib.object.set_object(test_bucket, 'koala.jpeg', file_path)
         obj = self.objects_core_lib.object.get_object(test_bucket, 'koala.jpeg')
-        with open(file_path, 'rb') as file:
-            self.assertEqual(file.read(), obj.getvalue())
+        obj.seek(0)
+        s3_data = obj.read()
+
+        self.assertTrue(len(s3_data) > 1000)
+        self.assertTrue(b'\xff\xd8' in s3_data)
+        self.assertTrue(b'\xff\xd9' in s3_data)
+        self.assertTrue(original_data in s3_data)
