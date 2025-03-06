@@ -10,7 +10,7 @@ from core_lib.web_helpers.request_response_helpers import response_message
 logger = logging.getLogger(__name__)
 
 
-def handle_exception(func, log_exception: bool = True,*args, **kwargs):
+def handle_exception(func, log_exception=True,*args, **kwargs):
     try:
         return func(*args, **kwargs)
     except StatusCodeException as n:
