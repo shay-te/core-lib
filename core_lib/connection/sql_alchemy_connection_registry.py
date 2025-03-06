@@ -6,6 +6,7 @@ from core_lib.data_layers.data.data_helpers import build_url
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
+UNSUPPORTED_DB_POOL = ["sqlite", "firebird", "sybase", "ibm_db_sa", "redshift"]
 
 class SqlAlchemyConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
@@ -38,11 +39,17 @@ class SqlAlchemyConnectionRegistry(ConnectionRegistry):
         pool_size = session.get('pool_size', 5)
         max_overflow = session.get('max_overflow', 10)
 
+        extra_params = {}
+        if config.url.get('protocol') not in UNSUPPORTED_DB_POOL:
+            extra_params = {
+                'pool_size': pool_size,
+                'max_overflow': max_overflow
+            }
+
         return create_engine(
             build_url(**config.url),
             pool_recycle=pool_recycle,
             echo=log_queries,
             pool_pre_ping=pool_pre_ping,
-            pool_size=pool_size,
-            max_overflow=max_overflow,
+            **extra_params
         )

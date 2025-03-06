@@ -10,7 +10,8 @@ from core_lib.web_helpers.request_response_helpers import response_message
 logger = logging.getLogger(__name__)
 
 
-def handle_exception(func, log_exception=True,*args, **kwargs):
+def handle_exception(func, *args, **kwargs):
+    log_exception = kwargs.pop('log_exception', True)
     try:
         return func(*args, **kwargs)
     except StatusCodeException as n:
@@ -38,6 +39,6 @@ class HandleException(object):
     def __call__(self,func, *args, **kwargs):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            return handle_exception(func,self._log_exception, *args, **kwargs)
+            return handle_exception(func, log_exception=self._log_exception, *args, **kwargs)
 
         return wrapper
