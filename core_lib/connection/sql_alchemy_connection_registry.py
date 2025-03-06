@@ -6,7 +6,7 @@ from core_lib.data_layers.data.data_helpers import build_url
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
-UNSUPPORTED_DB_POOL = ["sqlite", "firebird", "sybase", "ibm_db_sa", "redshift"]
+UNSUPPORTED_DB_POOL = ['sqlite', 'firebird', 'sybase', 'ibm_db_sa', 'redshift']
 
 class SqlAlchemyConnectionRegistry(ConnectionRegistry):
     def __init__(self, config: DictConfig):
