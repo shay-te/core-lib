@@ -21,7 +21,7 @@ def handle_exception(func, *args, **kwargs):
     except AssertionError as n:
         logger.error(f'handle_exception got AssertionError error for function `{func}`')
         logger.exception(n, exc_info=log_exception)
-        return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return response_message(', '.join(str(x) for x in n.args),status=HTTPStatus.BAD_REQUEST)
     except ExpiredSignatureError as ese:
         logger.error(f'handle_exception got ExpiredSignatureError error for function `{func}`')
         logger.exception(ese, exc_info=log_exception)
