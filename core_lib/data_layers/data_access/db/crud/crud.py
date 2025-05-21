@@ -17,9 +17,11 @@ class CRUD(ABC):
     def update(self, id: int, data: dict):
         assert id and data
         if self._rule_validator:
-            self._rule_validator.validate_dict(data)
+            updated_data = self._rule_validator.validate_dict(data)
+        else:
+            updated_data = data
         with self._db.get() as session:
-            session.query(self._db_entity).filter(self._db_entity.id == id).update(data)
+            session.query(self._db_entity).filter(self._db_entity.id == id).update(updated_data)
 
     def create(self, data: dict):
         assert data
