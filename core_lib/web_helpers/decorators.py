@@ -17,7 +17,8 @@ def handle_exception(func, *args, **kwargs):
     except StatusCodeException as n:
         logger.error(f'handle_exception got StatusCodeException error for function `{func}`')
         logger.exception(n, exc_info=log_exception)
-        return response_message(status=n.status_code, message=n.message)
+        message = n.args[0] if n.args and isinstance(n.args[0], str) else ''
+        return response_message(status=n.status_code, message=message)
     except AssertionError as n:
         logger.error(f'handle_exception got AssertionError error for function `{func}`')
         logger.exception(n, exc_info=log_exception)

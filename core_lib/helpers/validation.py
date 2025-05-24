@@ -38,7 +38,19 @@ def is_int(val) -> bool:
 #
 # complex
 #
-EMAIL_CHECK_REGEX = r'^\b[\w\D][^<>\[\]]+@[\w.-]+\.[A-Z|a-z]{2,}\b$'
+'''
+^                    # Start of string
+(?!\.)               # Reject if starts with a dot
+(?!.*\.\.)           # Reject if contains consecutive dots
+[^@\/\\<>[\]\"]+     # Local part: one or more characters except @, /, \, <, >, [, ], and "
+@                    # Literal '@' symbol
+[\w]                 # Domain: starts with a word character
+[\w.-]*              # Followed by zero or more word characters, dots, or hyphens
+\.                   # Dot before TLD
+[A-Za-z]{2,}         # TLD: 2 or more alphabetic characters (up to 10 not explicitly enforced)
+$                    # End of string
+'''
+EMAIL_CHECK_REGEX = r"^(?!\.)(?!.*\.\.)[^@\/\\<>[\]\"]+@[\w][\w.-]*\.[A-Za-z]{2,}$"
 def is_email(email: str) -> bool:
     if email is None:
         return False

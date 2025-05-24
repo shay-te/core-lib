@@ -61,6 +61,11 @@ class TestValidations(unittest.TestCase):
             is_email("ljksfdghjskfdhgjklsdfhgjks0987654321@asdfasdfasdfasdfasfasdfaexample." "casdfadsfasdfgasdfasdom"),
             True,
         )
+        self.assertEqual(is_email("a@b.io"),True)  # Very short but valid
+        self.assertEqual(is_email("abc.def-ghi_jkl@server-name123.net"),True)  # Mixed characters in local and domain
+        self.assertEqual(is_email("x@y.cc"),True)  # 1-char local, 2-char TLD
+        self.assertEqual(is_email("valid_email-123@very.long-subdomain.example.com"),True)  # Multiple nested subdomains
+        self.assertEqual(is_email("my.email+filter@something.jobs"),True)  # Common Gmail-style filtering syntax
         self.assertEqual(is_email('"email"@example.com'), False)
         self.assertEqual(is_email(None), False)
         self.assertEqual(is_email(""), False)
@@ -68,6 +73,15 @@ class TestValidations(unittest.TestCase):
         self.assertEqual(is_email("as;fj123.df@asdfa/c.vcom"), False)
         self.assertEqual(is_email("very.”(),:;<>[]”.VERY.”very@\\ \"very”.unusual@strange.example.com"), False)
         self.assertEqual(is_email("<asd>>@strange.com"), False)
+        self.assertEqual(is_email("<asd>>@strange.com"), False)
+        self.assertEqual(is_email(".abc@xyz.com"), False)  # starts with dot
+        self.assertEqual(is_email("abc..def@xyz.com"), False)  # double dot
+        self.assertEqual(is_email("abc@-xyz.com"), False)  # domain starts with hyphen
+        self.assertEqual(is_email("abc@.com"), False)  # domain starts with dot
+        self.assertEqual(is_email("abc@xyz.c"), False)  # 1-letter TLD
+        self.assertEqual(is_email("abc@xyz."), False)  # ends with dot
+        self.assertEqual(is_email("abc@"), False)  # missing domain
+        self.assertEqual(is_email("abc.xyz.com"), False)  # missing @
 
     def test_enum(self):
         self.assertEqual(is_int_enum(MyEnum.one.value, MyEnum), True)
