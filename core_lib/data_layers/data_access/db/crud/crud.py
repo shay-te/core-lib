@@ -16,19 +16,13 @@ class CRUD(ABC):
 
     def update(self, id: int, data: dict):
         assert id and data
-        if self._rule_validator:
-            updated_data = self._rule_validator.validate_dict(data)
-        else:
-            updated_data = data
+        updated_data = self._rule_validator.validate_dict(data) if self._rule_validator else data
         with self._db.get() as session:
             session.query(self._db_entity).filter(self._db_entity.id == id).update(updated_data)
 
     def create(self, data: dict):
         assert data
-        if self._rule_validator:
-            updated_data = self._rule_validator.validate_dict(data, strict_mode=False)
-        else:
-            updated_data = data
+        updated_data = self._rule_validator.validate_dict(data, strict_mode=False) if self._rule_validator else data
         with self._db.get() as session:
             entity = self._db_entity()
             for key, value in updated_data.items():
