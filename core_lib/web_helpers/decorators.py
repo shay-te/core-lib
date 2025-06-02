@@ -4,7 +4,6 @@ from http import HTTPStatus
 
 from jwt import ExpiredSignatureError
 
-from core_lib.error_handling.status_code_client_message_exception import StatusCodeClientMessageException
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_message
 
@@ -15,13 +14,6 @@ def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop('log_exception', True)
     try:
         return func(*args, **kwargs)
-    except StatusCodeClientMessageException as sccm:
-        logger.error(f'handle_exception got StatusCodeClientMessageException error for function `{func}`')
-        logger.exception(sccm, exc_info=log_exception)
-        return response_message(
-            status=sccm.status_code,
-            message=sccm.full_error
-        )
     except StatusCodeException as n:
         logger.error(f'handle_exception got StatusCodeException error for function `{func}`')
         logger.exception(n, exc_info=log_exception)
