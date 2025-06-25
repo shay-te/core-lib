@@ -1,6 +1,7 @@
 import datetime
 import enum
 from collections import Iterable
+from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
@@ -24,6 +25,8 @@ def __convert_value(value):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
     if isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
+    if isinstance(value, Decimal):
+        return float(value)
     return value
 
 
