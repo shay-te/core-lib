@@ -1,3 +1,4 @@
+from decimal import Decimal
 import enum
 import json
 import os.path
@@ -236,6 +237,24 @@ class TestResultToDict(unittest.TestCase):
             curr_db_data = result_to_dict(collection.find())
             self.assertEqual(len(curr_db_data), 0)
 
+    def test_decimal_conversion_direct(self):
+        data = {
+            'value': Decimal('10.5'),
+            'nested': {'inner': Decimal('99.9')},
+            'list': [Decimal('1.0'), Decimal('2.5')],
+        }
+
+        result = result_to_dict(data)
+
+        self.assertIsInstance(result['value'], float)
+        self.assertEqual(result['value'], 10.5)
+
+        self.assertIsInstance(result['nested']['inner'], float)
+        self.assertEqual(result['nested']['inner'], 99.9)
+
+        self.assertListEqual(result['list'], [1.0, 2.5])
+
     @ResultToDict()
     def get_from_params(self, param):
         return param
+
