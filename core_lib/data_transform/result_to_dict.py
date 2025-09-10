@@ -1,6 +1,7 @@
 import datetime
 import enum
-from collections import Iterable
+from collections.abc import Iterable
+
 from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
