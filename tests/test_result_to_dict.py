@@ -1,3 +1,4 @@
+from collections import namedtuple
 from decimal import Decimal
 import enum
 import json
@@ -81,6 +82,14 @@ class TestResultToDict(unittest.TestCase):
         self.assertTrue(isinstance(self.get_from_params(empty_tpl), tuple))
         self.assertTupleEqual(self.get_from_params(empty_tpl), empty_tpl)
         self.assertEqual(len(empty_tpl), 0)
+
+        Point = namedtuple("Point", ["x", "y"])
+        named_tuple = Point(1, 2)
+        result = self.get_from_params(named_tuple)
+        self.assertTrue(isinstance(result, dict))
+        self.assertTrue(result['x'], 1)
+        self.assertTrue(result['y'], 2)
+
 
     def test_dict(self):
         data = {

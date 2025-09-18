@@ -34,7 +34,7 @@ def __convert_value(value):
 def __name_tuple_to_dict(obj) -> dict:
     result = {}
     for key in obj._fields:
-        result[key] = __convert_value(getattr(obj, key))
+        result[str(key)] = __convert_value(getattr(obj, key))
     return result
 
 
