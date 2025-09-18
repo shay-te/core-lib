@@ -82,6 +82,27 @@ class TestResultToDict(unittest.TestCase):
         self.assertTupleEqual(self.get_from_params(empty_tpl), empty_tpl)
         self.assertEqual(len(empty_tpl), 0)
 
+    def test_dict(self):
+        data = {
+            1: 1,
+            '2': 2,
+            '3': '3',
+            4: '4',
+        }
+        expected = {
+            '1': 1,
+            '2': 2,
+            '3': '3',
+            '4': '4',
+        }
+        result = self.get_from_params(data)
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(set(result.keys()), set(expected.keys()))
+
+        for expected_key, expected_value in expected.items():
+            self.assertEquals(result[expected_key], expected_value)
+            self.assertIsInstance(expected_value, type(result[expected_key]))
+
     def test_complex_object(self):
         dat = datetime.date(2022, 1, 1)
         dattime = datetime.datetime(2022, 1, 1)

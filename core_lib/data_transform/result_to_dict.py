@@ -45,7 +45,7 @@ def __tuple_to_dict(obj) -> tuple:
 def __dict_to_dict(collect) -> dict:
     result = {}
     for key, value in dict(collect).items():
-        result[key] = __convert_value(value)
+        result[str(key)] = __convert_value(value)
     return result
 
 
