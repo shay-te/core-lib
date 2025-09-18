@@ -1,3 +1,4 @@
+from collections import namedtuple
 from decimal import Decimal
 import enum
 import json
@@ -81,6 +82,35 @@ class TestResultToDict(unittest.TestCase):
         self.assertTrue(isinstance(self.get_from_params(empty_tpl), tuple))
         self.assertTupleEqual(self.get_from_params(empty_tpl), empty_tpl)
         self.assertEqual(len(empty_tpl), 0)
+
+        Point = namedtuple("Point", ["x", "y"])
+        named_tuple = Point(1, 2)
+        result = self.get_from_params(named_tuple)
+        self.assertTrue(isinstance(result, dict))
+        self.assertTrue(result['x'], 1)
+        self.assertTrue(result['y'], 2)
+
+
+    def test_dict(self):
+        data = {
+            1: 1,
+            '2': 2,
+            '3': '3',
+            4: '4',
+        }
+        expected = {
+            '1': 1,
+            '2': 2,
+            '3': '3',
+            '4': '4',
+        }
+        result = self.get_from_params(data)
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(set(result.keys()), set(expected.keys()))
+
+        for expected_key, expected_value in expected.items():
+            self.assertEquals(result[expected_key], expected_value)
+            self.assertIsInstance(expected_value, type(result[expected_key]))
 
     def test_complex_object(self):
         dat = datetime.date(2022, 1, 1)
