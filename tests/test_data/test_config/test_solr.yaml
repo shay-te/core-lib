@@ -1,6 +1,6 @@
 core_lib:
   solr:
-    _target_: core_lib.connection.solr_connection_registry.SolrConnectionRegistry
+    _target_: core_lib.connection.solr_connection_factory.SolrConnectionFactory
     config:
       always_commit: true
       url:

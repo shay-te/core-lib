@@ -16,7 +16,7 @@ export default class Pathsfactory{
             const entityRes = []
             const connectionList = this._get('core_lib.connections', yaml)
             connectionList.forEach((connection) => {
-                if(connection.type.includes('SqlAlchemyConnectionRegistry')) {
+                if(connection.type.includes('SqlAlchemyConnectionFactory')) {
                     const entities = []
                     list.forEach((entity, index) => {
                         if(connection.key === entity.connection){

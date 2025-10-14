@@ -77,15 +77,15 @@ entries:
                   output: web
 
                 - title: MongoDB Connection Registry
-                  url: /mongodb_connection_registry.html
+                  url: /mongodb_connection_factory.html
                   output: web
                 
                 - title: Solr Connection Registry
-                  url: /solr_connection_registry.html
+                  url: /solr_connection_factory.html
                   output: web
 
                 - title: Neo4j Connection Registry
-                  url: /neo4j_connection_registry.html
+                  url: /neo4j_connection_factory.html
                   output: web
         
           - title: Data Layers

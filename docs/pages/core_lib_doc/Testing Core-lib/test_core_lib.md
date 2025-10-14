@@ -14,18 +14,19 @@ Let's understand how `Core-Lib` is initialized and tested and how to integrate i
 The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
 
 `user_data_access.py`
+
 ```python
 from http import HTTPStatus
 
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from user_core_lib.data_layers.data.db.user import User
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 
 class UserDataAccess(CRUDDataAccess):
-    def __init__(self, db: SqlAlchemyConnectionRegistry):
+    def __init__(self, db: SqlAlchemyConnectionFactory):
         CRUD.__init__(self, User, db)
 ```
 
@@ -65,7 +66,7 @@ core_lib:
   user_core_lib:
     data:
       userdb:
-        _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
         config:
             log_queries: false
             create_db: true
@@ -92,11 +93,12 @@ core_lib:
 Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
 `user_core_lib.py`
+
 ```python
 from omegaconf import DictConfig
 
 from core_lib.core_lib import CoreLib
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.helpers.config_instances import instantiate_config
 
 from user_core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
@@ -104,27 +106,30 @@ from user_core_lib.data_layers.data_access.user_data_access import UserDataAcces
 from user_core_lib.data_layers.service.customer_service import CustomerService
 from user_core_lib.data_layers.service.user_service import UserService
 
+
 class UserClient(ClientBase):
     def __init__(self, target_url):
         ClientBase.__init__(self, target_url)
 
     def get(self, user_id: int):
         return self._get(f'/user/{user_id}')
-    
+
     def create(self, data: dict):
         return self._post(f'/create_user', data)
-    
+
     def update(self, data: dict):
         return self._put(f'/update_user', data)
-    
+
     def delete(self, user_id: int):
         return self._delete(f'/user/{user_id}')
+
 
 class UserCoreLib(CoreLib):
     def __init__(self, conf: DictConfig):
         super().__init__()
         self.config = conf
-        CoreLib.cache_registry.register("memory_cache", instantiate_config(self.config.core_lib.user_core_lib.cache.memory_cache))
+        CoreLib.cache_registry.register("memory_cache",
+                                        instantiate_config(self.config.core_lib.user_core_lib.cache.memory_cache))
         db_session = instantiate_config(self.config.core_lib.user_core_lib.data.userdb)
         self.user = UserService(UserDataAccess(db_session))
         self.user_client = instantiate_config(self.config.core_lib.user_core_lib.client.user_client)
@@ -141,7 +146,7 @@ This config will override the `UserClient` config with the `UserClientMock`.
 core_lib:
   user_core_lib:
     userdb:
-        _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
         config:
             log_queries: false
             create_db: true

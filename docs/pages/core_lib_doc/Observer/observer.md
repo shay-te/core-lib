@@ -78,7 +78,7 @@ class Observe(object):
 ```python
 class UserDataAccess(DataAccess):
 
-    def __init__(self, db: SqlAlchemyConnectionRegistry):
+    def __init__(self, db: SqlAlchemyConnectionFactory):
         self._db = db
 
     @Observe(event_key=UserObserverListener.EVENT_USER_CHANGE, notify_before=False)

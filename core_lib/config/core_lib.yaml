@@ -18,20 +18,23 @@ core_lib:
 
   data:
     sqlalchemy:
-      log_queries: false
-      create_db: false
-      session:
-        pool_recycle: 3600
-        pool_pre_ping: false
-        pool_size: 5
-        max_overflow: 10
-      url:
-        protocol: 'sqlite'
-        username: ~
-        password: ~
-        host: ~
-        port: ~
-        file: ~
+      _instance_key_: sqlalchemy_connection
+      _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
+      config:
+        log_queries: false
+        create_db: false
+        session:
+          pool_recycle: 3600
+          pool_pre_ping: false
+          pool_size: 5
+          max_overflow: 10
+        url:
+          protocol: 'sqlite'
+          username: ~
+          password: ~
+          host: ~
+          port: ~
+          file: ~
 
     solr:
       always_commit: true

@@ -26,7 +26,7 @@ export const connectionFields = (path, yamlData) => {
             title: 'Select connection',
             type: 'enum',
             mandatory: true,
-            value: connection['type'].includes('SolrConnectionRegistry') ? 'solr' : connection['config']['url']['protocol'],
+            value: connection['type'].includes('SolrConnectionFactory') ? 'solr' : connection['config']['url']['protocol'],
             options: [
                 'SQLite',
                 'Postgresql',
@@ -75,7 +75,7 @@ export const connectionFields = (path, yamlData) => {
                 validatorCallback: isNotNull,
             },
         );
-        if (!connection['type'].includes('Neo4jConnectionRegistry')) {
+        if (!connection['type'].includes('Neo4jConnectionFactory')) {
             fields.push(
                 {
                     title: 'Enter filename for your connection',
@@ -89,17 +89,17 @@ export const connectionFields = (path, yamlData) => {
                 },
             )
         }
-        if (['SqlAlchemyConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val))) {
+        if (['SqlAlchemyConnectionFactory', 'Neo4jConnectionFactory'].some(val => connection['type'].includes(val))) {
             fields.push(
                 {
                     title: 'Enter your connection username',
                     type: 'string',
                     default_value: 'user',
-                    value: connection['type'].includes('SqlAlchemyConnectionRegistry') ? 
+                    value: connection['type'].includes('SqlAlchemyConnectionFactory') ?
                             getENVValue(connection['config']['url']['username'], yamlData) : 
                             getENVValue(connection['config']['credentials']['username'], yamlData),
                     mandatory: true,
-                    key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.username` : `${keyPrefix}.config.credentials.username`,
+                    key: connection['type'].includes('SqlAlchemyConnectionFactory') ? `${keyPrefix}.config.url.username` : `${keyPrefix}.config.credentials.username`,
                     env: `${envPrefix}_USER`,
                     validatorCallback: isNotNull,
                 },
@@ -107,18 +107,18 @@ export const connectionFields = (path, yamlData) => {
                     title: 'Enter your connection password',
                     type: 'string',
                     default_value: null,
-                    value: connection['type'].includes('SqlAlchemyConnectionRegistry') ? 
+                    value: connection['type'].includes('SqlAlchemyConnectionFactory') ?
                             getENVValue(connection['config']['url']['password'], yamlData) : 
                             getENVValue(connection['config']['credentials']['password'], yamlData),
                     mandatory: true,
-                    key: connection['type'].includes('SqlAlchemyConnectionRegistry') ? `${keyPrefix}.config.url.password` : `${keyPrefix}.config.credentials.password`,
+                    key: connection['type'].includes('SqlAlchemyConnectionFactory') ? `${keyPrefix}.config.url.password` : `${keyPrefix}.config.credentials.password`,
                     env: `${envPrefix}_PASSWORD`,
                     validatorCallback: isNotNull,
                 }
             )
         }
     }
-    if (!(['SolrConnectionRegistry', 'Neo4jConnectionRegistry'].some(val => connection['type'].includes(val)))) {
+    if (!(['SolrConnectionFactory', 'Neo4jConnectionFactory'].some(val => connection['type'].includes(val)))) {
         fields.push(
             {
                 title: 'Do you want to log queries?',

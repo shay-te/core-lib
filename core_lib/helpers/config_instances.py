@@ -1,6 +1,8 @@
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig
 
+from core_lib.helpers.constants import InstantiateConfigConstants
+
 
 def instantiate_config_group_generator_dict(
     conf: DictConfig,
@@ -44,9 +46,9 @@ def _instantiate_config(
             _get_config_under_path(settings, class_config_base_path, raise_class_config_base_path_error) or {}
         )
         class_settings = {**class_settings, **params}
-
+        recursive = class_settings.get(InstantiateConfigConstants.RECURSIVE.value, True)
         if class_settings:
-            instance = instantiate(class_settings)
+            instance = instantiate(class_settings, _recursive_=recursive)
             if instance_base_class and not isinstance(instance, instance_base_class):
                 raise ValueError(
                     f'object from config must be a baseclass of : '

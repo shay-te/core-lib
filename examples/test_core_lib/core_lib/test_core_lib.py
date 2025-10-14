@@ -2,7 +2,7 @@ from omegaconf import DictConfig
 
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 
 from examples.test_core_lib.core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
 from examples.test_core_lib.core_lib.data_layers.data_access.slow_large_data_data_access import SlowLargeDataDataAccess
@@ -23,7 +23,7 @@ class TestCoreLib(CoreLib):
         self.config = conf.core_lib
         CoreLib.cache_registry.register("memory_cache", CacheHandlerRam())
 
-        db_data_session = SqlAlchemyConnectionRegistry(self.config.db)
+        db_data_session = CoreLib.connection_factory_registry.get_or_reg(self.config.db)
 
         class Test(object):
             def __init__(self):

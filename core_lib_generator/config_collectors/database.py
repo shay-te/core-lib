@@ -85,7 +85,7 @@ def _generate_db_config(
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
     if db_type:
-        db_type: str = 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
+        db_type: str = 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory'
     return {
         'env': config['env'],
         'connection': {

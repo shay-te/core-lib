@@ -60,7 +60,7 @@ export const connection = (yamlData) => {
         key: connName,
         migrate: false,
         config_instantiate: false,
-        type: 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry',
+        type: 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory',
         config: {
             create_db: true,
             log_queries: false,

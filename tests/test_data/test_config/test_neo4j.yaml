@@ -1,6 +1,6 @@
 core_lib:
   neo4j:
-    _target_: core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry
+    _target_: core_lib.connection.neo4j_connection_factory.Neo4jConnectionFactory
     config:
       credentials:
         username: test_name
