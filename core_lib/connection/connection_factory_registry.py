@@ -1,4 +1,5 @@
 import copy
+import logging
 from abc import ABC
 
 from core_lib.connection.connection_factory import ConnectionFactory
@@ -13,13 +14,14 @@ class ConnectionFactoryRegistry(DefaultRegistry, ABC):
 
     def __init__(self):
         DefaultRegistry.__init__(self, ConnectionFactory)
+        self.logger = logging.getLogger(__name__)
 
     def get_or_reg(self, config: DictConfig):
         instance_key = config.get(InstantiateConfigConstants.INSTANCE_KEY.value)
         target = config.get(InstantiateConfigConstants.TARGET.value)
 
         if not instance_key and target:
-            # TODO: log warning
+            self.logger.warning('"instance_key" not found returning an instance without registering to registry')
             return instantiate_config(config)
 
         if not instance_key and not target:

@@ -3,17 +3,17 @@ from omegaconf import DictConfig
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
 
-from examples.test_instantiate_core_lib.core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
-from examples.test_instantiate_core_lib.core_lib.data_layers.data_access.slow_large_data_data_access import SlowLargeDataDataAccess
-from examples.test_instantiate_core_lib.core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
-from examples.test_instantiate_core_lib.core_lib.data_layers.data_access.test2_data_access import Test2DataAccess
-from examples.test_instantiate_core_lib.core_lib.data_layers.data_access.user_data_access import UserDataAccess
-from examples.test_instantiate_core_lib.core_lib.data_layers.service.customer_service import CustomerService
-from examples.test_instantiate_core_lib.core_lib.data_layers.service.slow_large_data_service import SlowLargeDataService
-from examples.test_instantiate_core_lib.core_lib.data_layers.service.test1_service import Test1Service
-from examples.test_instantiate_core_lib.core_lib.data_layers.service.test2_service import Test2Service
+from examples.test_core_lib.core_lib.data_layers.data_access.customer_data_access import CustomerDataAccess
+from examples.test_core_lib.core_lib.data_layers.data_access.slow_large_data_data_access import SlowLargeDataDataAccess
+from examples.test_core_lib.core_lib.data_layers.data_access.test1_data_access import Test1DataAccess
+from examples.test_core_lib.core_lib.data_layers.data_access.test2_data_access import Test2DataAccess
+from examples.test_core_lib.core_lib.data_layers.data_access.user_data_access import UserDataAccess
+from examples.test_core_lib.core_lib.data_layers.service.customer_service import CustomerService
+from examples.test_core_lib.core_lib.data_layers.service.slow_large_data_service import SlowLargeDataService
+from examples.test_core_lib.core_lib.data_layers.service.test1_service import Test1Service
+from examples.test_core_lib.core_lib.data_layers.service.test2_service import Test2Service
 
-from examples.test_instantiate_core_lib.core_lib.data_layers.service.user_service import UserService
+from examples.test_core_lib.core_lib.data_layers.service.user_service import UserService
 
 
 class TestInstantiateCoreLib(CoreLib):
