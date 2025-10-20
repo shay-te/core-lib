@@ -20,11 +20,11 @@ class Alembic(object):
         OmegaConf.set_struct(self.config, False)
         self.alembic_cfg = Config()
 
-        server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.url)
+        server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.config.url)
         self.config['sqlalchemy.url'] = server_url
 
         self.__engine = create_engine(
-            self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.log_queries
+            self.config['sqlalchemy.url'], echo=core_lib_config.core_lib.data.sqlalchemy.config.log_queries
         )
 
         self.script_location = None

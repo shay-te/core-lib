@@ -4,7 +4,7 @@ import hydra
 from pysolr import Solr
 
 from core_lib.connection.solr_connection import SolrConnection
-from core_lib.connection.solr_connection_registry import SolrConnectionRegistry
+from core_lib.connection.solr_connection_factory import SolrConnectionFactory
 from core_lib.helpers.config_instances import instantiate_config
 
 
@@ -19,7 +19,7 @@ class TestSolrHandler(unittest.TestCase):
         config_file = 'test_solr.yaml'
         config = hydra.compose(config_file)
         solr = instantiate_config(config.core_lib.solr)
-        self.assertIsInstance(solr, SolrConnectionRegistry)
+        self.assertIsInstance(solr, SolrConnectionFactory)
         self.assertIsInstance(solr.client, Solr)
         self.assertIsInstance(solr.get(), SolrConnection)
 

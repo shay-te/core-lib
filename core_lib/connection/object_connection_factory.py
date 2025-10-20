@@ -1,8 +1,8 @@
-from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.object_connection import ObjectConnection
 
 
-class ObjectConnectionRegistry(ConnectionRegistry):
+class ObjectConnectionFactory(ConnectionFactory):
     def __init__(self, obj, new_session_callback=None, close_session_callback=None):
         self._obj = obj
         self.new_session_callback = new_session_callback

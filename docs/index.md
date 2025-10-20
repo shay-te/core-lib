@@ -95,24 +95,25 @@ data:
 
 ```python
 from core_lib.core_lib import CoreLib
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
+
 
 class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
         CoreLib.__init__(self)
-        db_connection = SqlAlchemyConnectionRegistry(self.config.core_lib.data.sqlalchemy)
+        db_connection = SqlAlchemyConnectionFactory(self.config.core_lib.data.sqlalchemy)
         self.user = UserDataAccess(db_connection)
         ...
 ```
 #### `your_core_lib.py` Explained:
-**In `your_core_lib.py`, a `custom CoreLib class` and a `SqlAlchemyConnectionRegistry class` are defined to manage database connections.**
+**In `your_core_lib.py`, a `custom CoreLib class` and a `SqlAlchemyConnectionFactory class` are defined to manage database connections.**
 
 #### Defining a new class YourCoreLib that inherits from CoreLib.
   - Defining an `__init__` method for `YourCoreLib` that takes a config argument of type [DictConfig](https://omegaconf.readthedocs.io/en/2.3_branch/api_reference.html#id1){:target="_blank"}. It is a dictionary type from [omegaconf](https://omegaconf.readthedocs.io/en/2.3_branch/index.html){:target="_blank"} that used by [Hydra](https://hydra.cc/docs/intro/){:target="_blank"}.
   - Calling the parent class CoreLib's `__init__` method using `CoreLib.__init__(self)` to initialize the base class.
     - Mark core-lib as started
     - Enable the use of core-lib observers
-  - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionRegistry` with the SQLAlchemy configuration fetched from `self.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
+  - Initialize a `db_connection` object by instantiating `SqlAlchemyConnectionFactory` with the SQLAlchemy configuration fetched from `self.config.core_lib.data.sqlalchemy`, thereby connecting to and managing the specified database as defined in the `your_core_lib.yaml` configuration file.
   - Initializing a `UserDataAccess` class responsible for accessing user data from the database, passing the `db_connection` object to it.
 
 

@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from dateutil.utils import today as dateutils_today
 
 from core_lib.helpers.datetime_utils import (
@@ -44,7 +44,7 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(reset_datetime(date=dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
 
     def test_yesterday(self):
-        dt_yesterday = datetime.today() - timedelta(days=1)
+        dt_yesterday = datetime.now(timezone.utc) - timedelta(days=1)
         cl_yesterday = yesterday()
         self.assertNotEqual(cl_yesterday, None)
         self.assertEqual(cl_yesterday.minute, 0)
@@ -54,7 +54,7 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(cl_yesterday.year, dt_yesterday.year)
 
     def test_today(self):
-        dtu_today = dateutils_today()
+        dtu_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         cl_today = today()
         self.assertNotEqual(cl_today, None)
         self.assertEqual(cl_today.minute, dtu_today.minute)
@@ -64,7 +64,7 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(cl_today.year, dtu_today.year)
 
     def test_tomorrow(self):
-        dt_tomorrow = datetime.today() + timedelta(days=1)
+        dt_tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
         cl_tomorrow = tomorrow()
         self.assertNotEqual(cl_tomorrow, None)
         self.assertEqual(cl_tomorrow.minute, 0)
@@ -95,10 +95,10 @@ class TestDBRuleValidator(unittest.TestCase):
 
     def test_week(self):
         self.assertNotEqual(week_begin(), None)
-        self.assertEqual(week_begin(), reset_datetime(today() - timedelta(days=datetime.today().weekday())))
+        self.assertEqual(week_begin(), reset_datetime(today() - timedelta(days=datetime.now(timezone.utc).weekday())))
         self.assertNotEqual(week_end(), None)
         self.assertEqual(
-            week_end(), reset_datetime((today() - timedelta(days=datetime.today().weekday())) + timedelta(days=7))
+            week_end(), reset_datetime((today() - timedelta(days=datetime.now(timezone.utc).weekday())) + timedelta(days=7))
         )
 
     def test_day(self):

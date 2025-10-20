@@ -1,7 +1,7 @@
 from omegaconf import OmegaConf
 
-from core_lib.connection.mongodb_connection_registry import MongoDBConnectionRegistry
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.mongodb_connection_factory import MongoDBConnectionFactory
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 import mongomock
 
 
@@ -12,7 +12,7 @@ def connect_to_mem_db():
         'session': {'pool_recycle': 3600, 'pool_pre_ping': False},
         'url': {'protocol': 'sqlite'},
     }
-    return SqlAlchemyConnectionRegistry(OmegaConf.create(conf))
+    return SqlAlchemyConnectionFactory(OmegaConf.create(conf))
 
 
 @mongomock.patch(servers=(('server.example.com', 27017), ))
@@ -23,4 +23,4 @@ def connect_to_mongo():
                 'port': 27017
             }
     }
-    return MongoDBConnectionRegistry(OmegaConf.create(conf))
+    return MongoDBConnectionFactory(OmegaConf.create(conf))

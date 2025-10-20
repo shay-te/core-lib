@@ -63,17 +63,17 @@ def _add_connections(template_content: str, yaml_data: dict, core_lib_name: str)
         if instantiate == 'instantiate_config':
             imports_list.append('from core_lib.helpers.config_instances import instantiate_config')
         handler_str = ''
-        if 'SqlAlchemyConnectionRegistry' in conn_type:
+        if 'SqlAlchemyConnectionFactory' in conn_type:
             if not config_instantiate:
-                imports_list.append('from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
+                imports_list.append('from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.data.{connection.key})'
-        elif 'SolrConnectionRegistry' in conn_type:
+        elif 'SolrConnectionFactory' in conn_type:
             if not config_instantiate:
-                imports_list.append('from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
+                imports_list.append('from core_lib.connection.solr_connection_factory import SolrConnectionFactory')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.solr.{connection.key})'
-        elif 'Neo4jConnectionRegistry' in conn_type:
+        elif 'Neo4jConnectionFactory' in conn_type:
             if not config_instantiate:
-                imports_list.append('from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
+                imports_list.append('from core_lib.connection.neo4j_connection_factory import Neo4jConnectionFactory')
             handler_str = f'{connection.key} = {instantiate}(self.config.core_lib.{core_lib_name}.neo4j.{connection.key})'
         handler_list.append(add_tab_spaces(handler_str, 2))
 
@@ -162,13 +162,13 @@ def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
 def _add_mongo(template_content: str, yaml_data: dict, core_lib_name: str) -> str:
     updated_file = template_content
     import_str = (
-        'from core_lib.connection.mongodb_connection_registry import MongoDBConnectionRegistry'
+        'from core_lib.connection.mongodb_connection_factory import MongoDBConnectionFactory'
     )
     mongo_conn = []
     for db_connection in yaml_data:
         db_conn_name = get_dict_attr(db_connection, 'key')
         if get_dict_attr(db_connection, 'url.protocol') == 'mongodb':
-            conn_str = f'self.{db_conn_name} = MongoDBConnectionRegistry(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
+            conn_str = f'self.{db_conn_name} = MongoDBConnectionFactory(self.config.core_lib.{core_lib_name}.data.{db_conn_name})'
             mongo_conn.append(add_tab_spaces(conn_str, 2))
     if mongo_conn:
         updated_file = updated_file.replace('# template_mongo_handler_imports', import_str)

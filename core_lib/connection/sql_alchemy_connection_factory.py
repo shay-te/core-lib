@@ -1,6 +1,6 @@
 from omegaconf import DictConfig
 
-from core_lib.connection.connection_registry import ConnectionRegistry
+from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
 from core_lib.data_layers.data.data_helpers import build_url
 from sqlalchemy import create_engine, engine
@@ -8,7 +8,7 @@ from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 UNSUPPORTED_DB_POOL = ['sqlite', 'firebird', 'sybase', 'ibm_db_sa', 'redshift']
 
-class SqlAlchemyConnectionRegistry(ConnectionRegistry):
+class SqlAlchemyConnectionFactory(ConnectionFactory):
     def __init__(self, config: DictConfig):
         self.session_to_count = {}
         self._engine = self._create_engine(config)

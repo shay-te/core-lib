@@ -1,0 +1,14 @@
+core_lib:
+  _target_: examples.test_instantiate_core_lib.core_lib.test_instantiate_core_lib.TestInstantiateCoreLib
+  conf:
+    core_lib:
+      db:
+        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
+        config:
+          log_queries: false
+          create_db: true
+          session:
+            pool_recycle: 3600
+            pool_pre_ping: false
+          url:
+            protocol: sqlite
