@@ -13,17 +13,13 @@ from core_lib.web_helpers.request_response_helpers import response_message
 
 logger = logging.getLogger(__name__)
 
-
-def _execute_error_middlewares(exc, func):
-    request = None
-    server_type = None
-
+def _get_request():
     try:
         server_type = WebHelpersUtils.get_server_type()
         if server_type == WebHelpersUtils.ServerType.FLASK:
             try:
                 from flask import request as flask_request
-                request = flask_request
+                return flask_request
             except Exception as e:
                 logger.debug(f"Failed to fetch Flask request: {e}")
         elif server_type == WebHelpersUtils.ServerType.DJANGO:
@@ -33,18 +29,22 @@ def _execute_error_middlewares(exc, func):
                 # So we just leave it None unless explicitly added to context elsewhere
                 from django.core.handlers.wsgi import WSGIRequest
                 # You could extend this later to pull from threadlocals if needed
-                request = None
+                return None
             except Exception as e:
                 logger.debug(f"Failed to resolve Django request: {e}")
+        else:
+            return None
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
+
+def _execute_error_middlewares(exc, func):
+    request = _get_request()
 
     context = {
         "exc": exc,
         "func": func,
         "request": request,
         "stacktrace": traceback.format_exc(),
-        "server_type": server_type,
     }
 
     try:
@@ -52,6 +52,16 @@ def _execute_error_middlewares(exc, func):
     except Exception as mw_exc:
         logger.warning(f"Error while executing error middlewares: {mw_exc}", exc_info=True)
 
+
+def _get_exception_status_code(exc):
+    if isinstance(exc, StatusCodeException):
+        return response_message(status=exc.status_code)
+    elif isinstance(exc, ExpiredSignatureError):
+        return response_message(status=HTTPStatus.UNAUTHORIZED)
+    elif isinstance(exc, AssertionError):
+        return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    else:
+        return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop("log_exception", True)
@@ -66,15 +76,8 @@ def handle_exception(func, *args, **kwargs):
         logger.error(f"handle_exception got {type(exc).__name__} error for function `{func}`")
         logger.exception(exc, exc_info=log_exception)
 
-        # Build appropriate response
-        if isinstance(exc, StatusCodeException):
-            return response_message(status=exc.status_code)
-        elif isinstance(exc, ExpiredSignatureError):
-            return response_message(status=HTTPStatus.UNAUTHORIZED)
-        elif isinstance(exc, AssertionError):
-            return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
-        else:
-            return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return _get_exception_status_code(exc)
+
 
 
 class HandleException(object):
