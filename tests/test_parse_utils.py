@@ -15,14 +15,15 @@ from core_lib.helpers.parse_utils import (
     clean_list,
     parse_bool,
     parse_any_nan,
-    float_to_str_no_dot,
+    float_to_str,
     parse_date,
     parse_range,
     height_to_cm,
     find_key_by_value,
-    fetch_exact_option,
+    fetch_closest_option,
 )
 
+STR_LIST_FOR_NAN = ("nan", "none", "null", "")
 
 class TestParseUtils(unittest.TestCase):
 
@@ -268,36 +269,36 @@ class TestParseUtils(unittest.TestCase):
     # parse_any_nan - COMPREHENSIVE
     # =====================================================
     def test_parse_any_nan_scalar(self):
-        self.assertIsNone(parse_any_nan(float("nan")))
-        self.assertIsNone(parse_any_nan("nan"))
-        self.assertIsNone(parse_any_nan("null"))
-        self.assertIsNone(parse_any_nan("None"))
+        self.assertIsNone(parse_any_nan(float("nan"), strings_to_replace=STR_LIST_FOR_NAN))
+        self.assertIsNone(parse_any_nan("nan", strings_to_replace=STR_LIST_FOR_NAN))
+        self.assertIsNone(parse_any_nan("null", strings_to_replace=STR_LIST_FOR_NAN))
+        self.assertIsNone(parse_any_nan("None", strings_to_replace=STR_LIST_FOR_NAN))
 
     def test_parse_any_nan_list(self):
-        self.assertEqual(parse_any_nan([1, np.nan]), [1, None])
-        self.assertEqual(parse_any_nan(["nan", 5, np.nan]), [None, 5, None])
+        self.assertEqual(parse_any_nan([1, np.nan], strings_to_replace=STR_LIST_FOR_NAN), [1, None])
+        self.assertEqual(parse_any_nan(["nan", 5, np.nan], strings_to_replace=STR_LIST_FOR_NAN), [None, 5, None])
 
     def test_parse_any_nan_nested(self):
-        self.assertEqual(parse_any_nan([1, ["nan", np.nan]]), [1, [None, None]])
+        self.assertEqual(parse_any_nan([1, ["nan", np.nan]], strings_to_replace=STR_LIST_FOR_NAN), [1, [None, None]])
 
     def test_parse_any_nan_numpy_array(self):
         arr = np.array([1.0, np.nan, 3.0])
-        result = parse_any_nan(arr)
+        result = parse_any_nan(arr, strings_to_replace=STR_LIST_FOR_NAN)
         self.assertEqual(result[0], 1.0)
         self.assertIsNone(result[1])
         self.assertEqual(result[2], 3.0)
 
     def test_parse_any_nan_pandas_series(self):
         s = pd.Series([1, np.nan, 3])
-        result = parse_any_nan(s)
+        result = parse_any_nan(s, strings_to_replace=STR_LIST_FOR_NAN)
         self.assertEqual(result[0], 1)
         self.assertIsNone(result[1])
         self.assertEqual(result[2], 3)
 
     def test_parse_any_nan_custom_replace(self):
         """Custom replacement value"""
-        self.assertEqual(parse_any_nan("nan", replace_with=-1), -1)
-        self.assertEqual(parse_any_nan(float("nan"), replace_with=-999), -999)
+        self.assertEqual(parse_any_nan("nan", replace_with=-1, strings_to_replace=STR_LIST_FOR_NAN), -1)
+        self.assertEqual(parse_any_nan(float("nan"), replace_with=-999, strings_to_replace=STR_LIST_FOR_NAN), -999)
 
     def test_parse_any_nan_preserves_valid(self):
         """Valid values should pass through unchanged"""
@@ -309,26 +310,28 @@ class TestParseUtils(unittest.TestCase):
     # float_to_str_no_dot - COMPREHENSIVE
     # =====================================================
     def test_float_to_str(self):
-        self.assertEqual(float_to_str_no_dot(12.34), "1234")
-        self.assertEqual(float_to_str_no_dot(12.0), "12")
-        self.assertEqual(float_to_str_no_dot(float("nan")), "")
-        self.assertEqual(float_to_str_no_dot(None), "")
+        self.assertEqual(float_to_str(12.34, True), "1234")
+        self.assertEqual(float_to_str(12.0, True), "12")
+        self.assertEqual(float_to_str(12.34), "12.34")
+        self.assertEqual(float_to_str(12.0), "12")
+        self.assertEqual(float_to_str(float("nan")), "")
+        self.assertEqual(float_to_str(None), "")
 
     def test_float_to_str_negative(self):
-        self.assertEqual(float_to_str_no_dot(-12.34), "-1234")
+        self.assertEqual(float_to_str(-12.34, True), "-1234")
 
     def test_float_to_str_zero(self):
-        self.assertEqual(float_to_str_no_dot(0.0), "0")
+        self.assertEqual(float_to_str(0.0, True), "0")
 
     def test_float_to_str_string_input(self):
-        self.assertEqual(float_to_str_no_dot("123"), "123")
+        self.assertEqual(float_to_str("123"), "123")
 
     def test_float_to_str_large_decimal(self):
-        out = float_to_str_no_dot(123456789.9876)
+        out = float_to_str(123456789.9876, True)
         self.assertNotIn(".", out)
 
     def test_float_to_str_very_small(self):
-        result = float_to_str_no_dot(0.001)
+        result = float_to_str(0.001, True)
         self.assertNotIn(".", result)
 
     # =====================================================
@@ -839,27 +842,27 @@ class TestParseUtils(unittest.TestCase):
     # fetch_exact_option - COMPREHENSIVE
     # =====================================================
     def test_fetch_option_basic(self):
-        self.assertEqual(fetch_exact_option("grn", ["Green", "Blue"], 0.60), "Green")
+        self.assertEqual(fetch_closest_option("grn", ["Green", "Blue"], 0.60), "Green")
 
     def test_fetch_option_fail(self):
-        self.assertIsNone(fetch_exact_option("xyz", ["aaa", "bbb"]))
+        self.assertIsNone(fetch_closest_option("xyz", ["aaa", "bbb"]))
 
     def test_fetch_option_exact_match(self):
         """Exact matches should work"""
-        self.assertEqual(fetch_exact_option("apple", ["apple", "banana"]), "apple")
+        self.assertEqual(fetch_closest_option("apple", ["apple", "banana"]), "apple")
 
     def test_fetch_option_empty_list(self):
-        self.assertIsNone(fetch_exact_option("test", []))
+        self.assertIsNone(fetch_closest_option("test", []))
 
     def test_fetch_option_return_type(self):
         """Should return option or None"""
-        result = fetch_exact_option("a", ["apple"])
+        result = fetch_closest_option("a", ["apple"])
         self.assertIn(result, ["apple", None])
 
     def test_fetch_option_fuzz(self):
         """Fuzz test: should never crash"""
         for _ in range(200):
-            out = fetch_exact_option(self.random_garbage(20), ["abc", "def", "ghi"])
+            out = fetch_closest_option(self.random_garbage(20), ["abc", "def", "ghi"])
             self.assertIn(out, ["abc", "def", "ghi", None])
 
     # =====================================================
@@ -872,7 +875,7 @@ class TestParseUtils(unittest.TestCase):
         """Core resilience: nothing should crash"""
         funcs = [
             normalize, clean_list, parse_bool, parse_any_nan,
-            float_to_str_no_dot, parse_date, parse_range,
+            float_to_str, parse_date, parse_range,
             height_to_cm
         ]
 

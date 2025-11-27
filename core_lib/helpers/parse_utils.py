@@ -54,25 +54,29 @@ def parse_bool(value):
     return None
 
 
-def parse_any_nan(val, replace_with=None):
+def parse_any_nan(val, replace_with=None, strings_to_replace: tuple = ()):
     if isinstance(val, (list, np.ndarray, pd.Series)):
-        return [parse_any_nan(v, replace_with) for v in val]
+        return [parse_any_nan(v, replace_with, strings_to_replace) for v in val]
     if isinstance(val, float) and math.isnan(val):
         return replace_with
-    if isinstance(val, str) and val.strip().lower() in ("nan", "none", "null", ""):
+    if isinstance(val, str) and val.strip().lower() in strings_to_replace:
         return replace_with
     if pd.isna(val):
         return replace_with
     return val
 
 
-def float_to_str_no_dot(value) -> str:
+def float_to_str(value, remove_dot: bool = False) -> str:
+    # Handle None or NaN
     if value is None or (isinstance(value, float) and math.isnan(value)):
-        return ""
+        return ''
+    # Handle floats
     if isinstance(value, float):
         if value.is_integer():
             return str(int(value))
-        return str(value).replace(".", "")
+        result = str(value)
+        return result.replace('.', '') if remove_dot else result
+    # Fallback for non-floats
     return str(value)
 
 
@@ -204,7 +208,7 @@ def height_to_cm(height_str):
         return result
 
     # 3) Metric meters: "1.80 m"
-    result = _parse_m(s)
+    result = _parse_meter(s)
     if result is not None:
         return result
 
@@ -232,7 +236,7 @@ def find_key_by_value(data, target):
             return key
     return None
 
-def fetch_exact_option(source: str, options: list, threshold: float = 0.89) -> Union[str, None]:
+def fetch_closest_option(source: str, options: list, threshold: float = 0.89) -> Union[str, None]:
     if not isinstance(source, str):
         return None
 
@@ -300,7 +304,7 @@ def _parse_cm(s: str):
     return round(float(match.group(1)))
 
 
-def _parse_m(s: str):
+def _parse_meter(s: str):
     match = re.fullmatch(r"(\d+(?:\.\d+)?)\s*m", s)
     if not match:
         return None
