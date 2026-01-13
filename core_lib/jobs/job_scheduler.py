@@ -1,5 +1,5 @@
 import logging
-from threading import Lock, Timer
+from threading import RLock, Timer
 from pytimeparse import parse
 from core_lib.jobs.job import Job
 
@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 class JobScheduler(object):
     def __init__(self):
-        self._lock = Lock()
+        self._lock = RLock() # RLock allows the same thread to acquire the lock again (prevents self-deadlock)
         self._job_to_timer = {}
+        self._job_class_name_to_job = {}
 
     def stop(self, job: Job):
         self._lock.acquire()
@@ -19,22 +20,27 @@ class JobScheduler(object):
             timer.cancel()
         self._lock.release()
 
-    def schedule(self, initial_delay: str, frequency: str, job: Job):
+    def schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = True):
         logger.info(f'schedule {job.__repr__() if job else "<None Job>"}, initial_delay: {initial_delay}, frequency: {frequency} ')
         self._validate(initial_delay, job)
         self._validate_str_time(frequency, 'frequency')
-        self._schedule(initial_delay, frequency, job)
+        self._schedule(initial_delay, frequency, job, is_run_in_parallel)
 
-    def schedule_once(self, initial_delay: str, job: Job, params: dict = {}):
+    def schedule_once(self, initial_delay: str, job: Job, is_run_in_parallel: bool = True, params: dict = {}):
         logger.info(f'schedule_once {job.__repr__() if job else "<None Job>"}, initial_delay: {initial_delay}')
         self._validate(initial_delay, job)
-        self._schedule(initial_delay, None, job, params)
+        self._schedule(initial_delay, None, job, is_run_in_parallel, params)
 
-    def _schedule(self, initial_delay: str, frequency: str, job: Job, params: dict = {}):
+    def _schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = True, params: dict = {}):
         self._lock.acquire()
-        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency, params: params})
+        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency, 'params': params})
         timer.daemon = True
+        if not is_run_in_parallel:
+            job_instance = self._job_class_name_to_job.get(job.__class__.__name__)
+            if job_instance:
+                self.stop(job_instance)
         self._job_to_timer[job] = timer
+        self._job_class_name_to_job[job.__class__.__name__] = job
         timer.start()
         self._lock.release()
 
