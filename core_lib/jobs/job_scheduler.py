@@ -25,23 +25,23 @@ class JobScheduler(object):
         self._validate_str_time(frequency, 'frequency')
         self._schedule(initial_delay, frequency, job)
 
-    def schedule_once(self, initial_delay: str, job: Job):
+    def schedule_once(self, initial_delay: str, job: Job, params: dict = {}):
         logger.info(f'schedule_once {job.__repr__() if job else "<None Job>"}, initial_delay: {initial_delay}')
         self._validate(initial_delay, job)
-        self._schedule(initial_delay, None, job)
+        self._schedule(initial_delay, None, job, params)
 
-    def _schedule(self, initial_delay: str, frequency: str, job: Job):
+    def _schedule(self, initial_delay: str, frequency: str, job: Job, params: dict = {}):
         self._lock.acquire()
-        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency})
+        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency, params: params})
         timer.daemon = True
         self._job_to_timer[job] = timer
         timer.start()
         self._lock.release()
 
-    def _run_job(self, job: Job, frequency: str):
+    def _run_job(self, job: Job, frequency: str, params: dict = {}):
         try:
             logger.debug(f'Running job {job.__repr__() if job else "<None Job>"}')
-            job.run()
+            job.run(**params)
         except BaseException as ex:
             logger.error(f'Error while running job {job.__repr__() if job else "<None Job>"}')
             logger.exception(ex, exc_info=True)
