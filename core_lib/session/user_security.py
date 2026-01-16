@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from http import HTTPStatus
 from core_lib.session.token_handler import TokenHandler
-from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 
