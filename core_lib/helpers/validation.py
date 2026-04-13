@@ -2,8 +2,6 @@ import re
 from contextlib import suppress
 from typing import Callable, Optional, TypeVar
 
-from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-
 
 ParsedValue = TypeVar("ParsedValue")
 
@@ -65,13 +63,13 @@ URL_CHECK_REGEX = re.compile(
 )
 
 
-def is_email(email: str) -> bool:
+def is_email(email: Optional[str]) -> bool:
     if not email:
         return False
     return bool(EMAIL_CHECK_REGEX.fullmatch(email))
 
 
-def is_int_enum(int_value: int, enum: IntEnum) -> bool:
+def is_int_enum(int_value: Optional[int], enum: object) -> bool:
     with suppress(Exception):
         enum(int_value)
         return True
@@ -101,7 +99,7 @@ def parse_int_list(value) -> list:
     return parse_comma_separated_list(value, value_parser=int)
 
 
-def is_url(url: str) -> bool:
+def is_url(url: Optional[str]) -> bool:
     if not url:
         return False
     return bool(URL_CHECK_REGEX.match(url))
