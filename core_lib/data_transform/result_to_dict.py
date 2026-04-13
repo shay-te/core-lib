@@ -2,7 +2,6 @@ import datetime
 import enum
 from collections.abc import Iterable
 
-from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
@@ -17,19 +16,29 @@ from sqlalchemy.engine.row import Row
 from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 
 
+def __datetime_to_timestamp_ms(value: datetime.datetime) -> int:
+    return int(value.timestamp() * 1000)
+
+
+def __date_to_timestamp_ms(value: datetime.date) -> int:
+    return __datetime_to_timestamp_ms(datetime.datetime(year=value.year, month=value.month, day=value.day))
+
+
+def __time_to_milliseconds_since_midnight(value: datetime.time) -> int:
+    return (((value.hour * 60) + value.minute) * 60 + value.second) * 1000 + int(value.microsecond / 1000)
+
+
 def __convert_value(value):
     if isinstance(value, enum.Enum):
         return value.value
     if isinstance(value, datetime.datetime):
-        return value.timestamp()
+        return __datetime_to_timestamp_ms(value)
     if isinstance(value, datetime.date):
-        return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
+        return __date_to_timestamp_ms(value)
     if isinstance(value, datetime.time):
-        return value.strftime('%H:%M:%S')
+        return __time_to_milliseconds_since_midnight(value)
     if isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
-    if isinstance(value, Decimal):
-        return float(value)
     return value
 
 
@@ -120,6 +129,13 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
             for key, value in results.items():
                 if not isinstance(value, (int, float, bool, str)):
                     results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+    elif isinstance(results, tuple):
+        results = tuple(
+            value
+            if isinstance(value, (int, float, bool, str))
+            else result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+            for value in results
+        )
 
     # must be last!
     if callback:
