@@ -1,6 +1,6 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_enum, input_yes_no, input_int
+from core_lib.helpers.shell_utils import prompt_str, prompt_enum, prompt_yes_no, prompt_int
 
 
 def generate_db_template() -> dict:
@@ -11,28 +11,28 @@ def generate_db_template() -> dict:
 
     add_db = True
     while add_db:
-        db_name = input_str('What is the name of the DB connection?', None, False, is_exists_conn)
+        db_name = prompt_str('What is the name of the DB connection?', None, False, is_exists_conn)
 
-        db_type = input_enum(
+        db_type = prompt_enum(
             DBTypes, 'From the following list, select the relevant number for DB type', DBTypes.SQLite.value
         )
         db_username = None
         db_password = None
         db_port = None
         db_host = None
-        db_log_queries = input_yes_no('Do you want to log queries?', False)
-        db_create = input_yes_no('Do you want create Database?', True)
-        db_pool_recycle = input_int('Enter the pool recycle time', 3200)
-        db_pool_pre_ping = input_yes_no('Do you want to set pool pre ping?', False)
-        migrate = input_yes_no(f'Do you want to create a migration?', False)
+        db_log_queries = prompt_yes_no('Do you want to log queries?', False)
+        db_create = prompt_yes_no('Do you want create Database?', True)
+        db_pool_recycle = prompt_int('Enter the pool recycle time', 3200)
+        db_pool_pre_ping = prompt_yes_no('Do you want to set pool pre ping?', False)
+        migrate = prompt_yes_no(f'Do you want to create a migration?', False)
         if db_type != DBTypes.SQLite.value:
-            db_port = input_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
-            db_host = input_str('Enter host of your DB', 'localhost')
-            db_username = input_str('Enter your DB username', 'user')
-            db_password = input_str(
+            db_port = prompt_int('Enter the port no. of your DB', default_db_ports[DBTypes(db_type).name])
+            db_host = prompt_str('Enter host of your DB', 'localhost')
+            db_username = prompt_str('Enter your DB username', 'user')
+            db_password = prompt_str(
                 'Enter your DB password',
             )
-        add_db = input_yes_no('Do you want to add another DB connection?', False)
+        add_db = prompt_yes_no('Do you want to add another DB connection?', False)
         db_template[f'{db_name}'] = _generate_db_config(
             db_type,
             db_name,

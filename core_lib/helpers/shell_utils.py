@@ -26,6 +26,24 @@ def _format(title: str, default=None, allow_none: bool = False) -> str:
     return f'{title}: '
 
 
+def _empty_prompt_result(default=None, allow_none: bool = False, allow_empty: bool = False):
+    if default is not None:
+        return default
+    if allow_none:
+        return None
+    if allow_empty:
+        return ''
+    return None
+
+
+def _coalesce_prompt_value(raw: str, default) -> str:
+    if raw:
+        return raw
+    if default is not None:
+        return str(default)
+    return ''
+
+
 # ── string ────────────────────────────────────────────────────────────────────
 
 
@@ -51,12 +69,10 @@ def prompt_str(
         effective_title = title if is_valid else validate_fail_message
         raw = _prompt(_format(effective_title, default, allow_none))
         if not raw:
-            if default is not None:
-                return default
-            if allow_none:
-                return None
-            if allow_empty:
-                return ''
+            empty_result = _empty_prompt_result(default, allow_none, allow_empty)
+            if empty_result is not None or allow_none or allow_empty:
+                return empty_result
+            is_valid = True
             continue
         if validate_callback and not validate_callback(raw):
             is_valid = False
@@ -145,7 +161,7 @@ def prompt_url(title: str, default: Optional[str] = None, allow_empty: bool = Fa
     """Prompt for a valid URL, optionally allowing an empty value."""
     while True:
         raw = _prompt(_format(title, default))
-        value = raw if raw else (default if default is not None else '')
+        value = _coalesce_prompt_value(raw, default)
         if allow_empty and not value:
             return ''
         if is_url(value):
@@ -156,7 +172,7 @@ def prompt_timeframe(title: str, default: Optional[str] = None, allow_empty: boo
     """Prompt for a duration string (e.g. 1s, 1m, 1h30m, boot, startup)."""
     while True:
         raw = _prompt(_format(title, default))
-        value = raw if raw else (default if default is not None else '')
+        value = _coalesce_prompt_value(raw, default)
         if value in ('boot', 'startup'):
             return '0s'
         if allow_empty and not value:
@@ -175,7 +191,7 @@ def prompt_enum(enum_class: enum.EnumMeta, title: str, default: Optional[int] = 
         print(f'{item.value}-{item.name}')
     while True:
         raw = _prompt(_format(title, default))
-        value = raw if raw else (str(default) if default is not None else '')
+        value = _coalesce_prompt_value(raw, default)
         if is_int(value) and int(value) in valid_values:
             return int(value)
 
@@ -218,7 +234,7 @@ def prompt_list(
     while True:
         effective_title = title if is_valid else validate_fail_message
         raw = _prompt(_format(effective_title, default))
-        value = raw if raw else (str(default) if default is not None else '')
+        value = _coalesce_prompt_value(raw, default)
         if is_int(value) and 0 < int(value) <= len(list_values):
             idx = int(value) - 1
             if validate_callback and not validate_callback(list_values[idx]):

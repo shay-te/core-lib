@@ -1,15 +1,15 @@
 import enum
 
-from core_lib.helpers.shell_utils import input_str, input_email, input_url, input_enum, input_list, input_yes_no
+from core_lib.helpers.shell_utils import prompt_str, prompt_email, prompt_url, prompt_enum, prompt_list, prompt_yes_no
 
 
 def generate_setup_template():
-    author = input_str('Enter your full name')
-    author_email = input_email('Enter your email id')
-    version = input_str('Please enter the version for your project', '0.0.0.1')
-    description = input_str('Enter the description about this project')
-    url = input_url('Enter the project\'s url', '', True)
-    license_name = input_enum(LICENSE, 'Select the License', LICENSE.MIT.value)
+    author = prompt_str('Enter your full name')
+    author_email = prompt_email('Enter your email id')
+    version = prompt_str('Please enter the version for your project', '0.0.0.1')
+    description = prompt_str('Enter the description about this project')
+    url = prompt_url('Enter the project\'s url', '', True)
+    license_name = prompt_enum(LICENSE, 'Select the License', LICENSE.MIT.value)
     add_classifiers = True
     classifiers = [
         'Development Status :: 3 - Alpha',
@@ -34,9 +34,9 @@ def generate_setup_template():
         return False if user_input in user_classifiers else True
 
     while add_classifiers:
-        user_classifiers_input = input_list(classifiers, 'Select the classifiers for your project', None, is_exists)
+        user_classifiers_input = prompt_list(classifiers, 'Select the classifiers for your project', None, is_exists)
         user_classifiers.append(classifiers[user_classifiers_input])
-        add_classifiers = input_yes_no('Do you want to add another classifier?', True)
+        add_classifiers = prompt_yes_no('Do you want to add another classifier?', True)
 
     return {
         'author': author,

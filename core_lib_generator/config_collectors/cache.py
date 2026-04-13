@@ -1,7 +1,7 @@
 import enum
 
 from core_lib.data_transform.helpers import get_dict_attr
-from core_lib.helpers.shell_utils import input_enum, input_int, input_str, input_yes_no
+from core_lib.helpers.shell_utils import prompt_enum, prompt_int, prompt_str, prompt_yes_no
 
 
 def generate_cache_template() -> list:
@@ -15,8 +15,8 @@ def generate_cache_template() -> list:
 
     add_cache = True
     while add_cache:
-        cache_name = input_str('Enter name for your cache', None, False, is_exists_cache)
-        cache_type = input_enum(CacheTypes, 'From the following list, what cache will you use?',
+        cache_name = prompt_str('Enter name for your cache', None, False, is_exists_cache)
+        cache_type = prompt_enum(CacheTypes, 'From the following list, what cache will you use?',
                                 CacheTypes.Memory.value)
         if cache_type == CacheTypes.Memory.value:
             print(f'Cache type {CacheTypes(cache_type).name}')
@@ -28,14 +28,14 @@ def generate_cache_template() -> list:
             })
         else:
             cache_type_name = CacheTypes(cache_type).name
-            cache_port = input_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
-            cache_host = input_str(f'Enter your {cache_type_name} server host', 'localhost')
+            cache_port = prompt_int(f'Enter your {cache_type_name} server port no.', default_cache_ports[cache_type_name])
+            cache_host = prompt_str(f'Enter your {cache_type_name} server host', 'localhost')
             cache_protocol = None
             if cache_type == CacheTypes.Redis.value:
-                cache_protocol = input_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
+                cache_protocol = prompt_str(f'Enter your {cache_type_name} protocol', f'{cache_type_name.lower()}')
             print(f'Cache type {cache_type_name} on {cache_host}:{cache_port}')
             cache_list.append(_generate_cache_config(cache_name, cache_type, cache_port, cache_host, cache_protocol))
-        add_cache = input_yes_no('Do you want to add another cache', False)
+        add_cache = prompt_yes_no('Do you want to add another cache', False)
     return cache_list
 
 
