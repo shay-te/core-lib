@@ -1,7 +1,7 @@
 from typing import Callable, Awaitable
 
 from core_lib.data_transform.helpers import get_dict_attr
-from core_lib.helpers.shell_utils import input_str, input_yes_no
+from core_lib.helpers.shell_utils import prompt_str, prompt_yes_no
 from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
 
 
@@ -41,17 +41,17 @@ def generate_functions(template_content: str, functions: list) -> str:
 
 def input_function(ask_cache: bool, validate_value_callback: Callable[[dict], Awaitable[dict]] = None) -> dict:
     function_data = {}
-    function_name = input_str('What is the name of the function?', None, False, validate_value_callback,
+    function_name = prompt_str('What is the name of the function?', None, False, validate_value_callback,
                               'Function with this name already exists')
-    result_to_dict = input_yes_no('Do you want the @ResultToDict decorator?', False)
+    result_to_dict = prompt_yes_no('Do you want the @ResultToDict decorator?', False)
     function_data.update({
         'key': function_name,
         'result_to_dict': result_to_dict,
     })
     if ask_cache:
-        if input_yes_no('Do you want to cache the data?', False):
-            cache_key = input_str('Enter the name of the cache key (CAPITAL_LETTERS)')
-            cache_invalidate = input_yes_no('Do you want to invalidate cache on this function call?', False)
+        if prompt_yes_no('Do you want to cache the data?', False):
+            cache_key = prompt_str('Enter the name of the cache key (CAPITAL_LETTERS)')
+            cache_invalidate = prompt_yes_no('Do you want to invalidate cache on this function call?', False)
             function_data.update({
                 'cache_key': cache_key,
                 'cache_invalidate': cache_invalidate,
