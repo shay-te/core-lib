@@ -4,7 +4,7 @@ import mongomock
 
 from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.helpers.config_instances import instantiate_config
-from core_lib.connection.mongodb_connection_registry import MongoDBConnectionRegistry
+from core_lib.connection.mongodb_connection_factory import MongoDBConnectionFactory
 
 
 hydra.core.global_hydra.GlobalHydra.instance().clear()
@@ -18,7 +18,7 @@ class TestMongoDBConnection(unittest.TestCase):
     @mongomock.patch(servers=((config.core_lib.mongodb.config.url.host, config.core_lib.mongodb.config.url.port), ))
     def test_instantiate(self):
         mongodb = instantiate_config(config.core_lib.mongodb)
-        self.assertIsInstance(mongodb, MongoDBConnectionRegistry)
+        self.assertIsInstance(mongodb, MongoDBConnectionFactory)
         with mongodb.get() as client:
             collection = client.testing_collection.example
             data = result_to_dict(collection.find())

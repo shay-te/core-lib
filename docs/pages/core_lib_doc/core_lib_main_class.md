@@ -23,7 +23,7 @@ class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
         CoreLib.__init__(self)
         self.email = instantiate_config(self.config, EmailCoreLib)  # instantiate `EmailCoreLib` from config
-        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionRegistry)) 
+        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionFactory)) 
         self.user = UserService(user_da)
         self.user_photos = UserPhotosService(user_da)        
         ...
@@ -32,7 +32,7 @@ class YourCoreLib(CoreLib):
 - `YourCoreLib` class is extending CoreLib class
 - **`__init__ method`**: Services are being instantiated, such as `EmailCoreLib`, `UserDataAccess`, `UserService`, and `UserPhotosService`.
 - **`self.email`**: An instance of EmailCoreLib is instantiated using `instantiate_config` function, passing `self.config` as a parameter.
-- **`user_da`**: An instance of `UserDataAccess` is created, utilizing `SqlAlchemyConnectionRegistry` instantiated from `self.config.core_lib.data.db`.
+- **`user_da`**: An instance of `UserDataAccess` is created, utilizing `SqlAlchemyConnectionFactory` instantiated from `self.config.core_lib.data.db`.
 - **`self.user`**: An instance of `UserService` is created, passing user_da as a parameter.
 - **`self.user_photos`**: An instance of `UserPhotosService` is created, also passing user_da as a parameter.
 

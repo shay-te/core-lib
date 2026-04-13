@@ -27,6 +27,15 @@ class TestJobRaiseException(Job):
             raise BaseException
         TestJobRaiseException.called = TestJobRaiseException.called + 1
 
+class TestJobWithParams(Job):
+    def __init__(self):
+        self.received = None
+
+    def initialized(self, data_handler):
+        pass
+
+    def run(self, **params):
+        self.received = params
 
 class TestJobs(unittest.TestCase):
     def test_job_decorator(self):
@@ -72,3 +81,48 @@ class TestJobs(unittest.TestCase):
             log = str(cm.output)
             self.assertIn('BaseException', log)
             self.assertIn('Error while running job', log)
+
+    def test_schedule_once_with_params(self):
+        scheduler = JobScheduler()
+        job = TestJobWithParams()
+
+        scheduler.schedule_once('1s', job, params={'a': 1, 'b': 'test'})
+        sleep(2)
+
+        self.assertEqual(job.received, {'a': 1, 'b': 'test'})
+
+    def test_is_run_in_parallel_false(self):
+        scheduler = JobScheduler()
+        job1 = TestJob()
+        job2 = TestJob()
+
+        scheduler.schedule('1s', '1s', job1, is_run_in_parallel=False)
+        sleep(2)
+
+        # scheduling another job of the same class should cancel the previous one
+        scheduler.schedule('1s', '1s', job2, is_run_in_parallel=False)
+        sleep(3)
+
+        scheduler.stop(job1)
+        scheduler.stop(job2)
+
+        # job1 should have stopped when job2 was scheduled
+        self.assertLess(job1.called, job2.called)
+        self.assertGreater(job2.called, 0)
+
+    def test_is_run_in_parallel_true(self):
+        scheduler = JobScheduler()
+        job1 = TestJob()
+        job2 = TestJob()
+
+        scheduler.schedule('1s', '1s', job1, is_run_in_parallel=True)
+        scheduler.schedule('1s', '1s', job2, is_run_in_parallel=True)
+
+        sleep(3.5)
+        scheduler.stop(job1)
+        scheduler.stop(job2)
+
+        # both jobs should run independently
+        self.assertGreater(job1.called, 0)
+        self.assertGreater(job2.called, 0)
+

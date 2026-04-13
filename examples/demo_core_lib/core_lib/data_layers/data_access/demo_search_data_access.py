@@ -1,9 +1,9 @@
 from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
+from core_lib.connection.object_connection_factory import ObjectConnectionFactory
 
 
 class DemoSearchDataAccess(DataAccess):
-    def __init__(self, data_session_factory: ObjectConnectionRegistry):
+    def __init__(self, data_session_factory: ObjectConnectionFactory):
         self.solr = data_session_factory
 
     def search(self, demo_info: str):

@@ -17,7 +17,7 @@ core_lib:
     - key: sqlconn
       migrate: false
       config_instantiate: true
-      type: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+      type: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
       config:
         create_db: true
         log_queries: false
@@ -34,7 +34,7 @@ core_lib:
     - key: solrconn
       migrate: false
       config_instantiate: false
-      type: core_lib.connection.solr_connection_registry.SolrConnectionRegistry
+      type: core_lib.connection.solr_connection_factory.SolrConnectionFactory
       config:
         url:
           protocol: http
@@ -44,7 +44,7 @@ core_lib:
     - key: neo4jconn
       migrate: false
       config_instantiate: true
-      type: core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry
+      type: core_lib.connection.neo4j_connection_factory.Neo4jConnectionFactory
       config:
         url:
           protocol: neo4j

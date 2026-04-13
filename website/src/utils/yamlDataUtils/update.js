@@ -83,7 +83,7 @@ export const updateConnectionProtocol = (path, value, yamlData) => {
         }
     }
     if (value.toLowerCase() === 'sqlite') {
-        target['type'] = 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
+        target['type'] = 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory'
         target['config']['url']['protocol'] = value.toLowerCase()
         if (!target.hasOwnProperty('create_db')) {
             target['config']['create_db'] = true
@@ -111,7 +111,7 @@ export const updateConnectionProtocol = (path, value, yamlData) => {
         delete data.core_lib.env[conn.toUpperCase() + '_DB']
     } else {
         if (value.toLowerCase() === 'solr') {
-            target['type'] = 'core_lib.connection.solr_connection_registry.SolrConnectionRegistry'
+            target['type'] = 'core_lib.connection.solr_connection_factory.SolrConnectionFactory'
             target['config']['url']['protocol'] = 'http'
             delete target['config']['url']['username']
             delete data.core_lib.env[conn.toUpperCase() + '_USER']
@@ -122,7 +122,7 @@ export const updateConnectionProtocol = (path, value, yamlData) => {
             delete target['config']['create_db']
             delete target['config']['credentials']
         } else if (value.toLowerCase() === 'neo4j') {
-            target['type'] = 'core_lib.connection.neo4j_connection_registry.Neo4jConnectionRegistry'
+            target['type'] = 'core_lib.connection.neo4j_connection_factory.Neo4jConnectionFactory'
             target['config']['url']['protocol'] = 'neo4j'
             target['config']['credentials'] = {}
             target['config']['credentials']['username'] = '${oc.env:' + target.key.toUpperCase() + '_USER}'
@@ -135,7 +135,7 @@ export const updateConnectionProtocol = (path, value, yamlData) => {
             delete target['config']['create_db']
             delete data.core_lib.env[conn.toUpperCase() + '_DB']
         } else {
-            target['type'] = 'core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry'
+            target['type'] = 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory'
             target['config']['url']['protocol'] = value.toLowerCase()
             delete target['config']['credentials']
             if (!target.hasOwnProperty('create_db')) {

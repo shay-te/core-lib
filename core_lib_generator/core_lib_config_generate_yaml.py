@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 
-from core_lib.helpers.shell_utils import input_str, input_yes_no
+from core_lib.helpers.shell_utils import prompt_str, prompt_yes_no
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.config_collectors.cache import generate_cache_template
 from core_lib_generator.config_collectors.data_access import generate_data_access_template
@@ -35,26 +35,26 @@ data_layers.setdefault('service', [])
 
 
 def _get_data_layers_config():
-    want_db = input_yes_no('Will you be using a Database?', True)
+    want_db = prompt_yes_no('Will you be using a Database?', True)
     if want_db:
         print('Please fill out the requested Database information.')
         db = generate_db_template()
         env.update(_get_env_variables(db))
         for db_name in db:
             config['data'].append(db[db_name]['connection'])
-        want_entities = input_yes_no('\nWould you like to add entities to your database?', True)
+        want_entities = prompt_yes_no('\nWould you like to add entities to your database?', True)
         if want_entities:
             print('Please fill out the requested information for creating entities in Database.')
             db_entity = generate_db_entity_template(db)
             data_layers.setdefault('data', {})
             data_layers['data'] = db_entity
-            want_data_access = input_yes_no('\nDo you want to create a data access for the entities?', True)
+            want_data_access = prompt_yes_no('\nDo you want to create a data access for the entities?', True)
             if want_data_access:
                 print('Please fill out the requested information for creating Data Access for entities.')
                 data_access = generate_data_access_template(db_entity)
                 data_layers.setdefault('data_access', [])
                 data_layers['data_access'] = data_access
-                want_service = input_yes_no('\nDo you want to create services?', True)
+                want_service = prompt_yes_no('\nDo you want to create services?', True)
                 if want_service:
                     print('Please fill out the requested information for creating Service for Data Accesses.')
                     service = generate_service_template(data_access, True if len(config['cache']) > 0 else False)
@@ -103,20 +103,20 @@ def create_yaml_file(core_lib_name: str):
         OmegaConf.save(config=conf, f=file.name)
 
 
-def get_data_from_user():
-    core_lib_name = any_to_pascal(input_str('Please enter the name for your Core-lib', 'MyCoreLib'))
+def generate_core_lib_yaml():
+    core_lib_name = any_to_pascal(prompt_str('Please enter the name for your Core-lib', 'MyCoreLib'))
 
-    want_cache = input_yes_no('\nWould you like to use cache?', True)
+    want_cache = prompt_yes_no('\nWould you like to use cache?', True)
     if want_cache:
         _get_cache_config()
 
     _get_data_layers_config()
 
-    want_job = input_yes_no('\nWould you like to create a Job?', False)
+    want_job = prompt_yes_no('\nWould you like to create a Job?', False)
     if want_job:
         _get_jobs_config(core_lib_name)
 
-    want_setup = input_yes_no('\nDo you want to add setup.py?', True)
+    want_setup = prompt_yes_no('\nDo you want to add setup.py?', True)
     if want_setup:
         _get_setup_details()
 
@@ -125,4 +125,4 @@ def get_data_from_user():
 
 
 if __name__ == '__main__':
-    get_data_from_user()
+    generate_core_lib_yaml()

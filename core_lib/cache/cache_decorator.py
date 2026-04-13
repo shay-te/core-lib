@@ -3,6 +3,7 @@ from datetime import timedelta, datetime, timezone
 from functools import wraps
 from typing import Union
 import parsedatetime
+from core_lib.cache.cache_handler import CacheHandler
 
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.func_utils import build_function_key
@@ -56,7 +57,7 @@ class Cache(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def __wrapper(*args, **kwargs):
-            cache_handler = CoreLib.cache_registry.get(self.handler_name)
+            cache_handler: CacheHandler = CoreLib.cache_registry.get(self.handler_name)
             if not cache_handler:
                 raise ValueError(f'CacheHandler by name {self.handler_name} was not found in `CoreLib.cache_registry`')
             key = build_function_key(self.key, func, *args, **kwargs)[: self.max_key_length].replace(' ', '_')

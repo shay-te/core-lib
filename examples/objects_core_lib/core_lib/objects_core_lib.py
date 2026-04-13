@@ -2,7 +2,7 @@ import boto3
 from omegaconf import DictConfig
 
 from core_lib.core_lib import CoreLib
-from core_lib.connection.object_connection_registry import ObjectConnectionRegistry
+from core_lib.connection.object_connection_factory import ObjectConnectionFactory
 from examples.objects_core_lib.core_lib.data_layers.data_access.objects_data_access import ObjectsDataAccess
 from examples.objects_core_lib.core_lib.data_layers.service.objects_service import ObjectsService
 
@@ -19,4 +19,4 @@ class ObjectsCoreLib(CoreLib):
             aws_secret_access_key=self.config.s3.aws_secret_access_key,
         )
 
-        self.object = ObjectsService(ObjectsDataAccess(ObjectConnectionRegistry(boto3_client)))
+        self.object = ObjectsService(ObjectsDataAccess(ObjectConnectionFactory(boto3_client)))

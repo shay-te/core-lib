@@ -5,6 +5,7 @@ import sys
 import os
 
 from core_lib.core_lib_main import main
+
 if __name__ == '__main__':
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
     sys.path.insert(0, os.getcwd())
