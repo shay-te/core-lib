@@ -214,14 +214,14 @@ class TestIsEmail(unittest.TestCase):
 
 class TestIsUrl(unittest.TestCase):
     def test_valid_urls(self):
-        self.assertTrue(is_url("http://domain.com"))
+        self.assertTrue(is_url("http://domain.com"))  # NOSONAR - intentional test coverage for accepted http URLs
         self.assertTrue(is_url("https://domain.com"))
         self.assertTrue(is_url("https://www.domain.com"))
         self.assertTrue(is_url("https://subdomain.domain.com"))
-        self.assertTrue(is_url("http://domain.com.co.uk"))
+        self.assertTrue(is_url("http://domain.com.co.uk"))  # NOSONAR - intentional test coverage for accepted http URLs
         self.assertTrue(is_url("https://192.168.1.1"))
-        self.assertTrue(is_url("http://localhost"))
-        self.assertTrue(is_url("http://localhost:8080"))
+        self.assertTrue(is_url("http://localhost"))  # NOSONAR - intentional test coverage for accepted http URLs
+        self.assertTrue(is_url("http://localhost:8080"))  # NOSONAR - intentional test coverage for accepted http URLs
         self.assertTrue(is_url("https://domain.com/path/to/page"))
         self.assertTrue(is_url("https://domain.com?query=1&other=2"))
         self.assertTrue(is_url("https://domain.com:443/path"))
@@ -238,8 +238,8 @@ class TestIsUrl(unittest.TestCase):
         self.assertFalse(is_url("192.168.0.0"))
 
     def test_rejects_malformed(self):
-        self.assertFalse(is_url("http://"))
-        self.assertFalse(is_url("http://domain"))  # no TLD
+        self.assertFalse(is_url("http://"))  # NOSONAR - intentional malformed http fixture
+        self.assertFalse(is_url("http://domain"))  # NOSONAR - intentional malformed http fixture with no TLD
         self.assertFalse(is_url("hello world"))
         self.assertFalse(is_url("12345"))
 
