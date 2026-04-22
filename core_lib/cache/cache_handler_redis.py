@@ -1,9 +1,12 @@
 import json
 from datetime import timedelta
 
-import redis
-
 from core_lib.cache.cache_handler import CacheHandler
+
+try:
+    import redis
+except ImportError:
+    raise ImportError("pip install redis to use Redis cache")
 
 
 class CacheHandlerRedis(CacheHandler):

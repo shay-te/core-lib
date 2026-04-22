@@ -1,6 +1,9 @@
-from neo4j import Session
-
 from core_lib.connection.connection import Connection
+
+try:
+    from neo4j import Session
+except ImportError:
+    raise ImportError("pip install neo4j to use Neo4j connections")
 
 
 class Neo4jConnection(Connection):

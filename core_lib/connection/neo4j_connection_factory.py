@@ -1,9 +1,13 @@
 import logging
 
 from omegaconf import DictConfig
-from neo4j import GraphDatabase, basic_auth
 
 from core_lib.connection.connection_factory import ConnectionFactory
+
+try:
+    from neo4j import GraphDatabase, basic_auth
+except ImportError:
+    raise ImportError("pip install neo4j to use Neo4j connections")
 from core_lib.connection.neo4j_connection import Neo4jConnection
 from core_lib.data_layers.data.data_helpers import build_url
 

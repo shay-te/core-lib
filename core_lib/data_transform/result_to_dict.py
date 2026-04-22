@@ -6,15 +6,25 @@ from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
-import mongomock
-import pymongo
-from geoalchemy2 import WKBElement
-from sqlalchemy import inspect
+try:
+    import mongomock
+    import pymongo
+    _MONGO_CURSORS = (mongomock.collection.Cursor, pymongo.cursor.Cursor)
+except ImportError:
+    _MONGO_CURSORS = ()
 
-from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from sqlalchemy.engine.row import Row
+try:
+    from geoalchemy2 import WKBElement
+except ImportError:
+    WKBElement = None
 
-from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+try:
+    from sqlalchemy import inspect
+    from sqlalchemy.engine.row import Row
+    from core_lib.data_layers.data.db.sqlalchemy.base import Base
+    from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+except ImportError:
+    inspect = Row = Base = Point = None
 
 
 def __convert_value(value):
@@ -24,7 +34,7 @@ def __convert_value(value):
         return value.timestamp()
     if isinstance(value, datetime.date):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
-    if isinstance(value, WKBElement):
+    if WKBElement is not None and isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
     if isinstance(value, Decimal):
         return float(value)
@@ -98,19 +108,19 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
             results = __tuple_to_dict(return_val)
 
     # Do the actual conversion
-    elif isinstance(return_val, Base):
+    elif Base is not None and isinstance(return_val, Base):
         results = __base_to_dict(return_val)
         # get also fields that was loaded onto the model
         for key, value in return_val.__dict__.items():
             if key not in results and key != '_sa_instance_state':
                 results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
 
-    elif isinstance(return_val, Row):
+    elif Row is not None and isinstance(return_val, Row):
         results = __dict_to_dict(return_val)
     else:
         results = return_val
 
-    if isinstance(return_val, (mongomock.collection.Cursor, pymongo.cursor.Cursor)):
+    if _MONGO_CURSORS and isinstance(return_val, _MONGO_CURSORS):
         results = __pymongo_to_dict(return_val)
 
     if isinstance(results, dict):

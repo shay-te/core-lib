@@ -1,5 +1,9 @@
-from pymongo import MongoClient
 from core_lib.connection.connection import Connection
+
+try:
+    from pymongo import MongoClient
+except ImportError:
+    raise ImportError("pip install pymongo to use MongoDB connections")
 
 
 class MongoDBConnection(Connection):

@@ -1,5 +1,9 @@
 from core_lib.connection.connection import Connection
-from elasticsearch import Elasticsearch
+
+try:
+    from elasticsearch import Elasticsearch
+except ImportError:
+    raise ImportError("pip install elasticsearch to use Elasticsearch connections")
 
 
 class ElasticSearchConnection(Connection):

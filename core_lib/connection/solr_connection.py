@@ -1,6 +1,9 @@
-from pysolr import Solr
-
 from core_lib.connection.connection import Connection
+
+try:
+    from pysolr import Solr
+except ImportError:
+    raise ImportError("pip install pysolr to use Solr connections")
 
 
 class SolrConnection(Connection):

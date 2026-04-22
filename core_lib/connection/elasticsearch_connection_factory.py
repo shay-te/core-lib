@@ -3,7 +3,11 @@ from omegaconf import DictConfig
 from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.elasticsearch_connection import ElasticSearchConnection
 from core_lib.data_layers.data.data_helpers import build_url
-from elasticsearch import Elasticsearch
+
+try:
+    from elasticsearch import Elasticsearch
+except ImportError:
+    raise ImportError("pip install elasticsearch to use Elasticsearch connections")
 
 
 class ElasticSearchConnectionFactory(ConnectionFactory):

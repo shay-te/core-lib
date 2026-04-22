@@ -1,7 +1,11 @@
 from omegaconf import DictConfig
-from pysolr import Solr
 
 from core_lib.connection.connection_factory import ConnectionFactory
+
+try:
+    from pysolr import Solr
+except ImportError:
+    raise ImportError("pip install pysolr to use Solr connections")
 from core_lib.connection.solr_connection import SolrConnection
 from core_lib.data_layers.data.data_helpers import build_url
 

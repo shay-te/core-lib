@@ -9,8 +9,6 @@ from typing import Union
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.helpers.constants import MediaType, HttpHeaders
 
-from django.http import HttpResponse
-from flask import Flask
 
 
 def response_status(status: int = HTTPStatus.OK.value):
@@ -60,6 +58,10 @@ def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML,
 
 
 def generate_response_django(data, status, media_type: MediaType, headers: dict = {}):
+    try:
+        from django.http import HttpResponse
+    except ImportError:
+        raise ImportError("pip install django to use Django response helpers")
     response = HttpResponse(content=data, status=status, content_type=media_type.value)
     for key, value in headers.items():
         response[key] = value
@@ -67,6 +69,10 @@ def generate_response_django(data, status, media_type: MediaType, headers: dict 
 
 
 def generate_response_flask(data, status, media_type: MediaType, headers: dict = {}):
+    try:
+        from flask import Flask
+    except ImportError:
+        raise ImportError("pip install flask to use Flask response helpers")
     response = Flask.response_class(response=data, status=status, mimetype=media_type.value)
     for key, value in headers.items():
         response.headers[key] = value

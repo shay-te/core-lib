@@ -1,7 +1,11 @@
 from omegaconf import DictConfig
-import pymongo
 
 from core_lib.connection.connection_factory import ConnectionFactory
+
+try:
+    import pymongo
+except ImportError:
+    raise ImportError("pip install pymongo to use MongoDB connections")
 from core_lib.connection.mongodb_connection import MongoDBConnection
 from core_lib.data_layers.data.data_helpers import build_url
 

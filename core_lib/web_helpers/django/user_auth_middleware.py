@@ -1,7 +1,10 @@
-from django.conf import settings
-from django.utils.deprecation import MiddlewareMixin
-
 from core_lib.session.security_handler import SecurityHandler
+
+try:
+    from django.conf import settings
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    raise ImportError("pip install django to use Django middleware")
 
 
 class UserAuthMiddleware(MiddlewareMixin):
