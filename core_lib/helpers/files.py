@@ -19,7 +19,7 @@ def download_file(path: str, local_filename: str):
 
 
 def get_file_md5(file_name: str) -> str:
-    hasher = hashlib.md5()
+    hasher = hashlib.md5(usedforsecurity=False)
     with open(file_name, 'rb') as f:
         buf = f.read()
         hasher.update(buf)
