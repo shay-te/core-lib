@@ -1,0 +1,41 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+hydra-core = "==1.2"
+python-dateutil = "*"
+pyjwt = "*"
+argh = "*"
+pytimeparse = "*"
+parsedatetime = "*"
+omegaconf = "*"
+neo4j = "*"
+redis = "*"
+click = "*"
+sqlalchemy = "==1.4.44"
+alembic = "*"
+pymysql = "*"
+psycopg2-binary = "*"
+pysolr = "*"
+pymongo = "*"
+python-memcached = "*"
+cryptography = "*"
+boto3 = "*"
+geoalchemy2 = "*"
+shapely = "*"
+django = "*"
+flask = "*"
+flask-cors = "*"
+requests = "*"
+python-dotenv = "*"
+moto = "==3.1.4"
+freezegun = "*"
+mongomock = "*"
+flask-wtf = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
