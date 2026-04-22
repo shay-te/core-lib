@@ -32,7 +32,7 @@ class TestGetFileMd5(unittest.TestCase):
         self.assertTrue(all(c in '0123456789abcdef' for c in result))
 
     def test_known_content_matches_expected_md5(self):
-        expected = hashlib.md5(b'hello world').hexdigest()
+        expected = hashlib.md5(b'hello world', usedforsecurity=False).hexdigest()
         self.assertEqual(get_file_md5(self.tmp.name), expected)
 
     def test_different_files_different_md5(self):
@@ -52,7 +52,7 @@ class TestGetFileMd5(unittest.TestCase):
         with tempfile.NamedTemporaryFile(delete=False) as f:
             empty_name = f.name
         try:
-            expected = hashlib.md5(b'').hexdigest()
+            expected = hashlib.md5(b'', usedforsecurity=False).hexdigest()
             self.assertEqual(get_file_md5(empty_name), expected)
         finally:
             os.unlink(empty_name)
