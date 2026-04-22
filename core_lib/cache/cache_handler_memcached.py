@@ -1,8 +1,12 @@
 import datetime
 import json
 
-from memcache import Client
 from core_lib.cache.cache_handler import CacheHandler
+
+try:
+    from memcache import Client
+except ImportError:
+    raise ImportError("pip install python-memcached to use Memcached cache")
 
 
 class CacheHandlerMemcached(CacheHandler):

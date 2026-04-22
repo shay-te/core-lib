@@ -1,16 +1,26 @@
 import os
 import logging
-import pymysql
-from alembic import command
-from alembic.config import Config
-from alembic.script import ScriptDirectory
 from omegaconf import DictConfig, OmegaConf
-from sqlalchemy import create_engine
 
 from core_lib.data_layers.data.data_helpers import build_url
 
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    raise ImportError("pip install pymysql")
 
-pymysql.install_as_MySQLdb()
+try:
+    from alembic import command
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+except ImportError:
+    raise ImportError("pip install alembic")
+
+try:
+    from sqlalchemy import create_engine
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 
 class Alembic(object):
