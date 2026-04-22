@@ -1,6 +1,9 @@
 import logging
 
-from sqlalchemy.orm import sessionmaker, Session
+try:
+    from sqlalchemy.orm import sessionmaker, Session
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 from core_lib.connection.connection import Connection
 

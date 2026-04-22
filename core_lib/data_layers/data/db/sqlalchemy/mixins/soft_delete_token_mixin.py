@@ -1,4 +1,7 @@
-from sqlalchemy import Column, Integer
+try:
+    from sqlalchemy import Column, Integer
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 
 class SoftDeleteTokenMixin(object):

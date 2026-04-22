@@ -1,6 +1,9 @@
-from sqlalchemy import func
-from sqlalchemy.types import UserDefinedType
-from geoalchemy2.shape import to_shape
+try:
+    from sqlalchemy import func
+    from sqlalchemy.types import UserDefinedType
+    from geoalchemy2.shape import to_shape
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 
 class Point(UserDefinedType):

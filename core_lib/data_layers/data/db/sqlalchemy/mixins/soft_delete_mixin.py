@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime
+try:
+    from sqlalchemy import Column, DateTime
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 
 class SoftDeleteMixin(object):

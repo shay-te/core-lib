@@ -1,4 +1,7 @@
-import sqlalchemy as sa
+try:
+    import sqlalchemy as sa
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 
 
 class IntEnum(sa.types.TypeDecorator):
