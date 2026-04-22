@@ -9,13 +9,15 @@ core_lib:
     secret: 000000000000000000101010110
 
   db:
-    log_queries: false
-    create_db: true
-    session:
-      pool_recycle: 3600
-      pool_pre_ping: false
-    url:
-      protocol: sqlite
+    _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
+    config:
+      log_queries: false
+      create_db: true
+      session:
+        pool_recycle: 3600
+        pool_pre_ping: false
+      url:
+        protocol: sqlite
 
   mongo:
     protocol: mongodb

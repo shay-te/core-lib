@@ -69,7 +69,7 @@ const MenuIcons = () => {
     };
     if(JSON.stringify(yaml) !== '{}'){
         yaml.core_lib.connections.forEach((connection) => {
-            if (connection.type.includes("SqlAlchemyConnectionRegistry")) {
+            if (connection.type.includes("SqlAlchemyConnectionFactory")) {
                 showEntity = true
             }
         });

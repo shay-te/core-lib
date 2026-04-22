@@ -3,11 +3,13 @@ import logging
 from omegaconf import DictConfig
 
 from core_lib.cache.cache_registry import CacheRegistry
+from core_lib.connection.connection_factory_registry import ConnectionFactoryRegistry
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
 from core_lib.helpers.config_instances import instantiate_config_group_generator_dict
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
+from core_lib.middleware.middleware_chain import MiddlewareChain
 from core_lib.observer.observer import Observer
 from core_lib.observer.observer_registry import ObserverRegistry
 
@@ -17,6 +19,8 @@ logger = logging.getLogger(__name__)
 class CoreLib(object):
     cache_registry = CacheRegistry()
     observer_registry = ObserverRegistry()
+    connection_factory_registry = ConnectionFactoryRegistry()
+    handle_exception_middleware = MiddlewareChain()
     scheduler = JobScheduler()
 
     def __init__(self):

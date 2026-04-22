@@ -25,6 +25,22 @@ class Data(Base):
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
     active = Column(Boolean, nullable=False)
+    description = Column(VARCHAR(length=255))
+
+
+UPDATED_DESCRIPTION = 'updated description text'
+
+
+def description_convertor(description: str):
+    if description:
+        return UPDATED_DESCRIPTION
+    return None
+
+
+def description_validate(description: str):
+    if description:
+        return True if isinstance(description, str) else False
+    return True
 
 
 class DataCRUDDataAccess(CRUDDataAccess):
@@ -32,6 +48,7 @@ class DataCRUDDataAccess(CRUDDataAccess):
         ValueRuleValidator('name', str),
         ValueRuleValidator('email', str),
         ValueRuleValidator('active', bool),
+        ValueRuleValidator('description', str, custom_converter=description_convertor, custom_validator=description_validate),
     ]
 
     rules_validator = RuleValidator(allowed_update_types)
@@ -47,6 +64,7 @@ class DataSoftDelete(Base, SoftDeleteMixin):
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
     active = Column(Boolean, nullable=False)
+    description = Column(VARCHAR(length=255))
 
 
 class DataCRUDSoftDeleteDataAccess(CRUDSoftDeleteDataAccess):
@@ -61,6 +79,7 @@ class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
     name = Column(VARCHAR(length=255), nullable=False, default="")
     email = Column(VARCHAR(length=255), nullable=False, default="")
     active = Column(Boolean, nullable=False)
+    description = Column(VARCHAR(length=255))
 
 
 class DataCRUDSoftDeleteTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
@@ -72,15 +91,15 @@ class TestCrud(unittest.TestCase):
     def test_crud(self):
         crud = DataCRUDDataAccess()
 
-        crud.create({'name': 'test_name', 'email': 'abc@def.com', 'active': True})
+        crud.create({'name': 'test_name', 'email': 'abc@def.com', 'active': True, 'description': 'Initial description'})
 
         data = result_to_dict(crud.get(1))
-        self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': True})
+        self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': True, 'description': UPDATED_DESCRIPTION})
 
         crud.update(1, {'active': False})
 
         data = result_to_dict(crud.get(1))
-        self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': False})
+        self.assertDictEqual(data, {'id': 1, 'name': 'test_name', 'email': 'abc@def.com', 'active': False, 'description': UPDATED_DESCRIPTION})
 
         crud.delete(1)
         with self.assertRaises(StatusCodeException):
@@ -117,11 +136,11 @@ class TestCrud(unittest.TestCase):
         self.assertEqual(len(src_data) + len_append, len(data_2))
 
     def _test_data_access(self, crud_data_access: CRUD, is_soft_delete: bool, is_token_delete: bool):
-        dict_1 = {'name': 'Jon', 'email': 'jon@def.com', 'active': True}
-        dict_2 = {'name': 'Ron', 'email': 'ron@def.com', 'active': True}
-        dict_3 = {'name': 'Sam', 'email': 'sam@def.com', 'active': True}
-        dict_4 = {'name': 'Jinny', 'email': 'jinny@def.com', 'active': True}
-        dict_5 = {'name': 'Rosa', 'email': 'rosa@def.com', 'active': True}
+        dict_1 = {'name': 'Jon', 'email': 'jon@def.com', 'active': True, 'description': None}
+        dict_2 = {'name': 'Ron', 'email': 'ron@def.com', 'active': True, 'description': None}
+        dict_3 = {'name': 'Sam', 'email': 'sam@def.com', 'active': True, 'description': None}
+        dict_4 = {'name': 'Jinny', 'email': 'jinny@def.com', 'active': True, 'description': None}
+        dict_5 = {'name': 'Rosa', 'email': 'rosa@def.com', 'active': True, 'description': None}
 
         self.assertEqual(result_to_dict(crud_data_access.create(dict_1))['id'], 1)
         self.assertEqual(result_to_dict(crud_data_access.create(dict_2))['id'], 2)

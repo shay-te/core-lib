@@ -30,11 +30,11 @@ class ConfigGenerateTemplate(TemplateGenerator):
                             conn_data = conn
                         else:
                             conn_data = get_dict_attr(conn, 'config')
-                        if 'SqlAlchemyConnectionRegistry' in conn_type:
+                        if 'SqlAlchemyConnectionFactory' in conn_type:
                             data.setdefault(conn_name, conn_data)
-                        elif 'SolrConnectionRegistry' in conn_type:
+                        elif 'SolrConnectionFactory' in conn_type:
                             solr.setdefault(conn_name, conn_data)
-                        elif 'Neo4jConnectionRegistry' in conn_type:
+                        elif 'Neo4jConnectionFactory' in conn_type:
                             neo4j.setdefault(conn_name, conn_data)
                     if data:
                         core_lib_config.setdefault('data', data)

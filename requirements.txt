@@ -34,7 +34,7 @@ requests
 
 # Test
 python-dotenv
-moto
+moto==3.1.4
 freezegun
 mongomock
 flask_wtf

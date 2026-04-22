@@ -38,7 +38,7 @@ rule_validator = RuleValidator(allowed_update_types)
 
 class UserDataAccess(DataAccess):
 
-  def __init__(self, db: SqlAlchemyConnectionRegistry):
+  def __init__(self, db: SqlAlchemyConnectionFactory):
     self.logger = logging.getLogger(self.__class__.__name__)
     self._db = db
 

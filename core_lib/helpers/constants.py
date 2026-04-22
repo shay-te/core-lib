@@ -65,3 +65,8 @@ class TimeUnit(enum.Enum):
     WEEK = 105
     MONTH = 106
     YEAR = 107
+
+class InstantiateConfigConstants(enum.Enum):
+    INSTANCE_KEY = '_instance_key_'
+    RECURSIVE = '_recursive_'
+    TARGET = '_target_'

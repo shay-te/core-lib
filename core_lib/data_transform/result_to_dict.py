@@ -1,6 +1,8 @@
 import datetime
 import enum
-from collections import Iterable
+from collections.abc import Iterable
+
+from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
@@ -24,13 +26,15 @@ def __convert_value(value):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
     if isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
+    if isinstance(value, Decimal):
+        return float(value)
     return value
 
 
 def __name_tuple_to_dict(obj) -> dict:
     result = {}
     for key in obj._fields:
-        result[key] = __convert_value(getattr(obj, key))
+        result[str(key)] = __convert_value(getattr(obj, key))
     return result
 
 
@@ -41,7 +45,7 @@ def __tuple_to_dict(obj) -> tuple:
 def __dict_to_dict(collect) -> dict:
     result = {}
     for key, value in dict(collect).items():
-        result[key] = __convert_value(value)
+        result[str(key)] = __convert_value(value)
     return result
 
 

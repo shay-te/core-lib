@@ -47,7 +47,7 @@ customer_core_lib.yaml
 core_lib:
   customer_core_lib:
     db:
-      _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+      _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
       config:
         log_queries: false
         create_db: true
@@ -63,7 +63,7 @@ CustomerCoreLib.py
 ```python
 from omegaconf import DictConfig
 import hydra
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.helpers.config_instances import instantiate_config
 from core_lib.core_lib import CoreLib
 
@@ -81,7 +81,7 @@ class CustomerCoreLib(CoreLib):
 config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = CustomerCoreLib(config)
-isinstance(customer_core_lib.db_session, SqlAlchemyConnectionRegistry)  # True
+isinstance(customer_core_lib.db_session, SqlAlchemyConnectionFactory)  # True
 ```
 
 ### Core-Lib as a target
@@ -91,7 +91,7 @@ config:
   _target_: your.core_lib_path.CustomerCoreLib
   conf:
     db:
-      _target_: core_lib.connection.sql_alchemy_connection_registry.SqlAlchemyConnectionRegistry
+      _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
       config:
         log_queries: false
         create_db: true
@@ -107,7 +107,7 @@ CustomerCoreLib.py
 ```python
 from omegaconf import DictConfig
 import hydra
-from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.helpers.config_instances import instantiate_config
 from core_lib.core_lib import CoreLib
 
@@ -125,7 +125,7 @@ class CustomerCoreLib(CoreLib):
 config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = instantiate_config(config.config)
-isinstance(customer_core_lib.db_session, SqlAlchemyConnectionRegistry)  # True
+isinstance(customer_core_lib.db_session, SqlAlchemyConnectionFactory)  # True
 ```
 
 

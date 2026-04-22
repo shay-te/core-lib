@@ -27,12 +27,12 @@ class DataAccessGenerateTemplate(TemplateGenerator):
                 if connection.key == conn:
                     conn_data = connection
             conn_type = conn_data.type.split('.')[-1]
-            if 'SqlAlchemyConnectionRegistry' in conn_type:
-                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_registry import SqlAlchemyConnectionRegistry')
-            elif 'SolrConnectionRegistry' in conn_type:
-                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.solr_connection_registry import SolrConnectionRegistry')
-            elif 'Neo4jConnectionRegistry' in conn_type:
-                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_registry import Neo4jConnectionRegistry')
+            if 'SqlAlchemyConnectionFactory' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory')
+            elif 'SolrConnectionFactory' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.solr_connection_factory import SolrConnectionFactory')
+            elif 'Neo4jConnectionFactory' in conn_type:
+                updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_factory import Neo4jConnectionFactory')
             init_str_list = [add_tab_spaces(f'def __init__(self, session: {conn_type}):'),
                              add_tab_spaces('self.session = session', 2)]
             updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))
