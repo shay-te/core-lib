@@ -2,9 +2,12 @@ import logging
 from functools import wraps
 from http import HTTPStatus
 
-from sqlalchemy import exc
-
 from core_lib.error_handling.status_code_exception import StatusCodeException
+
+try:
+    from sqlalchemy import exc
+except ImportError:
+    raise ImportError("pip install sqlalchemy")
 from core_lib.helpers.func_utils import build_function_key
 
 logger = logging.getLogger(__name__)
