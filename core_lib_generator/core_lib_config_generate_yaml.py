@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 from enum import Enum
-from core_lib.helpers.shell_utils import prompt_str, prompt_yes_no
+from core_lib.helpers.shell_utils import prompt_str, prompt_yes_no, prompt_enum
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.config_collectors.cache import generate_cache_template
 from core_lib_generator.config_collectors.data_access import generate_data_access_template
@@ -112,13 +112,7 @@ def create_yaml_file(core_lib_name: str):
 
 
 def ask_server_type() -> int:
-    return input_enum(ServerType,
-                      '\nWhat kind of server type would you like?\n'
-                      '1-Django\n'
-                      '2-Flask\n'
-                      '3-None\n',
-                      default_value=ServerType.NOSERVER.value,
-                      )
+    return prompt_enum(ServerType, '\nWhat kind of server type would you like?', default=ServerType.NOSERVER.value)
 
 
 def generate_core_lib_yaml():

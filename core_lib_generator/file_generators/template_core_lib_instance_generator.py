@@ -9,13 +9,11 @@ class CoreLibInstanceGenerate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         camel_case_class: str = snake_to_camel(core_lib_name)
 
-        if yaml_data.get('server_type'):
-            if yaml_data['server_type'] == ServerType.NOSERVER:
-                template_content = template_content.replace('# web_helper_template', '')
-            elif yaml_data['server_type'] == ServerType.FLASK:
-                template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)')
-            elif yaml_data['server_type'] == ServerType.DJANGO:
-                template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)')
+        server_type = yaml_data.get('server_type')
+        if server_type == ServerType.FLASK.value:
+            template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)')
+        elif server_type == ServerType.DJANGO.value:
+            template_content = template_content.replace('# web_helper_template', 'WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)')
         else:
             template_content = template_content.replace('# web_helper_template', '')
 
