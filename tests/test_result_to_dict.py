@@ -1,10 +1,10 @@
-from collections import namedtuple
 from decimal import Decimal
 import enum
 import json
 import os.path
 import unittest
 import datetime
+from collections import namedtuple
 
 import pymongo
 
@@ -54,6 +54,33 @@ class TestResultToDict(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
+
+    @staticmethod
+    def _timestamp_ms(value: datetime.datetime) -> int:
+        return int(value.timestamp() * 1000)
+
+    @staticmethod
+    def _date_timestamp_ms(value: datetime.date) -> int:
+        return TestResultToDict._timestamp_ms(datetime.datetime(year=value.year, month=value.month, day=value.day))
+
+    @staticmethod
+    def _time_ms(value: datetime.time) -> int:
+        return (((value.hour * 60) + value.minute) * 60 + value.second) * 1000 + int(value.microsecond / 1000)
+
+    def _assert_temporal_values_are_serialized(self, value):
+        if isinstance(value, dict):
+            for inner_value in value.values():
+                self._assert_temporal_values_are_serialized(inner_value)
+            return
+
+        if isinstance(value, (list, tuple, set)):
+            for inner_value in value:
+                self._assert_temporal_values_are_serialized(inner_value)
+            return
+
+        self.assertNotIsInstance(value, datetime.datetime)
+        self.assertNotIsInstance(value, datetime.date)
+        self.assertNotIsInstance(value, datetime.time)
 
     def test_lists(self):
         lst = [1, 2, 3]
@@ -115,19 +142,20 @@ class TestResultToDict(unittest.TestCase):
     def test_complex_object(self):
         dat = datetime.date(2022, 1, 1)
         dattime = datetime.datetime(2022, 1, 1)
+        dattime_only = datetime.time(10, 11, 12)
         tpl = ("fruit", "apple")
         lst = ["fruit", "apple"]
         point = WKTElement('POINT(5 45)')
         set_value = {"fruit", "apple"}
         obj = {"fruit1": "apple", "fruit2": "orange"}
+
         lst_object = [
             {
                 'date': dat,
                 'datetime': dattime,
+                'time': dattime_only,
                 'object': {
-                    'object_1': {
-                        'object_2': {'tuple': tpl, 'list': lst, 'point': point, 'set': set_value, 'object': obj}
-                    }
+                    'object_1': {'object_2': {'tuple': tpl, 'list': lst, 'point': point, 'set': set_value, 'object': obj}}
                 },
             }
         ]
@@ -136,8 +164,9 @@ class TestResultToDict(unittest.TestCase):
         self.assertTrue(isinstance(result, list))
         self.assertTrue(isinstance(result[0], dict))
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['date'], datetime.datetime(year=dat.year, month=dat.month, day=dat.day).timestamp())
-        self.assertEqual(result[0]['datetime'], dattime.timestamp())
+        self.assertEqual(result[0]['date'], self._date_timestamp_ms(dat))
+        self.assertEqual(result[0]['datetime'], self._timestamp_ms(dattime))
+        self.assertEqual(result[0]['time'], self._time_ms(dattime_only))
         self.assertTrue(isinstance(result[0]['object'], dict))
         self.assertTrue(isinstance(result[0]['object']['object_1'], dict))
         self.assertTrue(isinstance(result[0]['object']['object_1']['object_2'], dict))
@@ -147,6 +176,82 @@ class TestResultToDict(unittest.TestCase):
         self.assertDictEqual(result[0]['object']['object_1']['object_2']['object'], obj)
         self.assertSetEqual(result[0]['object']['object_1']['object_2']['set'], set_value)
         self.assertEqual(result[0]['object']['object_1']['object_2']['point'], point)
+
+    def test_time_values_are_serialized_in_multiple_shapes(self):
+        sample_time = datetime.time(10, 11, 12)
+        sample_time_with_microseconds = datetime.time(10, 11, 12, 130000)
+        time_namedtuple = namedtuple('TimeNamedTuple', ['time_value'])
+
+        self.assertEqual(result_to_dict({'time_value': sample_time}), {'time_value': self._time_ms(sample_time)})
+        self.assertEqual(result_to_dict((sample_time,)), (self._time_ms(sample_time),))
+        self.assertEqual(result_to_dict(time_namedtuple(sample_time)), {'time_value': self._time_ms(sample_time)})
+        self.assertEqual(
+            result_to_dict({'time_value': sample_time_with_microseconds}),
+            {'time_value': self._time_ms(sample_time_with_microseconds)},
+        )
+
+    def test_temporal_values_use_numeric_contract_in_deeply_nested_shapes(self):
+        time_bundle = namedtuple('TimeBundle', ['created_at', 'due_date', 'alarm_at'])
+        aware_datetime = datetime.datetime(
+            2026,
+            4,
+            13,
+            10,
+            11,
+            12,
+            987000,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=3)),
+        )
+        naive_datetime = datetime.datetime(2024, 2, 29, 23, 59, 59, 123456)
+        leap_date = datetime.date(2024, 2, 29)
+        end_of_day = datetime.time(23, 59, 59, 999000)
+        midnight = datetime.time(0, 0, 0)
+        almost_next_minute = datetime.time(10, 11, 59, 999999)
+        payload = {
+            'events': [
+                {
+                    'metadata': time_bundle(
+                        created_at=aware_datetime,
+                        due_date=leap_date,
+                        alarm_at=end_of_day,
+                    ),
+                    'history': (
+                        {'at': naive_datetime, 'kind': 'created'},
+                        {'at': midnight, 'kind': 'reset'},
+                    ),
+                }
+            ],
+            'summary': {
+                'first_seen': aware_datetime,
+                'next_run_date': leap_date,
+                'next_run_time': almost_next_minute,
+            },
+        }
+
+        converted = result_to_dict(payload)
+
+        self.assertEqual(
+            converted['events'][0]['metadata'],
+            {
+                'created_at': self._timestamp_ms(aware_datetime),
+                'due_date': self._date_timestamp_ms(leap_date),
+                'alarm_at': self._time_ms(end_of_day),
+            },
+        )
+        self.assertEqual(
+            converted['events'][0]['history'],
+            (
+                {'at': self._timestamp_ms(naive_datetime), 'kind': 'created'},
+                {'at': self._time_ms(midnight), 'kind': 'reset'},
+            ),
+        )
+        self.assertEqual(converted['summary']['first_seen'], self._timestamp_ms(aware_datetime))
+        self.assertEqual(converted['summary']['next_run_date'], self._date_timestamp_ms(leap_date))
+        self.assertEqual(converted['summary']['next_run_time'], self._time_ms(almost_next_minute))
+        self.assertIsInstance(converted['summary']['first_seen'], int)
+        self.assertIsInstance(converted['summary']['next_run_date'], int)
+        self.assertIsInstance(converted['summary']['next_run_time'], int)
+        self._assert_temporal_values_are_serialized(converted)
 
     def test_base_db_entity(self):
         data_date = datetime.date(2022, 1, 1)
@@ -181,10 +286,10 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(len(converted_data), 1)
             self.assertEqual(converted_data[0]['id'], 1)
             self.assertEqual(converted_data[0]['data_enum'], 1)
-            self.assertEqual(converted_data[0]['data_datetime'], data_datetime.timestamp())
+            self.assertEqual(converted_data[0]['data_datetime'], self._timestamp_ms(data_datetime))
             self.assertEqual(
                 converted_data[0]['data_date'],
-                datetime.datetime(year=data_date.year, month=data_date.month, day=data_date.day).timestamp(),
+                self._date_timestamp_ms(data_date),
             )
             self.assertEqual(converted_data[0]['data_name'], data_name)
             self.assertEqual(converted_data[0]['data_text'], data_text)
