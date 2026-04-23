@@ -7,10 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-`Core-Lib` has classes that provide user security implementations that users can tailor to their needs for authorization or authentication purposes.
-These classes function together, and the user must implement them in order for `User Security` to work as expected.
-
-Classes that handle `User Security`
+Auth requirements differ per app — JWT tokens, session cookies, role-based access — but the request wiring is always the same: extract the token, decode it, validate it, decide whether to allow the request. `UserSecurity` is an abstract interface you implement once for your specific auth logic; everything else (cookie extraction, token decode, decorator wiring) is handled by Core-Lib.
 
 # UserSecurity
 
@@ -204,8 +201,9 @@ from http import HTTPStatus
 from django.conf import settings
 from sqlalchemy import Integer, Column, VARCHAR
 
+from core_lib.cache.cache_decorator import Cache
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data_access.db.crud.crud import CRUD
+from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
 from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
@@ -214,7 +212,7 @@ from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.decorators import HandleException
 from core_lib.web_helpers.django.require_login import RequireLogin
-from core_lib.web_helpers.request_response_helpers import response_status
+from core_lib.web_helpers.request_response_helpers import response_status, request_body_dict
 
 
 # CRUD SETUP
@@ -247,8 +245,8 @@ class UserDataAccess(CRUDDataAccess):
 
     rules_validator = RuleValidator(allowed_update_types)
 
-    def __init__(self):
-        CRUD.__init__(self, User, db_handler, UserDataAccess.rules_validator)
+    def __init__(self, db):
+        CRUDDataAccess.__init__(self, User, db, UserDataAccess.rules_validator)
 
 
 @Cache(key='user_data_{u_id}', expire=timedelta(seconds=30))
@@ -309,7 +307,7 @@ class CustomerSecurity(UserSecurity):
 
 
 # CRUD INIT
-user_data_access = UserDataAccess()
+user_data_access = UserDataAccess(db)  # db is a SqlAlchemyConnectionFactory instance
 
 # SECURITY HANDLER REGISTER
 secret_key = 'super-secret'
@@ -373,16 +371,56 @@ def api_login(request):
     password = body.get('pass')
     is_authenticated = core_lib.auth.authnticate(email, password)
     if is_authenticated:
-        user = ...
-        get
-        the
-        user
+        user = core_lib.user.get_by_email(email)
         user_session = SecurityHandler.get().generate_session_data(user)
         response = response_json({'csrf_token': django.middleware.csrf.get_token(request), 'session': user_session})
         response.set_cookie(key=settings.COOKIE_NAME, value=SecurityHandler.get().generate_session_data_token(user))
         return response
 
 ```
+
+---
+
+# Flask Support
+
+`RequireLogin` and `UserAuthMiddleware` have Flask equivalents in `core_lib.web_helpers.flask`. The API is identical — swap the import path.
+
+## RequireLogin (Flask)
+
+*core_lib.web_helpers.flask.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/flask/require_login.py){:target="_blank"}
+
+```python
+from core_lib.web_helpers.flask.require_login import RequireLogin
+
+@RequireLogin(policies=[User.PolicyRoles.ADMIN])
+def admin_view():
+    pass
+```
+
+The Flask version reads the request from Flask's `request` context automatically — no `request` parameter needed in the decorated function.
+
+## UserAuthMiddleware (Flask)
+
+*core_lib.web_helpers.flask.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/flask/user_auth_middleware.py){:target="_blank"}
+
+Wraps a Flask WSGI app, decodes the auth cookie on each request, and stores the session user in `environ['user']`.
+
+```python
+from flask import Flask
+from core_lib.web_helpers.flask.user_auth_middleware import UserAuthMiddleware
+
+app = Flask(__name__)
+app.wsgi_app = UserAuthMiddleware(app.wsgi_app, cookie_name='user_cookie')
+```
+
+```python
+def __init__(self, app, cookie_name: str):
+```
+
+**Arguments**
+
+- **`app`**: The Flask WSGI application.
+- **`cookie_name`** *`(str)`*: Name of the cookie that carries the session token.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/core_lib_listener.html"><< Previous</a></button>

@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-These functions provide a unified way to retrieve or format a function's parameters.
+Building cache keys, log lines, or validation messages from function arguments requires runtime parameter inspection. These utilities normalize parameter extraction and key formatting so you build reusable decorators without boilerplate introspection code.
 
 ## Functions
 
@@ -49,7 +49,7 @@ print(formatted_parameters)  # key_1_2_hello world
 formatted_parameters = build_function_key('key_{param_1}_{param_2}_{param_3}', function_to_format, 1)
 print(formatted_parameters)  # key_1_!Eparam_2E!_hello
 ```
-> **Note:** Will return `None` if the parameter's value is missing.
+> **Note:** If a parameter's value is falsy or missing, it is embedded in the key as `!E{param_name}E!`.
 
 ### get_func_parameters_as_dict()
 
@@ -120,10 +120,10 @@ def function_to_get_param_index(param_1, param_2):
     pass
 
 parameter_index = get_func_parameter_index_by_name(function_to_get_param_index, "param_1") 
-print(function_to_get_param_index) # 0
+print(parameter_index) # 0
 
 parameter_index = get_func_parameter_index_by_name(function_to_get_param_index, "param_2")
-print(function_to_get_param_index) # 1
+print(parameter_index) # 1
 ```
 > **Note:** Will raise an exception if the parameter passed is not valid
 
@@ -153,7 +153,7 @@ def function_to_format(custom_key):
     pass
 
         
-formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe'))
+formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe', None))
 print(formatted_parameters)  # User(id:4, name:Rosa Doe)
 ```
 

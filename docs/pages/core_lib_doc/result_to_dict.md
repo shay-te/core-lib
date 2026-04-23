@@ -6,7 +6,7 @@ permalink: result_to_dict.html
 folder: core_lib_doc
 toc: false
 ---
-`@ResultToDict()` decorator transforms any value returned from the decorated function to a `dict` using the `result_to_dict` utility function.
+SQLAlchemy model objects, custom Python objects, and raw rows can't be serialized to JSON directly. `@ResultToDict()` automatically converts whatever your service returns into a plain dict — no manual per-field mapping needed.
 
 ### Example:
 

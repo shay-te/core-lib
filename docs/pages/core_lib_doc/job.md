@@ -7,17 +7,16 @@ folder: core_lib_doc
 toc: false
 ---
 
+Background tasks that import your `CoreLib` directly are tightly coupled to it. `Job` solves this by receiving the `CoreLib` instance at runtime — so your background task stays decoupled and testable, and your `CoreLib` decides what runs and when.
 
+---
 
-# Configuration 
+## Configuration
 
-Jobs can be configured to run from the `core_lib.yaml` file. for example: 
-
-`CoreLib` to run this job at startup by providing the `initial_deplay` parameter with one of the values `boot` or `startup` 
+Jobs are declared in `core_lib.yaml` and loaded at startup via `load_jobs()`.
 
 ```yaml
 core_lib:
-  ...
   jobs:
     - initial_delay: 2h32m
       frequency: 16:00
@@ -33,13 +32,15 @@ core_lib:
         params:
 ```
 
+Use `initial_delay: startup` or `initial_delay: boot` to run a job immediately when `CoreLib` starts.
 
+---
 
 ### load_jobs()
 
 *core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L26){:target="_blank"}
 
-Used to load instantiate all the jobs present in the config file using `instantiate_config_group_generator_dict` and start to schedule them based on the frequency.
+Reads the `jobs` config section, instantiates each job class, and schedules them.
 
 ```python
 def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
@@ -47,75 +48,63 @@ def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
 
 **Arguments**
 
-- **`config`** *`(DictConfig)`*: `jobs` sections from the `Core-Lib` config.
-- **`job_to_data_handler`** *`(dict)`*: Data handlers for the jobs listed in the config, the `key` should be the `job name` and the `value` should be the `handler name`.
+- **`config`** *`(DictConfig)`*: The `jobs` section from the `Core-Lib` config.
+- **`job_to_data_handler`** *`(dict)`*: Maps each job name to its `CoreLib` handler instance.
 
 **Example**
 
 ```python
-from core_lib.core_lib import CoreLib
-
 class YourCoreLib(CoreLib):
-   def __init__(self, config: DictConfig):
+    def __init__(self, config: DictConfig):
+        super().__init__()
         ...
-        self.load_jobs(self.config.core_lib.your_core_lib.jobs, {'job_name': self,...})
+        self.load_jobs(self.config.core_lib.your_core_lib.jobs, {'job_name': self})
 ```
 
+---
 
-
-
-
-Core-Lib provides `core_lib.jobs.JobScheduler` class that can schedule `core_lib.jobs.Job` instances to run in a separate thread.
-
-# Job class
+## Job class
 
 *core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job.py#L4){:target="_blank"}
 
-`Job` class provide an abstract method called `run`. to create a custom Job simply do.
+Extend `Job` and implement `run()`. The `self.core_lib` attribute is automatically injected by `CoreLib` when the job is loaded from config.
 
 ```python
 class MyJob(Job):
     def run(self):
-        self.core_lib.user.do_somthing()
+        self.core_lib.user.do_something()
 ```
 
-The local variable `self.core_lib` will be automatically populated by `CoreLib` when running using configuration (see below).    
-In case you want to create the job manually. pass the `CoreLib` instance using the job function `set_data_handler`, Or using the constructor.
+To inject the `CoreLib` instance manually (when not using config):
 
-**Example**
-`my_job.set_data_handler(my_core_lib)` 
+```python
+my_job.set_data_handler(my_core_lib)
+```
 
+---
 
-# JobScheduler class
+## JobScheduler class
 
 *core_lib.jobs.job_scheduler.JobScheduler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L10){:target="_blank"}
 
-`JobScheduler` provides 2 main functions 
+Schedules `Job` instances to run in a background thread.
 
-1. `schedule()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L22){:target="_blank"}
-
-2. `schedule_once()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule_once() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L27){:target="_blank"}
-
-````python
-# Run the job, and repeat by frequency
-def schedule(self, initial_delay: str, frequency: str, job: Job):
-    ...
-# Run the job a single time
+```python
+# Run once after initial_delay
 def schedule_once(self, initial_delay: str, job: Job):
-    ... 
-````
+
+# Run repeatedly after initial_delay, every frequency interval
+def schedule(self, initial_delay: str, frequency: str, job: Job):
+```
 
 **Arguments**
 
-- **`initial_delay`** *`(str)`*: The initial time after which the `run()` function will be called for the first time.
-- **`frequency`** *`(str)`*: The time interval after which `run()` function will be called.
-- **`job`** *`(Job)`*: Is the instance of `Job` class created by user that implements `run()` and `initialized()`
-
-The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse){:target="_blank"}.
+- **`initial_delay`** *`(str)`*: Time before the first `run()` call. Parsed by [pytimeparse](https://github.com/wroberts/pytimeparse){:target="_blank"} — e.g. `'1s'`, `'2h30m'`, `'startup'`.
+- **`frequency`** *`(str)`*: Interval between repeat calls.
+- **`job`** *`(Job)`*: A `Job` instance implementing `run()`.
 
 **Example**
+
 ```python
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
@@ -127,26 +116,20 @@ class UpdateCache(Job):
 
     def run(self):
         # code to update your cache
+        pass
 
 scheduler = JobScheduler()
 job = UpdateCache()
-# updates the cache 1 second after the schedule_once() is called
-scheduler.schedule_once('1s', job)
 
-# updates the cache 1 second after the job is scheduled and keeps updating every 30 minutes until stop() is called.
-scheduler.schedule('1s', '30m', job) 
+scheduler.schedule_once('1s', job)          # runs once, 1 second after call
+scheduler.schedule('1s', '30m', job)        # runs every 30 minutes, starting 1 second after call
 
-scheduler.stop()# stops the ongoing job schedule 
+scheduler.stop(job)  # stops the scheduled job
 ```
->If a job fails while running the `Exception` and the message will be logged by the `JobScheduler` for the same.
 
-
-
-# Core-Lib Instance
-
-When a `Job` is run by the configuration file, it will automatically populate the local `core_lib` variable of a job 
+> If a job raises an exception during `run()`, it is caught, logged by `JobScheduler`, and the schedule continues.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/cache.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/connection.html">Next >></a></button>
+    <button class="pageNext-btn"><a href="/middleware.html">Next >></a></button>
 </div>

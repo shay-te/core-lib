@@ -7,45 +7,76 @@ folder: core_lib_doc
 toc: false
 ---
 
+### Decoupled business logic
 
-#### Robust Deployment.
+Your services don't depend directly on Flask, SQLAlchemy, or external services. The web layer calls into your `CoreLib` — your `CoreLib` doesn't know the web layer exists.
 
-Running/Debugging `Core-Lib` is as simple as running the `__main__` function.
-`Core-Lib` class instance can be placed after any interface such as `UnitTest`, `WEB`, `Microservice`, And more.
+When your framework changes, you replace the thin web layer. Your services, data access, and most tests stay the same.
 
-#### Unit test your entire product.
+---
 
-Cover all your library code and dependent libraries with `unit-test`. 
+### Change infrastructure without rewriting your app
 
+Switching databases, HTTP clients, or payment providers stays in wiring code — not scattered through business logic. The change is isolated to your `CoreLib.__init__`, not spread across 40 files.
 
-#### Write code that matters.
+```python
+# consumer instance
+consumer_app = YourCoreLib(consumer_config)  # SQLite, Stripe, cookie auth
 
-`Core-Lib` delegates operations that frequently repeat into tools and decorators such as  `Cache`, `Transform Data`, `RuleValidator`, etc. Leaving you to focus on the problem at hand.
+# enterprise instance — same class, different wiring
+enterprise_app = YourCoreLib(enterprise_config)  # Postgres, invoice billing, SSO
+```
 
-#### Short learning curve.
+---
 
-`Core-Lib` provides out-of-the-box a tiny subset of simple tools that are easy to master. 
+### Run the same logic everywhere
 
-#### Risk management
+The same `CoreLib` instance runs behind web APIs, background jobs, scripts, and tests. No duplication. No special cases.
 
-`Core-Lib` does not delegate any third-party dependencies. It provides unique tools to manage multiple dependencies rather than being dependent on a single dependency with a risk of becoming obsolete. 
+```python
+# web
+your_core_lib.user.get(user_id)
 
+# background job
+self.core_lib.user.sync_all()
 
-#### Divide and Conquer
+# test
+self.app.user.create({'name': 'Jane'})
+```
 
-With `Core-Lib`, it's easy to break, separate or change an existing product into smaller libraries (`Core-Libs`) and `Data-Layers` that are easier to read, develop, pinpoint a problem, and test.
+---
 
-#### Longevity
+### Fast, reliable tests
 
-`Core-Lib` embraces the `Onion Architecture` [1](https://www.codeguru.com/csharp/csharp/cs_misc/designtechniques/understanding-onion-architecture.html){:target="_blank"} [2](https://www.google.com/search?sxsrf=ACYBGNT0NhYbUZLnDQbC9b6uPBqjZmjwgw%3A1579104811273&ei=KzofXuOfEO3IgwfngLPwAg&q=onion+Architecture&oq=onion+Architecture&gs_l=psy-ab.12...0.0..109691...0.0..0.0.0.......0......gws-wiz.oEYi3afxy_c&ved=0ahUKEwij4drq_4XnAhVt5OAKHWfADC4Q4dUDCAs){:target="_blank"}  for code reuse and data flow across libraries. Reusing code and moving logic from one `Data-Layer` to another is straightforward.
+Tests initialize the full application with an override config — SQLite instead of Postgres, mock clients instead of real services. No Docker. No external dependencies. No environment setup. Fast, isolated tests.
 
-#### Discover other Core-Lib's
+```python
+class TestUserService(unittest.TestCase):
+    def setUp(self):
+        config = load_core_lib_config('./tests/config', 'test_config.yaml')
+        self.app = YourCoreLib(config)  # full app, in-memory DB, mock clients
+```
 
-`Core-Lib` uses [hydra](https://hydra.cc/){:target="_blank"} to discover other `Core-Libs` configurations. And instantiate `Core-Lib` and its dependencies from config.
+---
 
-#### Shared knowledge
+### Consistent structure across teams
 
-Architecture, code structure, problem resolution, state of mind, approach, knowledge, and experience will be almost the same from one `Core-Lib` to another.
+Core-Lib enforces a shared vocabulary across every project:
+
+- `Service` — business logic and orchestration
+- `DataAccess` — database queries
+- `Client` — external APIs and third-party services
+- `Job` — scheduled or background tasks
+
+Every engineer working in any `CoreLib` knows where everything lives.
+
+---
+
+### Prevent architecture drift
+
+Most systems become tightly coupled over time — not by design, but through shortcuts. One imported session here, one `request` object there.
+
+Core-Lib prevents this by keeping all dependencies at the edge of your application from day one, wired in via config instead of leaking into your codebase.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/index.html"><< Previous</a></button>

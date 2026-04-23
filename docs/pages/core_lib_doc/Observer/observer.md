@@ -7,9 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
+Services often need to react to events in other services — a user update triggers a cache clear, a payment triggers an email — but you don't want services importing each other. The Observer pattern solves this: one service emits a named event, listeners react to it, and neither knows about the other.
+
 *core_lib.observer.observer.Observer* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer.py#L10){:target="_blank"}
 
-Using the `Observer` class to `attach`, `detach`, `notify` to register events. 
+Use the `Observer` class to `attach`, `detach`, and `notify` listeners for named events.
 
 ## ObserverListener
 
@@ -32,24 +34,23 @@ class UserObserverListener(ObserverListener):
 ```
 
 
-## Settings up the observer
+## Setting up the observer
 
 ```python
+from omegaconf import DictConfig
 from core_lib.core_lib import CoreLib
-from core_lib.observer.observer_factory import ObserverRegistry
+from core_lib.observer.observer_registry import ObserverRegistry
 from core_lib.observer.observer import Observer
-from core_lib.observer.observer_decorator import Observe
 
 class MyCoreLib(CoreLib):
 
     def __init__(self, conf: DictConfig):
+        super().__init__()
         self.config = conf
 
         main_observer = Observer()
         main_observer.attach(UserObserverListener())
-        observer_factory = ObserverRegistry()
-        observer_factory.register("main", main_observer)
-        Observe.set_factory(observer_factory)
+        CoreLib.observer_registry.register("main", main_observer)
 ```
 
 

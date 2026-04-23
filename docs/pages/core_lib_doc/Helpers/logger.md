@@ -9,7 +9,7 @@ toc: false
 
 *core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7){:target="_blank"}
 
-`Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
+Adding a log line to every service method is tedious and easy to forget. The `@Logging` decorator instruments any function automatically — logging call arguments and return values — without touching the function body.
 
 ```python
 class Logging(object):

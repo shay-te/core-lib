@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-`RuleValidator` decorator will make sure the `dict` parameter passed to a function is valid accourting to predefined rules. When validation fails a `PermissionError` will be raised
+`RuleValidator` validates `dict` parameters against predefined rules before they reach your data access layer. When validation fails, a `PermissionError` is raised — keeping bad data out of your database without littering your service layer with type checks.
 
 ### Example
 
@@ -21,10 +21,12 @@ from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 from your_core_lib.data_layers.data.db.entities.user import User
 
 def location_convertor(location: dict):
-	latitude = location.get('lat') or location.get('latitude')
-  longitude = location.get('lng') or location.get('longitude')
-  return Point.to_point_str(longitude, latitude)
+    latitude = location.get('lat') or location.get('latitude')
+    longitude = location.get('lng') or location.get('longitude')
+    return Point.to_point_str(longitude, latitude)
 
+def location_validate(location: dict):
+    return 'lat' in location or 'latitude' in location
 
 allowed_update_types = [
   ValueRuleValidator(User.email.key, str),
@@ -47,7 +49,7 @@ class UserDataAccess(DataAccess):
     with self._db.get() as session:
       user = User()
       for key, value in data.items():
-        if key != 'id' and hasattr(u	ser, key):
+        if key != 'id' and hasattr(user, key):
             setattr(user, key, value)
       session.add(user)
     return user
@@ -69,15 +71,15 @@ from geoalchemy2.types import Geometry
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 class User(Base):
-  __tablename__ = 'user'
-    
-  id = Column(Integer, primary_key=True, nullable=False)
-	email = Column(VARCHAR(length=255), nullable=False)
-  password = Column(LargeBinary(length=255))
-  agreement = Column(BOOLEAN(), default=False, nullable=False)
-  height = Column(Integer)
-	birthday = Column(Date)
-  location = Column(Geometry('POINT'))
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    email = Column(VARCHAR(length=255), nullable=False)
+    password = Column(LargeBinary(length=255))
+    agreement = Column(BOOLEAN(), default=False, nullable=False)
+    height = Column(Integer)
+    birthday = Column(Date)
+    location = Column(Geometry('POINT'))
 ```
 
 
@@ -145,6 +147,34 @@ class RuleValidator(object):
 - **`prohibited_keys`** *`(list)`*: List of `keys` that can't be inside the dictionary data.
 
 
+
+### RuleValidator.update()
+
+*core_lib.rule_validator.rule_validator.RuleValidator.update()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L31){:target="_blank"}
+
+Adds or updates validation rules at runtime. Accepts a list of `ValueRuleValidator` instances — each one replaces any existing rule with the same key.
+
+```python
+def update(self, additional_validators):
+```
+
+**Arguments**
+
+- **`additional_validators`** *`(list)`*: List of `ValueRuleValidator` instances to add or overwrite.
+
+### RuleValidator.remove()
+
+*core_lib.rule_validator.rule_validator.RuleValidator.remove()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L40){:target="_blank"}
+
+Removes a single validation rule by its key. No-op if the key is not present.
+
+```python
+def remove(self, rule_validator_key: str):
+```
+
+**Arguments**
+
+- **`rule_validator_key`** *`(str)`*: The key of the `ValueRuleValidator` to remove.
 
 ### RuleValidator.validate_dict
 

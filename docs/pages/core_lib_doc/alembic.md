@@ -7,9 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
+Without schema migration tooling, changing a database schema in production means manually running SQL, coordinating across teammates, and hoping nothing breaks. `Alembic` integration in Core-Lib automates this — generate migration files, upgrade to the latest schema, roll back to a previous version — all from config, no raw SQL.
+
 *core_lib.alembic.alembic.Alembic* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L16){:target="_blank"}
 
-This class provides functions that wrap the [Sqlalchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"}.
+Wraps [SQLAlchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"} with Core-Lib's config pattern.
 
 ## Initializing
 
@@ -31,112 +33,26 @@ For more information, you can check the official documentation [here](https://al
 
 > `version_table` property specifies the version tables to be created at the migrations, changing this value will assure that the tables don't create a conflict.
 
-`core_lib.yaml`
+`core_lib.yaml` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/config/core_lib.yaml#L33){:target="_blank"}
 
-*core_lib.config.core_lib.yaml* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/config/core_lib.yaml#L33){:target="_blank"} 
+The default Alembic configuration baked into Core-Lib. The two properties you'll typically override are:
 
-`Core-Lib` default configuration.
+- **`script_location`** — path to your migrations folder
+- **`version_table`** — avoids conflicts when multiple Core-Libs share a database
 
 ```yaml
-.
-.
-.
 alembic:
     version_table: alembic_version
     sqlalchemy.url: ${core_lib.data}
-    # A generic, single database configuration.
-
-    # path to migration scripts
     script_location: data_layers/data/db/migrations
-
-    # template used to generate migration files
-    file_template:  "%%(year)d-%%(month).2d-%%(day).2d_%%(rev)s_%%(slug)s"
-
-    # timezone to use when rendering the date
-    # within the migration file as well as the filename.
-    # string value is passed to dateutil.tz.gettz()
-    # leave blank for localtime
-    timezone: ~
-
-    # max length of characters to apply to the
-    # "slug" field
-    truncate_slug_length: ~
-
-    # set to 'true' to run the environment during
-    # the 'revision' command, regardless of autogenerate
-    revision_environment: false
-
-    # set to 'true' to allow .pyc and .pyo files without
-    # a source .py file to be detected as revisions in the
-    # versions/ directory
-    sourceless: false
-
-    # version location specification; this defaults
-    # to alembic/versions.  When using multiple version
-    # directories, initial revisions must be specified with --version-path
-    # version_locations: %(here)s/bar %(here)s/bat alembic/versions
-
-    # the output encoding used when revision files
-    # are written from script.py.mako
-    output_encoding: utf-8
-
-    post_write_hooks:
-    # post_write_hooks defines scripts or Python functions that are run
-    # on newly generated revision scripts.  See the documentation for further
-    # detail and examples
-
-    # format using "black" - use the console_scripts runner, against the "black" entrypoint
-    # hooks=black
-    # black.type=console_scripts
-    # black.entrypoint=black
-    # black.options=-l 79
-
-    # Logging configuration
-    logger:
-      keys: root,sqlalchemy,alembic
-
-      handlers:
-        keys: console
-
-      formatters:
-        generic:
-          format: "%(levelname)-5.5s %(name)s %(message)s"
-          datefmt: "%H:%M:%S"
-
-      loggers:
-        root:
-          level: WARN
-          handlers: console
-          qualname: ~
-
-        sqlalchemy:
-          level: WARN
-          handlers: ~
-          qualname: sqlalchemy.engine
-
-        alembic:
-          level: INFO
-          handlers: ~
-          qualname: alembic
-
-        console:
-          class: StreamHandler
-          args: (sys.stderr,)
-          level: NOTSET
-          formatter: generic
-
+    file_template: "%%(year)d-%%(month).2d-%%(day).2d_%%(rev)s_%%(slug)s"
     version_file_name: '.migration_ver'
     render_as_batch: false
 ```
 
-`your_core_lib.yaml`
-
-Config to override the original `Core-Lib` config.
+`your_core_lib.yaml` — override only what differs:
 
 ```yaml
-.
-.
-.
 alembic:
     version_table: example_alembic_version
     script_location: data_layers/data/user_db/migrations

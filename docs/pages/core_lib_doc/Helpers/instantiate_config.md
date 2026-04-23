@@ -11,10 +11,7 @@ toc: false
 
 *core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62){:target="_blank"}
 
-`instantiate_config` produces a class object instance with the configuration specified in a yaml [link](https://github.com/facebookresearch/hydra/blob/740f1446189e26d3e4a3d8c6222a50560a521820/hydra/_internal/instantiate/_instantiate2.py#L148){:target="_blank"}.
-It is a wrapper for the hydra's `instantiate()` for creating objects, with added capabilities of checking the 
-subtype and instantiating multiple instances using the `instantiate_config_group_generator_list()` , `instantiate_config_group_generator_dict()`. 
-For more info about hydra's `instantiate()` [click here](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"}
+`instantiate_config` creates a class instance from a Hydra `DictConfig` that contains a `_target_` key. This is how Core-Lib wires dependencies from config — the class to instantiate and its constructor arguments both live in YAML, not in code. See [Hydra's instantiate docs](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"} for the underlying mechanism.
 
 ```python
 def instantiate_config(

@@ -1,6 +1,6 @@
 ---
 id: core_lib_main_class
-title: Core Lib Class
+title: The CoreLib Class
 sidebar: core_lib_doc_sidebar
 permalink: core_lib_main_class.html
 folder: core_lib_doc
@@ -9,49 +9,67 @@ toc: false
 
 *core_lib.core_lib.CoreLib* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L17){:target="_blank"}
 
-`CoreLib` class is the front of the entire library. It exposes all the "Services" your library offers by using simple `Services`, `DataAccess`, and `Clients` assignments to YourCoreLib class. You define your library interface. 
+`CoreLib` is the entry point of your application. It is where you wire together services, data access, clients, and other dependencies. Everything else — web frameworks, jobs, scripts, and tests — calls into this class.
 
+Think of `CoreLib` as the place where your application lives, and everything else plugs into it from the outside.
 
+---
 
-## Usage 
+## Usage
+
 ```python
 from core_lib.core_lib import CoreLib
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.helpers.config_instances import instantiate_config
-...
+from omegaconf import DictConfig
 
 class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
-        CoreLib.__init__(self)
-        self.email = instantiate_config(self.config, EmailCoreLib)  # instantiate `EmailCoreLib` from config
-        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionFactory)) 
-        self.user = UserService(user_da)
-        self.user_photos = UserPhotosService(user_da)        
-        ...
+        super().__init__()
+
+        db = SqlAlchemyConnectionFactory(config.core_lib.your_core_lib.data.db)  # connection at the edge
+        user_da = UserDataAccess(db)
+
+        self.user = UserService(user_da)          # business logic
+        self.user_photos = UserPhotosService(user_da)
+
+        self.email = instantiate_config(config, EmailCoreLib)  # child CoreLib via config
 ```
-#### Code Explained:
-- `YourCoreLib` class is extending CoreLib class
-- **`__init__ method`**: Services are being instantiated, such as `EmailCoreLib`, `UserDataAccess`, `UserService`, and `UserPhotosService`.
-- **`self.email`**: An instance of EmailCoreLib is instantiated using `instantiate_config` function, passing `self.config` as a parameter.
-- **`user_da`**: An instance of `UserDataAccess` is created, utilizing `SqlAlchemyConnectionFactory` instantiated from `self.config.core_lib.data.db`.
-- **`self.user`**: An instance of `UserService` is created, passing user_da as a parameter.
-- **`self.user_photos`**: An instance of `UserPhotosService` is created, also passing user_da as a parameter.
 
+---
 
-## init()
+## How to think about it
+
+`CoreLib` is not your business logic — it wires your business logic together.
+
+- It is the only place where infrastructure (DB connections, caches, HTTP clients) is created
+- Services receive their dependencies from `CoreLib.__init__`, not from imports
+- The same instance runs behind web APIs, background jobs, scripts, and tests
+
+Your services should never create their own connections — they should receive them.
+
+---
+
+## `__init__()`
 
 *core_lib.core_lib.CoreLib.\_\_init\_\_()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L22){:target="_blank"}
 
-When extending  `CoreLib` class call  `CoreLib.__init__(self)` to initialize event listeners and set the `core_lib_started` flag to `False`. 
+When extending `CoreLib`, always call `super().__init__()` first. This initializes internal lifecycle hooks — event observers and the startup flag — that the framework depends on.
 
 ```python
 class YourCoreLib(CoreLib):
-  
-  def __init__(self):
-      CoreLib.__init__(self)
-			...
+    def __init__(self, config: DictConfig):
+        super().__init__()
+        ...
 ```
-#### Code Explained:
--The `__init__` method of the parent class CoreLib using `CoreLib.__init__(self)`
+
+---
+
+## Key idea
+
+All dependencies are created in `__init__` — and nowhere else.
+
+That is what keeps your services independent from frameworks, your code testable without external services, and your architecture from drifting over time.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/project_structure.html"><< Previous</a></button>

@@ -1,6 +1,6 @@
 ---
 id: test_core_lib
-title: Testing Core Lib
+title: Testing Core-Lib
 sidebar: core_lib_doc_sidebar
 permalink: test_core_lib.html
 folder: core_lib_doc
@@ -9,6 +9,42 @@ toc: false
 
 Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.
 
+## load_core_lib_config()
+
+*core_lib.helpers.test.load_core_lib_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/test.py){:target="_blank"}
+
+Every test that creates a `CoreLib` instance needs a clean slate — no stale cache or observer registrations from a previous test, and a freshly initialized Hydra config. `load_core_lib_config()` does all of this in one call.
+
+```python
+def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_stack_depth: int = 2):
+```
+
+**Arguments**
+
+- **`path`** *`(str)`*: Path to the config directory, relative to the calling file.
+- **`config_file`** *`(str)`*: Default `'config.yaml'`. Name of the config file to load.
+- **`caller_stack_depth`** *`(int)`*: Default `2`. Passed to `hydra.initialize` to resolve the config path relative to the caller's location.
+
+**Returns**
+
+*`(DictConfig)`*: The composed Hydra config, ready to pass to your `CoreLib` constructor.
+
+**Example**
+
+```python
+from core_lib.helpers.test import load_core_lib_config
+
+config = load_core_lib_config('./test/config', 'test_config.yaml')
+core_lib = YourCoreLib(config)
+```
+
+What it does internally:
+1. Unregisters all keys from `CoreLib.cache_registry` and `CoreLib.observer_registry`
+2. Clears the global Hydra state
+3. Initializes Hydra with the given config path
+4. Returns the composed config
+
+---
 
 ## DataAccess
 The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
@@ -27,7 +63,7 @@ from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 class UserDataAccess(CRUDDataAccess):
     def __init__(self, db: SqlAlchemyConnectionFactory):
-        CRUD.__init__(self, User, db)
+        CRUDDataAccess.__init__(self, User, db)
 ```
 
 ## Service 
@@ -242,6 +278,88 @@ class TestCoreLib(unittest.TestCase):
 
 ```
 
-This is a basic usage of how to initialize and test a `Core-Lib` and write `DataAccess` and `Service`. Once a `Core-Lib` instance is created that you can pass it on to different files and keep this instance singleton so the data in the `cache` and `registry` remains persistent. Make sure to initialize it at the topmost level of your application. 
+This is a basic usage of how to initialize and test a `Core-Lib` and write `DataAccess` and `Service`. Once a `Core-Lib` instance is created, you can pass it on to different files and keep this instance singleton so the data in the `cache` and `registry` remains persistent. Make sure to initialize it at the topmost level of your application.
 
-If you want to check out more usages of `Core-Lib` you can check out our examples here.
+## Testing Multiple Services with a Shared Instance
+
+When you have multiple test files covering different services, recreating `Core-Lib` in every `setUp()` is slow and resets shared state. Instead, create a singleton instance once and reuse it across all test files.
+
+`utils.py`
+```python
+import os
+import threading
+import traceback
+
+import hydra
+from dotenv import load_dotenv
+from hydra.core.global_hydra import GlobalHydra
+
+from core_lib.core_lib import CoreLib
+from user_core_lib.user_core_lib import UserCoreLib
+
+threadLock = threading.Lock()
+
+class _Instance(object):
+    instance = None
+    config = None
+
+
+def load_config():
+    if not _Instance.config:
+        path = os.path.join(os.path.dirname(__file__), '..', 'data')
+        load_dotenv(dotenv_path=os.path.join(path, '.env'))
+        GlobalHydra.instance().clear()
+        hydra.initialize(config_path=os.path.join('..', 'config'), caller_stack_depth=1)
+        _Instance.config = hydra.compose('config.yaml')
+    return _Instance.config
+
+
+def get_core_lib() -> UserCoreLib:
+    threadLock.acquire()
+    try:
+        if not _Instance.instance:
+            [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
+            [CoreLib.observer_registry.unregister(key) for key in CoreLib.observer_registry.registered()]
+            _Instance.instance = UserCoreLib(load_config())
+            _Instance.instance.start_core_lib()
+        for key in CoreLib.cache_registry.registered():
+            CoreLib.cache_registry.get(key).flush_all()
+    except BaseException as e:
+        print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
+        raise e
+    finally:
+        threadLock.release()
+    return _Instance.instance
+```
+
+Each test file calls `get_core_lib()` in `setUp()` — the instance is created once and the cache is flushed between tests.
+
+`test_user.py`
+```python
+import unittest
+from tests.data.helpers.utils import get_core_lib
+
+class TestUserService(unittest.TestCase):
+
+    def setUp(self):
+        self.core_lib = get_core_lib()
+
+    def test_user_service(self):
+        pass
+```
+
+`test_customer.py`
+```python
+import unittest
+from tests.data.helpers.utils import get_core_lib
+
+class TestCustomerService(unittest.TestCase):
+
+    def setUp(self):
+        self.core_lib = get_core_lib()
+
+    def test_customer_service(self):
+        pass
+```
+
+If you want to check out more usages of `Core-Lib` you can check out our [examples on GitHub](https://github.com/shay-te/core-lib){:target="_blank"}.

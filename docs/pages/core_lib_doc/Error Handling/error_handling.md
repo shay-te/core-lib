@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-`Core-Lib` error handlers contain decorator and function which can raise exceptions for various scenarios.
+Different errors need different HTTP status codes, but mapping every exception in every handler is tedious and inconsistent. Core-Lib's error handling tools — `StatusCodeException`, `NotFoundErrorHandler`, `DuplicateErrorHandler` — encode the right status into the exception itself, so your endpoints return the correct response automatically.
 
 ## StatusCodeException
 
@@ -93,40 +93,20 @@ class CoreLibInitException(Exception):
 ```
 
 ## DuplicateErrorHandler Function
-*core_lib.error_handling.duplicate_error_handler.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
+*core_lib.error_handling.duplicate_error_decorator.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
 
 `DuplicateErrorHandler` decorator will raise `StatusCodeException` when the decorated function adds the same value in the column of the database table which accepts unique values only.
 
 **Example**
  ```python
-import logging
-from functools import wraps
-from http import HTTPStatus
+from core_lib.error_handling.duplicate_error_decorator import DuplicateErrorHandler
 
-from sqlalchemy import exc
+class UserDataAccess(DataAccess):
 
-from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.func_utils import build_function_key
-
-logger = logging.getLogger(__name__)
-
-
-class DuplicateErrorHandler(object):
-    def __init__(self, message: str = None):
-        self.message = message
-
-    def __call__(self, func, *args, **kwargs):
-        @wraps(func)
-        def _wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except exc.IntegrityError as e:
-                logger.debug(f'DuplicateErrorHandler for function `{func.__qualname__}`.')
-                exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
-                raise StatusCodeException(HTTPStatus.CONFLICT, exception_message)
-
-        return _wrapper
-
+    @DuplicateErrorHandler('User with email {email} already exists')
+    def create(self, email: str):
+        with self.db_session.get() as session:
+            session.add(User(email=email))
 ```
 
 <div style="margin-top:2em">
