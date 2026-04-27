@@ -7,9 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-*core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L5){:target="_blank"}
+Every service that calls an external HTTP API repeats the same setup: base URL, auth headers, request encoding, response parsing. `ClientBase` handles that boilerplate so each client only defines its own endpoints.
 
-`Client Base` class provides functions by which we can interface with the `HTTP` APIs.
+*core_lib.client.client_base.ClientBase* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L5){:target="_blank"}
 
 ## Initializing
 
@@ -29,7 +29,79 @@ from core_lib.client.client_base import ClientBase
 client = ClientBase('https://example.com/')
 ```
 
-## Functions
+## Configuration
+
+### set_headers()
+
+*core_lib.client.client_base.ClientBase.set_headers()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L12){:target="_blank"}
+
+Sets default headers to include on every request.
+
+```python
+def set_headers(self, headers: dict):
+```
+
+**Arguments**
+
+- **`headers`** *`(dict)`*: Headers to attach to every outgoing request.
+
+**Example**
+
+```python
+client = ClientBase('https://example.com/')
+client.set_headers({'Authorization': 'Bearer my-token'})
+```
+
+### set_timeout()
+
+*core_lib.client.client_base.ClientBase.set_timeout()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L15){:target="_blank"}
+
+Sets the default timeout in seconds for every request.
+
+```python
+def set_timeout(self, timeout: int):
+```
+
+**Arguments**
+
+- **`timeout`** *`(int)`*: Seconds before the request times out.
+
+**Example**
+
+```python
+client = ClientBase('https://example.com/')
+client.set_timeout(30)
+```
+
+### set_auth()
+
+*core_lib.client.client_base.ClientBase.set_auth()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py#L18){:target="_blank"}
+
+Sets HTTP authentication credentials to include on every request.
+
+```python
+def set_auth(self, auth: dict):
+```
+
+**Arguments**
+
+- **`auth`** *`(dict)`*: Auth credentials passed to `requests` (e.g. `HTTPBasicAuth`).
+
+### process_kwargs()
+
+*core_lib.client.client_base.ClientBase.process_kwargs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/client/client_base.py){:target="_blank"}
+
+Merges the configured headers, timeout, and auth into the kwargs dict before each request. Called internally by `_get`, `_post`, `_put`, and `_delete`.
+
+```python
+def process_kwargs(self, **kwargs) -> dict:
+```
+
+**Returns**
+
+*`(dict)`*: kwargs with headers, timeout, and auth merged in.
+
+## HTTP Methods
 
 ### _get()
 
@@ -148,6 +220,6 @@ print(data) # will print the response returned by the API.
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/soft_delete.html"><< Previous</a></button>
+    <button class="pagePrevious-btn"><a href="/sqlalchemy_types.html"><< Previous</a></button>
     <button class="pageNext-btn"><a href="/error_handler.html">Next >></a></button>
 </div>

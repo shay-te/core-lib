@@ -7,9 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-*core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py){:target="_blank"}
+Datetime bugs often come from inconsistent timezones and mismatched precision — comparing a datetime with a time component against one without silently returns the wrong result. These utilities always return UTC datetimes with sub-day components zeroed out, so date comparisons and range queries work predictably.
 
-`Core-Lib` has various datetime utility functions that return `datetime` values in `UTC`. These functions will also set the returned value's `hour`, `minute`, `second` and `microsecond` to `0` where ever necessary.
+*core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py){:target="_blank"}
 
 ## Functions
 - `year_begin` returns the first day of the year.

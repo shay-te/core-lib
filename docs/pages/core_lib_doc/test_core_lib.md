@@ -1,10 +1,11 @@
 ---
-id: test_core_lib
-title: Testing Core Lib
+id: test_core_lib_legacy
+title: Testing Core-Lib (legacy)
 sidebar: core_lib_doc_sidebar
-permalink: test_core_lib.html
+permalink: test_core_lib_legacy.html
 folder: core_lib_doc
 toc: false
+published: false
 ---
 
 Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.

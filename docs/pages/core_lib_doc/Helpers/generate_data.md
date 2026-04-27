@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-This helper provides functions that generate different types of data for us.
+Tests and seed scripts need realistic fake data — UUIDs, emails, datetimes, random strings. These generators produce common types with sensible defaults so you skip the boilerplate.
 
 ## Functions
 
@@ -93,7 +93,7 @@ from core_lib.helpers.generate_data import generate_datetime
 from datetime import datetime, timedelta
 
 generate_datetime() # returns an datetime with from_date set to today - 10 days and to_date set to today + 10 days.
-generate_datetime(datetime.today(), datetime.today() + timedelta(days=10)) # returns an email id => qsrhbaykhg@core-lib.com
+generate_datetime(datetime.today(), datetime.today() + timedelta(days=10)) # returns a random datetime between today and today + 10 days
 ```
 
 <div style="margin-top:2em">

@@ -21,11 +21,11 @@ It offers the following tools:
 
 ### Command
 
-```python
-core_lib -g ExampleCoreLib.yaml
+```bash
+core_lib generate --yaml ExampleCoreLib.yaml
 ```
 
-Run this command where the Yaml file is located or re-locate the file to a location where you want to create the `Core-Lib`.
+Run this command where the YAML file is located. If `--yaml` is omitted, an interactive prompt will guide you through creating the YAML file first.
 
 ### Outcome
 
@@ -33,7 +33,7 @@ A folder by the `Core-Lib` name will be created and inside the folder will be yo
 
 Now that you have the `Core-Lib` you can initialize it and use it directly or integrate it with your current application.
 
-> Please read the documents to understand what each file does and understand `Core-Lib` more throughly.
+> Please read the documents to understand what each file does and understand `Core-Lib` more thoroughly.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/migrations.html"><< Previous</a></button>

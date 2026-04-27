@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-In string helpers we have functions that will convert different naming conventions.
+APIs typically expect camelCase but Python code uses snake_case. These helpers convert between naming conventions so you don't manually transform field names going over the wire.
 
 ## Functions
 

@@ -7,14 +7,17 @@ folder: core_lib_doc
 toc: false
 ---
 
-*core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34){:target="_blank"}
+Without centralized exception handling, every API endpoint needs its own `try/except` to turn exceptions into HTTP responses. `HandleException` does this in one decorator — it catches the exception, logs it, and returns the right HTTP status automatically.
 
-`Core-Lib`'s `web_helpers` provides `HandleException` decorator, that logs the exception, and it's error message and returns a `Http Response Object` 
-with error message and appropriate status code.
+*core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34){:target="_blank"}
 
 ```python
 class HandleException(object):
+    def __init__(self, log_exception: bool = True):
 ```
+
+- **`log_exception`** *`(bool)`*: Default `True`. When `False`, the exception is still caught and converted to an HTTP response but is not logged.
+
 >Can be configured with `Flask` and `Django` with the help of `Core-Lib`'s `WebHelpersUtils`.
 
 Can handle exceptions for:
@@ -33,20 +36,20 @@ from core_lib.web_helpers.decorators import HandleException
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_json
 
-@HandleException
+@HandleException()
 def get_user(request):
     # if this query fails decorator will log the entire Exception message and return HTTP Response with status code 500
     return response_json(example_core_lib.user.get(request.user.user_id))
 
-get_user()# get the HTTP response as per the execution of query.
+get_user(request)  # get the HTTP response as per the execution of query.
 
 user_status = 'inactive'
-@HandleException
+@HandleException()
 def check_active(user_id):
     # decorator will log the AssertionError message and return HTTP Response with status code 500
     assert user_status == 'active'
 
-@HandleException
+@HandleException()
 def validate_user(user_id):
     ...
     if not user_validate:
@@ -81,21 +84,51 @@ def get_user(request):
     # if this query fails function will log the entire Exception message and return HTTP Response with status code 500
     return response_json(example_core_lib.user.get(request.user.user_id))
 
-handle_exception(get_user())# get the HTTP response as per the execution of query.
+handle_exception(get_user, request)  # get the HTTP response as per the execution of query.
 
 user_status = 'inactive'
 def check_active(user_id):
     assert user_status == 'active'
 
-handle_exception(check_active(1)) # function will log the AssertionError message and return HTTP Response with status code 500
+handle_exception(check_active, 1)  # function will log the AssertionError message and return HTTP Response with status code 500
 
 def validate_user(user_id):
     ...
     if not user_validate:
         raise StatusCodeException(HTTPStatus.UNAUTHORIZED)
 
-handle_exception(validate_user(1))# function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
+handle_exception(validate_user, 1)  # function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
 ```
+
+## Exception Middleware Hook
+
+Every exception caught by `HandleException` or `handle_exception` also fires `CoreLib.handle_exception_middleware` — a `MiddlewareChain` that runs before the HTTP response is returned. Use this to plug in cross-cutting error handling: Sentry reporting, custom audit logs, alerting.
+
+`CoreLib.handle_exception_middleware` is a class-level `MiddlewareChain`. Add to it once during startup.
+
+```python
+from core_lib.core_lib import CoreLib
+from core_lib.middleware.middleware import Middleware
+
+
+class SentryMiddleware(Middleware):
+    def handle(self, context) -> None:
+        # context keys: exc, func, request, stacktrace
+        import sentry_sdk
+        sentry_sdk.capture_exception(context['exc'])
+
+
+CoreLib.handle_exception_middleware.add(SentryMiddleware())
+```
+
+**Context dict passed to each middleware:**
+
+- **`exc`**: The caught exception instance.
+- **`func`**: The decorated function that raised it.
+- **`request`**: The current request object (Flask only; `None` for Django).
+- **`stacktrace`** *`(str)`*: Formatted traceback string.
+
+If a middleware itself raises an exception, it is logged as a warning and the chain continues — it does not suppress the original HTTP error response.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="/user_security.html"><< Previous</a></button>

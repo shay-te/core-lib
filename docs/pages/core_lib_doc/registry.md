@@ -6,8 +6,7 @@ permalink: registry.html
 folder: core_lib_doc
 toc: false
 ---
-`Registry` provide base class for a simple `Registry pattern` with single abstract `get` function. 
-It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
+Core-Lib needs to look up named instances at runtime — the right cache backend, the right observer, the right connection — without hard-coding them in business logic. `Registry` is the base class for all of these lookups: a typed key-value store where you register instances by name and retrieve them by key (or get the default when only one is registered).
 
 ## Registry
 
@@ -20,9 +19,9 @@ It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
    Base basic implementation of the `Registry` class with four basic functions `register`, `unregister`, `get`, `registered`
 
 
-2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py){:target="_blank"}
+2. `core_lib.connection.connection_factory_registry.ConnectionFactoryRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_factory_registry.py){:target="_blank"}
 
-​	Extends the `Registry` and a base class for all  `ConnectionRegistry` classes.
+   Extends `DefaultRegistry` and is the base class for all `ConnectionFactory` registries.
 
 3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
 
@@ -40,7 +39,7 @@ Extends the `DefaultRegistry` and is limited to storing only `Observer` instance
 
 `DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
 
-### Constractor:
+### Constructor:
 
 ```python
 class DefaultRegistry(Registry):
@@ -109,7 +108,7 @@ registry_factory.get('user_name')
 
 *core_lib.registry.default_registry.DefaultRegistry.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L12){:target="_blank"}
 
-Register's the key and value into the registry.
+Registers the key and value into the registry.
 
 ````python
 def register(self, key: str, object, is_default: bool = False):

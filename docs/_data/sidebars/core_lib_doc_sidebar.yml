@@ -65,6 +65,13 @@ entries:
                   url: /job.html
                   output: web
 
+          - title: Middleware
+            output: web
+            folderitems:
+                - title: Middleware
+                  url: /middleware.html
+                  output: web
+
           - title: Connection
             output: web
             folderitems:
@@ -72,20 +79,28 @@ entries:
                   url: /connection.html
                   output: web
 
-                - title: SqlAlchemy Connection Registry
+                - title: SqlAlchemy Connection Factory
                   url: /sql_alchemy_connection.html
                   output: web
 
-                - title: MongoDB Connection Registry
+                - title: MongoDB Connection Factory
                   url: /mongodb_connection_factory.html
                   output: web
-                
-                - title: Solr Connection Registry
+
+                - title: Solr Connection Factory
                   url: /solr_connection_factory.html
                   output: web
 
-                - title: Neo4j Connection Registry
+                - title: Neo4j Connection Factory
                   url: /neo4j_connection_factory.html
+                  output: web
+
+                - title: Elasticsearch Connection Factory
+                  url: /elasticsearch_connection_factory.html
+                  output: web
+
+                - title: Object Connection Factory
+                  url: /object_connection_factory.html
                   output: web
         
           - title: Data Layers
@@ -105,6 +120,10 @@ entries:
 
                 - title: Soft Delete
                   url: /soft_delete.html
+                  output: web
+
+                - title: SQLAlchemy Custom Types
+                  url: /sqlalchemy_types.html
                   output: web
         
           - title: Client
@@ -159,7 +178,15 @@ entries:
                 - title: Validation Helpers
                   url: /validation.html
                   output: web
-          
+
+                - title: Thread Utilities
+                  url: /thread.html
+                  output: web
+
+                - title: Constants
+                  url: /constants.html
+                  output: web
+
           - title: Testing Core-lib
             output: web
             folderitems:
