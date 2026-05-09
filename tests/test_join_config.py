@@ -39,7 +39,58 @@ CUSTOM_FIELD_TYPE = 1
 USER_FIELD_TYPE = 2
 
 
+def _apply_joins(session, base_entity, joins):
+    """Reference implementation: apply a list of JoinConfig objects to a query.
+
+    Mirrors `form_page_field_data_access._apply_joins` (form-core-lib) and
+    `task_data_access._build_query` (task-core-lib). Defined here so the
+    integration tests below assert the JoinConfig contract end-to-end against
+    a real SQL backend, not just the dataclass shape.
+    """
+    query = session.query(*list(base_entity.__table__.columns))
+    for jc in joins or []:
+        if not isinstance(jc, JoinConfig):
+            continue
+
+        if jc.columns:
+            query = query.add_columns(*jc.columns)
+
+        # Column-only mode: no JOIN, only contribute columns to the SELECT.
+        if jc.model is None or jc.join_condition is None:
+            continue
+
+        effective_condition = (
+            and_(jc.join_condition, jc.condition)
+            if jc.condition is not None
+            else jc.join_condition
+        )
+        if jc.is_outer_join:
+            query = query.outerjoin(jc.model, effective_condition)
+        else:
+            query = query.join(jc.model, effective_condition)
+    return query
+
+
 class TestJoinConfig(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db = connect_to_mem_db()
+        engine = cls.db.engine
+        _Item.__table__.create(engine, checkfirst=True)
+        _CustomField.__table__.create(engine, checkfirst=True)
+        _UserField.__table__.create(engine, checkfirst=True)
+
+    def setUp(self):
+        # Wipe between tests so each scenario controls its own data.
+        with self.db.get() as session:
+            session.query(_Item).delete()
+            session.query(_CustomField).delete()
+            session.query(_UserField).delete()
+
+    # ------------------------------------------------------------------
+    # Dataclass-shape tests
+    # ------------------------------------------------------------------
 
     def test_join_config_creation(self):
         join_config = JoinConfig(
@@ -105,58 +156,11 @@ class TestJoinConfig(unittest.TestCase):
         self.assertIsNone(join_config.join_condition)
         self.assertEqual(len(join_config.columns), 1)
 
-
-def _apply_joins(session, base_entity, joins):
-    """Reference implementation: apply a list of JoinConfig objects to a query.
-
-    Mirrors `form_page_field_data_access._apply_joins` (form-core-lib) and
-    `task_data_access._build_query` (task-core-lib). Defined here so the
-    integration tests below assert the JoinConfig contract end-to-end against
-    a real SQL backend, not just the dataclass shape.
-    """
-    query = session.query(*list(base_entity.__table__.columns))
-    for jc in joins or []:
-        if not isinstance(jc, JoinConfig):
-            continue
-
-        if jc.columns:
-            query = query.add_columns(*jc.columns)
-
-        # Column-only mode: no JOIN, only contribute columns to the SELECT.
-        if jc.model is None or jc.join_condition is None:
-            continue
-
-        effective_condition = (
-            and_(jc.join_condition, jc.condition)
-            if jc.condition is not None
-            else jc.join_condition
-        )
-        if jc.is_outer_join:
-            query = query.outerjoin(jc.model, effective_condition)
-        else:
-            query = query.join(jc.model, effective_condition)
-    return query
-
-
-class TestJoinConfigIntegration(unittest.TestCase):
-    """Real-life scenario tests — apply JoinConfig to actual queries against an
-    in-memory SQLite DB. Each test mirrors a pattern actually used by a
-    consumer in this workspace (admin_form_service, admin_task_service)."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.db = connect_to_mem_db()
-        engine = cls.db.engine
-        _Item.__table__.create(engine, checkfirst=True)
-        _CustomField.__table__.create(engine, checkfirst=True)
-        _UserField.__table__.create(engine, checkfirst=True)
-
-    def setUp(self):
-        # Wipe between tests so each scenario controls its own data.
-        with self.db.get() as session:
-            session.query(_Item).delete()
-            session.query(_CustomField).delete()
-            session.query(_UserField).delete()
+    # ------------------------------------------------------------------
+    # Integration tests — apply JoinConfig to actual queries against an
+    # in-memory SQLite DB. Each test mirrors a pattern actually used by a
+    # consumer in this workspace (admin_form_service, admin_task_service).
+    # ------------------------------------------------------------------
 
     def test_inner_join_surfaces_joined_columns(self):
         """Owner-style inner join (admin_task_service._build_owner_join):
