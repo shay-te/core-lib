@@ -1,9 +1,9 @@
 import unittest
 
-from sqlalchemy import Column, Integer, VARCHAR, and_, literal
+from sqlalchemy import Column, Integer, VARCHAR, literal
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data.join_config import JoinConfig
+from core_lib.data_layers.data.db.join_config import JoinConfig, apply_join_configs
 from tests.test_data.test_utils import connect_to_mem_db
 
 
@@ -40,35 +40,13 @@ USER_FIELD_TYPE = 2
 
 
 def _apply_joins(session, base_entity, joins):
-    """Reference implementation: apply a list of JoinConfig objects to a query.
-
-    Mirrors `form_page_field_data_access._apply_joins` (form-core-lib) and
-    `task_data_access._build_query` (task-core-lib). Defined here so the
-    integration tests below assert the JoinConfig contract end-to-end against
-    a real SQL backend, not just the dataclass shape.
-    """
-    query = session.query(*list(base_entity.__table__.columns))
-    for jc in joins or []:
-        if not isinstance(jc, JoinConfig):
-            continue
-
-        if jc.columns:
-            query = query.add_columns(*jc.columns)
-
-        # Column-only mode: no JOIN, only contribute columns to the SELECT.
-        if jc.model is None or jc.join_condition is None:
-            continue
-
-        effective_condition = (
-            and_(jc.join_condition, jc.condition)
-            if jc.condition is not None
-            else jc.join_condition
-        )
-        if jc.is_outer_join:
-            query = query.outerjoin(jc.model, effective_condition)
-        else:
-            query = query.join(jc.model, effective_condition)
-    return query
+    """Tiny wrapper that builds a base query and delegates to the shared
+    ``apply_join_configs`` helper. The two-line wrapper matches what every
+    data_access layer in this workspace does (form-core-lib, task-core-lib)."""
+    return apply_join_configs(
+        session.query(*list(base_entity.__table__.columns)),
+        joins,
+    )
 
 
 class TestJoinConfig(unittest.TestCase):
@@ -392,6 +370,168 @@ class TestJoinConfig(unittest.TestCase):
         self.assertEqual(row['name'], 'solo')
         # Only base columns present
         self.assertEqual(set(row.keys()), {'id', 'name', 'target_id', 'target_type'})
+
+    # ------------------------------------------------------------------
+    # SQL-shape tests — assert what `apply_join_configs` writes into the
+    # query without running it. These guard against future regressions in
+    # how the helper composes the SQL (JOIN type, ON clause, SELECT list).
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _compiled_sql(query):
+        """Compile a SQLAlchemy query to its literal SQL string (no
+        parameter placeholders) for substring assertions."""
+        return str(query.statement.compile(compile_kwargs={'literal_binds': True}))
+
+    def _base_query(self, session):
+        return session.query(*list(_Item.__table__.columns))
+
+    def test_apply_join_configs_with_none_joins_returns_query_unchanged(self):
+        with self.db.get() as session:
+            base = self._base_query(session)
+            result = apply_join_configs(base, None)
+            self.assertIs(result, base)
+
+    def test_apply_join_configs_with_empty_list_returns_query_unchanged(self):
+        with self.db.get() as session:
+            base = self._base_query(session)
+            result = apply_join_configs(base, [])
+            self.assertIs(result, base)
+
+    def test_apply_join_configs_emits_inner_join_in_sql(self):
+        join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            is_outer_join=False,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+
+        self.assertIn('JOIN test_join_config_custom_field', sql)
+        self.assertNotIn('LEFT OUTER JOIN', sql)
+        self.assertIn('test_join_config_item.target_id = test_join_config_custom_field.id', sql)
+
+    def test_apply_join_configs_emits_left_outer_join_in_sql(self):
+        join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            is_outer_join=True,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+
+        self.assertIn('LEFT OUTER JOIN test_join_config_custom_field', sql)
+
+    def test_apply_join_configs_adds_columns_to_select_list(self):
+        join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[
+                _CustomField.label.label('cf_label'),
+                _CustomField.id.label('cf_id'),
+            ],
+            is_outer_join=False,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+
+        self.assertIn('cf_label', sql)
+        self.assertIn('cf_id', sql)
+        # Base columns still in the SELECT
+        self.assertIn('test_join_config_item.name', sql)
+
+    def test_apply_join_configs_column_only_mode_omits_join_clause(self):
+        column_only = JoinConfig(columns=[literal('hello').label('greeting')])
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [column_only]))
+
+        self.assertNotIn('JOIN', sql.upper().replace('JOIN_CONFIG', ''))
+        self.assertIn('greeting', sql)
+        # Base FROM is still the only FROM
+        self.assertIn('FROM test_join_config_item', sql)
+
+    def test_apply_join_configs_ands_condition_into_on_clause(self):
+        join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            condition=_Item.target_type == CUSTOM_FIELD_TYPE,
+            is_outer_join=True,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+
+        # The condition is in the ON clause (between JOIN and the next clause),
+        # not in a WHERE — `_Item.target_type = <value>` must appear between
+        # 'ON' and (if present) 'WHERE'.
+        on_idx = sql.find(' ON ')
+        where_idx = sql.find(' WHERE ')
+        self.assertGreater(on_idx, -1, f'Expected ON clause in: {sql}')
+        condition_idx = sql.find('test_join_config_item.target_type = 1')
+        self.assertGreater(
+            condition_idx, on_idx,
+            f'Expected condition after ON. SQL: {sql}',
+        )
+        if where_idx > -1:
+            self.assertLess(
+                condition_idx, where_idx,
+                f'Condition should be in ON, not WHERE. SQL: {sql}',
+            )
+
+    def test_apply_join_configs_emits_each_join_for_multiple_join_configs(self):
+        cf_join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            is_outer_join=True,
+        )
+        uf_join = JoinConfig(
+            model=_UserField,
+            join_condition=_Item.target_id == _UserField.id,
+            columns=[_UserField.label.label('uf_label')],
+            is_outer_join=True,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [cf_join, uf_join]))
+
+        self.assertIn('LEFT OUTER JOIN test_join_config_custom_field', sql)
+        self.assertIn('LEFT OUTER JOIN test_join_config_user_field', sql)
+        self.assertIn('cf_label', sql)
+        self.assertIn('uf_label', sql)
+
+    def test_apply_join_configs_skips_non_join_config_items_in_sql(self):
+        join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            is_outer_join=False,
+        )
+        with self.db.get() as session:
+            sql = self._compiled_sql(
+                apply_join_configs(self._base_query(session), ['not_a_join_config', join, None])
+            )
+
+        # The single valid JoinConfig produced exactly one JOIN, not three.
+        self.assertEqual(sql.count('JOIN test_join_config_custom_field'), 1)
+        self.assertNotIn('not_a_join_config', sql)
+
+    def test_apply_join_configs_combined_join_and_column_only_in_sql(self):
+        real_join = JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=[_CustomField.label.label('cf_label')],
+            is_outer_join=False,
+        )
+        column_only = JoinConfig(columns=[literal('static').label('marker')])
+        with self.db.get() as session:
+            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [real_join, column_only]))
+
+        # Real join produces a JOIN; column-only just contributes its label.
+        self.assertEqual(sql.count('JOIN test_join_config_custom_field'), 1)
+        self.assertIn('cf_label', sql)
+        self.assertIn('marker', sql)
 
 
 if __name__ == '__main__':
