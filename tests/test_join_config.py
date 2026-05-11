@@ -67,16 +67,66 @@ class TestJoinConfig(unittest.TestCase):
             session.query(_UserField).delete()
 
     # ------------------------------------------------------------------
+    # Test helpers (factories + fixtures) so each test reads as a small
+    # delta from the defaults.
+    # ------------------------------------------------------------------
+
+    def _cf_join(self, *, is_outer=False, condition=None, columns=None):
+        return JoinConfig(
+            model=_CustomField,
+            join_condition=_Item.target_id == _CustomField.id,
+            columns=columns or [_CustomField.label.label('cf_label')],
+            condition=condition,
+            is_outer_join=is_outer,
+        )
+
+    def _uf_join(self, *, is_outer=False, condition=None, columns=None):
+        return JoinConfig(
+            model=_UserField,
+            join_condition=_Item.target_id == _UserField.id,
+            columns=columns or [_UserField.label.label('uf_label')],
+            condition=condition,
+            is_outer_join=is_outer,
+        )
+
+    def _seed_cf_item(self, session, cf_label='Match', item_name='Item-1', item_target_type=None):
+        cf = _CustomField(label=cf_label, type=CUSTOM_FIELD_TYPE)
+        session.add(cf)
+        session.flush()
+        session.add(_Item(
+            name=item_name,
+            target_id=cf.id,
+            target_type=CUSTOM_FIELD_TYPE if item_target_type is None else item_target_type,
+        ))
+        session.flush()
+        return cf
+
+    @staticmethod
+    def _rows(results):
+        return [dict(r._mapping) for r in results]
+
+    @staticmethod
+    def _compiled_sql(query):
+        """Compile a SQLAlchemy query to its literal SQL string (no
+        parameter placeholders) for substring assertions."""
+        return str(query.statement.compile(compile_kwargs={'literal_binds': True}))
+
+    def _base_query(self, session):
+        return session.query(*list(_Item.__table__.columns))
+
+    def _sql_for_joins(self, joins):
+        with self.db.get() as session:
+            return self._compiled_sql(apply_join_configs(self._base_query(session), joins))
+
+    # ------------------------------------------------------------------
     # Dataclass-shape tests
     # ------------------------------------------------------------------
 
     def test_join_config_creation(self):
-        join_config = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label, _CustomField.type],
+        join_config = self._cf_join(
             condition=_CustomField.type == 1,
-            is_outer_join=True,
+            columns=[_CustomField.label, _CustomField.type],
+            is_outer=True,
         )
 
         self.assertEqual(join_config.model, _CustomField)
@@ -95,40 +145,23 @@ class TestJoinConfig(unittest.TestCase):
 
     def test_join_config_with_multiple_columns(self):
         columns = [_CustomField.id, _CustomField.label, _CustomField.type]
-        join_config = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=columns,
-            condition=_CustomField.type == 1,
-        )
+        join_config = self._cf_join(condition=_CustomField.type == 1, columns=columns)
 
         self.assertEqual(len(join_config.columns), 3)
         self.assertEqual(join_config.columns, columns)
 
     def test_join_config_condition_stored(self):
-        condition = _CustomField.type == 1
-        join_config = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label],
-            condition=condition,
-        )
+        join_config = self._cf_join(condition=_CustomField.type == 1)
         self.assertIsNotNone(join_config.condition)
 
     def test_join_config_join_condition_stored(self):
-        join_condition = _Item.target_id == _CustomField.id
-        join_config = JoinConfig(
-            model=_CustomField,
-            join_condition=join_condition,
-            columns=[_CustomField.label],
-        )
+        join_config = self._cf_join()
         self.assertIsNotNone(join_config.join_condition)
 
     def test_join_config_column_only_mode(self):
         """JoinConfig with only `columns` (model=None, join_condition=None) is the
         column-only mode used for correlated scalar subqueries — must not raise."""
-        computed = literal(1).label('always_one')
-        join_config = JoinConfig(columns=[computed])
+        join_config = JoinConfig(columns=[literal(1).label('always_one')])
 
         self.assertIsNone(join_config.model)
         self.assertIsNone(join_config.join_condition)
@@ -144,71 +177,42 @@ class TestJoinConfig(unittest.TestCase):
         """Owner-style inner join (admin_task_service._build_owner_join):
         joined columns appear on each result row alongside the base columns."""
         with self.db.get() as session:
-            cf = _CustomField(label='Match Me', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='Item-1', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
-            session.flush()
-
-            join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[
-                    _CustomField.label.label('cf_label'),
-                    _CustomField.id.label('cf_id'),
-                ],
-                is_outer_join=False,
-            )
-            results = _apply_joins(session, _Item, [join]).all()
+            cf = self._seed_cf_item(session, cf_label='Match Me', item_name='Item-1')
+            join = self._cf_join(columns=[
+                _CustomField.label.label('cf_label'),
+                _CustomField.id.label('cf_id'),
+            ])
+            results = self._rows(_apply_joins(session, _Item, [join]).all())
 
         self.assertEqual(len(results), 1)
-        row = dict(results[0]._mapping)
-        self.assertEqual(row['name'], 'Item-1')
-        self.assertEqual(row['cf_label'], 'Match Me')
-        self.assertEqual(row['cf_id'], 1)
+        self.assertEqual(results[0]['name'], 'Item-1')
+        self.assertEqual(results[0]['cf_label'], 'Match Me')
+        self.assertEqual(results[0]['cf_id'], cf.id)
 
     def test_inner_join_excludes_unmatched_rows(self):
         """Inner-join semantics: rows whose target_id has no matching joined
         row are dropped from the result set entirely."""
         with self.db.get() as session:
-            cf = _CustomField(label='Has Match', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='Matched', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
+            self._seed_cf_item(session, cf_label='Has Match', item_name='Matched')
             session.add(_Item(name='Orphan', target_id=999_999, target_type=CUSTOM_FIELD_TYPE))
             session.flush()
 
-            join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[_CustomField.label.label('cf_label')],
-                is_outer_join=False,
-            )
-            results = _apply_joins(session, _Item, [join]).all()
+            results = self._rows(_apply_joins(session, _Item, [self._cf_join()]).all())
 
-        names = sorted(dict(r._mapping)['name'] for r in results)
+        names = sorted(r['name'] for r in results)
         self.assertEqual(names, ['Matched'])
 
     def test_outer_join_keeps_unmatched_rows_with_nulls(self):
         """Outer-join semantics: rows without a matching join target are kept,
         with NULL for the joined columns."""
         with self.db.get() as session:
-            cf = _CustomField(label='Has Match', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='Matched', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
+            self._seed_cf_item(session, cf_label='Has Match', item_name='Matched')
             session.add(_Item(name='Orphan', target_id=999_999, target_type=CUSTOM_FIELD_TYPE))
             session.flush()
 
-            join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[_CustomField.label.label('cf_label')],
-                is_outer_join=True,
-            )
-            results = _apply_joins(session, _Item, [join]).all()
+            results = self._rows(_apply_joins(session, _Item, [self._cf_join(is_outer=True)]).all())
 
-        rows = sorted([dict(r._mapping) for r in results], key=lambda r: r['name'])
+        rows = sorted(results, key=lambda r: r['name'])
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0]['name'], 'Matched')
         self.assertEqual(rows[0]['cf_label'], 'Has Match')
@@ -231,29 +235,25 @@ class TestJoinConfig(unittest.TestCase):
             session.add(_Item(name='uf-row', target_id=uf.id, target_type=USER_FIELD_TYPE))
             session.flush()
 
-            cf_join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
+            cf_join = self._cf_join(
+                is_outer=True,
+                condition=_Item.target_type == CUSTOM_FIELD_TYPE,
                 columns=[
                     _CustomField.label.label('cf_label'),
                     _CustomField.id.label('cf_id'),
                 ],
-                condition=_Item.target_type == CUSTOM_FIELD_TYPE,
-                is_outer_join=True,
             )
-            uf_join = JoinConfig(
-                model=_UserField,
-                join_condition=_Item.target_id == _UserField.id,
+            uf_join = self._uf_join(
+                is_outer=True,
+                condition=_Item.target_type == USER_FIELD_TYPE,
                 columns=[
                     _UserField.label.label('uf_label'),
                     _UserField.id.label('uf_id'),
                 ],
-                condition=_Item.target_type == USER_FIELD_TYPE,
-                is_outer_join=True,
             )
-            results = _apply_joins(session, _Item, [cf_join, uf_join]).all()
+            results = self._rows(_apply_joins(session, _Item, [cf_join, uf_join]).all())
 
-        rows = {dict(r._mapping)['name']: dict(r._mapping) for r in results}
+        rows = {r['name']: r for r in results}
         self.assertEqual(len(rows), 2)
         # cf-row: CustomField columns populated, UserField NULL
         self.assertEqual(rows['cf-row']['cf_label'], 'Cust')
@@ -269,23 +269,17 @@ class TestJoinConfig(unittest.TestCase):
         out of the result. This is what makes the target_type-discriminator
         pattern in `test_two_outer_joins_dispatched_by_target_type` work."""
         with self.db.get() as session:
-            cf = _CustomField(label='YES', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='matches-condition', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
+            cf = self._seed_cf_item(session, cf_label='YES', item_name='matches-condition')
             session.add(_Item(name='fails-condition', target_id=cf.id, target_type=USER_FIELD_TYPE))
             session.flush()
 
-            join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[_CustomField.label.label('cf_label')],
+            join = self._cf_join(
+                is_outer=True,
                 condition=_Item.target_type == CUSTOM_FIELD_TYPE,
-                is_outer_join=True,
             )
-            results = _apply_joins(session, _Item, [join]).all()
+            results = self._rows(_apply_joins(session, _Item, [join]).all())
 
-        rows = {dict(r._mapping)['name']: dict(r._mapping) for r in results}
+        rows = {r['name']: r for r in results}
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows['matches-condition']['cf_label'], 'YES')
         # The condition fails for this row, but it still appears (proves the
@@ -302,12 +296,11 @@ class TestJoinConfig(unittest.TestCase):
             session.flush()
 
             join = JoinConfig(columns=[literal(42).label('answer')])
-            results = _apply_joins(session, _Item, [join]).all()
+            results = self._rows(_apply_joins(session, _Item, [join]).all())
 
         self.assertEqual(len(results), 1)
-        row = dict(results[0]._mapping)
-        self.assertEqual(row['name'], 'only-row')
-        self.assertEqual(row['answer'], 42)
+        self.assertEqual(results[0]['name'], 'only-row')
+        self.assertEqual(results[0]['answer'], 42)
 
     def test_column_only_alongside_real_join(self):
         """A JOIN-mode JoinConfig and a column-only JoinConfig combined in the
@@ -315,46 +308,23 @@ class TestJoinConfig(unittest.TestCase):
         a JOIN. This is exactly what admin_task_service does (owner JOIN +
         target_users column)."""
         with self.db.get() as session:
-            cf = _CustomField(label='X', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='row', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
-            session.flush()
-
-            real_join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[_CustomField.label.label('cf_label')],
-                is_outer_join=False,
-            )
+            self._seed_cf_item(session, cf_label='X', item_name='row')
             computed = JoinConfig(columns=[literal('static').label('marker')])
-            results = _apply_joins(session, _Item, [real_join, computed]).all()
+            results = self._rows(_apply_joins(session, _Item, [self._cf_join(), computed]).all())
 
-        row = dict(results[0]._mapping)
-        self.assertEqual(row['cf_label'], 'X')
-        self.assertEqual(row['marker'], 'static')
+        self.assertEqual(results[0]['cf_label'], 'X')
+        self.assertEqual(results[0]['marker'], 'static')
 
     def test_non_join_config_items_silently_skipped(self):
         """The reference _apply_joins tolerates non-JoinConfig items (strings,
         None) interleaved with real JoinConfigs — same defensive behavior the
         production data-access methods use."""
         with self.db.get() as session:
-            cf = _CustomField(label='Y', type=CUSTOM_FIELD_TYPE)
-            session.add(cf)
-            session.flush()
-            session.add(_Item(name='row', target_id=cf.id, target_type=CUSTOM_FIELD_TYPE))
-            session.flush()
-
-            join = JoinConfig(
-                model=_CustomField,
-                join_condition=_Item.target_id == _CustomField.id,
-                columns=[_CustomField.label.label('cf_label')],
-                is_outer_join=False,
-            )
-            results = _apply_joins(session, _Item, ['not_a_join_config', join, None]).all()
+            self._seed_cf_item(session, cf_label='Y', item_name='row')
+            results = self._rows(_apply_joins(session, _Item, ['not_a_join_config', self._cf_join(), None]).all())
 
         self.assertEqual(len(results), 1)
-        self.assertEqual(dict(results[0]._mapping)['cf_label'], 'Y')
+        self.assertEqual(results[0]['cf_label'], 'Y')
 
     def test_no_joins_returns_base_rows_only(self):
         """`joins=None` (or `joins=[]`) is a valid pass-through: the query
@@ -363,28 +333,18 @@ class TestJoinConfig(unittest.TestCase):
             session.add(_Item(name='solo', target_id=None, target_type=None))
             session.flush()
 
-            results = _apply_joins(session, _Item, None).all()
+            results = self._rows(_apply_joins(session, _Item, None).all())
 
         self.assertEqual(len(results), 1)
-        row = dict(results[0]._mapping)
-        self.assertEqual(row['name'], 'solo')
+        self.assertEqual(results[0]['name'], 'solo')
         # Only base columns present
-        self.assertEqual(set(row.keys()), {'id', 'name', 'target_id', 'target_type'})
+        self.assertEqual(set(results[0].keys()), {'id', 'name', 'target_id', 'target_type'})
 
     # ------------------------------------------------------------------
     # SQL-shape tests — assert what `apply_join_configs` writes into the
     # query without running it. These guard against future regressions in
     # how the helper composes the SQL (JOIN type, ON clause, SELECT list).
     # ------------------------------------------------------------------
-
-    @staticmethod
-    def _compiled_sql(query):
-        """Compile a SQLAlchemy query to its literal SQL string (no
-        parameter placeholders) for substring assertions."""
-        return str(query.statement.compile(compile_kwargs={'literal_binds': True}))
-
-    def _base_query(self, session):
-        return session.query(*list(_Item.__table__.columns))
 
     def test_apply_join_configs_with_none_joins_returns_query_unchanged(self):
         with self.db.get() as session:
@@ -399,43 +359,23 @@ class TestJoinConfig(unittest.TestCase):
             self.assertIs(result, base)
 
     def test_apply_join_configs_emits_inner_join_in_sql(self):
-        join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
-            is_outer_join=False,
-        )
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+        sql = self._sql_for_joins([self._cf_join()])
 
         self.assertIn('JOIN test_join_config_custom_field', sql)
         self.assertNotIn('LEFT OUTER JOIN', sql)
         self.assertIn('test_join_config_item.target_id = test_join_config_custom_field.id', sql)
 
     def test_apply_join_configs_emits_left_outer_join_in_sql(self):
-        join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
-            is_outer_join=True,
-        )
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+        sql = self._sql_for_joins([self._cf_join(is_outer=True)])
 
         self.assertIn('LEFT OUTER JOIN test_join_config_custom_field', sql)
 
     def test_apply_join_configs_adds_columns_to_select_list(self):
-        join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[
-                _CustomField.label.label('cf_label'),
-                _CustomField.id.label('cf_id'),
-            ],
-            is_outer_join=False,
-        )
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+        join = self._cf_join(columns=[
+            _CustomField.label.label('cf_label'),
+            _CustomField.id.label('cf_id'),
+        ])
+        sql = self._sql_for_joins([join])
 
         self.assertIn('cf_label', sql)
         self.assertIn('cf_id', sql)
@@ -444,8 +384,7 @@ class TestJoinConfig(unittest.TestCase):
 
     def test_apply_join_configs_column_only_mode_omits_join_clause(self):
         column_only = JoinConfig(columns=[literal('hello').label('greeting')])
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [column_only]))
+        sql = self._sql_for_joins([column_only])
 
         self.assertNotIn('JOIN', sql.upper().replace('JOIN_CONFIG', ''))
         self.assertIn('greeting', sql)
@@ -453,15 +392,11 @@ class TestJoinConfig(unittest.TestCase):
         self.assertIn('FROM test_join_config_item', sql)
 
     def test_apply_join_configs_ands_condition_into_on_clause(self):
-        join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
+        join = self._cf_join(
+            is_outer=True,
             condition=_Item.target_type == CUSTOM_FIELD_TYPE,
-            is_outer_join=True,
         )
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [join]))
+        sql = self._sql_for_joins([join])
 
         # The condition is in the ON clause (between JOIN and the next clause),
         # not in a WHERE — `_Item.target_type = <value>` must appear between
@@ -481,20 +416,10 @@ class TestJoinConfig(unittest.TestCase):
             )
 
     def test_apply_join_configs_emits_each_join_for_multiple_join_configs(self):
-        cf_join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
-            is_outer_join=True,
-        )
-        uf_join = JoinConfig(
-            model=_UserField,
-            join_condition=_Item.target_id == _UserField.id,
-            columns=[_UserField.label.label('uf_label')],
-            is_outer_join=True,
-        )
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [cf_join, uf_join]))
+        sql = self._sql_for_joins([
+            self._cf_join(is_outer=True),
+            self._uf_join(is_outer=True),
+        ])
 
         self.assertIn('LEFT OUTER JOIN test_join_config_custom_field', sql)
         self.assertIn('LEFT OUTER JOIN test_join_config_user_field', sql)
@@ -502,31 +427,15 @@ class TestJoinConfig(unittest.TestCase):
         self.assertIn('uf_label', sql)
 
     def test_apply_join_configs_skips_non_join_config_items_in_sql(self):
-        join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
-            is_outer_join=False,
-        )
-        with self.db.get() as session:
-            sql = self._compiled_sql(
-                apply_join_configs(self._base_query(session), ['not_a_join_config', join, None])
-            )
+        sql = self._sql_for_joins(['not_a_join_config', self._cf_join(), None])
 
         # The single valid JoinConfig produced exactly one JOIN, not three.
         self.assertEqual(sql.count('JOIN test_join_config_custom_field'), 1)
         self.assertNotIn('not_a_join_config', sql)
 
     def test_apply_join_configs_combined_join_and_column_only_in_sql(self):
-        real_join = JoinConfig(
-            model=_CustomField,
-            join_condition=_Item.target_id == _CustomField.id,
-            columns=[_CustomField.label.label('cf_label')],
-            is_outer_join=False,
-        )
         column_only = JoinConfig(columns=[literal('static').label('marker')])
-        with self.db.get() as session:
-            sql = self._compiled_sql(apply_join_configs(self._base_query(session), [real_join, column_only]))
+        sql = self._sql_for_joins([self._cf_join(), column_only])
 
         # Real join produces a JOIN; column-only just contributes its label.
         self.assertEqual(sql.count('JOIN test_join_config_custom_field'), 1)
