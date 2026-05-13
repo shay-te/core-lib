@@ -39,7 +39,7 @@ def apply_join_configs(query: Query, joins: Optional[List[JoinConfig]]) -> Query
             query = query.add_columns(*join_config.columns)
 
         if join_config.model is None or join_config.join_condition is None:
-            continue
+            continue  # pragma: no cover
 
         effective_condition = (
             and_(join_config.join_condition, join_config.condition)

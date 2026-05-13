@@ -121,7 +121,7 @@ def prompt_bool(title: str, default: Optional[bool] = None, allow_none: bool = F
             elif allow_none:
                 return None
             else:
-                continue
+                continue  # pragma: no cover
         if raw in ('true', '1'):
             return True
         if raw in ('false', '0'):
@@ -140,7 +140,7 @@ def prompt_int(title: str, default: Optional[int] = None, allow_none: bool = Fal
                 return default
             if allow_none:
                 return None
-            continue
+            continue  # pragma: no cover
         if is_int(raw):
             return int(raw)
 

@@ -83,7 +83,7 @@ class Alembic(object):
 
     def create_migration(self, migration_name):
         if not migration_name:
-            logging.ERROR("Value ERROR 'Migration name must be set'")
+            logging.error("Value ERROR 'Migration name must be set'")
             raise ValueError("Migration name must be set")
 
         version = self._read_version()
