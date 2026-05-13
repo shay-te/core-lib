@@ -116,7 +116,8 @@ class TestUserSecurity(unittest.TestCase):
         self.assertTrue(has_access(security_handler.from_session_data(self.user_user), [User.Status.ACTIVE]))
 
     def test_session_data(self):
-        time_stamp = datetime.utcnow().timestamp()
+        from datetime import timezone
+        time_stamp = datetime.now(tz=timezone.utc).timestamp()
         user = result_to_dict(user_data_access.get(1))
         user_session = SecurityHandler.get().generate_session_data_token(user)
         decoded_dict = jwt.decode(user_session, options={"verify_signature": False})
