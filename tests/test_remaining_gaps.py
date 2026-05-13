@@ -762,13 +762,12 @@ class TestBranchCoverage(unittest.TestCase):
 
     def test_sql_alchemy_connection_exit_without_callback(self):
         from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
-        engine = MagicMock()
-        with patch(
-            'core_lib.connection.sql_alchemy_connection.sessionmaker'
-        ) as mock_sm:
-            mock_sm.return_value.return_value = MagicMock()
-            conn = SqlAlchemyConnection(engine, on_exit=None)
-            self.assertIsNone(conn.__exit__(None, None, None))
+        # The constructor now takes a sessionmaker factory directly instead
+        # of an engine; the factory is invoked to produce one session.
+        session_factory = MagicMock()
+        session_factory.return_value = MagicMock()
+        conn = SqlAlchemyConnection(session_factory, on_exit=None)
+        self.assertIsNone(conn.__exit__(None, None, None))
 
     def test_core_lib_destroy_without_observer_attr(self):
         from core_lib.core_lib import CoreLib

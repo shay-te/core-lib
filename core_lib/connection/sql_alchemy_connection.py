@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 from core_lib.connection.connection import Connection
 
@@ -8,10 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class SqlAlchemyConnection(Connection):
-    def __init__(self, engine, on_exit):
-        self.engine = engine
+    def __init__(self, session_factory, on_exit):
+        # `session_factory` is a SHARED sessionmaker built once on
+        # SqlAlchemyConnectionFactory. The previous signature took a raw
+        # engine and rebuilt a fresh sessionmaker on every .get() call —
+        # wasteful, and it defeated SQLAlchemy's per-factory caches.
+        self._session_factory = session_factory
         self.on_exit = on_exit
-        self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
+        self.session = session_factory()
 
     def __enter__(self) -> Session:
         return self.session

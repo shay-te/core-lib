@@ -1,4 +1,5 @@
 from omegaconf import DictConfig
+from sqlalchemy.orm import sessionmaker
 
 from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
@@ -13,6 +14,11 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
         self.session_to_count = {}
         self._engine = self._create_engine(config)
         self._connection = self._engine.connect()
+        # Build the sessionmaker once per engine and reuse it. sessionmaker
+        # is intentionally meant to be long-lived; rebuilding it per
+        # SqlAlchemyConnection (the old behavior) wasted work on every
+        # .get() and prevented SQLAlchemy from caching against the factory.
+        self._session_factory = sessionmaker(bind=self._engine, expire_on_commit=False)
 
         if config.get('create_db', True):
             Base.metadata.create_all(self._engine)
@@ -26,7 +32,7 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
         return self._connection
 
     def get(self, *args, **kwargs) -> SqlAlchemyConnection:
-        return SqlAlchemyConnection(self._engine, self._on_db_session_exit)
+        return SqlAlchemyConnection(self._session_factory, self._on_db_session_exit)
 
     def _on_db_session_exit(self, db_session: SqlAlchemyConnection):
         db_session.close()

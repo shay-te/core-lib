@@ -60,8 +60,23 @@ def _get_exception_status_code(exc):
     else:
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+_HANDLE_EXCEPTION_LOG_SENTINEL = '__handle_exception_log_flag__'
+
+
 def handle_exception(func, *args, **kwargs):
-    log_exception = kwargs.pop("log_exception", True)
+    # Pop a private, sentinel-named flag so we don't clobber a user-provided
+    # `log_exception` kwarg on the wrapped function. Previously this used
+    # `kwargs.pop("log_exception", True)`, which both stole a user kwarg of
+    # that name and produced "got multiple values for argument" when the
+    # HandleException decorator forwarded `log_exception=...`.
+    sentinel_present = _HANDLE_EXCEPTION_LOG_SENTINEL in kwargs
+    log_exception = kwargs.pop(_HANDLE_EXCEPTION_LOG_SENTINEL, True)
+    # Backwards-compat: direct callers (NOT the HandleException decorator)
+    # can still pass `log_exception=` as a kwarg to control logging. When
+    # the sentinel was present, leave the user's `log_exception` kwarg
+    # alone so it reaches the wrapped function.
+    if not sentinel_present and 'log_exception' in kwargs:
+        log_exception = kwargs.pop('log_exception', True)
 
     try:
         return func(*args, **kwargs)
@@ -88,6 +103,10 @@ class HandleException(object):
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            return handle_exception(func, log_exception=self._log_exception, *args, **kwargs)
+            # Pass log_exception via the private sentinel so we don't shadow
+            # a user kwarg named `log_exception` on the wrapped function.
+            handle_kwargs = dict(kwargs)
+            handle_kwargs[_HANDLE_EXCEPTION_LOG_SENTINEL] = self._log_exception
+            return handle_exception(func, *args, **handle_kwargs)
 
         return wrapper

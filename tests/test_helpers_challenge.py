@@ -198,7 +198,10 @@ class TestGenerateDatetime(unittest.TestCase):
         from_d = datetime.datetime.now() - datetime.timedelta(days=100)
         for _ in range(10):
             result = generate_datetime(from_date=from_d)
-            self.assertGreaterEqual(result, from_d)
+            # generate_datetime truncates to midnight, so compare at day
+            # granularity (otherwise from_d=14:30 vs result=00:00 same day
+            # would spuriously fail).
+            self.assertGreaterEqual(result.date(), from_d.date())
 
     def test_only_to_date(self):
         to_d = datetime.datetime.now() + datetime.timedelta(days=100)

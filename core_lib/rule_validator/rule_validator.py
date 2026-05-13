@@ -103,7 +103,8 @@ class RuleValidator(object):
         elif value is not None and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
-            except BaseException as ex:
+            # Narrow to Exception so KeyboardInterrupt / SystemExit propagate.
+            except Exception as ex:
                 raise PermissionError(
                     f'Invalid update key:{key} illegal datetime formatted value {value}. '
                     f'only ISO format is accepted'
@@ -118,7 +119,8 @@ class RuleValidator(object):
                 is_allow_null = parsed_value is None and rule.nullable
                 if custom_valid is not True and not is_allow_null:
                     raise PermissionError(f'Update of key:`{key}` failed by custom validation')
-        except BaseException as ex:
+        # Same — narrow from BaseException so process signals propagate.
+        except Exception as ex:
             raise PermissionError(f'Error running custom validator with  `{key}` and value `{parsed_value}`') from ex
 
         return parsed_value

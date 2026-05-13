@@ -36,7 +36,9 @@ class UnseenFormatter(Formatter):
             if isinstance(key, str) and key in kwargs:
                 return _get_key_value(key, kwargs[key])
             return f'!M{key}M!'
-        except BaseException:
+        # Catch Exception only — never silently swallow Ctrl-C / SystemExit
+        # just because key-building hit an unexpected error.
+        except Exception:
             logger.warning(f'Error while building key. `{key}`', exc_info=True)
             return f'!E{key}E!'
 

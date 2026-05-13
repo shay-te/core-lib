@@ -6,6 +6,7 @@ known bug. Bug descriptions live in the docstring of each test class.
 """
 import datetime
 import logging
+import os
 import unittest
 import unittest.mock
 from datetime import timezone
@@ -808,22 +809,20 @@ class TestSqlAlchemyConnectionCloseOrdering(unittest.TestCase):
         from unittest.mock import MagicMock
         from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
 
-        with unittest.mock.patch(
-            'core_lib.connection.sql_alchemy_connection.sessionmaker'
-        ) as mock_sm:
-            mock_session = MagicMock()
-            mock_sm.return_value.return_value = mock_session
-            conn = SqlAlchemyConnection(MagicMock(), on_exit=None)
+        # Constructor now takes a sessionmaker factory directly.
+        mock_session = MagicMock()
+        session_factory = MagicMock(return_value=mock_session)
+        conn = SqlAlchemyConnection(session_factory, on_exit=None)
 
-            # Track the order of calls
-            calls = []
-            mock_session.flush.side_effect = lambda: calls.append('flush')
-            mock_session.commit.side_effect = lambda: calls.append('commit')
-            mock_session.close.side_effect = lambda: calls.append('close')
+        # Track the order of calls
+        calls = []
+        mock_session.flush.side_effect = lambda: calls.append('flush')
+        mock_session.commit.side_effect = lambda: calls.append('commit')
+        mock_session.close.side_effect = lambda: calls.append('close')
 
-            conn.close()
+        conn.close()
 
-            self.assertEqual(calls, ['flush', 'commit', 'close'])
+        self.assertEqual(calls, ['flush', 'commit', 'close'])
 
 
 # ── Coverage fill for new validation branches ───────────────────────────
@@ -1206,3 +1205,436 @@ class TestIntEnumZeroValueRoundTrip(unittest.TestCase):
         col = SQLAIntEnum(Flag)
         self.assertIsNone(col.process_bind_param(None, None))
         self.assertIsNone(col.process_result_value(None, None))
+
+
+# ── Bug 33: remaining `except BaseException` patterns ───────────────────
+
+
+class TestRemainingBaseExceptionPatternsNarrowed(unittest.TestCase):
+    """Several modules still had `except BaseException`. All have been
+    narrowed to `except Exception` so Ctrl-C / SystemExit propagate."""
+
+    def test_rule_validator_datetime_parse_does_not_swallow_keyboard_interrupt(self):
+        import datetime as dt
+        from unittest.mock import patch
+        from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
+        rv = RuleValidator([ValueRuleValidator('k', dt.datetime)])
+        with patch(
+            'core_lib.rule_validator.rule_validator.datetime_parser.parse',
+            side_effect=KeyboardInterrupt('user pressed ctrl-c'),
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                rv.validate_dict({'k': 'whatever'}, strict_mode=False)
+
+    def test_rule_validator_custom_validator_does_not_swallow_system_exit(self):
+        from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
+        def bad_validator(v):
+            raise SystemExit(1)
+        rv = RuleValidator([ValueRuleValidator('k', int, custom_validator=bad_validator)])
+        with self.assertRaises(SystemExit):
+            rv.validate_dict({'k': 5}, strict_mode=False)
+
+    def test_unseen_formatter_does_not_swallow_keyboard_interrupt(self):
+        from core_lib.helpers.func_utils import UnseenFormatter, Keyable
+
+        class BadKeyable(Keyable):
+            def key(self):
+                raise KeyboardInterrupt('boom')
+
+        f = UnseenFormatter()
+        with self.assertRaises(KeyboardInterrupt):
+            f.format('{x}', x=BadKeyable())
+
+
+# ── Bug 34: NotFoundErrorHandler falsy false-positive ──────────────────
+
+
+class TestNotFoundErrorHandlerOnFalsyReturns(unittest.TestCase):
+    """`if not result:` raised 404 for any falsy return value (0, '', [],
+    {}, False). For example, `@NotFoundErrorHandler()` on a function that
+    legitimately returns a count of 0 would always 404. Now uses
+    `if result is None`."""
+
+    def test_zero_return_no_longer_raises(self):
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        @NotFoundErrorHandler()
+        def get_count():
+            return 0
+        self.assertEqual(get_count(), 0)
+
+    def test_empty_list_return_no_longer_raises(self):
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        @NotFoundErrorHandler()
+        def get_items():
+            return []
+        self.assertEqual(get_items(), [])
+
+    def test_empty_dict_return_no_longer_raises(self):
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        @NotFoundErrorHandler()
+        def get_map():
+            return {}
+        self.assertEqual(get_map(), {})
+
+    def test_false_return_no_longer_raises(self):
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        @NotFoundErrorHandler()
+        def is_present():
+            return False
+        self.assertFalse(is_present())
+
+    def test_none_return_still_raises(self):
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        from core_lib.error_handling.status_code_exception import StatusCodeException
+        @NotFoundErrorHandler()
+        def lookup():
+            return None
+        with self.assertRaises(StatusCodeException):
+            lookup()
+
+
+# ── Bug 35: DuplicateErrorHandler / NotFoundErrorHandler status code shape ──
+
+
+class TestErrorHandlerStatusCodeIsIntCompatible(unittest.TestCase):
+    """Both decorators pass `HTTPStatus.<X>` (an IntEnum). The status code
+    must be int-compatible (compares equal to the numeric code) so callers
+    like `responses[status]` and `status >= 500` work. Either an int or an
+    IntEnum satisfies that contract."""
+
+    def test_duplicate_handler_status_code_is_int_compatible(self):
+        from sqlalchemy import exc
+        from http import HTTPStatus
+        from core_lib.error_handling.duplicate_error_decorator import DuplicateErrorHandler
+        from core_lib.error_handling.status_code_exception import StatusCodeException
+
+        @DuplicateErrorHandler()
+        def insert():
+            raise exc.IntegrityError('stmt', {}, Exception('orig'))
+
+        with self.assertRaises(StatusCodeException) as cm:
+            insert()
+        # IntEnum and int are interchangeable for our purposes.
+        self.assertEqual(cm.exception.status_code, 409)
+        self.assertIsInstance(cm.exception.status_code, int)
+        self.assertIs(cm.exception.status_code, HTTPStatus.CONFLICT)
+
+    def test_not_found_handler_status_code_is_int_compatible(self):
+        from http import HTTPStatus
+        from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+        from core_lib.error_handling.status_code_exception import StatusCodeException
+
+        @NotFoundErrorHandler()
+        def lookup():
+            return None
+
+        with self.assertRaises(StatusCodeException) as cm:
+            lookup()
+        self.assertEqual(cm.exception.status_code, 404)
+        self.assertIsInstance(cm.exception.status_code, int)
+        self.assertIs(cm.exception.status_code, HTTPStatus.NOT_FOUND)
+
+
+# ── Bug 36: HandleException log_exception kwarg collision ──────────────
+
+
+class TestHandleExceptionDoesNotStealLogExceptionKwarg(unittest.TestCase):
+    """Previously HandleException forwarded `log_exception=...` as a kwarg to
+    handle_exception, which then popped it. If the wrapped function had its
+    own `log_exception` kwarg, this raised `TypeError: got multiple values
+    for argument 'log_exception'`. Now we use an internal sentinel."""
+
+    def test_wrapped_function_can_have_log_exception_kwarg(self):
+        from core_lib.web_helpers.decorators import HandleException
+
+        @HandleException()
+        def my_func(log_exception=True):
+            return log_exception
+
+        # Must not raise TypeError; must NOT lose the user's kwarg.
+        self.assertFalse(my_func(log_exception=False))
+        self.assertTrue(my_func(log_exception=True))
+
+    def test_direct_handle_exception_call_still_honors_log_exception(self):
+        # Backwards-compat: direct callers can still pass log_exception=False
+        # to disable per-exception logging.
+        from core_lib.web_helpers.decorators import handle_exception
+        from django.conf import settings as django_settings
+        if not django_settings.configured:
+            django_settings.configure()
+            django_settings.DEFAULT_CHARSET = 'utf-8'
+        from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+        from flask import Flask
+        app = Flask(__name__)
+        original = WebHelpersUtils.server_type
+        try:
+            WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+            def view():
+                raise RuntimeError('boom')
+            with app.app_context():
+                result = handle_exception(view, log_exception=False)
+                self.assertEqual(result.status_code, 500)
+        finally:
+            WebHelpersUtils.server_type = original
+
+
+# ── Bug 37: Alembic.create_migration race ───────────────────────────────
+
+
+class TestAlembicCreateMigrationLocked(unittest.TestCase):
+    """Two concurrent calls to create_migration could both observe the same
+    `version` and both attempt to write the same `rev_id`. Now serialized
+    via an instance lock."""
+
+    def test_concurrent_create_migration_serialized(self):
+        import threading
+        import tempfile
+        from unittest.mock import MagicMock, patch
+        from omegaconf import OmegaConf
+        from core_lib.alembic.alembic import Alembic
+
+        tmpdir = tempfile.mkdtemp()
+        try:
+            # Build a fake script_location dir + minimal config
+            os.makedirs(os.path.join(tmpdir, 'scripts'), exist_ok=True)
+            config = OmegaConf.create({
+                'core_lib': {
+                    'alembic': {
+                        'version_table': 'v',
+                        'script_location': 'scripts',
+                        'file_template': 't',
+                        'timezone': None,
+                        'truncate_slug_length': None,
+                        'revision_environment': False,
+                        'sourceless': False,
+                        'output_encoding': 'utf-8',
+                        'version_file_name': '.ver',
+                        'render_as_batch': False,
+                    },
+                    'data': {'sqlalchemy': {'config': {
+                        'log_queries': False,
+                        'url': {'protocol': 'sqlite', 'username': None,
+                                'password': None, 'host': None,
+                                'port': None, 'file': None},
+                    }}},
+                }
+            })
+            with patch('core_lib.alembic.alembic.create_engine'):
+                alembic = Alembic(core_lib_path=tmpdir, core_lib_config=config)
+
+            # Stub _read_version + command.revision so we can observe
+            # serialization. Each "version" is fetched then sleeps briefly
+            # to expose the race window.
+            import time
+
+            current_version = {'v': 0}
+            revisions_created = []
+            lock_witness = threading.Lock()
+            inside_critical = [0]
+            max_concurrent = [0]
+
+            def fake_read():
+                with lock_witness:
+                    inside_critical[0] += 1
+                    max_concurrent[0] = max(max_concurrent[0], inside_critical[0])
+                time.sleep(0.05)
+                return current_version['v']
+
+            def fake_revision(cfg, message, rev_id):
+                revisions_created.append(rev_id)
+
+            def fake_write(v):
+                current_version['v'] = v
+                with lock_witness:
+                    inside_critical[0] -= 1
+
+            with patch.object(alembic, '_read_version', side_effect=fake_read), \
+                 patch('core_lib.alembic.alembic.command.revision',
+                       side_effect=fake_revision), \
+                 patch.object(alembic, '_write_version', side_effect=fake_write):
+                threads = [threading.Thread(
+                    target=lambda: alembic.create_migration(f'm{i}')
+                ) for i in range(5)]
+                for t in threads:
+                    t.start()
+                for t in threads:
+                    t.join()
+
+            # All 5 revisions created with DISTINCT ids
+            self.assertEqual(len(revisions_created), 5)
+            self.assertEqual(len(set(revisions_created)), 5)
+            # And never more than one thread was inside the critical section
+            self.assertEqual(max_concurrent[0], 1)
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+# ── Bug 38: ConnectionFactoryRegistry.get_or_reg race ───────────────────
+
+
+class TestConnectionFactoryRegistryGetOrRegLocked(unittest.TestCase):
+    """Two concurrent callers could both observe an empty slot and both
+    register, with the second raising ValueError (duplicate key). The
+    check-then-register sequence is now under a lock and returns the
+    SAME instance for all callers."""
+
+    def test_concurrent_get_or_reg_returns_same_instance(self):
+        import threading
+        import time
+        from omegaconf import OmegaConf
+        from core_lib.connection.connection_factory_registry import (
+            ConnectionFactoryRegistry,
+        )
+
+        registry = ConnectionFactoryRegistry()
+
+        config = OmegaConf.create({
+            '_instance_key_': 'shared',
+            '_target_': 'tests.test_connections_full._FakeFactory',
+        })
+
+        results = []
+        errors = []
+
+        def call():
+            try:
+                results.append(registry.get_or_reg(config))
+            except Exception as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=call) for _ in range(8)]
+        for t in threads: t.start()
+        for t in threads: t.join()
+
+        self.assertEqual(errors, [])
+        # All threads received the SAME factory instance
+        self.assertEqual(len(results), 8)
+        self.assertEqual(len({id(r) for r in results}), 1)
+
+
+# ── Bug 39: sessionmaker built per-call ────────────────────────────────
+
+
+class TestSessionmakerBuiltOncePerFactory(unittest.TestCase):
+    """Previously SqlAlchemyConnection.__init__ called
+    `sessionmaker(bind=engine, ...)()` on every .get() call — rebuilding
+    the factory class and immediately discarding it. The sessionmaker
+    is now built once on the connection factory and shared."""
+
+    def test_factory_builds_one_sessionmaker(self):
+        from unittest.mock import MagicMock, patch
+        from omegaconf import OmegaConf
+        from core_lib.connection.sql_alchemy_connection_factory import (
+            SqlAlchemyConnectionFactory,
+        )
+
+        config = OmegaConf.create({
+            'log_queries': False,
+            'create_db': False,
+            'session': {'pool_recycle': 100, 'pool_pre_ping': False,
+                        'pool_size': 1, 'max_overflow': 2},
+            'url': {'protocol': 'sqlite', 'username': None, 'password': None,
+                    'host': None, 'port': None, 'file': None},
+        })
+        with patch('core_lib.connection.sql_alchemy_connection_factory.create_engine'), \
+             patch('core_lib.connection.sql_alchemy_connection_factory.Base'), \
+             patch(
+                 'core_lib.connection.sql_alchemy_connection_factory.sessionmaker'
+             ) as mock_sm:
+            factory = SqlAlchemyConnectionFactory(config)
+            # Spawn several connections
+            factory.get()
+            factory.get()
+            factory.get()
+            # sessionmaker(...) should have been called exactly ONCE
+            # (during factory ctor), not once per get().
+            self.assertEqual(mock_sm.call_count, 1)
+
+    def test_all_connections_share_the_same_factory(self):
+        from unittest.mock import MagicMock, patch
+        from omegaconf import OmegaConf
+        from core_lib.connection.sql_alchemy_connection_factory import (
+            SqlAlchemyConnectionFactory,
+        )
+
+        config = OmegaConf.create({
+            'log_queries': False,
+            'create_db': False,
+            'session': {'pool_recycle': 100, 'pool_pre_ping': False,
+                        'pool_size': 1, 'max_overflow': 2},
+            'url': {'protocol': 'sqlite', 'username': None, 'password': None,
+                    'host': None, 'port': None, 'file': None},
+        })
+        with patch('core_lib.connection.sql_alchemy_connection_factory.create_engine'), \
+             patch('core_lib.connection.sql_alchemy_connection_factory.Base'):
+            factory = SqlAlchemyConnectionFactory(config)
+            c1 = factory.get()
+            c2 = factory.get()
+            # Two distinct SqlAlchemyConnection objects...
+            self.assertIsNot(c1, c2)
+            # ...but referencing the same sessionmaker.
+            self.assertIs(c1._session_factory, c2._session_factory)
+            self.assertIs(c1._session_factory, factory._session_factory)
+
+
+# ── Bug 40: IntEnum binds wrong enum type / raw int silently ────────────
+
+
+class TestIntEnumStrictBindType(unittest.TestCase):
+    """`process_bind_param` now rejects values that aren't members of the
+    column's declared enum, instead of silently storing them (different
+    enum with overlapping value) or failing with a confusing
+    AttributeError (raw int)."""
+
+    def test_wrong_enum_type_raises_type_error(self):
+        import enum
+        from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import (
+            IntEnum as SQLAIntEnum,
+        )
+
+        class UserRole(enum.Enum):
+            ADMIN = 1
+            GUEST = 2
+
+        class OrderStatus(enum.Enum):
+            OPEN = 1
+            CLOSED = 2
+
+        col = SQLAIntEnum(UserRole)
+        # Wrong enum, same int value — would have silently stored 1.
+        with self.assertRaises(TypeError) as cm:
+            col.process_bind_param(OrderStatus.OPEN, None)
+        # Error message names both the expected and actual types.
+        self.assertIn('UserRole', str(cm.exception))
+        self.assertIn('OrderStatus', str(cm.exception))
+
+    def test_raw_int_raises_type_error(self):
+        import enum
+        from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import (
+            IntEnum as SQLAIntEnum,
+        )
+
+        class Flag(enum.Enum):
+            ON = 1
+
+        col = SQLAIntEnum(Flag)
+        # Previously: AttributeError: 'int' object has no attribute 'value'
+        # Now: clear TypeError naming the expected enum.
+        with self.assertRaises(TypeError) as cm:
+            col.process_bind_param(1, None)
+        self.assertIn('Flag', str(cm.exception))
+
+    def test_correct_enum_still_works(self):
+        import enum
+        from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import (
+            IntEnum as SQLAIntEnum,
+        )
+
+        class Flag(enum.Enum):
+            OFF = 0
+            ON = 1
+
+        col = SQLAIntEnum(Flag)
+        self.assertEqual(col.process_bind_param(Flag.OFF, None), 0)
+        self.assertEqual(col.process_bind_param(Flag.ON, None), 1)

@@ -16,10 +16,14 @@ class NotFoundErrorHandler(object):
         @wraps(func)
         def _wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
-            if not result:
+            # Use `is None` instead of `not result` so legitimate falsy
+            # return values (0, '', [], {}, False) don't trigger a spurious
+            # 404. SQLAlchemy's `.get()` and `.first()` return None on
+            # miss, which is what we want to detect here.
+            if result is None:
                 logger.debug(f'NotFoundErrorHandler for function `{func.__qualname__}`.')
                 exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
-                raise StatusCodeException(HTTPStatus.NOT_FOUND.value, exception_message)
+                raise StatusCodeException(HTTPStatus.NOT_FOUND, exception_message)
             return result
 
         return _wrapper

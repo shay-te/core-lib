@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+
 import pymysql
 from alembic import command
 from alembic.config import Config
@@ -19,6 +21,10 @@ class Alembic(object):
         self.config = core_lib_config.core_lib.alembic
         OmegaConf.set_struct(self.config, False)
         self.alembic_cfg = Config()
+        # Serializes create_migration: prevents two concurrent calls from
+        # both reading the same `version`, both writing `version+1`, and
+        # producing colliding revision ids in the alembic store.
+        self._migration_lock = threading.Lock()
 
         server_url = build_url(**core_lib_config.core_lib.data.sqlalchemy.config.url)
         self.config['sqlalchemy.url'] = server_url
@@ -86,11 +92,16 @@ class Alembic(object):
             logging.error("Value ERROR 'Migration name must be set'")
             raise ValueError("Migration name must be set")
 
-        version = self._read_version()
-        new_version = version + 1
-        command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
-        self._write_version(new_version)
-        logging.info(f'Successfully created migration "{migration_name}" version {new_version}')
+        # Read-then-write race: without this lock, two concurrent callers
+        # could both observe `version=N`, both attempt to create
+        # `rev_id=str(N+1)`, and one would fail with a duplicate revision
+        # id while the version file's contents flapped.
+        with self._migration_lock:
+            version = self._read_version()
+            new_version = version + 1
+            command.revision(self.alembic_cfg, message=migration_name, rev_id=str(new_version))
+            self._write_version(new_version)
+            logging.info(f'Successfully created migration "{migration_name}" version {new_version}')
 
     def _read_version(self) -> int:
         script = ScriptDirectory.from_config(self.alembic_cfg)

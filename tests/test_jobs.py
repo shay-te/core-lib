@@ -24,7 +24,10 @@ class TestJobRaiseException(Job):
 
     def run(self):
         if TestJobRaiseException.called == 3:
-            raise BaseException
+            # Use RuntimeError (not BaseException). JobScheduler now only
+            # catches Exception so that Ctrl-C / SystemExit propagate from
+            # the timer thread.
+            raise RuntimeError('test exception')
         TestJobRaiseException.called = TestJobRaiseException.called + 1
 
 class TestJobWithParams(Job):
@@ -79,7 +82,9 @@ class TestJobs(unittest.TestCase):
             sleep(10.1)
             scheduler.stop(job_exception)
             log = str(cm.output)
-            self.assertIn('BaseException', log)
+            # Job now raises RuntimeError (not BaseException) so JobScheduler
+            # properly catches it without swallowing Ctrl-C / SystemExit.
+            self.assertIn('RuntimeError', log)
             self.assertIn('Error while running job', log)
 
     def test_schedule_once_with_params(self):
