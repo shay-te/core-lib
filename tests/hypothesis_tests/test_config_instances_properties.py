@@ -38,20 +38,19 @@ class TestGetConfigUnderPathProperties(unittest.TestCase):
         with self.assertRaises(ValueError):
             _get_config_under_path({}, key, raise_class_config_base_path_error=True)
 
-    @given(key=_KEY, value=st.integers(min_value=1))
+    @given(key=_KEY, value=st.integers())
     @SETTINGS
-    def test_top_level_key_resolution_with_truthy_value(self, key, value):
-        # NOTE: production code uses `if not data_at_path:` which treats
-        # falsy values (0, '', [], {}, False) as "not found". Only truthy
-        # values resolve correctly — surfaced by hypothesis.
+    def test_top_level_key_resolution(self, key, value):
+        # After bug fix: falsy stored values are also returned correctly.
         result = _get_config_under_path({key: value}, key)
         self.assertEqual(result, value)
 
-    def test_top_level_key_with_falsy_value_returns_none(self):
-        # Document the production quirk: falsy values appear as "not found".
-        self.assertIsNone(_get_config_under_path({'k': 0}, 'k'))
-        self.assertIsNone(_get_config_under_path({'k': ''}, 'k'))
-        self.assertIsNone(_get_config_under_path({'k': []}, 'k'))
+    def test_top_level_key_with_falsy_value_returned(self):
+        # Regression: falsy stored values are now returned (not treated as
+        # missing). Documented in test_bugs_found_and_fixed.py.
+        self.assertEqual(_get_config_under_path({'k': 0}, 'k'), 0)
+        self.assertEqual(_get_config_under_path({'k': ''}, 'k'), '')
+        self.assertEqual(_get_config_under_path({'k': []}, 'k'), [])
 
 
 class TestInstantiateConfigGroupGeneratorsProperties(unittest.TestCase):

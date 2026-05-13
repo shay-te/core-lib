@@ -168,10 +168,10 @@ class TestRuleValidatorTypeCoercion(unittest.TestCase):
             self.rv.validate_dict({'i': '42'}, strict_mode=False)['i'], 42
         )
 
-    def test_negative_str_to_int_raises(self):
-        # '-5'.isdigit() is False, so this raises
-        with self.assertRaises(PermissionError):
-            self.rv.validate_dict({'i': '-5'}, strict_mode=False)
+    def test_negative_str_to_int_accepted(self):
+        # After bug fix: int('-5') works, so negatives are accepted.
+        out = self.rv.validate_dict({'i': '-5'}, strict_mode=False)
+        self.assertEqual(out['i'], -5)
 
     def test_str_to_datetime_iso(self):
         out = self.rv.validate_dict({'dt': '2024-01-15T12:30:00'}, strict_mode=False)

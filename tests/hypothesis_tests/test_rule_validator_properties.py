@@ -36,22 +36,13 @@ class TestRuleValidatorProperties(unittest.TestCase):
         out = rv.validate_dict({'k': str(value)}, strict_mode=False)
         self.assertEqual(out['k'], value)
 
-    @given(value=st.integers().filter(lambda n: n != 0))
+    @given(value=st.integers())
     @SETTINGS
-    def test_int_rule_str_target_coerces_nonzero_int_to_str(self, value):
-        # NOTE: production code uses `if value and ...` so falsy values (0)
-        # short-circuit and skip coercion — covered by the explicit test below.
+    def test_int_rule_str_target_coerces_int_to_str(self, value):
+        # After bug fix: falsy ints (0) are also coerced to '0'.
         rv = RuleValidator([ValueRuleValidator('k', str)])
         out = rv.validate_dict({'k': value}, strict_mode=False)
         self.assertEqual(out['k'], str(value))
-
-    def test_int_rule_str_target_zero_passes_through(self):
-        # Document the behavior surfaced by hypothesis: 0 is falsy, so the
-        # `if value and ...` coercion guard skips. The validator simply
-        # returns the value unchanged.
-        rv = RuleValidator([ValueRuleValidator('k', str)])
-        out = rv.validate_dict({'k': 0}, strict_mode=False)
-        self.assertEqual(out['k'], 0)
 
     @given(
         names=st.lists(_VALID_NAMES, min_size=1, max_size=10, unique=True),
