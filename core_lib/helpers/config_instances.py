@@ -9,9 +9,14 @@ def instantiate_config_group_generator_dict(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = {},
+    params: dict = None,
 ):
-    assert conf
+    # `params=None` resolved internally — avoids the shared-mutable-default
+    # Python footgun where every caller sees the same dict instance.
+    if params is None:
+        params = {}
+    if not conf:
+        raise AssertionError('config_instances: `conf` cannot be empty')
     for name, settings in conf.items():
         instance, settings = _instantiate_config(
             settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params
@@ -24,9 +29,12 @@ def instantiate_config_group_generator_list(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = {},
+    params: dict = None,
 ):
-    assert conf
+    if params is None:
+        params = {}
+    if not conf:
+        raise AssertionError('config_instances: `conf` cannot be empty')
     for settings in conf:
         instance, settings = _instantiate_config(
             settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params
@@ -39,8 +47,10 @@ def _instantiate_config(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = {},
+    params: dict = None,
 ):
+    if params is None:
+        params = {}
     try:
         class_settings = (
             _get_config_under_path(settings, class_config_base_path, raise_class_config_base_path_error) or {}
@@ -66,8 +76,10 @@ def instantiate_config(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = {},
+    params: dict = None,
 ):
+    if params is None:
+        params = {}
     return _instantiate_config(
         settings, instance_base_class, class_config_base_path, raise_class_config_base_path_error, params
     )[0]

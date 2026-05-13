@@ -48,7 +48,9 @@ def response_download_content(content, media_type: MediaType, file_name: str):
     return generate_response(content, HTTPStatus.OK.value, media_type, headers)
 
 
-def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML, headers: dict = {}):
+def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML, headers: dict = None):
+    if headers is None:
+        headers = {}
     if data is None:
         data = b''
     elif media_type == MediaType.APPLICATION_JSON:
@@ -59,14 +61,18 @@ def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML,
         return generate_response_flask(data, status, media_type, headers)
 
 
-def generate_response_django(data, status, media_type: MediaType, headers: dict = {}):
+def generate_response_django(data, status, media_type: MediaType, headers: dict = None):
+    if headers is None:
+        headers = {}
     response = HttpResponse(content=data, status=status, content_type=media_type.value)
     for key, value in headers.items():
         response[key] = value
     return response
 
 
-def generate_response_flask(data, status, media_type: MediaType, headers: dict = {}):
+def generate_response_flask(data, status, media_type: MediaType, headers: dict = None):
+    if headers is None:
+        headers = {}
     response = Flask.response_class(response=data, status=status, mimetype=media_type.value)
     for key, value in headers.items():
         response.headers[key] = value

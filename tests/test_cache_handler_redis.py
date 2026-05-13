@@ -39,9 +39,12 @@ class TestCacheHandlerRedis(unittest.TestCase):
         self.handler.set('k', 'val', timedelta(seconds=30))
         self.mock_client.set.assert_called_once_with('k', json.dumps('val'), ex=timedelta(seconds=30))
 
-    def test_set_no_expire_uses_neg_one(self):
+    def test_set_no_expire_omits_ex_kwarg(self):
+        # After bug fix: when no expire is provided, the redis SET call must
+        # NOT include an `ex` argument (previously sent `ex=-1` which the
+        # server rejects with "invalid expire time").
         self.handler.set('k', 'val', None)
-        self.mock_client.set.assert_called_once_with('k', json.dumps('val'), ex=-1)
+        self.mock_client.set.assert_called_once_with('k', json.dumps('val'))
 
     def test_set_invalid_type_raises(self):
         with self.assertRaises(ValueError):

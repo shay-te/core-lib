@@ -13,10 +13,10 @@ class TestSimilarityProperties(unittest.TestCase):
     def test_self_similarity_is_one(self, s):
         self.assertEqual(similarity(s, s), 1.0)
 
-    @given(st.text(), st.text())
-    @SETTINGS
-    def test_symmetric(self, a, b):
-        self.assertEqual(similarity(a, b), similarity(b, a))
+    # NOTE: similarity (difflib.SequenceMatcher.ratio) is NOT symmetric in
+    # general — `SequenceMatcher('tide', 'diet').ratio() == 0.25` while
+    # `SequenceMatcher('diet', 'tide').ratio() == 0.5`. The non-symmetry is
+    # documented Python behavior; we don't claim it. Surfaced by hypothesis.
 
     @given(st.text(), st.text())
     @SETTINGS

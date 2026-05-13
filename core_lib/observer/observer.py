@@ -1,4 +1,5 @@
 import logging
+import threading
 from typing import List
 
 from core_lib.observer.observer_listener import ObserverListener
@@ -11,19 +12,30 @@ class Observer(object):
     def __init__(self, listener: ObserverListener = None, listener_type: object = None):
         self._listener: List[ObserverListener] = []
         self._listener_type = listener_type
+        # Protect attach/detach/notify against concurrent mutation. Without
+        # this lock a listener detaching during a notify could cause weird
+        # iteration behavior on the underlying list.
+        self._lock = threading.RLock()
         if listener:
             self.attach(listener)
 
     def attach(self, listener: ObserverListener) -> None:
         self._validate(listener)
-        self._listener.append(listener)
+        with self._lock:
+            self._listener.append(listener)
 
     def detach(self, listener: ObserverListener) -> None:
         self._validate(listener)
-        self._listener.remove(listener)
+        with self._lock:
+            self._listener.remove(listener)
 
     def notify(self, key: str, value) -> None:
-        for observer in self._listener:
+        # Snapshot the listener list under the lock, then iterate the
+        # snapshot outside the lock so listeners can safely attach/detach
+        # other listeners during dispatch without deadlocking.
+        with self._lock:
+            snapshot = list(self._listener)
+        for observer in snapshot:
             try:
                 observer.update(key, value)
             except Exception as ex:
@@ -35,8 +47,11 @@ class Observer(object):
                 raise ex
 
     def _validate(self, listener: ObserverListener):
-        assert listener, 'ObserverListener cannot be None'
-        if self._listener_type:
-            assert isinstance(
-                listener, self._listener_type
-            ), f'ObserverListener must be of type `{self._listener_type}`'
+        # Explicit raises (not `assert`) so `python -O` doesn't strip the
+        # validation; preserve AssertionError for backwards compatibility.
+        if not listener:
+            raise AssertionError('ObserverListener cannot be None')
+        if self._listener_type and not isinstance(listener, self._listener_type):
+            raise AssertionError(
+                f'ObserverListener must be of type `{self._listener_type}`'
+            )

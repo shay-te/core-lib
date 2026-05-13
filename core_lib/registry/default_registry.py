@@ -10,7 +10,11 @@ class DefaultRegistry(Registry):
         self.default_key = None
 
     def register(self, key: str, object, is_default: bool = False):
-        assert key and object
+        # Explicit raises (not `assert`) so `python -O` doesn't strip them.
+        if not key:
+            raise AssertionError('DefaultRegistry.register requires a truthy `key`')
+        if not object:
+            raise AssertionError('DefaultRegistry.register requires a truthy `object`')
         if not isinstance(object, self._object_type):
             raise ValueError("register object is not of type \"{}\"".format(self._object_type))
 

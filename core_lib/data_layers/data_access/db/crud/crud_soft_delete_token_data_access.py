@@ -13,7 +13,8 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
@@ -22,7 +23,8 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
             )
 
     def delete(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.delete requires a truthy `id`')
         # Compute deletion time once to avoid TOCTOU drift between the
         # datetime column and the integer token (both must encode the
         # same instant).  Use timezone-aware UTC: datetime.utcnow().timestamp()

@@ -25,6 +25,10 @@ class SqlAlchemyConnection(Connection):
             self.on_exit(self)
 
     def close(self):
-        self.session.commit()
+        # flush BEFORE commit so any pending changes are sent to the DB and
+        # included in the transaction. flush() AFTER commit() was a no-op
+        # (commit already flushed and closed the transaction). Then close
+        # to release the connection.
         self.session.flush()
+        self.session.commit()
         self.session.close()

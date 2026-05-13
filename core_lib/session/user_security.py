@@ -6,7 +6,8 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 class UserSecurity(ABC):
     def __init__(self, cookie_name: str, token_handler: TokenHandler):
-        assert cookie_name
+        if not cookie_name:
+            raise AssertionError('UserSecurity: cookie_name is required')
         self.cookie_name = cookie_name
         self.logger = logging.getLogger(self.__class__.__name__)
         self.token_handler = token_handler

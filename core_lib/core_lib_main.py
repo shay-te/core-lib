@@ -81,11 +81,17 @@ def migrate(rev, name, env_file):
         else:
             alembic.downgrade(str(number))
     elif rev == 'new':
-        if name:
-            click.echo(f'new revision named `{name}`')
-            alembic.create_migration(name)
-        else:
-            click.echo(f'--name parameter is mandatory when creating a new revision')
+        if not name:
+            # Previously this only echoed and exited 0 — a non-zero exit
+            # signals real failure to CI / scripts.
+            raise click.UsageError('--name is mandatory when creating a new revision')
+        click.echo(f'new revision named `{name}`')
+        alembic.create_migration(name)
+    else:
+        # Previously unknown --rev silently no-op'd with exit code 0.
+        raise click.UsageError(
+            f'unknown --rev value `{rev}`. Expected one of: {", ".join(get_rev_options())}'
+        )
 
 # @click.command()
 # @click.option('--value', help=' '.join(get_rev_options()))

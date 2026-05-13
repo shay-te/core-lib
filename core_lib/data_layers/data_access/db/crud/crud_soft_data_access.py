@@ -13,7 +13,8 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDSoftDeleteDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
@@ -22,7 +23,8 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
             )
 
     def delete(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDSoftDeleteDataAccess.delete requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)

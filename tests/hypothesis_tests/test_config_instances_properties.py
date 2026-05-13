@@ -47,7 +47,7 @@ class TestGetConfigUnderPathProperties(unittest.TestCase):
 
     def test_top_level_key_with_falsy_value_returned(self):
         # Regression: falsy stored values are now returned (not treated as
-        # missing). Documented in test_bugs_found_and_fixed.py.
+        # missing). See test_regressions.py.
         self.assertEqual(_get_config_under_path({'k': 0}, 'k'), 0)
         self.assertEqual(_get_config_under_path({'k': ''}, 'k'), '')
         self.assertEqual(_get_config_under_path({'k': []}, 'k'), [])

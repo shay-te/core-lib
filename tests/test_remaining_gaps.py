@@ -651,12 +651,18 @@ class TestRequireLoginHelper(unittest.TestCase):
         from core_lib.web_helpers.require_login_helper import require_login
         from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+        from flask import Flask
+        app = Flask(__name__)
 
         def view():
             raise RuntimeError('boom')
 
-        result = require_login(MagicMock(), [], view)
-        self.assertIsNone(result)
+        # After bug fix: view exceptions are now routed through
+        # handle_exception → return a proper 500 response (not None).
+        with app.app_context():
+            result = require_login(MagicMock(), [], view)
+            self.assertIsNotNone(result)
+            self.assertEqual(result.status_code, 500)
 
     def test_response_truthy_short_circuits(self):
         from core_lib.web_helpers.require_login_helper import require_login
@@ -771,7 +777,9 @@ class TestBranchCoverage(unittest.TestCase):
         # Should not raise even though _observer is missing
         cl.fire_core_lib_destroy()
 
-    def test_migrate_unknown_rev_does_nothing(self):
+    def test_migrate_unknown_rev_raises_usage_error(self):
+        # After bug fix: unknown --rev now raises click.UsageError instead of
+        # silently exiting with code 0.
         from click.testing import CliRunner
         from core_lib import core_lib_main
         runner = CliRunner()
@@ -780,7 +788,8 @@ class TestBranchCoverage(unittest.TestCase):
             return_value=MagicMock(core_lib_module='core_lib'),
         ), patch('core_lib.core_lib_main.Alembic') as mock_alembic:
             result = runner.invoke(core_lib_main.migrate, ['--rev', 'xyz-not-a-rev'])
-            self.assertEqual(result.exit_code, 0)
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn('unknown --rev', result.output)
             mock_alembic.return_value.upgrade.assert_not_called()
             mock_alembic.return_value.downgrade.assert_not_called()
             mock_alembic.return_value.create_migration.assert_not_called()

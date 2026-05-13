@@ -11,11 +11,13 @@ class CRUDDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
             return session.query(self._db_entity).get(id)
 
     def delete(self, id: int):
-        assert id
+        if not id:
+            raise AssertionError('CRUDDataAccess.delete requires a truthy `id`')
         with self._db.get() as session:
             return session.query(self._db_entity).filter(self._db_entity.id == id).delete()

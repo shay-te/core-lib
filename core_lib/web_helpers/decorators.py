@@ -14,28 +14,25 @@ from core_lib.web_helpers.request_response_helpers import response_message
 logger = logging.getLogger(__name__)
 
 def _get_request():
+    # Best-effort lookup of the current request for error-middleware context.
+    # Flask exposes a thread-local proxy; Django does not, so this function
+    # returns None for Django (callers are expected to pass the request via
+    # the middleware context instead).
     try:
         server_type = WebHelpersUtils.get_server_type()
-        if server_type == WebHelpersUtils.ServerType.FLASK:
-            try:
-                from flask import request as flask_request
-                return flask_request
-            except Exception as e:
-                logger.debug(f"Failed to fetch Flask request: {e}")
-        elif server_type == WebHelpersUtils.ServerType.DJANGO:
-            try:
-                # Django makes the request available per-thread only in views,
-                # but here we rely on func arguments or global context if available
-                # So we just leave it None unless explicitly added to context elsewhere
-                from django.core.handlers.wsgi import WSGIRequest
-                # You could extend this later to pull from threadlocals if needed
-                return None
-            except Exception as e:
-                logger.debug(f"Failed to resolve Django request: {e}")
-        else:
-            return None
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
+        return None
+
+    if server_type == WebHelpersUtils.ServerType.FLASK:
+        try:
+            from flask import request as flask_request
+            return flask_request
+        except Exception as e:
+            logger.debug(f"Failed to fetch Flask request: {e}")
+            return None
+    # DJANGO and any unknown server type: no thread-local request available.
+    return None
 
 def _execute_error_middlewares(exc, func):
     request = _get_request()
@@ -69,7 +66,11 @@ def handle_exception(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
 
-    except (StatusCodeException, AssertionError, ExpiredSignatureError, BaseException) as exc:
+    # Catch Exception (not BaseException) so SystemExit / KeyboardInterrupt /
+    # GeneratorExit propagate normally — letting Ctrl-C / shutdown signals
+    # actually shut the worker down. The other classes listed are all
+    # Exception subclasses; listing them is informational only.
+    except (StatusCodeException, AssertionError, ExpiredSignatureError, Exception) as exc:
         # Run middlewares on all failures
         _execute_error_middlewares(exc, func)
 

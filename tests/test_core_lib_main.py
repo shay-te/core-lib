@@ -146,8 +146,9 @@ class TestMigrateCommand(unittest.TestCase):
         m.create_migration.assert_called_once_with('my_mig')
 
     def test_migrate_new_without_name(self):
+        # After bug fix: missing --name now raises click.UsageError → exit_code != 0
         m = MagicMock()
         result = self._run_migrate(['--rev', 'new'], m)
-        self.assertEqual(result.exit_code, 0)
+        self.assertNotEqual(result.exit_code, 0)
         m.create_migration.assert_not_called()
         self.assertIn('--name', result.output)

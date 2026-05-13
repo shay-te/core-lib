@@ -14,10 +14,20 @@ class CacheHandlerMemcached(CacheHandler):
         return json.loads(value) if value else None
 
     def set(self, key: str, value, expire: datetime.timedelta):
-        if isinstance(value, (dict, list, int, str)):
-            self.memcached_client.set(key, json.dumps(value), time=expire.total_seconds() if expire else 0)
-        else:
-            raise ValueError(f'result must be of type `dict` or `list`. got `{type(value)}`')
+        # Accept any JSON-serializable primitive plus dict / list. Float was
+        # previously excluded for no clear reason.
+        if not isinstance(value, (dict, list, int, float, str)):
+            raise ValueError(
+                f'result must be a JSON-serializable type '
+                f'(dict, list, int, float, str). got `{type(value)}`'
+            )
+        # memcached treats time=0 as "never expires", which is what we want
+        # when no explicit expiry was provided.
+        self.memcached_client.set(
+            key,
+            json.dumps(value),
+            time=expire.total_seconds() if expire else 0,
+        )
 
     def delete(self, key: str):
         self.memcached_client.delete(key)

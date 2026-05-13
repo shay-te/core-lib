@@ -24,6 +24,12 @@ def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> d
         from_date = today - timedelta(days=10)
     if not to_date:
         to_date = today + timedelta(days=10)
+    # Auto-swap if the caller passed `from_date > to_date` (or only one of
+    # them, putting the auto-default on the wrong side). Previous behavior
+    # raised `ValueError: empty range for randrange()` from inside
+    # `random.randint`, exposing an implementation detail.
+    if from_date > to_date:
+        from_date, to_date = to_date, from_date
     first_timestamp = int(from_date.timestamp())
     second_timestamp = int(to_date.timestamp())
     random_timestamp = random.randint(first_timestamp, second_timestamp)

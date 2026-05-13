@@ -27,7 +27,11 @@ class CoreLib(object):
         self._core_lib_started = False
         self._observer = Observer(listener_type=CoreLibListener)
 
-    def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
+    def load_jobs(self, config: DictConfig, job_to_data_handler: dict = None):
+        # Resolve mutable default internally — avoids the Python gotcha
+        # where every caller shares the same default dict instance.
+        if job_to_data_handler is None:
+            job_to_data_handler = {}
         logger.info(f'Loading CoreLib jobs `{self.__class__.__qualname__}`')
 
         for job_name, job, job_config in instantiate_config_group_generator_dict(
@@ -71,8 +75,19 @@ class CoreLib(object):
         self._observer.notify(CoreLibListener.CoreLibEventType.CORE_LIB_READY, None)
 
     def fire_core_lib_destroy(self):
+        # Idempotent: fires the destroy event at most once. `__del__` is an
+        # unreliable trigger in Python (may fire during interpreter shutdown
+        # when state is already partially torn down), so guard everything.
+        if getattr(self, '_destroyed', False):
+            return
         if hasattr(self, '_observer'):
-            self._observer.notify(CoreLibListener.CoreLibEventType.CORE_LIB_DESTROY, None)
+            try:
+                self._observer.notify(CoreLibListener.CoreLibEventType.CORE_LIB_DESTROY, None)
+            except Exception:
+                # Swallow errors here — we're typically inside __del__ and
+                # raising would print "Exception ignored in:" warnings.
+                pass
+        self._destroyed = True
 
     def start_core_lib(self):
         logger.info('Starting CoreLib `{}`'.format(self.__class__.__name__))
@@ -83,4 +98,6 @@ class CoreLib(object):
         self._core_lib_started = True
 
     def __del__(self):
+        # fire_core_lib_destroy is idempotent and swallows its own listener
+        # exceptions, so this call is safe even during interpreter shutdown.
         self.fire_core_lib_destroy()
