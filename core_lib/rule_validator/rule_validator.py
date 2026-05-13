@@ -82,21 +82,25 @@ class RuleValidator(object):
                 f'(`ValueRuleValidator.nullable` is set to `True`)'
             )
 
+        # `value is not None` guards (instead of `if value:`) so falsy values
+        # like 0, 0.0, '', False go through coercion + type-checking instead
+        # of silently passing through unchanged.
         if rule.custom_converter:
             parsed_value = rule.custom_converter(value)
 
         # `number` to `str`
-        elif value and rule.value_type is str and type(value) in [int, float]:
+        elif value is not None and rule.value_type is str and type(value) in [int, float]:
             parsed_value = str(value)
 
-        # `str` to `int`
-        elif value and rule.value_type is int and type(value) is str:
-            if value.isdigit():
+        # `str` to `int` — use int() directly so negative numbers (which
+        # `.isdigit()` rejects) are also accepted.
+        elif value is not None and rule.value_type is int and type(value) is str:
+            try:
                 parsed_value = int(value)
-            else:
+            except ValueError:
                 raise PermissionError(f'Invalid update key:`{key}` expected `int`, got `{type(value)}`')
         # `str` to `datetime`
-        elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
+        elif value is not None and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
             except BaseException as ex:
@@ -105,7 +109,7 @@ class RuleValidator(object):
                     f'only ISO format is accepted'
                 ) from ex
 
-        elif value and not isinstance(parsed_value, rule.value_type):
+        elif value is not None and not isinstance(parsed_value, rule.value_type):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}` expected {rule.value_type}')
 
         try:

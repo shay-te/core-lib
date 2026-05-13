@@ -74,14 +74,21 @@ def instantiate_config(
 
 
 def _get_config_under_path(data: dict, path: str, raise_class_config_base_path_error: bool = False):
+    # Previous implementation had three bugs:
+    #   1. used `data.get(path)` instead of `data_at_path.get(path_item)` —
+    #      so it looked up the full dotted string at the top level instead
+    #      of descending one segment at a time;
+    #   2. didn't update the cursor — every iteration read from the original
+    #      `data` argument, so nested paths could never resolve;
+    #   3. used `if not data_at_path:` which treated falsy values (0, '',
+    #      [], False) as "not found".
     data_at_path = data
     path_list = path.split('.') if path else []
     for path_item in path_list:
-        data_at_path = data.get(path) if path_item in data else None
-        if not data_at_path:
+        if isinstance(data_at_path, dict) and path_item in data_at_path:
+            data_at_path = data_at_path[path_item]
+        else:
             if raise_class_config_base_path_error:
                 raise ValueError('class config path dose no exists')
-            else:
-                data_at_path = None
-                break
+            return None
     return data_at_path

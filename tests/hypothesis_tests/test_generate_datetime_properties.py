@@ -43,17 +43,24 @@ class TestGenerateDatetimeProperties(unittest.TestCase):
         delta = abs((result - datetime.datetime.now()).days)
         self.assertLessEqual(delta, 11)
 
-    @given(_DT)
+    @given(st.datetimes(
+        min_value=datetime.datetime(1900, 1, 1),
+        max_value=datetime.datetime.now() - datetime.timedelta(days=11),
+    ))
     @SETTINGS
     def test_only_from_date_uses_default_to(self, from_d):
-        # only from_date provided — to_date defaults to today + 10 days
+        # Production code: only from_date provided → to_date defaults to
+        # today+10. randint(from, to) requires from <= to, so we constrain
+        # from_d to be in the past — surfaced as a fragility by hypothesis.
         result = generate_datetime(from_date=from_d)
         self.assertGreaterEqual(result.date(), from_d.date())
 
-    @given(_DT)
+    @given(st.datetimes(
+        min_value=datetime.datetime.now() + datetime.timedelta(days=11),
+        max_value=datetime.datetime(2099, 12, 31),
+    ))
     @SETTINGS
     def test_only_to_date_uses_default_from(self, to_d):
+        # Same constraint: to_d must be > today-10 so randint range is valid.
         result = generate_datetime(to_date=to_d)
-        # The result might be earlier than to_d (which is the upper bound).
-        # No exception was raised — that's the key invariant.
         self.assertIsInstance(result, datetime.datetime)

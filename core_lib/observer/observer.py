@@ -27,7 +27,11 @@ class Observer(object):
             try:
                 observer.update(key, value)
             except Exception as ex:
-                logger.error(f'error while Observer.notify on key: `{key}`', ex)
+                # Use exc_info=True so the traceback is captured. The previous
+                # `logger.error(msg, ex)` passed ex as a %-format argument,
+                # which triggered "not all arguments converted" inside the
+                # logging machinery whenever the listener raised.
+                logger.error(f'error while Observer.notify on key: `{key}`', exc_info=True)
                 raise ex
 
     def _validate(self, listener: ObserverListener):
