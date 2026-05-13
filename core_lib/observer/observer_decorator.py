@@ -1,7 +1,7 @@
 from functools import wraps
 
 from core_lib.core_lib import CoreLib
-from core_lib.helpers.func_utils import get_func_parameter_index_by_name, get_func_parameters_as_dict
+from core_lib.helpers.func_utils import get_func_parameters_as_dict
 
 
 class Observe(object):
@@ -20,8 +20,13 @@ class Observe(object):
         @wraps(func)
         def __wrapper(*args, **kwargs):
             if self.value_param_name:
-                parameter_index = get_func_parameter_index_by_name(func, self.value_param_name)
-                value = args[parameter_index]
+                # Previously: `value = args[parameter_index]` — this raised
+                # IndexError when the named parameter was passed as a kwarg
+                # (e.g. `my_func(x=5)` with args=()).  Resolve via the full
+                # name → value map so positional / keyword / default-arg
+                # forms all work.
+                resolved = get_func_parameters_as_dict(func, *args, **kwargs)
+                value = resolved.get(self.value_param_name)
             else:
                 value = get_func_parameters_as_dict(func, *args, **kwargs)
 

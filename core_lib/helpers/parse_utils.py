@@ -176,12 +176,21 @@ def height_to_cm(height_str):
     # Reject iterable/collection types
     if isinstance(height_str, (pd.Series, np.ndarray, list, dict, set, tuple)):
         return None
+    # bool is a subclass of int in Python — reject explicitly so
+    # `height_to_cm(True)` doesn't get treated as a 1-meter height.
+    if isinstance(height_str, bool):
+        return None
     # -------- Handle numeric input --------
     if isinstance(height_str, (int, float)):
         if isinstance(height_str, float) and (math.isnan(height_str) or math.isinf(height_str)):
             return None
 
         val = float(height_str)
+
+        # Reject non-positive heights (a height of 0 or below isn't physical
+        # and previously produced misleading results like -100 cm).
+        if val <= 0:
+            return None
 
         # <3 means meters
         if val < 3:

@@ -115,7 +115,7 @@ class RuleValidator(object):
         try:
             if rule.custom_validator:
                 custom_valid = rule.custom_validator(parsed_value)
-                is_allow_null = parsed_value == None and rule.nullable
+                is_allow_null = parsed_value is None and rule.nullable
                 if custom_valid is not True and not is_allow_null:
                     raise PermissionError(f'Update of key:`{key}` failed by custom validation')
         except BaseException as ex:

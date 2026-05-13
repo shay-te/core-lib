@@ -990,3 +990,219 @@ class TestNewValidationBranchesCoverage(unittest.TestCase):
         list(instantiate_config_group_generator_dict(OmegaConf.create({'a': {}}), params={}))
         list(instantiate_config_group_generator_list(OmegaConf.create([{}]), params={}))
         instantiate_config(OmegaConf.create({}), params={})
+
+
+# ── Bug 25: height_to_cm accepts bool / non-positive numbers ──────────────
+
+
+class TestHeightToCmRejectsInvalidInputs(unittest.TestCase):
+    """`isinstance(x, (int, float))` matched booleans (bool is a subclass of
+    int), turning `height_to_cm(True)` into 100 (1 meter). Negative numbers
+    and zero were also silently passed through, producing nonsensical
+    results like -100 cm. All are now rejected."""
+
+    def test_bool_rejected(self):
+        from core_lib.helpers.parse_utils import height_to_cm
+        self.assertIsNone(height_to_cm(True))
+        self.assertIsNone(height_to_cm(False))
+
+    def test_negative_int_rejected(self):
+        from core_lib.helpers.parse_utils import height_to_cm
+        self.assertIsNone(height_to_cm(-1))
+        self.assertIsNone(height_to_cm(-150))
+
+    def test_negative_float_rejected(self):
+        from core_lib.helpers.parse_utils import height_to_cm
+        self.assertIsNone(height_to_cm(-1.5))
+        self.assertIsNone(height_to_cm(-0.1))
+
+    def test_zero_rejected(self):
+        from core_lib.helpers.parse_utils import height_to_cm
+        self.assertIsNone(height_to_cm(0))
+        self.assertIsNone(height_to_cm(0.0))
+
+    def test_positive_still_works(self):
+        from core_lib.helpers.parse_utils import height_to_cm
+        self.assertEqual(height_to_cm(180), 180)
+        self.assertEqual(height_to_cm(1.8), 180)
+
+
+# ── Bug 26: user_security catches BaseException ───────────────────────────
+
+
+class TestUserSecurityCatchesExceptionNotBase(unittest.TestCase):
+    """`token_to_session_object` previously `except BaseException`, swallowing
+    KeyboardInterrupt and SystemExit. Now catches Exception only."""
+
+    def test_keyboard_interrupt_propagates(self):
+        from core_lib.session.user_security import UserSecurity
+        from core_lib.session.token_handler import TokenHandler
+
+        class TH(TokenHandler):
+            def encode(self, m): return ''
+            def decode(self, e):
+                raise KeyboardInterrupt('user pressed ctrl-c')
+
+        class US(UserSecurity):
+            def secure_entry(self, request, session_obj, policies): return None
+            def from_session_data(self, session_data): return session_data
+            def generate_session_data(self, obj): return obj
+
+        us = US('cookie', TH())
+        with self.assertRaises(KeyboardInterrupt):
+            us.token_to_session_object('token')
+
+    def test_regular_exception_still_returns_none(self):
+        from core_lib.session.user_security import UserSecurity
+        from core_lib.session.token_handler import TokenHandler
+
+        class TH(TokenHandler):
+            def encode(self, m): return ''
+            def decode(self, e):
+                raise ValueError('bad token')
+
+        class US(UserSecurity):
+            def secure_entry(self, request, session_obj, policies): return None
+            def from_session_data(self, session_data): return session_data
+            def generate_session_data(self, obj): return obj
+
+        us = US('cookie', TH())
+        self.assertIsNone(us.token_to_session_object('token'))
+
+
+# ── Bug 27: Observe IndexError when value_param passed as kwarg ───────────
+
+
+class TestObserveResolvesKwargValueParam(unittest.TestCase):
+    """`@Observe(value_param_name='x')` previously did `args[index]` which
+    raised IndexError when the argument was passed as a keyword."""
+
+    def test_value_param_passed_as_kwarg(self):
+        from core_lib.observer.observer import Observer
+        from core_lib.observer.observer_decorator import Observe
+        from core_lib.observer.observer_listener import ObserverListener
+        from core_lib.core_lib import CoreLib
+
+        captured = []
+
+        class L(ObserverListener):
+            def update(self, key, value):
+                captured.append((key, value))
+
+        obs = Observer(listener_type=L)
+        obs.attach(L())
+        unique = '__bug27_observer__'
+        CoreLib.observer_registry.register(unique, obs)
+        try:
+            @Observe(event_key='evt', value_param_name='x', observer_name=unique)
+            def fn(x):
+                return x * 2
+
+            # Previously raised IndexError on kwarg-only call.
+            self.assertEqual(fn(x=7), 14)
+            self.assertEqual(captured, [('evt', 7)])
+        finally:
+            CoreLib.observer_registry.unregister(unique)
+
+
+# ── Bug 28 + 29: streaming downloads / hashing ─────────────────────────────
+
+
+class TestStreamingFileOps(unittest.TestCase):
+    """`download_file` previously buffered the full response into memory;
+    `get_file_md5` previously did `buf = f.read()`. Both now stream."""
+
+    def test_download_file_uses_stream_true(self):
+        from unittest.mock import patch, MagicMock
+        from core_lib.helpers.files import download_file
+        with patch('core_lib.helpers.files.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.__enter__.return_value = mock_response
+            mock_response.iter_content.return_value = [b'chunk']
+            mock_get.return_value = mock_response
+            import tempfile, os
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                path = tmp.name
+            try:
+                download_file('http://example.com/x', path)
+            finally:
+                os.unlink(path)
+            _, kwargs = mock_get.call_args
+            self.assertTrue(kwargs.get('stream'))
+
+    def test_get_file_md5_streams_in_chunks(self):
+        # The chunked implementation must produce the same hash as buffered.
+        import hashlib, tempfile, os
+        from core_lib.helpers.files import get_file_md5
+
+        data = b'A' * 200000
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(data)
+            path = tmp.name
+        try:
+            expected = hashlib.md5(data).hexdigest()
+            self.assertEqual(get_file_md5(path), expected)
+        finally:
+            os.unlink(path)
+
+
+# ── Bug 30: MiddlewareChain thread safety ─────────────────────────────────
+
+
+class TestMiddlewareChainSnapshotIteration(unittest.TestCase):
+    """`MiddlewareChain.execute` now iterates a snapshot so middlewares can
+    safely mutate the chain during dispatch."""
+
+    def test_middleware_can_remove_self_during_execute(self):
+        from core_lib.middleware.middleware import Middleware
+        from core_lib.middleware.middleware_chain import MiddlewareChain
+
+        chain = MiddlewareChain()
+        events = []
+
+        class SelfRemoving(Middleware):
+            def handle(self, context):
+                events.append('self-remove')
+                chain.remove(self)
+
+        class Logger(Middleware):
+            def handle(self, context):
+                events.append('logger')
+
+        chain.add(SelfRemoving())
+        chain.add(Logger())
+        chain.execute({})
+        self.assertEqual(events, ['self-remove', 'logger'])
+        chain.execute({})
+        self.assertEqual(events, ['self-remove', 'logger', 'logger'])
+
+
+# ── Bug 32: IntEnum 0-valued enum members ────────────────────────────────
+
+
+class TestIntEnumZeroValueRoundTrip(unittest.TestCase):
+    """`if value` coerced enum members whose value is 0 to NULL.
+    Now uses `is not None`."""
+
+    def test_zero_valued_enum_member_round_trip(self):
+        import enum
+        from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum as SQLAIntEnum
+
+        class Flag(enum.Enum):
+            OFF = 0
+            ON = 1
+
+        col = SQLAIntEnum(Flag)
+        self.assertEqual(col.process_bind_param(Flag.OFF, None), 0)
+        self.assertIs(col.process_result_value(0, None), Flag.OFF)
+
+    def test_none_still_passes_through_as_none(self):
+        import enum
+        from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum as SQLAIntEnum
+
+        class Flag(enum.Enum):
+            ONE = 1
+
+        col = SQLAIntEnum(Flag)
+        self.assertIsNone(col.process_bind_param(None, None))
+        self.assertIsNone(col.process_result_value(None, None))

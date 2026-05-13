@@ -10,7 +10,10 @@ class IntEnum(sa.types.TypeDecorator):
         self._enumtype = enumtype
 
     def process_bind_param(self, value, dialect):
-        return value.value if value else None
+        # Use `is not None` instead of `if value` so enums whose value is
+        # 0 (or any other falsy int) round-trip correctly. The previous
+        # implementation silently coerced 0-valued enum members to NULL.
+        return value.value if value is not None else None
 
     def process_result_value(self, value, dialect):
-        return self._enumtype(value) if value else None
+        return self._enumtype(value) if value is not None else None

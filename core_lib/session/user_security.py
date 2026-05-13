@@ -29,13 +29,15 @@ class UserSecurity(ABC):
         return self.token_handler.encode(self.generate_session_data(obj))
 
     def token_to_session_object(self, token):
+        # Catch Exception (not BaseException) so SystemExit / KeyboardInterrupt
+        # propagate normally.
         try:
             session_data = self.token_handler.decode(token)
             if session_data:
                 return self.from_session_data(session_data)
-        except BaseException as ex:
+        except Exception as ex:
             self.logger.error(ex)
-            return None
+        return None
 
     def _secure_entry(self, request, policies):
         cookies = {}
