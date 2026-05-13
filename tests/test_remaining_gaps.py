@@ -738,6 +738,229 @@ class TestRequestResponseHelpersGaps(unittest.TestCase):
         self.assertEqual(request_body_dict(req), {'a': 2})
 
 
+# ── branch coverage: false-paths of conditionals ───────────────────────────
+
+
+class TestBranchCoverage(unittest.TestCase):
+    """Cover the *unused branch direction* of conditionals that already
+    have coverage for the true side."""
+
+    def test_client_base_get_without_headers_uses_default(self):
+        from core_lib.client.client_base import ClientBase
+        c = ClientBase('http://api.example.com')
+        c.session = MagicMock()
+        c._get('/path')
+        c.session.get.assert_called_once_with(
+            'http://api.example.com/path', timeout=None
+        )
+
+    def test_sql_alchemy_connection_exit_without_callback(self):
+        from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
+        engine = MagicMock()
+        with patch(
+            'core_lib.connection.sql_alchemy_connection.sessionmaker'
+        ) as mock_sm:
+            mock_sm.return_value.return_value = MagicMock()
+            conn = SqlAlchemyConnection(engine, on_exit=None)
+            self.assertIsNone(conn.__exit__(None, None, None))
+
+    def test_core_lib_destroy_without_observer_attr(self):
+        from core_lib.core_lib import CoreLib
+        cl = CoreLib()
+        del cl._observer
+        # Should not raise even though _observer is missing
+        cl.fire_core_lib_destroy()
+
+    def test_migrate_unknown_rev_does_nothing(self):
+        from click.testing import CliRunner
+        from core_lib import core_lib_main
+        runner = CliRunner()
+        with patch('core_lib.core_lib_main.load_dotenv'), patch(
+            'core_lib.core_lib_main.load_config',
+            return_value=MagicMock(core_lib_module='core_lib'),
+        ), patch('core_lib.core_lib_main.Alembic') as mock_alembic:
+            result = runner.invoke(core_lib_main.migrate, ['--rev', 'xyz-not-a-rev'])
+            self.assertEqual(result.exit_code, 0)
+            mock_alembic.return_value.upgrade.assert_not_called()
+            mock_alembic.return_value.downgrade.assert_not_called()
+            mock_alembic.return_value.create_migration.assert_not_called()
+
+    def test_alembic_falsy_script_location_raises(self):
+        from omegaconf import OmegaConf
+        from core_lib.alembic.alembic import Alembic
+
+        config = OmegaConf.create(
+            {
+                'core_lib': {
+                    'alembic': {
+                        'version_table': 'v',
+                        'script_location': '',
+                        'file_template': 'tmpl',
+                        'timezone': None,
+                        'truncate_slug_length': None,
+                        'revision_environment': False,
+                        'sourceless': False,
+                        'output_encoding': 'utf-8',
+                        'version_file_name': 'vfn',
+                        'render_as_batch': False,
+                    },
+                    'data': {
+                        'sqlalchemy': {
+                            'config': {
+                                'log_queries': False,
+                                'url': {
+                                    'protocol': 'sqlite',
+                                    'username': None,
+                                    'password': None,
+                                    'host': None,
+                                    'port': None,
+                                    'file': None,
+                                },
+                            }
+                        }
+                    },
+                }
+            }
+        )
+        with patch('core_lib.alembic.alembic.create_engine'):
+            with self.assertRaises(ValueError):
+                Alembic(core_lib_path='/ignored', core_lib_config=config)
+
+    def test_build_url_no_protocol(self):
+        from core_lib.data_layers.data.data_helpers import build_url
+        # `protocol` is None → first branch is False
+        self.assertEqual(build_url(host='example.com', port=80), 'example.com:80')
+
+    def test_build_url_password_without_username(self):
+        # Cover data_helpers.py 18->22 (False branch on `if username:`)
+        from core_lib.data_layers.data.data_helpers import build_url
+        self.assertEqual(
+            build_url(protocol='proto', password='pw', host='h'),
+            'proto://@h',
+        )
+
+    def test_apply_join_configs_no_columns(self):
+        from core_lib.data_layers.data.db.join_config.apply_join_configs import (
+            apply_join_configs,
+        )
+        from core_lib.data_layers.data.db.join_config.join_config import JoinConfig
+        query = MagicMock()
+        # columns=[] → False branch on `if join_config.columns:`
+        jc = JoinConfig(columns=[])
+        result = apply_join_configs(query, [jc])
+        query.add_columns.assert_not_called()
+        self.assertIs(result, query)
+
+    def test_crud_create_skips_id_and_unknown_keys(self):
+        # Cover crud.py 29->28 (loop continues without setattr)
+        from sqlalchemy import Column, Integer, String
+        from core_lib.data_layers.data.db.sqlalchemy.base import Base
+        from core_lib.data_layers.data_access.db.crud.crud_data_access import (
+            CRUDDataAccess,
+        )
+        from tests.test_data.test_utils import connect_to_mem_db
+
+        class Widget(Base):
+            __tablename__ = 'rtd_widget_xyz'
+            __table_args__ = {'extend_existing': True}
+            id = Column(Integer, primary_key=True)
+            name = Column(String(255))
+
+        db = connect_to_mem_db()
+        access = CRUDDataAccess(Widget, db)
+        # 'id' is skipped by the loop's id check; 'foo' is skipped because
+        # the model has no such attribute.
+        entity = access.create({'id': 999, 'name': 'w', 'foo': 'bar'})
+        self.assertEqual(entity.name, 'w')
+
+    def test_thread_lockgroup_existing_lock_reused(self):
+        # Cover thread.py 18->20 (False branch when key exists)
+        from datetime import timedelta
+        from core_lib.helpers.thread import LockGroup
+        group = LockGroup(timedelta(milliseconds=100))
+        lock1 = group.get_lock('k')
+        lock2 = group.get_lock('k')
+        self.assertIs(lock1, lock2)
+
+    def test_job_scheduler_stop_without_existing_timer(self):
+        # Cover job_scheduler.py 19->21 (False branch when timer is None)
+        from core_lib.jobs.job import Job
+        from core_lib.jobs.job_scheduler import JobScheduler
+
+        class _Job(Job):
+            def initialized(self, data_handler):
+                pass
+            def run(self):
+                pass
+
+        scheduler = JobScheduler()
+        scheduler.stop(_Job())  # not scheduled — should be a no-op
+
+    def test_middleware_chain_remove_missing_no_op(self):
+        # Cover middleware_chain.py 16->exit (False branch)
+        from core_lib.middleware.middleware import Middleware
+        from core_lib.middleware.middleware_chain import MiddlewareChain
+
+        class _MW(Middleware):
+            def handle(self, context):
+                pass
+
+        chain = MiddlewareChain()
+        chain.remove(_MW())  # not in chain — should not raise
+
+    def test_jwt_encode_with_no_expiration_time(self):
+        # Cover jwt_token_handler.py 19->22 (False branch when _expiration_time is None)
+        from datetime import timedelta
+        from core_lib.session.jwt_token_handler import JWTTokenHandler
+
+        handler = JWTTokenHandler('secret', timedelta(seconds=30))
+        handler._expiration_time = None  # force False branch
+        token = handler.encode({'sub': 'user'})
+        self.assertIsInstance(token, str)
+
+    def test_user_security_secure_entry_unknown_server_type(self):
+        # Cover user_security.py 43->45 (neither Django nor Flask)
+        from core_lib.session.user_security import UserSecurity
+        from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+
+        class TH:
+            def encode(self, m):
+                return 'tok'
+            def decode(self, e):
+                return None
+
+        class US(UserSecurity):
+            def secure_entry(self, request, session_obj, policies):
+                return 'unknown'
+            def from_session_data(self, session_data):
+                return None
+            def generate_session_data(self, obj):
+                return obj
+
+        original = WebHelpersUtils.server_type
+        try:
+            WebHelpersUtils.server_type = 'something-else'
+            us = US('cookie', TH())
+            self.assertEqual(us._secure_entry(MagicMock(), []), 'unknown')
+        finally:
+            WebHelpersUtils.server_type = original
+
+    def test_response_helpers_unknown_server_type(self):
+        # Cover request_response_helpers.py 58->exit and 84->exit branches
+        from core_lib.web_helpers import request_response_helpers as rrh
+        from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+
+        original = WebHelpersUtils.server_type
+        try:
+            WebHelpersUtils.server_type = 'something-else'
+            self.assertIsNone(
+                rrh.generate_response(b'd', 200, rrh.MediaType.TEXT_HTML)
+            )
+            self.assertIsNone(rrh.request_body_dict(MagicMock()))
+        finally:
+            WebHelpersUtils.server_type = original
+
+
 # ── jwt_token_handler decode error path ─────────────────────────────────────
 
 
@@ -982,6 +1205,41 @@ class TestResultToDictRemaining(unittest.TestCase):
                 result = result_to_dict(owner)
                 self.assertEqual(result['id'], 1)
                 self.assertNotIn('items', result)
+
+    def test_relation_none_skipped(self):
+        # Cover: related_obj is None branch in __base_to_dict (line 70->65).
+        from sqlalchemy import Column, Integer, ForeignKey
+        from sqlalchemy.orm import relationship
+        from core_lib.data_layers.data.db.sqlalchemy.base import Base
+        from core_lib.data_transform.result_to_dict import result_to_dict
+        from tests.test_data.test_utils import connect_to_mem_db
+
+        class Holder(Base):
+            __tablename__ = 'rtd_holder_xyz'
+            __table_args__ = {'extend_existing': True}
+            id = Column(Integer, primary_key=True)
+            child_id = Column(Integer, ForeignKey('rtd_child_only_xyz.id'), nullable=True)
+            child = relationship('ChildOnly')
+
+        class ChildOnly(Base):
+            __tablename__ = 'rtd_child_only_xyz'
+            __table_args__ = {'extend_existing': True}
+            id = Column(Integer, primary_key=True)
+
+        db = connect_to_mem_db()
+        with db.get() as session:
+            h = Holder(id=1, child_id=None)
+            session.add(h)
+            session.flush()
+            result = result_to_dict(h)
+            self.assertEqual(result['id'], 1)
+
+    def test_properties_as_dict_false_skips_recursion(self):
+        from core_lib.data_transform.result_to_dict import result_to_dict
+        nested = {'inner': {'k': 'v'}}
+        result = result_to_dict(nested, properties_as_dict=False)
+        # When properties_as_dict is False, nested dicts are NOT re-walked
+        self.assertEqual(result, {'inner': {'k': 'v'}})
 
     def test_base_extra_dict_attributes(self):
         from sqlalchemy import Column, Integer, String
