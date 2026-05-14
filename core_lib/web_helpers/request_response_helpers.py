@@ -11,6 +11,7 @@ from core_lib.helpers.constants import MediaType, HttpHeaders
 
 from django.http import HttpResponse
 from flask import Flask
+from starlette.responses import Response as StarletteResponse
 
 
 def response_status(status: int = HTTPStatus.OK.value):
@@ -57,6 +58,8 @@ def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML,
         return generate_response_django(data, status, media_type, headers)
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
         return generate_response_flask(data, status, media_type, headers)
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
+        return generate_response_fastapi(data, status, media_type, headers)
 
 
 def generate_response_django(data, status, media_type: MediaType, headers: dict = {}):
@@ -73,6 +76,23 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
     return response
 
 
+def generate_response_fastapi(data, status, media_type: MediaType, headers: dict = None):
+    # Starlette Response — works for FastAPI views and middlewares.
+    # FastAPI accepts these directly as view return values.
+    if headers is None:
+        headers = {}
+    # IntEnum compatibility — Starlette accepts int but `status_code` is
+    # explicitly typed int and HTTPStatus members satisfy that.
+    response = StarletteResponse(
+        content=data,
+        status_code=int(status),
+        media_type=media_type.value,
+    )
+    for key, value in headers.items():
+        response.headers[key] = value
+    return response
+
+
 #
 # HELPERS
 #
@@ -83,3 +103,12 @@ def request_body_dict(request):
         return json.loads(request.body.decode('utf-8'))
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
         return request.json
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
+        # FastAPI's normal pattern is `await request.json()` inside an async
+        # view. Inside this sync helper we expect callers to have pre-read
+        # the body (e.g. via a sync wrapper, or by passing `request.json()`
+        # already-resolved). Accept both shapes for ergonomics.
+        body = request.body if isinstance(request.body, (bytes, bytearray)) else None
+        if body is not None:
+            return json.loads(body.decode('utf-8'))
+        return None
