@@ -18,7 +18,7 @@ It offers the following tools:
 - List Migrations created until now.
 
 
-> Please don't change the structure of the Yaml data as this file is responsible for generating the `Core-Lib`, you can add or remove any Entity, DataAccess or any other items inside other layers.
+> Please don't change the structure of the YAML data as this file is responsible for generating the `Core-Lib`, you can add or remove any Entity, DataAccess or any other items inside other layers.
 
 ## Generate a new Core-Lib from the YAML file 
 

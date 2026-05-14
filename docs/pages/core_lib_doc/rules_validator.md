@@ -9,7 +9,7 @@ toc: false
 
 `RuleValidator` validates `dict` parameters against predefined rules before they reach your data access layer. When validation fails, a `PermissionError` is raised — keeping bad data out of your database without littering your service layer with type checks.
 
-### Example
+## Example
 
 ### `user_data_access.py`
 

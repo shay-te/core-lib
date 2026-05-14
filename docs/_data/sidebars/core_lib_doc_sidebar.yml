@@ -79,7 +79,7 @@ entries:
                   url: /connection.html
                   output: web
 
-                - title: SqlAlchemy Connection Factory
+                - title: SQLAlchemy Connection Factory
                   url: /sql_alchemy_connection.html
                   output: web
 

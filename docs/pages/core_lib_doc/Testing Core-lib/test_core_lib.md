@@ -34,7 +34,7 @@ def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_sta
 ```python
 from core_lib.helpers.test import load_core_lib_config
 
-config = load_core_lib_config('./test/config', 'test_config.yaml')
+config = load_core_lib_config('./tests/config', 'test_config.yaml')
 core_lib = YourCoreLib(config)
 ```
 
@@ -49,7 +49,7 @@ What it does internally:
 ## DataAccess
 The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
 
-`user_data_access.py`
+### `user_data_access.py`
 
 ```python
 from http import HTTPStatus
@@ -69,7 +69,8 @@ class UserDataAccess(CRUDDataAccess):
 ## Service 
 The `Service` layer is a facade of the `DataAccess` layer and connections. consisting of `API` functions that will handle business logic, data transformation, and caching.
 
-`user_service.py`
+### `user_service.py`
+
 ```python
 from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.data_layers.service.service import Service
@@ -95,7 +96,9 @@ class UserService(Service):
         return self.data_access.delete(user_id)
 ```
 ## Config
-`user_core_lib.yaml`
+
+### `user_core_lib.yaml`
+
 ```yaml
 # @package _global_
 core_lib:
@@ -128,7 +131,7 @@ core_lib:
 ## Main Class
 Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
 
-`user_core_lib.py`
+### `user_core_lib.py`
 
 ```python
 from omegaconf import DictConfig
@@ -175,7 +178,8 @@ For initializing our `Core-Lib` and mocking the Client we will make use of a tes
 
 The override drops in two replacements: SQLite for the database, and a Python mock for the HTTP client. The key paths under `core_lib:` **must match the main config exactly** — Hydra merges by path, so a typo here means the override silently doesn't apply.
 
-`test_config_override.yaml`
+### `test_config_override.yaml`
+
 ```yaml
 # @package _global_
 core_lib:
@@ -194,7 +198,8 @@ core_lib:
         base_url: https://example.com/
 ```
 
-`test_config.yaml`
+### `test_config.yaml`
+
 ```yaml
 defaults:
   - user_core_lib
@@ -206,7 +211,8 @@ hydra:
 
 The test file uses an in-memory mock that returns the same shape of dict the real `UserClient` would return. Otherwise the test would fail at `user_data['id']` because `pass` returns `None`.
 
-`tests/test_user.py`
+### `tests/test_user.py`
+
 ```python
 import unittest
 from core_lib.client.client_base import ClientBase
@@ -273,7 +279,8 @@ class TestUserCoreLib(unittest.TestCase):
 
 When you have multiple test files covering different services, recreating `Core-Lib` in every `setUp()` is slow and resets shared state. Instead, create a singleton instance once and reuse it across all test files.
 
-`utils.py`
+### `utils.py`
+
 ```python
 import os
 import threading
@@ -323,7 +330,8 @@ def get_core_lib() -> UserCoreLib:
 
 Each test file calls `get_core_lib()` in `setUp()` — the instance is created once and the cache is flushed between tests.
 
-`test_user.py`
+### `test_user.py`
+
 ```python
 import unittest
 from tests.data.helpers.utils import get_core_lib
@@ -337,7 +345,8 @@ class TestUserService(unittest.TestCase):
         pass
 ```
 
-`test_customer.py`
+### `test_customer.py`
+
 ```python
 import unittest
 from tests.data.helpers.utils import get_core_lib

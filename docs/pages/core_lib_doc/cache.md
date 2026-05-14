@@ -9,7 +9,7 @@ toc: false
 
 Without a caching layer, expensive queries run on every request. Without a cache-invalidation layer, stale data stays in memory after updates. The `@Cache` decorator handles both in one place — get, set, and delete — so you don't scatter cache logic across your service methods.
 
-### Example
+## Example
 
 ```python
 CACHE_KEY_FOO = 'test_cache_param_{foo_id}'

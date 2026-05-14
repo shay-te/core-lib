@@ -7,11 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
-### instantiate_config()
+`instantiate_config` creates a class instance from a Hydra `DictConfig` that contains a `_target_` key. This is how Core-Lib wires dependencies from config — the class to instantiate and its constructor arguments both live in YAML, not in code. See [Hydra's instantiate docs](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"} for the underlying mechanism.
+
+## instantiate_config()
 
 *core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62){:target="_blank"}
-
-`instantiate_config` creates a class instance from a Hydra `DictConfig` that contains a `_target_` key. This is how Core-Lib wires dependencies from config — the class to instantiate and its constructor arguments both live in YAML, not in code. See [Hydra's instantiate docs](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"} for the underlying mechanism.
 
 ```python
 def instantiate_config(

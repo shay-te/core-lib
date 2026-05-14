@@ -73,7 +73,7 @@ WebHelpersUtils.get_server_type() # returns flask
 
 Depending on the server type set in `WebHelpersUtils` class, request and response functions return data.
 
-## Functions 
+## Functions
 
 ### response_status()
 

@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-Every `CoreLib` project follows the same folder structure. New team member? They know where everything lives immediately.
+Every `CoreLib` project follows the same folder structure. The folders map directly onto the six layers from the [home page](/index.html#the-layers) — new team member, same folders, no surprises.
 
 ```
 your_core_lib/
@@ -42,16 +42,19 @@ your_core_lib/
 
 ## How to think about it
 
-Each directory has a single responsibility:
+Each directory holds one layer from the index table — and nothing else.
 
-- `service/` — business logic and orchestration
-- `data_access/` — database queries, nothing else
-- `data/` — ORM models, migrations, low-level definitions
-- `client/` — external APIs and third-party services
-- `jobs/` — background and scheduled tasks
-- `your_core_lib.py` — wires everything together at startup
+| Folder | Layer | Holds |
+|---|---|---|
+| `your_core_lib.py` | `CoreLib` | Wiring — the single entry point. |
+| `data_layers/service/` | `Service` | Business logic and orchestration. |
+| `data_layers/data_access/` | `DataAccess` | Database queries, nothing else. |
+| `data_layers/data/` | (entities) | ORM models, migrations, mappings. Used by `DataAccess`; not a public-facing layer. |
+| `client/` | `Client` | HTTP / third-party API wrappers. |
+| `jobs/` | `Job` | Background and scheduled tasks. |
+| `config/` | — | YAML configs that decide which `Connection`, cache, and client classes get instantiated. |
 
-This mirrors the Core-Lib architecture directly: services don't know about infrastructure, data access doesn't know about business rules, and everything is wired in one place.
+`Connection` instances are constructed inside `your_core_lib.py` from the YAML — they don't get their own folder.
 
 ---
 

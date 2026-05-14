@@ -8,7 +8,7 @@ toc: false
 ---
 SQLAlchemy model objects, custom Python objects, and raw rows can't be serialized to JSON directly. `@ResultToDict()` automatically converts whatever your service returns into a plain dict — no manual per-field mapping needed.
 
-### Example:
+## Example
 
 ### `user_service.py`
 
@@ -112,10 +112,10 @@ data = {"apple", "cherry"}
 formatted_data = result_to_dict(data)
 print(formatted_data)  # {"apple", "cherry"}
 
-# Nested data
-data = {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': datetime.datetime.utcnow()}}
+# Nested data (lists can hold mixed types, including dicts)
+data = ["apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': datetime.datetime.utcnow()}]
 formatted_data = result_to_dict(data)
-print(formatted_data)  # {"apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': '{timestamp of the datetime}'}
+print(formatted_data)  # ["apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': '<timestamp of the datetime>'}]
 
 #Base/Database object
 # query to select data from your DB
@@ -132,11 +132,11 @@ def convert_str_to_dict(result):
     return result
 
 # Callback implementation
-data = {'name': 'Jon', 'email':'jon@mail.com', 'additional_data': '{"age": 42, "address": "Miami", "active": True}'}
+data = {'name': 'Jon', 'email': 'jon@mail.com', 'additional_data': '{"age": 42, "address": "Miami", "active": true}'}
 
 # Callback will call the function and convert the json string inside the dict to object
 formatted_data = result_to_dict(data, callback=convert_str_to_dict)
-print(formatted_data) # {'name': 'Jon', 'email':'jon@mail.com', 'additional_data': {'age': 42, 'address': 'Miami', 'active': True}}
+print(formatted_data)  # {'name': 'Jon', 'email': 'jon@mail.com', 'additional_data': {'age': 42, 'address': 'Miami', 'active': True}}
 
 ```
 

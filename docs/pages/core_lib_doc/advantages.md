@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-### Decoupled business logic
+## Decoupled business logic
 
 Your services don't depend directly on Flask, SQLAlchemy, or external services. The web layer calls into your `CoreLib` — your `CoreLib` doesn't know the web layer exists.
 
@@ -15,9 +15,9 @@ When your framework changes, you replace the thin web layer. Your services, data
 
 ---
 
-### Change infrastructure without rewriting your app
+## Change infrastructure without rewriting your app
 
-Switching databases, HTTP clients, or payment providers stays in wiring code — not scattered through business logic. The change is isolated to your `CoreLib.__init__`, not spread across 40 files.
+Switching databases, HTTP clients, or payment providers stays in wiring code — not scattered through business logic. The change is isolated to `CoreLib.__init__`, not spread across 40 files.
 
 ```python
 # consumer instance
@@ -29,7 +29,7 @@ enterprise_app = YourCoreLib(enterprise_config)  # Postgres, invoice billing, SS
 
 ---
 
-### Run the same logic everywhere
+## Run the same logic everywhere
 
 The same `CoreLib` instance runs behind web APIs, background jobs, scripts, and tests. No duplication. No special cases.
 
@@ -46,9 +46,9 @@ self.app.user.create({'name': 'Jane'})
 
 ---
 
-### Fast, reliable tests
+## Fast, reliable tests
 
-Tests initialize the full application with an override config — SQLite instead of Postgres, mock clients instead of real services. No Docker. No external dependencies. No environment setup. Fast, isolated tests.
+Tests initialize the full application with an override config — SQLite instead of Postgres, mock clients instead of real services. No Docker. No external dependencies. No environment setup.
 
 ```python
 class TestUserService(unittest.TestCase):
@@ -59,20 +59,22 @@ class TestUserService(unittest.TestCase):
 
 ---
 
-### Consistent structure across teams
+## Consistent structure across teams
 
-Core-Lib enforces a shared vocabulary across every project:
+Core-Lib enforces a shared vocabulary across every project — the same six layers in every codebase:
 
+- `CoreLib` — single entry point, wires everything below it
 - `Service` — business logic and orchestration
 - `DataAccess` — database queries
 - `Client` — external APIs and third-party services
 - `Job` — scheduled or background tasks
+- `Connection` — session lifecycle for any data source
 
 Every engineer working in any `CoreLib` knows where everything lives.
 
 ---
 
-### Prevent architecture drift
+## Prevent architecture drift
 
 Most systems become tightly coupled over time — not by design, but through shortcuts. One imported session here, one `request` object there.
 

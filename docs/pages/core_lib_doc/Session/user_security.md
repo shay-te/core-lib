@@ -177,7 +177,7 @@ class RequireLogin(object):
 
 **Arguments**
 
-- **`policies`** *`(list)`* : List of policies which will be further passed on the the `UserSecurity` functions.
+- **`policies`** *`(list)`*: List of policies that will be passed on to the `UserSecurity` functions.
 
 
 ## UserAuthMiddleware

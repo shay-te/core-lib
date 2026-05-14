@@ -23,7 +23,7 @@ Core-Lib needs to look up named instances at runtime — the right cache backend
 
 `DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
 
-### Constructor:
+### Constructor
 
 ```python
 class DefaultRegistry(Registry):
@@ -51,9 +51,9 @@ class CustomerRegistry(DefaultRegistry):
 ```
 
 
-### Functions:
+### Functions
 
-### get()
+#### get()
 
 *core_lib.registry.default_registry.DefaultRegistry.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L30){:target="_blank"}
 
@@ -88,22 +88,22 @@ registry_factory.get('user_name')
 
 
 
-### register()
+#### register()
 
 *core_lib.registry.default_registry.DefaultRegistry.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L12){:target="_blank"}
 
 Registers the key and value into the registry.
 
-````python
+```python
 def register(self, key: str, object, is_default: bool = False):
     ...
-````
+```
 
 **Arguments**
 
-- **`key`** *`(str)`*: A unique string to identify the registered object; duplicate key's are not allowed and will cause an `ValueError`.
-- **`object`**: Any value we wish to store with the attached key
-- **`is_default`** *`(bool)`*: For multiple entries in a same registry `is_default` can be used to set the default value to  mark this object as default, default value can be fetched when calling `get` without a `key` parameter.
+- **`key`** *`(str)`*: A unique string to identify the registered object; duplicate keys are not allowed and will raise a `ValueError`.
+- **`object`**: Any value we wish to store with the attached key.
+- **`is_default`** *`(bool)`*: When multiple entries are registered, set `is_default=True` to mark this entry as the default. `get()` with no `key` returns the default.
 
 #### Usage
 ```python
@@ -116,7 +116,7 @@ registry_factory.register('user_name', user_name)
 
 
 
-### unregister()
+#### unregister()
 
 *core_lib.registry.default_registry.DefaultRegistry.unregister()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L24){:target="_blank"}
 
@@ -141,7 +141,7 @@ registry_factory.unregister('user_name')
 
 
 
-### registered()
+#### registered()
 
 *core_lib.registry.default_registry.DefaultRegistry.registered()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L36){:target="_blank"}
 
