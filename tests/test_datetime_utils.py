@@ -111,7 +111,13 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertNotEqual(hour_begin(), None)
         self.assertEqual(hour_begin(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour))
         self.assertNotEqual(hour_end(), None)
-        self.assertEqual(hour_end(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour + 1))
+        # hour_end == hour_begin + 1 hour. Use timedelta to handle the
+        # day-rollover edge case (hour 23 → next day 00); the previous
+        # `replace(hour=...+1)` blew up with "hour must be in 0..23".
+        self.assertEqual(
+            hour_end(),
+            reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour) + timedelta(hours=1),
+        )
 
     def test_sunday(self):
         self.assertNotEqual(sunday(), None)
