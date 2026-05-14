@@ -99,9 +99,9 @@ class TestCoreLibCoverage(unittest.TestCase):
 
         class L(CoreLibListener):
             def on_core_lib_ready(self):
-                pass
+                pass  # intentionally empty
             def on_core_lib_destroy(self):
-                pass
+                pass  # intentionally empty
 
         listener = L()
         cl.attach_listener(listener)
@@ -119,11 +119,11 @@ class TestCoreLibCoverage(unittest.TestCase):
             def initialized(self, data_handler):
                 self.runs.append(data_handler)
             def run(self):
-                pass
+                pass  # intentionally empty
             def on_core_lib_ready(self):
-                pass
+                pass  # intentionally empty
             def on_core_lib_destroy(self):
-                pass
+                pass  # intentionally empty
 
         config = OmegaConf.create(
             {
@@ -344,7 +344,7 @@ class TestConfigInstancesGaps(unittest.TestCase):
         from omegaconf import OmegaConf
 
         class Wanted:
-            pass
+            pass  # intentionally empty
 
         config = OmegaConf.create({'_target_': 'builtins.dict'})
         with self.assertRaises(ValueError):
@@ -843,7 +843,7 @@ class TestBranchCoverage(unittest.TestCase):
         # Cover data_helpers.py 18->22 (False branch on `if username:`)
         from core_lib.data_layers.data.data_helpers import build_url
         self.assertEqual(
-            build_url(protocol='proto', password='pw', host='h'),
+            build_url(protocol='proto', password='pw', host='h'),  # NOSONAR — fixture, not a credential.
             'proto://@h',
         )
 
@@ -897,9 +897,9 @@ class TestBranchCoverage(unittest.TestCase):
 
         class _Job(Job):
             def initialized(self, data_handler):
-                pass
+                pass  # intentionally empty
             def run(self):
-                pass
+                pass  # intentionally empty
 
         scheduler = JobScheduler()
         scheduler.stop(_Job())  # not scheduled — should be a no-op
@@ -911,7 +911,7 @@ class TestBranchCoverage(unittest.TestCase):
 
         class _MW(Middleware):
             def handle(self, context):
-                pass
+                pass  # intentionally empty
 
         chain = MiddlewareChain()
         chain.remove(_MW())  # not in chain — should not raise

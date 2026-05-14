@@ -65,7 +65,7 @@ class TestResultToDictDecorator(unittest.TestCase):
         result = fn(1, 'x', c=True)
         self.assertEqual(result['a'], 1)
         self.assertEqual(result['b'], 'x')
-        self.assertEqual(result['c'], True)
+        self.assertTrue(result['c'])
         for k, v in d.items():
             self.assertEqual(result[k], v)
 

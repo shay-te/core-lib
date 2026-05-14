@@ -34,7 +34,8 @@ class DefaultRegistry(Registry):
     def get(self, key: str = None, *args, **kwargs):
         result = self.key_to_object.get(key or self.default_key)
         if not key and not result and len(self.key_to_object) > 0:
-            result = list(self.key_to_object.values())[0]
+            # Avoid materializing all values just to read the first one.
+            result = next(iter(self.key_to_object.values()))
         return result
 
     def registered(self):

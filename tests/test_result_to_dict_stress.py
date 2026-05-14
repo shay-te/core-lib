@@ -415,7 +415,7 @@ class TestBoundaryInputs(unittest.TestCase):
         # All falsy values preserved (None included)
         self.assertEqual(result['a'], 0)
         self.assertEqual(result['b'], '')
-        self.assertEqual(result['c'], False)
+        self.assertFalse(result['c'])
         self.assertIsNone(result['d'])
         self.assertEqual(result['e'], [])
 

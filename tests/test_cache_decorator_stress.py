@@ -32,28 +32,28 @@ def _ensure_handler():
 
 class TestParseFunction(unittest.TestCase):
     def test_parse_seconds(self):
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc).replace(tzinfo=None)
         result = parse('30 seconds')
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
         # result is roughly 30s after "now"
         self.assertGreater(result, before + timedelta(seconds=29))
         self.assertLess(result, after + timedelta(seconds=31))
 
     def test_parse_minutes(self):
         result = parse('5 minutes')
-        delta = result - datetime.utcnow()
+        delta = result - datetime.now(timezone.utc).replace(tzinfo=None)
         self.assertGreater(delta.total_seconds(), 295)
         self.assertLess(delta.total_seconds(), 305)
 
     def test_parse_hours(self):
         result = parse('2 hours')
-        delta = result - datetime.utcnow()
+        delta = result - datetime.now(timezone.utc).replace(tzinfo=None)
         self.assertGreater(delta.total_seconds(), 7195)
         self.assertLess(delta.total_seconds(), 7205)
 
     def test_parse_days(self):
         result = parse('1 day')
-        delta = result - datetime.utcnow()
+        delta = result - datetime.now(timezone.utc).replace(tzinfo=None)
         # parsedatetime may interpret "1 day" as "tomorrow at midnight"
         # which can be < 24h away depending on the current time of day.
         # Just verify it's in the future and within ~26 hours.
@@ -62,7 +62,7 @@ class TestParseFunction(unittest.TestCase):
 
     def test_parse_weeks(self):
         result = parse('2 weeks')
-        delta = result - datetime.utcnow()
+        delta = result - datetime.now(timezone.utc).replace(tzinfo=None)
         self.assertGreaterEqual(delta.days, 13)
 
     def test_parse_invalid_expression_raises(self):
@@ -82,7 +82,7 @@ class TestParseDatetimeHelper(unittest.TestCase):
 
     def test_approximates_30_seconds(self):
         result = _parse_datetime('30 seconds')
-        # The function = parse(expr) - datetime.utcnow(); slight drift expected
+        # The function = parse(expr) - datetime.now(timezone.utc).replace(tzinfo=None); slight drift expected
         self.assertGreater(result.total_seconds(), 28)
         self.assertLess(result.total_seconds(), 32)
 

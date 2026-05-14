@@ -6,7 +6,7 @@ expire=None (no expiration), keys with spaces, very large keys, falsy result
 permutations with cache_empty_result=True/False, etc.
 """
 import unittest
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from core_lib.cache.cache_decorator import Cache, parse, _get_expire, _parse_datetime
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
@@ -232,7 +232,7 @@ class TestCacheFlags(unittest.TestCase):
         # parse() should return a datetime in the future
         from datetime import datetime
         d = parse('1 minute')
-        delta = d - datetime.utcnow()
+        delta = d - datetime.now(timezone.utc).replace(tzinfo=None)
         # rough check: between 50 and 70 seconds
         self.assertGreater(delta.total_seconds(), 50)
         self.assertLess(delta.total_seconds(), 70)

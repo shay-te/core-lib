@@ -33,8 +33,6 @@ class TestSoftDeleteTokenTimezone(unittest.TestCase):
         captured = {}
 
         class _FakeQuery:
-            def __init__(self):
-                pass
             def filter(self, *args, **kwargs):
                 return self
             def update(self, payload):
@@ -93,11 +91,8 @@ class TestObserverLoggerDoesNotCrashOnNotifyError(unittest.TestCase):
         obs = Observer(listener_type=_RaisingListener)
         obs.attach(_RaisingListener())
 
-        # Force the logger to a pytest-incompatible config to surface the bug
-        observer_logger = logging.getLogger('core_lib.observer.observer')
-
-        # Run with the real logging path enabled. The fixed code uses
-        # exc_info=True, which never triggers a format-arg error.
+        # The fixed observer uses logger.exception(), which never triggers
+        # a format-arg error like the previous `logger.error(msg, ex)` did.
         with self.assertRaises(RuntimeError):
             obs.notify('k', 'v')
 
@@ -182,7 +177,7 @@ class TestGetConfigUnderPathNestedResolution(unittest.TestCase):
         self.assertEqual(_get_config_under_path({'k': 0}, 'k'), 0)
         self.assertEqual(_get_config_under_path({'k': ''}, 'k'), '')
         self.assertEqual(_get_config_under_path({'k': []}, 'k'), [])
-        self.assertEqual(_get_config_under_path({'k': False}, 'k'), False)
+        self.assertFalse(_get_config_under_path({'k': False}, 'k'))
 
     def test_nested_path_resolves(self):
         # Before fix: nested paths didn't work at all
@@ -234,9 +229,9 @@ class TestJobSchedulerLockSafety(unittest.TestCase):
 
         class _Job(Job):
             def initialized(self, data_handler):
-                pass
+                pass  # intentionally empty
             def run(self):
-                pass
+                pass  # intentionally empty
 
         scheduler = JobScheduler()
         job = _Job()
@@ -272,9 +267,9 @@ class TestJobSchedulerLockSafety(unittest.TestCase):
 
         class _Job(Job):
             def initialized(self, data_handler):
-                pass
+                pass  # intentionally empty
             def run(self):
-                pass
+                pass  # intentionally empty
 
         scheduler = JobScheduler()
         job = _Job()
@@ -405,7 +400,7 @@ class TestCacheHandlerRedisSetWithoutExpire(unittest.TestCase):
             handler = CacheHandlerRedis('redis://localhost')
             handler.set('k', 'v', None)
             # The call to redis.set must NOT include an `ex` kwarg
-            args, kwargs = mock_client.set.call_args
+            _, kwargs = mock_client.set.call_args
             self.assertNotIn('ex', kwargs)
 
     def test_with_expire_passes_ex_arg(self):
@@ -430,7 +425,7 @@ class TestCacheHandlerRedisSetWithoutExpire(unittest.TestCase):
         with patch('core_lib.cache.cache_handler_redis.redis.from_url', return_value=mock_client):
             handler = CacheHandlerRedis('redis://localhost')
             handler.set('k', 3.14, None)
-            args, kwargs = mock_client.set.call_args
+            args, _ = mock_client.set.call_args
             self.assertEqual(args[1], json.dumps(3.14))
 
 
@@ -448,7 +443,7 @@ class TestCacheHandlerMemcachedAcceptsFloat(unittest.TestCase):
         ):
             handler = CacheHandlerMemcached('localhost:11211')
             handler.set('k', 2.5, None)
-            args, kwargs = mock_client.set.call_args
+            args, _ = mock_client.set.call_args
             self.assertEqual(args[1], json.dumps(2.5))
 
 
@@ -655,7 +650,7 @@ class TestCoreLibDestroyIdempotent(unittest.TestCase):
 
         class L(CoreLibListener):
             def on_core_lib_ready(self):
-                pass
+                pass  # intentionally empty
             def on_core_lib_destroy(self):
                 events.append('destroy')
 
@@ -943,7 +938,7 @@ class TestNewValidationBranchesCoverage(unittest.TestCase):
 
         class BadL(CoreLibListener):
             def on_core_lib_ready(self):
-                pass
+                pass  # intentionally empty
             def on_core_lib_destroy(self):
                 raise RuntimeError('listener crashed during destroy')
 

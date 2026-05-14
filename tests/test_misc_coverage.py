@@ -35,7 +35,7 @@ class TestConfigInstances(unittest.TestCase):
         conf = OmegaConf.create({'a': {}})
         results = list(instantiate_config_group_generator_dict(conf))
         self.assertEqual(len(results), 1)
-        name, instance, settings = results[0]
+        name, _instance, _settings = results[0]
         self.assertEqual(name, 'a')
 
     def test_generator_list(self):
@@ -126,7 +126,7 @@ class TestFuncUtils(unittest.TestCase):
 
     def test_build_function_key_without_key_uses_qualname(self):
         def foo():
-            pass
+            pass  # intentionally empty
         self.assertEqual(build_function_key(None, foo), foo.__qualname__)
 
 
@@ -246,7 +246,7 @@ class TestDefaultRegistry(unittest.TestCase):
 
     def test_register_duplicate_raises(self):
         class A:
-            pass
+            pass  # intentionally empty
         r = DefaultRegistry(A)
         r.register('k', A())
         with self.assertRaises(ValueError):

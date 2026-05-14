@@ -1,0 +1,6 @@
+{
+  "sonarlint.connectedMode.project": {
+    "connectionId": "shay-te",
+    "projectKey": "shay-te_core-lib"
+  }
+}

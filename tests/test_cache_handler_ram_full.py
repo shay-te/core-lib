@@ -49,7 +49,7 @@ class TestCacheHandlerRamGet(unittest.TestCase):
 
     def test_get_after_set_with_expire_after_expiry_removes_entry(self):
         self.h.set('k', 'v', datetime.timedelta(seconds=1))
-        with freeze_time(datetime.datetime.utcnow() + datetime.timedelta(seconds=2)):
+        with freeze_time(datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(seconds=2)):
             self.assertIsNone(self.h.get('k'))
         # Entry is purged from the dict
         self.assertNotIn('k', self.h.cached_function_responses)
@@ -76,9 +76,9 @@ class TestCacheHandlerRamSet(unittest.TestCase):
         self.h = CacheHandlerRam()
 
     def test_set_stores_value_and_timestamp(self):
-        before = datetime.datetime.utcnow()
+        before = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         self.h.set('k', 'v', datetime.timedelta(seconds=10))
-        after = datetime.datetime.utcnow()
+        after = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         entry = self.h.cached_function_responses['k']
         self.assertEqual(entry['data'], 'v')
         self.assertEqual(entry['expire'], datetime.timedelta(seconds=10))
@@ -155,20 +155,20 @@ class TestCacheHandlerRamExpiryBoundary(unittest.TestCase):
         h = CacheHandlerRam()
         h.set('k', 'v', datetime.timedelta(seconds=10))
         # Move forward 9 seconds — still valid
-        with freeze_time(datetime.datetime.utcnow() + datetime.timedelta(seconds=9)):
+        with freeze_time(datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(seconds=9)):
             self.assertEqual(h.get('k'), 'v')
 
     def test_expiry_at_exact_threshold(self):
         h = CacheHandlerRam()
         h.set('k', 'v', datetime.timedelta(seconds=10))
         # set_time_diff < expire → strict less-than, so exact match expires
-        with freeze_time(datetime.datetime.utcnow() + datetime.timedelta(seconds=11)):
+        with freeze_time(datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(seconds=11)):
             self.assertIsNone(h.get('k'))
 
     def test_repeated_get_after_expiry_remains_none(self):
         h = CacheHandlerRam()
         h.set('k', 'v', datetime.timedelta(seconds=1))
-        with freeze_time(datetime.datetime.utcnow() + datetime.timedelta(seconds=2)):
+        with freeze_time(datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(seconds=2)):
             self.assertIsNone(h.get('k'))
             self.assertIsNone(h.get('k'))  # second read also None
 
@@ -179,7 +179,7 @@ class TestCacheHandlerRamConcurrentKeys(unittest.TestCase):
         h.set('a', 1, None)
         h.set('b', 2, datetime.timedelta(seconds=1))
         h.set('c', 3, datetime.timedelta(seconds=100))
-        with freeze_time(datetime.datetime.utcnow() + datetime.timedelta(seconds=5)):
+        with freeze_time(datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(seconds=5)):
             self.assertEqual(h.get('a'), 1)
             self.assertIsNone(h.get('b'))  # b expired
             self.assertEqual(h.get('c'), 3)

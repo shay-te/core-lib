@@ -79,7 +79,7 @@ class TestAlembic(unittest.TestCase):
 
     def test_upgrade_runs_migration(self):
         alembic = self._make_alembic()
-        with patch('core_lib.alembic.alembic.ScriptDirectory') as mock_sd, patch(
+        with patch('core_lib.alembic.alembic.ScriptDirectory') as _, patch(
             'alembic.runtime.environment.EnvironmentContext'
         ) as mock_env_ctx:
             mock_env = MagicMock()
@@ -89,7 +89,7 @@ class TestAlembic(unittest.TestCase):
 
     def test_downgrade_runs_migration(self):
         alembic = self._make_alembic()
-        with patch('core_lib.alembic.alembic.ScriptDirectory') as mock_sd, patch(
+        with patch('core_lib.alembic.alembic.ScriptDirectory') as _, patch(
             'alembic.runtime.environment.EnvironmentContext'
         ) as mock_env_ctx:
             mock_env = MagicMock()
@@ -99,7 +99,7 @@ class TestAlembic(unittest.TestCase):
 
     def test_callback_branches_execute(self):
         alembic = self._make_alembic()
-        with patch('core_lib.alembic.alembic.ScriptDirectory') as mock_sd, patch(
+        with patch('core_lib.alembic.alembic.ScriptDirectory') as _, patch(
             'alembic.runtime.environment.EnvironmentContext'
         ) as mock_env_ctx:
             mock_env = MagicMock()

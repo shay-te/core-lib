@@ -156,7 +156,7 @@ class TestWeekdayFunctionsProperties(unittest.TestCase):
     @given(hours=_HOURS, minutes=_MINUTES)
     @SETTINGS
     def test_all_weekday_helpers_in_future(self, hours, minutes):
-        now = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).replace(hour=0, minute=0, second=0, microsecond=0)
         for fn in [monday, tuesday, wednesday, thursday, friday, saturday, sunday]:
             self.assertGreater(fn(hours, minutes), now)
 

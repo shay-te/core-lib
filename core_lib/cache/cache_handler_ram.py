@@ -1,6 +1,7 @@
 import datetime
 
 from core_lib.cache.cache_handler import CacheHandler
+from typing import Optional
 
 
 class CacheHandlerRam(CacheHandler):
@@ -20,7 +21,7 @@ class CacheHandlerRam(CacheHandler):
                 return data['data']
         return None
 
-    def set(self, key: str, value, expire: datetime.timedelta):
+    def set(self, key: str, value, expire: Optional[datetime.timedelta]):
         self.cached_function_responses[key] = {'data': value, 'set_time': datetime.datetime.utcnow(), 'expire': expire}
 
     def delete(self, key: str):

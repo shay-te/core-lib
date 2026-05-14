@@ -17,7 +17,9 @@ class TestFloatToStrProperties(unittest.TestCase):
     @SETTINGS
     def test_finite_float_never_empty_unless_int_zero(self, f):
         result = float_to_str(f)
-        if f == 0.0:
+        # `not f` is True iff f is 0.0 or -0.0 (NaN/inf filtered above).
+        # Avoids `f == 0.0` which sonar flags as float-equality.
+        if not f:
             self.assertIn(result, ('0', '-0'))
         else:
             self.assertNotEqual(result, '')

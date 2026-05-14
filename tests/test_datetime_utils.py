@@ -39,7 +39,7 @@ def _next_weekday(date: datetime, weekday: int):
 
 class TestDBRuleValidator(unittest.TestCase):
     def test_reset_date(self):
-        dattime = datetime.utcnow()
+        dattime = datetime.now(timezone.utc).replace(tzinfo=None)
         self.assertEqual(reset_datetime(dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
         self.assertEqual(reset_datetime(date=dattime), dattime.replace(hour=0, minute=0, second=0, microsecond=0))
 
@@ -76,19 +76,19 @@ class TestDBRuleValidator(unittest.TestCase):
     def test_year(self):
         self.assertNotEqual(year_begin(), None)
         self.assertEqual(
-            year_begin(), datetime.utcnow().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            year_begin(), datetime.now(timezone.utc).replace(tzinfo=None).replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
         )
         self.assertNotEqual(year_end(), None)
         self.assertEqual(
             year_end(),
-            datetime.utcnow().replace(
-                year=datetime.utcnow().year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+            datetime.now(timezone.utc).replace(tzinfo=None).replace(
+                year=datetime.now(timezone.utc).replace(tzinfo=None).year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
             ),
         )
 
     def test_month(self):
         self.assertNotEqual(month_begin(), None)
-        self.assertEqual(month_begin(), reset_datetime(datetime.utcnow().replace(day=1)))
+        self.assertEqual(month_begin(), reset_datetime(datetime.now(timezone.utc).replace(tzinfo=None).replace(day=1)))
         self.assertNotEqual(month_end(), None)
         cl_month_end = month_end()
         self.assertEqual(cl_month_end, reset_datetime((today().replace(day=1) + timedelta(days=32)).replace(day=1)))
@@ -109,14 +109,14 @@ class TestDBRuleValidator(unittest.TestCase):
 
     def test_hour(self):
         self.assertNotEqual(hour_begin(), None)
-        self.assertEqual(hour_begin(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour))
+        self.assertEqual(hour_begin(), reset_datetime(datetime.now(timezone.utc).replace(tzinfo=None)).replace(hour=datetime.now(timezone.utc).replace(tzinfo=None).hour))
         self.assertNotEqual(hour_end(), None)
         # hour_end == hour_begin + 1 hour. Use timedelta to handle the
         # day-rollover edge case (hour 23 → next day 00); the previous
         # `replace(hour=...+1)` blew up with "hour must be in 0..23".
         self.assertEqual(
             hour_end(),
-            reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour) + timedelta(hours=1),
+            reset_datetime(datetime.now(timezone.utc).replace(tzinfo=None)).replace(hour=datetime.now(timezone.utc).replace(tzinfo=None).hour) + timedelta(hours=1),
         )
 
     def test_sunday(self):
@@ -161,6 +161,6 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(age(dat), int((date.today() - dat).days / 365))
 
     def test_timestamp_to_ms(self):
-        self.assertEqual(timestamp_to_ms(datetime.utcnow().timestamp()), int(datetime.utcnow().timestamp() * 1000))
+        self.assertEqual(timestamp_to_ms(datetime.now(timezone.utc).replace(tzinfo=None).timestamp()), int(datetime.now(timezone.utc).replace(tzinfo=None).timestamp() * 1000))
         dat = datetime(2020, 5, 1, 00, 12, 25)
         self.assertEqual(timestamp_to_ms(dat.timestamp()), int(dat.timestamp() * 1000))

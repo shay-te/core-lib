@@ -260,7 +260,6 @@ class TestLoggingDecorator(unittest.TestCase):
 
 class TestConstantsEnums(unittest.TestCase):
     def test_media_type_values_are_unique(self):
-        values = [e.value for e in MediaType]
         # 'MEDIA_TYPE_WILDCARD' and 'WILDCARD' may share — but check that we
         # have at least 16 distinct entries
         self.assertGreater(len(MediaType), 15)

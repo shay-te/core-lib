@@ -83,14 +83,16 @@ def handle_exception(func, *args, **kwargs):
 
     # Catch Exception (not BaseException) so SystemExit / KeyboardInterrupt /
     # GeneratorExit propagate normally — letting Ctrl-C / shutdown signals
-    # actually shut the worker down. The other classes listed are all
-    # Exception subclasses; listing them is informational only.
-    except (StatusCodeException, AssertionError, ExpiredSignatureError, Exception) as exc:
+    # actually shut the worker down. We dispatch on the specific subtypes
+    # inside `_get_exception_status_code`.
+    except Exception as exc:
         # Run middlewares on all failures
         _execute_error_middlewares(exc, func)
 
-        logger.error(f"handle_exception got {type(exc).__name__} error for function `{func}`")
-        logger.exception(exc, exc_info=log_exception)
+        logger.error("handle_exception got %s error for function `%s`",
+                     type(exc).__name__, func)
+        if log_exception:
+            logger.exception(exc)
 
         return _get_exception_status_code(exc)
 

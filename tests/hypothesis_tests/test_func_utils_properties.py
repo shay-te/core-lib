@@ -74,7 +74,7 @@ class TestBuildFunctionKeyProperties(unittest.TestCase):
     @SETTINGS
     def test_result_never_contains_newlines_or_returns(self, value):
         def f(x):
-            pass
+            pass  # intentionally empty
         result = build_function_key('k-{x}', f, value)
         self.assertNotIn('\n', result)
         self.assertNotIn('\r', result)
@@ -84,7 +84,7 @@ class TestBuildFunctionKeyProperties(unittest.TestCase):
     def test_empty_key_uses_qualname(self, name):
         # Build a function dynamically so its qualname includes the random name
         def f():
-            pass
+            pass  # intentionally empty
         f.__qualname__ = name
         result = build_function_key(None, f)
         self.assertEqual(result, name)

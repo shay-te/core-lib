@@ -4,6 +4,7 @@ from datetime import timedelta
 import redis
 
 from core_lib.cache.cache_handler import CacheHandler
+from typing import Optional
 
 
 class CacheHandlerRedis(CacheHandler):
@@ -14,7 +15,7 @@ class CacheHandlerRedis(CacheHandler):
         value = self.redis_client.get(key)
         return json.loads(value) if value else None
 
-    def set(self, key: str, value, expire: timedelta):
+    def set(self, key: str, value, expire: Optional[timedelta]):
         # Accept any JSON-serializable primitive plus dict / list. Float was
         # previously excluded for no clear reason — json.dumps handles it.
         if not isinstance(value, (dict, list, int, float, str)):

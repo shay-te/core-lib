@@ -3,6 +3,7 @@ import json
 
 from memcache import Client
 from core_lib.cache.cache_handler import CacheHandler
+from typing import Optional
 
 
 class CacheHandlerMemcached(CacheHandler):
@@ -13,7 +14,7 @@ class CacheHandlerMemcached(CacheHandler):
         value = self.memcached_client.get(key)
         return json.loads(value) if value else None
 
-    def set(self, key: str, value, expire: datetime.timedelta):
+    def set(self, key: str, value, expire: Optional[datetime.timedelta]):
         # Accept any JSON-serializable primitive plus dict / list. Float was
         # previously excluded for no clear reason.
         if not isinstance(value, (dict, list, int, float, str)):

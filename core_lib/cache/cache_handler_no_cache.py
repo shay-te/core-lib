@@ -1,6 +1,7 @@
 import datetime
 
 from core_lib.cache.cache_handler import CacheHandler
+from typing import Optional
 
 
 class CacheHandlerNoCache(CacheHandler):
@@ -10,7 +11,7 @@ class CacheHandlerNoCache(CacheHandler):
     def get(self, key):
         return None
 
-    def set(self, key: str, value, expire: datetime.timedelta):
+    def set(self, key: str, value, expire: Optional[datetime.timedelta]):
         pass
 
     def delete(self, key: str):

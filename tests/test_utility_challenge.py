@@ -156,9 +156,9 @@ class TestParseAnyNanChallenges(unittest.TestCase):
         self.assertEqual(parse_any_nan('nan'), 'nan')
 
     def test_custom_strings_to_replace(self):
-        self.assertEqual(parse_any_nan('nan', strings_to_replace=('nan',)), None)
-        self.assertEqual(parse_any_nan('NULL', strings_to_replace=('null',)), None)
-        self.assertEqual(parse_any_nan('  none  ', strings_to_replace=('none',)), None)
+        self.assertIsNone(parse_any_nan('nan', strings_to_replace=('nan',)))
+        self.assertIsNone(parse_any_nan('NULL', strings_to_replace=('null',)))
+        self.assertIsNone(parse_any_nan('  none  ', strings_to_replace=('none',)))
 
     def test_replace_with_value(self):
         self.assertEqual(
@@ -260,37 +260,37 @@ class TestFindKeyByValueChallenges(unittest.TestCase):
 class TestFuncUtilsChallenges(unittest.TestCase):
     def test_get_func_parameter_index(self):
         def f(a, b, c):
-            pass
+            pass  # intentionally empty
         self.assertEqual(get_func_parameter_index_by_name(f, 'a'), 0)
         self.assertEqual(get_func_parameter_index_by_name(f, 'c'), 2)
 
     def test_get_func_parameter_index_missing(self):
         def f(a):
-            pass
+            pass  # intentionally empty
         with self.assertRaises(ValueError):
             get_func_parameter_index_by_name(f, 'nope')
 
     def test_get_func_parameters_as_dict_defaults(self):
         def f(a, b=2, c=3):
-            pass
+            pass  # intentionally empty
         d = get_func_parameters_as_dict(f, 1)
         self.assertEqual(d, {'a': 1, 'b': 2, 'c': 3})
 
     def test_get_func_parameters_kwargs_override(self):
         def f(a, b=2):
-            pass
+            pass  # intentionally empty
         d = get_func_parameters_as_dict(f, 10, b=20)
         self.assertEqual(d, {'a': 10, 'b': 20})
 
     def test_get_func_parameters_no_value(self):
         def f(a):
-            pass
+            pass  # intentionally empty
         d = get_func_parameters_as_dict(f)
         self.assertEqual(d, {'a': None})
 
     def test_build_function_key_strips_newlines_and_returns(self):
         def f(a):
-            pass
+            pass  # intentionally empty
         # Inject \n via key formatting
         result = build_function_key('k-{a}', f, 'value\nwith\rcontrol')
         self.assertNotIn('\n', result)
@@ -354,14 +354,15 @@ class TestBuildUrlChallenges(unittest.TestCase):
         )
 
     def test_with_username_and_password(self):
+        # NOSONAR — "p" is a URL-builder fixture, not a real credential.
         self.assertEqual(
-            build_url(protocol='proto', username='u', password='p', host='h'),
+            build_url(protocol='proto', username='u', password='p', host='h'),  # NOSONAR
             'proto://u:p@h',
         )
 
     def test_password_without_username_inserts_at_sign(self):
         self.assertEqual(
-            build_url(protocol='proto', password='p', host='h'),
+            build_url(protocol='proto', password='p', host='h'),  # NOSONAR — fixture, not a credential.
             'proto://@h',
         )
 
@@ -390,7 +391,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
             build_url(
                 protocol='postgres',
                 username='u',
-                password='p',
+                password='p',  # NOSONAR — URL-builder fixture, not a credential.
                 host='h',
                 port=5432,
                 path='mydb',

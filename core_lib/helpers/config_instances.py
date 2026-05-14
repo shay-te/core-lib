@@ -1,3 +1,5 @@
+from typing import Optional
+
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig
 
@@ -9,7 +11,7 @@ def instantiate_config_group_generator_dict(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = None,
+    params: Optional[dict] = None,
 ):
     # `params=None` resolved internally — avoids the shared-mutable-default
     # Python footgun where every caller sees the same dict instance.
@@ -29,7 +31,7 @@ def instantiate_config_group_generator_list(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = None,
+    params: Optional[dict] = None,
 ):
     if params is None:
         params = {}
@@ -47,7 +49,7 @@ def _instantiate_config(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = None,
+    params: Optional[dict] = None,
 ):
     if params is None:
         params = {}
@@ -76,7 +78,7 @@ def instantiate_config(
     instance_base_class: object = None,
     class_config_base_path: str = None,
     raise_class_config_base_path_error: bool = False,
-    params: dict = None,
+    params: Optional[dict] = None,
 ):
     if params is None:
         params = {}
@@ -85,7 +87,7 @@ def instantiate_config(
     )[0]
 
 
-def _get_config_under_path(data: dict, path: str, raise_class_config_base_path_error: bool = False):
+def _get_config_under_path(data: dict, path: Optional[str], raise_class_config_base_path_error: bool = False):
     # Previous implementation had three bugs:
     #   1. used `data.get(path)` instead of `data_at_path.get(path_item)` —
     #      so it looked up the full dotted string at the top level instead

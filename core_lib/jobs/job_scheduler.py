@@ -1,5 +1,6 @@
 import logging
 from threading import RLock, Timer
+from typing import Optional
 from pytimeparse import parse
 from core_lib.jobs.job import Job
 
@@ -33,7 +34,7 @@ class JobScheduler(object):
         self._validate(initial_delay, job)
         self._schedule(initial_delay, None, job, is_run_in_parallel, params)
 
-    def _schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = True, params: dict = None):
+    def _schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = True, params: Optional[dict] = None):
         # `params=None` then resolved internally — avoids the classic
         # "shared mutable default" bug (every caller seeing the same dict).
         if params is None:
@@ -49,7 +50,7 @@ class JobScheduler(object):
             self._job_class_name_to_job[job.__class__.__name__] = job
             timer.start()
 
-    def _run_job(self, job: Job, frequency: str, params: dict = None):
+    def _run_job(self, job: Job, frequency: str, params: Optional[dict] = None):
         if params is None:
             params = {}
         try:

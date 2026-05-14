@@ -148,7 +148,7 @@ class TestSqlAlchemyConnectionFactory(unittest.TestCase):
                 'url': {
                     'protocol': 'postgresql',
                     'username': 'u',
-                    'password': 'p',
+                    'password': 'p',  # NOSONAR — URL-builder fixture, not a credential.
                     'host': 'h',
                     'port': 5432,
                     'file': None,
