@@ -9,6 +9,8 @@ toc: false
 
 Per-resource locking — locking on a user ID, a file path, or a cache key — requires a lock per value, not one global lock. `LockGroup` maintains a dictionary of `threading.Lock` objects keyed by an arbitrary parameter and automatically evicts entries that haven't been used recently.
 
+> **Where it fits:** Service or DataAccess helper. Use when concurrent calls for the same `param` must not interleave (e.g. a single user updating the same record from two requests).
+
 *core_lib.helpers.thread.LockGroup* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/thread.py){:target="_blank"}
 
 ```python
@@ -86,6 +88,6 @@ user_locks.clear()
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/validation.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/constants.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/validation.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/constants.html">Next</a></button>
 </div>

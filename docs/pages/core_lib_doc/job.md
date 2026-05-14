@@ -7,7 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-Background tasks that import your `CoreLib` directly are tightly coupled to it. `Job` solves this by receiving the `CoreLib` instance at runtime — so your background task stays decoupled and testable, and your `CoreLib` decides what runs and when.
+Background tasks often need to call the same services as your web routes, but they should not create their own database sessions or clients. A `Job` receives the handler it needs at startup, then `CoreLib` schedules it.
+
+> **Where it fits:** One of the [six layers](/index.html#the-layers). A `Job` calls into Services the same way a web route or test would.
 
 ---
 
@@ -67,10 +69,13 @@ class YourCoreLib(CoreLib):
 
 *core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job.py#L4){:target="_blank"}
 
-Extend `Job` and implement `run()`. The `self.core_lib` attribute is automatically injected by `CoreLib` when the job is loaded from config.
+Extend `Job`, save the injected handler in `initialized()`, then use it from `run()`. The handler can be the `CoreLib` instance or a smaller object dedicated to that job.
 
 ```python
 class MyJob(Job):
+    def initialized(self, data_handler):
+        self.core_lib = data_handler
+
     def run(self):
         self.core_lib.user.do_something()
 ```
@@ -112,11 +117,10 @@ from core_lib.jobs.job_scheduler import JobScheduler
 class UpdateCache(Job):
 
     def initialized(self, data_handler):
-        pass
+        self.core_lib = data_handler
 
     def run(self):
-        # code to update your cache
-        pass
+        self.core_lib.user.refresh_cache()
 
 scheduler = JobScheduler()
 job = UpdateCache()
@@ -130,6 +134,6 @@ scheduler.stop(job)  # stops the scheduled job
 > If a job raises an exception during `run()`, it is caught, logged by `JobScheduler`, and the schedule continues.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/cache.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/middleware.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/cache.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/middleware.html">Next</a></button>
 </div>

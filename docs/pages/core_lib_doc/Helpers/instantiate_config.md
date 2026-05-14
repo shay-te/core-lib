@@ -9,6 +9,8 @@ toc: false
 
 `instantiate_config` creates a class instance from a Hydra `DictConfig` that contains a `_target_` key. This is how Core-Lib wires dependencies from config — the class to instantiate and its constructor arguments both live in YAML, not in code. See [Hydra's instantiate docs](https://hydra.cc/docs/advanced/instantiate_objects/overview/){:target="_blank"} for the underlying mechanism.
 
+> **Where it fits:** Wiring. Called inside `CoreLib.__init__` to construct connections, clients, and child CoreLibs from YAML config — so you swap classes without changing Python code.
+
 ## instantiate_config()
 
 *core_lib.helpers.config_instances.instantiate_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/config_instances.py#L62){:target="_blank"}
@@ -36,10 +38,12 @@ Can be loaded from a YAML file using [hydra compose](https://hydra.cc/docs/1.0/e
 - **`params`** *`(dict)`*: Additional parameters, these parameters will be merged with the yaml parameters..
 
 
-### Examples
+## Examples
 
 ### Core-Lib YAML with target
-customer_core_lib.yaml
+
+#### `customer_core_lib.yaml`
+
 ```yaml
 core_lib:
   customer_core_lib:
@@ -55,7 +59,7 @@ core_lib:
           protocol: sqlite
 ```
 
-CustomerCoreLib.py
+#### `customer_core_lib.py`
 
 ```python
 from omegaconf import DictConfig
@@ -75,14 +79,15 @@ class CustomerCoreLib(CoreLib):
         self.db_session = instantiate_config(self.config.core_lib.customer_core_lib.db)
 
 
-config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = CustomerCoreLib(config)
 isinstance(customer_core_lib.db_session, SqlAlchemyConnectionFactory)  # True
 ```
 
 ### Core-Lib as a target
-customer_core_lib.yaml
+
+#### `customer_core_lib.yaml`
+
 ```yaml
 config:
   _target_: your.core_lib_path.CustomerCoreLib
@@ -99,7 +104,7 @@ config:
           protocol: sqlite
 ```
 
-CustomerCoreLib.py
+#### `customer_core_lib.py`
 
 ```python
 from omegaconf import DictConfig
@@ -119,7 +124,6 @@ class CustomerCoreLib(CoreLib):
         self.db_session = self.config.db
 
 
-config_file = 'config.yaml'
 config = hydra.compose('customer_core_lib.yaml')
 customer_core_lib = instantiate_config(config.config)
 isinstance(customer_core_lib.db_session, SqlAlchemyConnectionFactory)  # True
@@ -161,6 +165,6 @@ def instantiate_config_group_generator_list(
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/generate_data.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/logger.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/generate_data.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/logger.html">Next</a></button>
 </div>

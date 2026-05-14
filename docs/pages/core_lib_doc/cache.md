@@ -9,6 +9,8 @@ toc: false
 
 Without a caching layer, expensive queries run on every request. Without a cache-invalidation layer, stale data stays in memory after updates. The `@Cache` decorator handles both in one place — get, set, and delete — so you don't scatter cache logic across your service methods.
 
+> **Where it fits:** Service-layer helper. Apply `@Cache` to a Service method to memoize its return value; apply `@Cache(invalidate=True)` to the corresponding write method to clear it.
+
 ## Example
 
 ```python
@@ -113,6 +115,6 @@ class YourCoreLib(CoreLib):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/generation.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/job.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/generation.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/job.html">Next</a></button>
 </div>

@@ -7,7 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-Hardcoded strings like `"application/json"` or `"Content-Type"` scattered through service code are error-prone and hard to refactor. These enums centralise the common HTTP and time constants so your code stays readable and typo-free.
+Hardcoded strings like `"application/json"` or `"Content-Type"` scattered through service code are error-prone and hard to refactor. These enums centralize the common HTTP and time constants so your code stays readable and typo-free.
+
+> **Where it fits:** Cross-cutting. Use anywhere HTTP/MIME/time strings appear — most often in the web layer and in `Client` subclasses.
 
 *core_lib.helpers.constants* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/constants.py){:target="_blank"}
 
@@ -85,7 +87,7 @@ from core_lib.helpers.constants import HttpHeaders
 | `ACCEPT_CHARSET` | `Accept-Charset` |
 | `ACCEPT_ENCODING` | `Accept-Encoding` |
 | `ACCEPT_LANGUAGE` | `Accept-Language` |
-| `ACCEPT_RANGERS` | `Accept-Ranges` |
+| `ACCEPT_RANGES` | `Accept-Ranges` |
 | `ACCESS_CONTROL_ALLOW_CREDENTIALS` | `Access-Control-Allow-Credentials` |
 | `ACCESS_CONTROL_ALLOW_HEADERS` | `Access-Control-Allow-Headers` |
 | `ACCESS_CONTROL_ALLOW_METHODS` | `Access-Control-Allow-Methods` |
@@ -141,6 +143,6 @@ ttl_unit = TimeUnit.HOUR
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/thread.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/test_core_lib.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/thread.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/test_core_lib.html">Next</a></button>
 </div>

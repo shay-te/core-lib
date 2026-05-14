@@ -35,6 +35,8 @@ class HttpHeaders(enum.Enum):
     ACCEPT_CHARSET = 'Accept-Charset'
     ACCEPT_ENCODING = 'Accept-Encoding'
     ACCEPT_LANGUAGE = 'Accept-Language'
+    ACCEPT_RANGES = 'Accept-Ranges'
+    # Backward-compatible alias for the old misspelled enum member.
     ACCEPT_RANGERS = 'Accept-Ranges'
     ACCESS_CONTROL_ALLOW_CREDENTIALS = 'Access-Control-Allow-Credentials'
     ACCESS_CONTROL_ALLOW_HEADERS = 'Access-Control-Allow-Headers'

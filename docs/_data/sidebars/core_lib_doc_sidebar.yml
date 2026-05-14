@@ -21,6 +21,10 @@ entries:
                   url: /project_structure.html
                   output: web
 
+                - title: Glossary
+                  url: /glossary.html
+                  output: web
+
           - title: Core-Lib
             output: web
             folderitems:

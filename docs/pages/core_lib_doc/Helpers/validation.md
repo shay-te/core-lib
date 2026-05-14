@@ -9,6 +9,8 @@ toc: false
 
 Validating input types is trickier than it looks — a string `"true"` isn't a Python `bool`, a string `"123"` isn't an `int`, and checking enum membership requires iterating values. These helpers handle the common edge cases and return a clean `bool`, so your validation logic stays simple.
 
+> **Where it fits:** Service or DataAccess helper. Use at the layer where you first turn untrusted input (request body, query string, config) into typed values.
+
 ## Functions
 
 ### is_bool()
@@ -46,7 +48,7 @@ print(is_bool(1))         # False
 
 *core_lib.helpers.validation.is_float()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L18){:target="_blank"}
 
-Will validate if the passed argument is type `float` or not. 
+Returns `True` if `val` is a `float`.
 
 ```python
 def is_float(val) -> bool:
@@ -73,7 +75,7 @@ print(is_float("string")) # False
 
 *core_lib.helpers.validation.is_int()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L28){:target="_blank"}
 
-Will validate if the passed argument is type `int` or not. 
+Returns `True` if `val` is an `int`.
 
 ```python
 def is_int(val) -> bool:
@@ -100,7 +102,7 @@ print(is_int("string")) # False
 
 *core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L41){:target="_blank"}
 
-Will validate if the passed string is a valid `email` or not. 
+Returns `True` if `email` is a syntactically valid email address.
 
 ```python
 def is_email(email: str) -> bool:
@@ -127,7 +129,7 @@ print(is_email("<asd>>@strange.com")) # False
 
 *core_lib.helpers.validation.is_int_enum()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L48){:target="_blank"}
 
-Will validate if the passed value is present in the `enum`. 
+Returns `True` if `int_value` is a value of one of the `enum` members.
 
 
 ```python
@@ -162,7 +164,7 @@ print(is_int_enum(11, MyEnum)) # False
 
 *core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L55){:target="_blank"}
 
-Will validate if the passed value is an `url`. 
+Returns `True` if `url` is a syntactically valid URL.
 
 
 ```python
@@ -245,6 +247,6 @@ parse_int_list(None)          # []
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/strings.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/thread.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/strings.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/thread.html">Next</a></button>
 </div>

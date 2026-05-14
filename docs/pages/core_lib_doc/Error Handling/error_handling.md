@@ -9,17 +9,19 @@ toc: false
 
 Different errors need different HTTP status codes, but mapping every exception in every handler is tedious and inconsistent. Core-Lib's error handling tools — `StatusCodeException`, `NotFoundErrorHandler`, `DuplicateErrorHandler` — encode the right status into the exception itself, so your endpoints return the correct response automatically.
 
+> **Where it fits:** Cross-cutting. `@HandleException` decorates web routes; `@NotFoundErrorHandler` and `@DuplicateErrorHandler` decorate `DataAccess` methods; `StatusCodeException` can be raised from any layer.
+
 ## StatusCodeException
 
 *core_lib.error_handling.status_code_exception.StatusCodeException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_exception.py#L1){:target="_blank"}
 
-`StatusCodeException` is the primary and single exception used by any `Core-Lib`.
+`StatusCodeException` carries an HTTP status code with the exception, so a web handler can turn it into the right response.
 
-It serves three primary purposes:
+Use it when:
 
-- Unified way to handle errors while using `Core-Lib`.
-- Reflect any error with a numeric status code.
-- Bridge between library errors and HTTP Status code.
+- a service or data access method needs to reject a request
+- the caller should receive a specific HTTP status
+- you want the error to pass through Core-Lib's exception handlers consistently
 
 ```python
 class StatusCodeException(Exception):
@@ -49,13 +51,13 @@ raise StatusCodeException(HTTPStatus.BAD_REQUEST, 'Input parameter is invalid')
 *core_lib.error_handling.not_found_decorator.NotFoundErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/not_found_decorator.py#L11){:target="_blank"}
 
 
-`NotFoundErrorHandler` decorator will raise `StatusCodeException` with status `NOT_FOUND` when the decorated function returns a falsy value — `None`, `""`, `()`, `[]`, `{}`, `set()`, `0`, or `False`.
+`NotFoundErrorHandler` raises `StatusCodeException` with status `NOT_FOUND` when the decorated function returns a falsy value — `None`, `""`, `()`, `[]`, `{}`, `set()`, `0`, or `False`.
 
 > **Watch out:** the check is `not return_value`, not `return_value is None`. Only put this decorator on functions where a valid result is always truthy (e.g. a fetched ORM row). On a function whose valid result might be `0`, `False`, or `[]`, you'll convert legitimate empty results into HTTP 404s.
 
 **Example**
 
- ```python
+```python
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 @NotFoundErrorHandler()
@@ -71,10 +73,10 @@ find_user(99)  # raises StatusCodeException(NOT_FOUND) when no row matches
 
 *core_lib.error_handling.status_code_assert.StatusCodeAssert* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_assert.py#L9){:target="_blank"}
 
-Using `StatusCodeAssert` along with the `with` statement will capture any `AssertionError` and raise `StatusCodeException` with the status and message relevant to the application needs.
+`StatusCodeAssert` catches an `AssertionError` inside a `with` block and raises `StatusCodeException` with the status and message you provide.
 
 **Example**
- ```python
+```python
 from core_lib.error_handling.status_code_assert import StatusCodeAssert
 
 user_status = 'inactive'
@@ -95,10 +97,10 @@ class CoreLibInitException(Exception):
 ## DuplicateErrorHandler Decorator
 *core_lib.error_handling.duplicate_error_decorator.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
 
-`DuplicateErrorHandler` decorator will raise `StatusCodeException` when the decorated function adds the same value in the column of the database table which accepts unique values only.
+`DuplicateErrorHandler` raises `StatusCodeException` when the decorated function violates a unique database constraint.
 
 **Example**
- ```python
+```python
 from core_lib.error_handling.duplicate_error_decorator import DuplicateErrorHandler
 
 class UserDataAccess(DataAccess):
@@ -110,6 +112,6 @@ class UserDataAccess(DataAccess):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/client_base.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/client_base.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next</a></button>
 </div>

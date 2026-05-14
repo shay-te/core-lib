@@ -8,6 +8,8 @@ toc: false
 ---
 Core-Lib needs to look up named instances at runtime — the right cache backend, the right observer, the right connection — without hard-coding them in business logic. `Registry` is the base class for all of these lookups: a typed key-value store where you register instances by name and retrieve them by key (or get the default when only one is registered).
 
+> **Where it fits:** Infrastructure. `CacheRegistry`, `ObserverRegistry`, and the connection registries all inherit from `Registry`. You'll mostly use it indirectly — through `CoreLib.cache_registry` and `CoreLib.observer_registry` — when wiring backends in `CoreLib.__init__`.
+
 ## Registry types
 
 *core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py){:target="_blank"}
@@ -21,7 +23,7 @@ Core-Lib needs to look up named instances at runtime — the right cache backend
 
 *core_lib.registry.default_registry.DefaultRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L4){:target="_blank"}
 
-`DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
+`DefaultRegistry` implements the `Registry` interface and provides the common behavior used by `CacheRegistry`, `ObserverRegistry`, and connection registries.
 
 ### Constructor
 
@@ -34,7 +36,7 @@ class DefaultRegistry(Registry):
 
 **Arguments**
 
-- **`object_type`** *`(object)`*: Datatype of the object that is to be stored in the registry.
+- **`object_type`** *`(object)`*: Type that every registered value must match.
 
 #### Usage
 
@@ -66,15 +68,13 @@ def get(self, key: str = None, *args, **kwargs):
 
 **Arguments**
 
-- **`key`** *`(str)`*: Is the key of the registry entry to be returned.
+- **`key`** *`(str)`*: Key of the registry entry to return.
 
 
 
->If `get()` is used without any parameters, it will return the default value supplied by the user, or the 
->first entry in the registry if the default value also isn't provided. 
+> If `get()` is called without a key, it returns the explicitly registered default, or the first registered value if no default was set.
 
->If the registry is empty or the `get()` is called with a `key` that does not exist in the registry it will return
->`None`
+> If the registry is empty, or the key does not exist, `get()` returns `None`.
 
 
 
@@ -102,7 +102,7 @@ def register(self, key: str, object, is_default: bool = False):
 **Arguments**
 
 - **`key`** *`(str)`*: A unique string to identify the registered object; duplicate keys are not allowed and will raise a `ValueError`.
-- **`object`**: Any value we wish to store with the attached key.
+- **`object`**: Value to store under the key.
 - **`is_default`** *`(bool)`*: When multiple entries are registered, set `is_default=True` to mark this entry as the default. `get()` with no `key` returns the default.
 
 #### Usage
@@ -120,7 +120,7 @@ registry_factory.register('user_name', user_name)
 
 *core_lib.registry.default_registry.DefaultRegistry.unregister()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L24){:target="_blank"}
 
-Unregisters/removes an entry present in the registry.
+Removes an entry from the registry.
 
 ```python
 def unregister(self, key: str):
@@ -128,10 +128,10 @@ def unregister(self, key: str):
 ```
 **Arguments**
 
-- **`key`** *`(str)`*: Is the key of the entry to be unregistered from the registry.
+- **`key`** *`(str)`*: Key of the entry to remove.
 
 
->The first item in the registry becomes default when we unregister a default `key`.
+> If the default key is removed, the registry falls back to the first remaining entry.
 
 
 #### Usage
@@ -145,7 +145,7 @@ registry_factory.unregister('user_name')
 
 *core_lib.registry.default_registry.DefaultRegistry.registered()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L36){:target="_blank"}
 
-Returns all the registered entities in the registry in the type `list`.
+Returns the registered keys as a list.
 
 ```python
 def registered(self):
@@ -158,6 +158,6 @@ registry_factory.registered()
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/core_lib_main_class.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/result_to_dict.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/core_lib_main_class.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/result_to_dict.html">Next</a></button>
 </div>

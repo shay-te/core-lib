@@ -9,6 +9,8 @@ toc: false
 
 Downloading files over HTTP and computing checksums are repetitive tasks with fiddly edge cases — temp files, stream handling, hash encoding. These helpers cover the common patterns so you don't re-implement them.
 
+> **Where it fits:** Service or Client helper. Use from a Service when a feature needs to download or verify a file; use from a Client when wrapping an API that returns file bytes.
+
 *core_lib.helpers.files* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/files.py){:target="_blank"}
 
 ## Functions
@@ -89,6 +91,6 @@ get_file_md5(path_to_file) # returns md5 hash string of the file
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/datetime_utils.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/function_utils.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/datetime_utils.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/function_utils.html">Next</a></button>
 </div>

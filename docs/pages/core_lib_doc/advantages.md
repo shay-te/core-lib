@@ -7,6 +7,10 @@ folder: core_lib_doc
 toc: false
 ---
 
+Core-Lib is useful when a backend needs to survive framework changes, infrastructure swaps, and multiple engineers touching the same code. The advantages below all come from the same rule: business logic lives in `Service` classes, while frameworks and infrastructure stay at the edge.
+
+> **Where it fits:** Overview. Read this after [Getting Started](/index.html) if you want the practical reasons behind the six-layer structure.
+
 ## Decoupled business logic
 
 Your services don't depend directly on Flask, SQLAlchemy, or external services. The web layer calls into your `CoreLib` — your `CoreLib` doesn't know the web layer exists.
@@ -17,7 +21,7 @@ When your framework changes, you replace the thin web layer. Your services, data
 
 ## Change infrastructure without rewriting your app
 
-Switching databases, HTTP clients, or payment providers stays in wiring code — not scattered through business logic. The change is isolated to `CoreLib.__init__`, not spread across 40 files.
+Switching databases, HTTP clients, or payment providers stays behind the relevant adapter — `DataAccess` for data sources, `Client` for external APIs, and `CoreLib.__init__` for wiring. If the new backend has a different query API, you still update that adapter. Your `Service` code does not change.
 
 ```python
 # consumer instance
@@ -81,6 +85,6 @@ Most systems become tightly coupled over time — not by design, but through sho
 Core-Lib prevents this by keeping all dependencies at the edge of your application from day one, wired in via config instead of leaking into your codebase.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/index.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/project_structure.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/index.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/project_structure.html">Next</a></button>
 </div>

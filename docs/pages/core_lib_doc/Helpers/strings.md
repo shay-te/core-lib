@@ -9,13 +9,15 @@ toc: false
 
 APIs typically expect camelCase but Python code uses snake_case. These helpers convert between naming conventions so you don't manually transform field names going over the wire.
 
+> **Where it fits:** Cross-cutting, but most useful at the web edge — converting field names just before serialization or just after deserialization.
+
 ## Functions
 
 ### snake_to_camel()
 
 *core_lib.helpers.string.snake_to_camel()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/string.py#L4){:target="_blank"}
 
-Will convert snake case to camel case.
+Converts `snake_case` to `CamelCase`.
 
 ```python
 def snake_to_camel(snake_str) -> str:
@@ -42,7 +44,7 @@ print(camel_case) # "ThisIsSnakeToCamel"
 
 *core_lib.helpers.string.camel_to_snake()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/string.py#L8){:target="_blank"}
 
-Will convert camel case to snake case.
+Converts `CamelCase` to `snake_case`.
 
 ```python
 def camel_to_snake(s) -> str:
@@ -69,7 +71,7 @@ print(snake_case) # "this_is_camel_to_snake"
 
 *core_lib.helpers.string.any_to_pascal()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/string.py#L12){:target="_blank"}
 
-Will convert any string to pascal case.
+Converts any string to `PascalCase`.
 
 ```python
 def any_to_pascal(string: str) -> str:
@@ -93,6 +95,6 @@ print(pascal_case) # "ThisIsPascal"
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/logger.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/validation.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/logger.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/validation.html">Next</a></button>
 </div>

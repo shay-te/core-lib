@@ -11,7 +11,9 @@ Without schema migration tooling, changing a database schema in production means
 
 *core_lib.alembic.alembic.Alembic* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L16){:target="_blank"}
 
-Wraps [SQLAlchemy's Alembic tool](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"} with Core-Lib's config pattern.
+Wraps [Alembic](https://alembic.sqlalchemy.org/en/latest/){:target="_blank"} with Core-Lib's config pattern.
+
+> **Where it fits:** DataAccess-layer support. Run at startup or in CI to bring the database schema up to date with the entities defined under `data_layers/data/db/`.
 
 ## Initializing
 
@@ -21,17 +23,16 @@ def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
 
 **Arguments**
 
-- **`core_lib_path`** *`(str)`*: Path of the `Core-Lib` main class file.
-- **`core_lib_config`** *`(DictConfig)`*: Entire config of the `Core-Lib`.
+- **`core_lib_path`** *`(str)`*: Path to the Core-Lib main class file.
+- **`core_lib_config`** *`(DictConfig)`*: Full Core-Lib config.
 
 **Configuration**
 
-This section in the config YAML holds all the configurations for the Alembic. You can override your values in your specific `Core-Lib` config file.
-For more information, you can check the official documentation [here](https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file){:target="_blank"}.
+The `alembic` section in YAML configures migration behavior. Override only the values that differ for your app.
 
-> `script_location` property must be set to the location where the migration folder exists.
+> `script_location` must point to the folder that contains your migration files.
 
-> `version_table` property specifies the version tables to be created at the migrations, changing this value will assure that the tables don't create a conflict.
+> `version_table` controls where Alembic stores migration state. Change it when multiple Core-Libs share one database.
 
 `core_lib.yaml` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/config/core_lib.yaml#L33){:target="_blank"}
 
@@ -61,13 +62,19 @@ alembic:
 **Example**
 
 ```python
+import os
+import inspect
+from omegaconf import DictConfig
+from core_lib.alembic.alembic import Alembic
+
+
 class YourCoreLib(CoreLib):
-    .
-    .
-    .
+    ...
+
     @staticmethod
     def install(cfg: DictConfig):
         Alembic(os.path.dirname(inspect.getfile(YourCoreLib)), cfg).upgrade()
+
     @staticmethod
     def uninstall(cfg: DictConfig):
         Alembic(os.path.dirname(inspect.getfile(YourCoreLib)), cfg).downgrade()
@@ -79,7 +86,7 @@ class YourCoreLib(CoreLib):
 
 *core_lib.alembic.alembic.Alembic.upgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L72){:target="_blank"}
 
-This function will carry out the upgrade revisions of the alembic.
+Runs Alembic upgrade to the requested revision.
 
 ```python
 def upgrade(self, revision: str = "head"):
@@ -87,13 +94,13 @@ def upgrade(self, revision: str = "head"):
 
 **Arguments**
 
-- **`revision`** *`(str)`*: Default `head`, The revision to which you want to upgrade e.g., '+1', '+2', etc.
+- **`revision`** *`(str)`*: Default `head`. Target revision, e.g. `+1`, `+2`, or `head`.
 
 ### downgrade()
 
 *core_lib.alembic.alembic.Alembic.downgrade()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L75){:target="_blank"}
 
-This function will carry out the downgrade revisions of the alembic.
+Runs Alembic downgrade to the requested revision.
 
 ```python
 def downgrade(self, revision: str = "base"):
@@ -101,13 +108,13 @@ def downgrade(self, revision: str = "base"):
 
 **Arguments**
 
-- **`revision`** *`(str)`*: Default `base`, The revision to which you want to downgrade e.g., '1', '2', etc.
+- **`revision`** *`(str)`*: Default `base`. Target revision, e.g. `-1`, `-2`, or `base`.
 
 ### history()
 
 *core_lib.alembic.alembic.Alembic.history()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L78){:target="_blank"}
 
-This function returns the history of the revisions carried out.
+Returns Alembic revision history.
 
 ```python
 def history(self):
@@ -127,7 +134,7 @@ INFO:core_lib.core_lib_main:revision to `list`
 
 *core_lib.alembic.alembic.Alembic.create_migration()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/alembic/alembic.py#L81){:target="_blank"}
 
-Will create a migration with the provided name.
+Creates a migration with the provided name.
 
 ```python
 def create_migration(self, migration_name):
@@ -138,6 +145,6 @@ def create_migration(self, migration_name):
 - **`migration_name`**: Name of the migration to create.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/data_layers.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/crud.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/data_layers.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/crud.html">Next</a></button>
 </div>

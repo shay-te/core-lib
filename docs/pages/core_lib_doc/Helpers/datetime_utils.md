@@ -9,48 +9,46 @@ toc: false
 
 Datetime bugs often come from inconsistent timezones and mismatched precision — comparing a datetime with a time component against one without silently returns the wrong result. These utilities always return UTC datetimes with sub-day components zeroed out, so date comparisons and range queries work predictably.
 
+> **Where it fits:** Cross-cutting. Use in any layer that needs UTC-aligned date boundaries — typically Service code that builds date-range queries.
+
 *core_lib.helpers.datetime_utils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py){:target="_blank"}
 
 ## Functions
-- `year_begin` returns the first day of the year.
-- `year_end` returns date when current year will end.
-- `month_begin` returns the first day of the current month.
-- `month_end` returns the last day of the month.
-- `week_begin` returns the first day of the week.
-  >Note: The starting day of the week will be considered as Monday.
-- `week_end` returns the last day of the week.
-- `day_begin` returns the `datetime` for the beginning of the day.
-- `day_end` returns the `datetime` for the ending of the day
-- `tomorrow` returns tomorrow's day.
-- `today` returns today's day.
-- `yesterday` returns yesterday's day.
-- `midnight` returns the midnight for today.
-- `sunday` returns the next Sunday's date.
-- `monday` returns the next Monday's date.
-- `tuesday` returns the next Tuesday's date.
-- `wednesday` returns the next Wednesday's date.
-- `thursday` returns the next Thursday's date.
-- `friday` returns the next Friday's date.
-- `saturday` returns the next Saturday's date.
-- `hour_begin` returns the time for the beginning of current hour.
-- `hour_end` returns the time for the ending of current hour.
-- `age` returns age in `int` for given `date`.
-- `timestamp_to_ms` returns `timestamp` converted to `milliseconds`.
 
+| Function | Returns |
+|---|---|
+| `year_begin()` | First day of the current year. |
+| `year_end()` | Last day of the current year. |
+| `month_begin()` | First day of the current month. |
+| `month_end()` | Last day of the current month. |
+| `week_begin()` | First day (Monday) of the current week. |
+| `week_end()` | Last day (Sunday) of the current week. |
+| `day_begin()` | Beginning of the current day. |
+| `day_end()` | End of the current day. |
+| `today()` | Today's date. |
+| `tomorrow()` | Tomorrow's date. |
+| `yesterday()` | Yesterday's date. |
+| `midnight()` | Midnight of today. |
+| `monday()` … `sunday()` | The next occurrence of that weekday. |
+| `hour_begin()` | Beginning of the current hour. |
+| `hour_end()` | End of the current hour. |
+| `age(date)` | Age in years for the given `date`. |
+| `timestamp_to_ms(ts)` | Timestamp converted to milliseconds. |
 
-### Basic Usage
+## Basic usage
+
 ```python
-from core_lib.helpers.datetime_utils import year_begin 
-    
-beginning_of_the_year = year_begin() 
-print(beginning_of_the_year) # will print "2022-01-01 00:00:00"
+from core_lib.helpers.datetime_utils import year_begin
+
+start = year_begin()
+print(start)   # 2026-01-01 00:00:00
 ```
 
-### reset_datetime()
+## `reset_datetime()`
 
 *core_lib.helpers.datetime_utils.reset_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/datetime_utils.py#L148){:target="_blank"}
 
-Will reset the `hour`, `minute`, `second` and `microsecond` of a `datetime` value to `0`
+Resets the `hour`, `minute`, `second`, and `microsecond` of a `datetime` value to `0`.
 
 ```python
 def reset_datetime(date: datetime):
@@ -76,6 +74,6 @@ print(formatted_datetime) #2022-02-07 00:00:00
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/data_transform_helpers.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/files.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/data_transform_helpers.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/files.html">Next</a></button>
 </div>

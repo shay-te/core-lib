@@ -7,7 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.
+Tests should boot the same `CoreLib` class your app uses in production, but with test wiring: SQLite instead of Postgres, mocks instead of real HTTP clients, and clean global registries between runs.
+
+> **Where it fits:** Testing harness. Tests construct your `CoreLib` from a test config and call its Services directly — the same way a web route or job would in production.
 
 ## load_core_lib_config()
 
@@ -47,7 +49,8 @@ What it does internally:
 ---
 
 ## DataAccess
-The `DataAccess` layer is the facade of the data layer, consisting of `API` functions that will access our data sources, such as database connections and entities.
+
+`DataAccess` wraps database queries. In tests, you usually keep the real `DataAccess` and swap only the database connection to SQLite.
 
 ### `user_data_access.py`
 
@@ -66,8 +69,9 @@ class UserDataAccess(CRUDDataAccess):
         CRUDDataAccess.__init__(self, User, db)
 ```
 
-## Service 
-The `Service` layer is a facade of the `DataAccess` layer and connections. consisting of `API` functions that will handle business logic, data transformation, and caching.
+## Service
+
+`Service` is the business API your tests call. It receives `DataAccess` and `Client` dependencies from `CoreLib.__init__`, just like it does in production.
 
 ### `user_service.py`
 
@@ -129,7 +133,7 @@ core_lib:
 ```
 
 ## Main Class
-Here you'll have all the `DataAccess`, `Service`,  `Connection`, `Cache` initialized. Which can be further accessed when we initialize the `Core-Lib`.
+This is where the app is wired: cache, database connection, data access, services, and external clients are all created once and exposed through the `CoreLib` instance.
 
 ### `user_core_lib.py`
 
@@ -173,7 +177,7 @@ class UserCoreLib(CoreLib):
 ```
 
 ## Initializing
-For initializing our `Core-Lib` and mocking the Client we will make use of a test config file that will override the main config file of our `Core-Lib`.
+To test the same `CoreLib` with different infrastructure, create a test config that overrides only the parts that should change.
 
 
 The override drops in two replacements: SQLite for the database, and a Python mock for the HTTP client. The key paths under `core_lib:` **must match the main config exactly** — Hydra merges by path, so a typo here means the override silently doesn't apply.
@@ -342,7 +346,8 @@ class TestUserService(unittest.TestCase):
         self.core_lib = get_core_lib()
 
     def test_user_service(self):
-        pass
+        user = self.core_lib.user.create({'name': 'Jane'})
+        self.assertEqual(self.core_lib.user.get(user['id'])['name'], 'Jane')
 ```
 
 ### `test_customer.py`
@@ -357,12 +362,13 @@ class TestCustomerService(unittest.TestCase):
         self.core_lib = get_core_lib()
 
     def test_customer_service(self):
-        pass
+        customer = self.core_lib.customer.create({'name': 'Acme'})
+        self.assertEqual(self.core_lib.customer.get(customer['id'])['name'], 'Acme')
 ```
 
-If you want to check out more usages of `Core-Lib` you can check out our [examples on GitHub](https://github.com/shay-te/core-lib){:target="_blank"}.
+More examples are available in the [Core-Lib repository](https://github.com/shay-te/core-lib){:target="_blank"}.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/constants.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/observer.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/constants.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/observer.html">Next</a></button>
 </div>

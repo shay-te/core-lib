@@ -7,17 +7,17 @@ folder: core_lib_doc
 toc: false
 ---
 
-Django and Flask return responses differently. Web Helpers abstracts that difference so your service code doesn't need to know which framework is running. Set the server type once at startup, then use the same `response_json`, `response_ok`, and `response_status` functions everywhere.
+Django and Flask return responses differently. Web Helpers abstract that difference so your route handlers can return responses the same way in either framework. Set the server type once at startup, then use the same `response_json`, `response_ok`, and `response_status` functions at the web edge. Keep business logic in `Service` classes.
+
+> **Where it fits:** Web edge only. Route handlers call these to build framework-specific responses; Services and DataAccess never touch them.
 
 ## WebHelpersUtils
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4){:target="_blank"}
 
-This class is used to set the type of web framework that will be utilized in the application i.e. `Django` or `Flask`.
+Sets the web framework — `Flask` or `Django` — that the request/response helpers should target. Call `init()` once at startup before using any `response_*` helper.
 
-## Functions
-
-### init()
+### `init()`
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L13){:target="_blank"}
 
@@ -47,11 +47,11 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 ```
 
-### get_server_type()
+### `get_server_type()`
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L17){:target="_blank"}
 
-Returns the server type set by the `init()`.
+Returns the server type set by `init()`.
 
 ```python
 def get_server_type() -> ServerType:
@@ -66,16 +66,14 @@ def get_server_type() -> ServerType:
 ```python
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
-WebHelpersUtils.get_server_type() # returns flask
+WebHelpersUtils.get_server_type() # returns WebHelpersUtils.ServerType.FLASK
 ```
 
-## Request Response Helpers
+## Request / response helpers
 
-Depending on the server type set in `WebHelpersUtils` class, request and response functions return data.
+Depending on the server type set in `WebHelpersUtils`, these functions build the right framework-specific response object so your route handlers stay framework-agnostic.
 
-## Functions
-
-### response_status()
+### `response_status()`
 
 *core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L14){:target="_blank"}
 
@@ -108,7 +106,7 @@ response_status(HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with empt
 ```
 
 
-### response_ok()
+### `response_ok()`
 
 *core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L18){:target="_blank"}
 
@@ -139,7 +137,7 @@ WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 response_ok(HTTPStatus.OK) # returns status 200 with data {'message': 'ok'}
 ```
 
-### response_message()
+### `response_message()`
 
 *core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
 
@@ -174,9 +172,9 @@ response_message('success', HTTPStatus.OK) # returns status 200 with data {'mess
 response_message('some error occurred', HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with data {'error': 'some error occurred'}
 ```
 
-### response_json()
+### `response_json()`
 
-*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
+*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L42){:target="_blank"}
 
 Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, and data transformed to JSON.
 
@@ -208,7 +206,7 @@ response_json({'error': 'Server Error'}, HTTPStatus.INTERNAL_SERVER_ERROR) # ret
 response_json({'error': 'file not found'}, HTTPStatus.NOT_FOUND) # returns status 404 with data {'error': 'file not found'}
 ```
 
-### response_error()
+### `response_error()`
 
 *core_lib.web_helpers.request_response_helpers.response_error()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
@@ -237,7 +235,7 @@ response_error('something went wrong')  # status 500, {'error': 'something went 
 response_error(status=HTTPStatus.BAD_REQUEST)  # status 400, {'error': 'Bad Request'}
 ```
 
-### request_body_dict()
+### `request_body_dict()`
 
 *core_lib.web_helpers.request_response_helpers.request_body_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
@@ -266,5 +264,5 @@ def create_user(request):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/handle_exceptions.html"><< Previous</a></button>
+    <button class="pagePrevious-btn"><a href="/handle_exceptions.html">Previous</a></button>
 </div>

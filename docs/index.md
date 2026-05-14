@@ -97,6 +97,8 @@ print(app.user.greet(jane.id))   # Hello, Jane!
 
 The rest of this page explains *why* you would structure code this way.
 
+> **Prerequisites.** These docs assume working familiarity with a Python web framework (Flask or Django) and SQLAlchemy. If a term is unfamiliar, check the [Glossary](/glossary.html). If you're new to Python web development, start with the [Flask quickstart](https://flask.palletsprojects.com/en/latest/quickstart/){:target="_blank"} and [SQLAlchemy intro](https://docs.sqlalchemy.org/en/latest/orm/quickstart.html){:target="_blank"} first.
+
 ---
 
 ## When to use Core-Lib
@@ -295,5 +297,5 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 MIT — see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE){:target="_blank"} file for details.
 
 <div style="margin-top:2em">
-  <button class="pageNext-btn"><a href="/advantages.html">Next >></a></button>
+  <button class="pageNext-btn"><a href="/advantages.html">Next</a></button>
 </div>

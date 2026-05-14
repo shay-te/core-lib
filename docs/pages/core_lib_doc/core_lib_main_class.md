@@ -7,11 +7,13 @@ folder: core_lib_doc
 toc: false
 ---
 
-*core_lib.core_lib.CoreLib* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L17){:target="_blank"}
-
 `CoreLib` is the entry point of your application. It is where you wire services, data access, clients, and other dependencies together. Web frameworks, jobs, scripts, and tests all call into this class.
 
+> **Where it fits:** CoreLib layer. This is the single object your web routes, jobs, scripts, and tests call; it wires everything below it.
+
 In the [Hello, World](/index.html#a-complete-core-lib-app-in-one-file) the entire `CoreLib` subclass was three lines. In a real project you typically load config from YAML and wire several services. The shape is the same.
+
+*core_lib.core_lib.CoreLib* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L17){:target="_blank"}
 
 ---
 
@@ -70,6 +72,6 @@ class YourCoreLib(CoreLib):
 For larger systems you can nest a `CoreLib` inside another via Hydra's `_target_` — useful when a sub-system (e.g. an email module) is itself a self-contained Core-Lib that you want to drop in. See [Instantiate Config](/instantiate_config.html) for the pattern.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/project_structure.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/registry.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/glossary.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/registry.html">Next</a></button>
 </div>

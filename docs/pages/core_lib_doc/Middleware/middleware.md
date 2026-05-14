@@ -11,6 +11,8 @@ When you need to run the same logic before or after every operation — logging,
 
 Core-Lib's middleware system is a simple pipeline: add `Middleware` implementations to a `MiddlewareChain`, then call `execute(context)` to run them all in order.
 
+> **Where it fits:** Cross-cutting. A `MiddlewareChain` sits alongside the six layers; you call `chain.execute(context)` from inside a Service or DataAccess method to apply uniform behavior before the real work runs.
+
 *core_lib.middleware.middleware.Middleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/middleware/middleware.py){:target="_blank"}
 
 *core_lib.middleware.middleware_chain.MiddlewareChain* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/middleware/middleware_chain.py){:target="_blank"}
@@ -58,12 +60,12 @@ class YourCoreLib(CoreLib):
         self.request_middleware.add(ValidationMiddleware())
 ```
 
-Then in your service or data access:
+Then pass the chain into the service that needs it:
 
 ```python
 class UserService(Service):
-    def __init__(self, core_lib: YourCoreLib, data_access: UserDataAccess):
-        self.middleware = core_lib.request_middleware
+    def __init__(self, middleware: MiddlewareChain, data_access: UserDataAccess):
+        self.middleware = middleware
         self.data_access = data_access
 
     def update(self, context: dict):
@@ -157,6 +159,6 @@ def execute(self, context: Any):
 - **`context`** *`(Any)`*: The context object passed to every middleware in the chain.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/job.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/connection.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/job.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/connection.html">Next</a></button>
 </div>

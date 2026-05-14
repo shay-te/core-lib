@@ -9,6 +9,8 @@ toc: false
 
 Without centralized exception handling, every API endpoint needs its own `try/except` to turn exceptions into HTTP responses. `HandleException` does this in one decorator — it catches the exception, logs it, and returns the right HTTP status automatically.
 
+> **Where it fits:** Web edge. Apply `@HandleException` to route handlers — it's the bridge between exceptions raised anywhere in your Services/DataAccess and the HTTP response your framework returns.
+
 *core_lib.web_helpers.decorators.HandleException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L34){:target="_blank"}
 
 ```python
@@ -21,10 +23,10 @@ class HandleException(object):
 >Can be configured with `Flask` and `Django` with the help of `Core-Lib`'s `WebHelpersUtils`.
 
 Can handle exceptions for:
-- `StatusCodeException` a part of `Core-Lib`'s `error_handling` class, raises a `StatusCodeException` with the given `status_code` if the user wants to return a different status code.
-- `AssertionError` returns a response with `Status Code 500` when an assertion fails.
-- `BaseException` returns a response with `Status Code 500` when any other exceptions are raised.
-- `ExpiredSignatureError` returns a response with `Status Code 401` while attempting to decode a jwt expired token using the `JWTTokenHandler`.
+- `StatusCodeException` — returns a response with the status code carried on the exception.
+- `AssertionError` — returns a response with status `500`.
+- `ExpiredSignatureError` — returns a response with status `401` (raised by `JWTTokenHandler` when decoding an expired token).
+- Any other `BaseException` — returns a response with status `500`.
 
 
 **Example**
@@ -36,68 +38,50 @@ from core_lib.web_helpers.decorators import HandleException
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_json
 
+
 @HandleException()
 def get_user(request):
-    # if this query fails decorator will log the entire Exception message and return HTTP Response with status code 500
-    return response_json(example_core_lib.user.get(request.user.user_id))
+    # If user.get() raises, the decorator logs the traceback and returns status 500.
+    return response_json(core_lib.user.get(request.user.id))
 
-get_user(request)  # get the HTTP response as per the execution of query.
 
-user_status = 'inactive'
 @HandleException()
 def check_active(user_id):
-    # decorator will log the AssertionError message and return HTTP Response with status code 500
-    assert user_status == 'active'
+    # An assertion failure is caught and returned as status 500.
+    assert core_lib.user.get(user_id).status == 'active'
+
 
 @HandleException()
-def validate_user(user_id):
-    ...
-    if not user_validate:
-        # decorator will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
+def admin_only(user_id):
+    # A StatusCodeException carries its own status — here, 401.
+    if not core_lib.user.is_admin(user_id):
         raise StatusCodeException(HTTPStatus.UNAUTHORIZED)
 ```
 
-## handle_exception Function
+## `handle_exception()` function
 
 *core_lib.web_helpers.decorators.handle_exception()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/decorators.py#L13){:target="_blank"}
 
-`handle_exception` function is also being used by the `HandleException` decorator, this function is responsible for
-returning HTTP response for the raised exception.
+The function form of `@HandleException` — same conversion behavior, but called explicitly. Useful when you can't decorate the target function (third-party callable, dynamically built, etc.).
 
 ```python
 def handle_exception(func, *args, **kwargs):
 ```
+
 **Arguments**
 
-- **`func`**: The function on which we need to handle exceptions.  
-- __`*args, **kwargs`__: The args and kwargs of the function.
+- **`func`**: The function whose exceptions you want converted to HTTP responses.
+- **`*args, **kwargs`**: Arguments forwarded to `func`.
 
 **Example**
-```python
-from http import HTTPStatus
 
+```python
 from core_lib.web_helpers.decorators import handle_exception
-from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.web_helpers.request_response_helpers import response_json
 
 def get_user(request):
-    # if this query fails function will log the entire Exception message and return HTTP Response with status code 500
-    return response_json(example_core_lib.user.get(request.user.user_id))
+    return response_json(core_lib.user.get(request.user.id))
 
-handle_exception(get_user, request)  # get the HTTP response as per the execution of query.
-
-user_status = 'inactive'
-def check_active(user_id):
-    assert user_status == 'active'
-
-handle_exception(check_active, 1)  # function will log the AssertionError message and return HTTP Response with status code 500
-
-def validate_user(user_id):
-    ...
-    if not user_validate:
-        raise StatusCodeException(HTTPStatus.UNAUTHORIZED)
-
-handle_exception(validate_user, 1)  # function will log the StatusCodeException message and return HTTP response with status_code 401 for unauthorized
+response = handle_exception(get_user, request)
 ```
 
 ## Exception Middleware Hook
@@ -131,6 +115,6 @@ CoreLib.handle_exception_middleware.add(SentryMiddleware())
 If a middleware itself raises an exception, it is logged as a warning and the chain continues — it does not suppress the original HTTP error response.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/user_security.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/web.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/user_security.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/web.html">Next</a></button>
 </div>

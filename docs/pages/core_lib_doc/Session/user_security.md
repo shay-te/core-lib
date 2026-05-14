@@ -9,6 +9,10 @@ toc: false
 
 Auth requirements differ per app — JWT tokens, session cookies, role-based access — but the request wiring is always the same: extract the token, decode it, validate it, decide whether to allow the request. `UserSecurity` is an abstract interface you implement once for your specific auth logic; everything else (cookie extraction, token decode, decorator wiring) is handled by Core-Lib.
 
+> **Where it fits:** Web edge + Service. `UserSecurity` subclasses implement auth logic; `@RequireLogin` guards route handlers; `UserAuthMiddleware` plugs into the framework's request lifecycle.
+
+> Unfamiliar with terms like "decorator", "session", or "WSGI"? See the [Glossary](/glossary.html).
+
 ## UserSecurity
 
 *core_lib.session.user_security.UserSecurity* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L6){:target="_blank"}
@@ -35,8 +39,7 @@ class UserSecurity(ABC):
 
 *core_lib.session.user_security.UserSecurity.secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L14){:target="_blank"}
 
-Is an abstract method that the user must implement, it can be customized to perform actions according 
-to the `policies` supplied to the `RequireLogin` decorator.
+Implement this method to decide whether a decoded session is allowed to enter. Use `policies` for role or permission checks supplied by the `RequireLogin` decorator.
 
 ```python
 def secure_entry(self, request, session_obj, policies: list):
@@ -52,8 +55,7 @@ def secure_entry(self, request, session_obj, policies: list):
 
 *core_lib.session.user_security.UserSecurity.from_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L19){:target="_blank"}
 
-Also an abstract method to be implemented by the user, takes care of the formatting and 
-cleaning of the decoded session data.
+Implement this method to convert decoded token data into the session object your app uses.
 
 ```python
 def from_session_data(self, session_data: dict):
@@ -67,7 +69,7 @@ def from_session_data(self, session_data: dict):
 
 *core_lib.session.user_security.UserSecurity.generate_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L23){:target="_blank"}
 
-Also an abstract method to be implemented by user, returns a structured `dict` with the received data that will be used in the response object.
+Implement this method to convert your user object into the dict that will be encoded into the session token.
 
 ```python
 def generate_session_data(self, obj) -> dict:
@@ -86,7 +88,7 @@ def generate_session_data(self, obj) -> dict:
 
 *core_lib.session.user_security.UserSecurity.generate_session_data_token()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L26){:target="_blank"}
 
-Is a method that will encode the data returned by `generate_session_data()` and return the encoded token.
+Encodes the dict returned by `generate_session_data()` and returns the token.
 
 ```python
 def generate_session_data_token(self, obj):
@@ -94,7 +96,7 @@ def generate_session_data_token(self, obj):
 
 **Arguments**
 
-- **`obj`**: That is being passed to `generate_session_data` in order to create a structured `dict`.
+- **`obj`**: The user object passed to `generate_session_data()`.
 
 **Returns**
 
@@ -104,8 +106,7 @@ Returns encoded token.
 
 *core_lib.session.user_security.UserSecurity._secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L38){:target="_blank"}
 
-Is being called in the `@RequireLogin` decorator and is responsible for calling the `secure_entry` 
-method that is implemented.
+Called by the `@RequireLogin` decorator. It reads the token from the request, converts it to a session object, then calls your `secure_entry()` implementation.
 
 ```python
 def _secure_entry(self, request, policies):
@@ -113,32 +114,30 @@ def _secure_entry(self, request, policies):
 
 **Arguments**
 
-- **`request`**: Request object that is received by the decorator containing the cookie with token.
+- **`request`**: Request object received by the decorator. It must contain the auth cookie.
 
 - **`policies`**: List of policies that will be passed to `secure_entry()`
 
 **Returns**
 
-Returns the data returned implemented `secure_entry()` function.
+Returns whatever your `secure_entry()` implementation returns.
 
 
 ## SecurityHandler
 
 *core_lib.session.security_handler.SecurityHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L4){:target="_blank"}
 
-`SecurityHandler` class registers our `UserSecurity` implemented class and is used to call `UserSecurity` methods using `get()`.
+A process-wide registry for your `UserSecurity` implementation. Register it once at startup; the `RequireLogin` decorator and any code that needs to issue tokens calls `SecurityHandler.get()` to reach it.
 
 ```python
 class SecurityHandler(object):
 ```
 
-## Functions
-
-### register()
+### `register()`
 
 *core_lib.session.security_handler.SecurityHandler.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L8){:target="_blank"}
 
-This function registers our `UserSecurity` implemented class.
+Registers your `UserSecurity` implementation.
 
 ```python
 def register(user_security: UserSecurity):
@@ -148,11 +147,11 @@ def register(user_security: UserSecurity):
 
 - **`user_security`** *`(UserSecurity)`*: `UserSecurity` implemented class.
 
-### get()
+### `get()`
 
 *core_lib.session.security_handler.SecurityHandler.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L14){:target="_blank"}
 
-This function returns the `UserSecurity` functions.
+Returns the registered `UserSecurity` instance.
 
 ```python
 def get() -> UserSecurity:
@@ -167,12 +166,11 @@ def get() -> UserSecurity:
 
 *core_lib.web_helpers.django.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/require_login.py#L10){:target="_blank"}
 
-This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
-It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+This decorator runs authorization/authentication through the registered `UserSecurity` instance. It accepts `policies`, reads the request object using the matching Flask or Django integration, calls `_secure_entry()`, then returns that response.
 
 ```python
 class RequireLogin(object):
-    def __init__(self, policies: list = []):
+    def __init__(self, policies=None):
 ```
 
 **Arguments**
@@ -184,8 +182,7 @@ class RequireLogin(object):
 
 *core_lib.web_helpers.django.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/user_auth_middleware.py#L7){:target="_blank"}
 
-This middleware can be configured in the `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
-the specified cookie is present in the request, turn it to a `Session Object`, and append it to the `request.user` variable.
+Configure this middleware in Django's `MIDDLEWARE` list. It checks for the configured cookie, converts the token into your session object, and assigns it to `request.user`.
 
 ```python
 class UserAuthMiddleware(MiddlewareMixin):
@@ -285,48 +282,30 @@ That is the whole flow. Everything else — multi-role policies, status flags, c
 
 ---
 
-## Flask Support
+## Flask vs Django
 
-`RequireLogin` and `UserAuthMiddleware` have Flask equivalents in `core_lib.web_helpers.flask`. The API is identical — swap the import path.
+The API is identical for both frameworks — only the import path differs.
 
-### RequireLogin (Flask)
+| Class | Flask import | Django import |
+|---|---|---|
+| `RequireLogin` | `core_lib.web_helpers.flask.require_login` | `core_lib.web_helpers.django.require_login` |
+| `UserAuthMiddleware` | `core_lib.web_helpers.flask.user_auth_middleware` | `core_lib.web_helpers.django.user_auth_middleware` |
 
-*core_lib.web_helpers.flask.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/flask/require_login.py){:target="_blank"}
+The Flask version of `RequireLogin` reads from Flask's `request` context, so the decorated view takes no `request` parameter. The Django version takes `request` as usual.
 
-```python
-from core_lib.web_helpers.flask.require_login import RequireLogin
-
-@RequireLogin(policies=[User.PolicyRoles.ADMIN])
-def admin_view():
-    pass
-```
-
-The Flask version reads the request from Flask's `request` context automatically — no `request` parameter needed in the decorated function.
-
-### UserAuthMiddleware (Flask)
-
-*core_lib.web_helpers.flask.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/flask/user_auth_middleware.py){:target="_blank"}
-
-Wraps a Flask WSGI app, decodes the auth cookie on each request, and stores the session user in `environ['user']`.
+The Flask `UserAuthMiddleware` wraps the WSGI app directly:
 
 ```python
 from flask import Flask
 from core_lib.web_helpers.flask.user_auth_middleware import UserAuthMiddleware
 
 app = Flask(__name__)
-app.wsgi_app = UserAuthMiddleware(app.wsgi_app, cookie_name='user_cookie')
+app.wsgi_app = UserAuthMiddleware(app.wsgi_app, cookie_name='app_cookie')
 ```
 
-```python
-def __init__(self, app, cookie_name: str):
-```
-
-**Arguments**
-
-- **`app`**: The Flask WSGI application.
-- **`cookie_name`** *`(str)`*: Name of the cookie that carries the session token.
+The Django version is registered in `MIDDLEWARE` in `settings.py`.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/core_lib_listener.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/handle_exceptions.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/core_lib_listener.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/handle_exceptions.html">Next</a></button>
 </div>

@@ -8,6 +8,8 @@ toc: false
 ---
 SQLAlchemy model objects, custom Python objects, and raw rows can't be serialized to JSON directly. `@ResultToDict()` automatically converts whatever your service returns into a plain dict — no manual per-field mapping needed.
 
+> **Where it fits:** Service-layer helper. Apply `@ResultToDict()` to a Service method so its return value is JSON-serializable before the web layer hands it back.
+
 ## Example
 
 ### `user_service.py`
@@ -34,7 +36,7 @@ class UserService(Service):
 
 *core_lib.data_transform.result_to_dict.result_to_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/data_transform/result_to_dict.py#L74){:target="_blank"}
 
-return any value passed into the `return_val` parameter as a `dict`
+Converts the value passed to `return_val` into JSON-friendly Python data.
 
 ```python 
 def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callable[[dict], Awaitable[dict]] = None):
@@ -48,8 +50,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
 
 **Returns**
 
-A formatted `dict` transformation of the `return_val` parameter
-For e.g., will return tuple as a tuple, dict as a dict
+The converted value. Existing dicts stay dicts, tuples stay tuples, and objects are converted into dicts where possible.
 
 ### Datatypes supported
 
@@ -87,8 +88,8 @@ For e.g., will return tuple as a tuple, dict as a dict
 
 ### Example
 
->For custom conversion, the `callback` function has to be implemented by the user for handling different types of data nested inside the given object.
-> Also if the callback is not returning a new value, or it does not find any data to format it will return the original data.
+> Implement `callback` when nested data needs custom conversion.
+> If the callback does not return a new value, or finds nothing to format, the original data is returned.
 
 ```python
 import datetime
@@ -117,12 +118,11 @@ data = ["apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': datetime.
 formatted_data = result_to_dict(data)
 print(formatted_data)  # ["apple", "cherry", {'fruit': 'kiwi', 'color': 'green', 'date': '<timestamp of the datetime>'}]
 
-#Base/Database object
-# query to select data from your DB
+# SQLAlchemy query result
 base_object = session.query(Data).all()
 
 formatted_data = result_to_dict(base_object)
-print(formatted_data) # {'id': 1, 'name': 'your_name', 'created_at':'11234322.6789', ...and other columns from your DB}
+print(formatted_data)  # {'id': 1, 'name': 'your_name', 'created_at': '<timestamp>', ...}
 
 # Callback function for result_to_dict()
 def convert_str_to_dict(result):
@@ -134,13 +134,13 @@ def convert_str_to_dict(result):
 # Callback implementation
 data = {'name': 'Jon', 'email': 'jon@mail.com', 'additional_data': '{"age": 42, "address": "Miami", "active": true}'}
 
-# Callback will call the function and convert the json string inside the dict to object
+# Callback converts the JSON string inside the dict to an object.
 formatted_data = result_to_dict(data, callback=convert_str_to_dict)
 print(formatted_data)  # {'name': 'Jon', 'email': 'jon@mail.com', 'additional_data': {'age': 42, 'address': 'Miami', 'active': True}}
 
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/registry.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/rules_validator.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/registry.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/rules_validator.html">Next</a></button>
 </div>
