@@ -376,7 +376,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
         # Extra kwargs are accepted but ignored (the function uses *args/**kwargs)
         self.assertEqual(
             build_url(protocol='http', host='h', extra_field='ignored'),  # NOSONAR test fixture protocol, never dispatched
-            'http://h',
+            'http://h',  # NOSONAR expected output of build_url fixture, never dispatched
         )
 
     def test_full_url(self):
