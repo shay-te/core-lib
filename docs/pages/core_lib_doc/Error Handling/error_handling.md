@@ -49,8 +49,9 @@ raise StatusCodeException(HTTPStatus.BAD_REQUEST, 'Input parameter is invalid')
 *core_lib.error_handling.not_found_decorator.NotFoundErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/not_found_decorator.py#L11){:target="_blank"}
 
 
-`NotFoundErrorHandler` decorator will raise `StatusCodeException` when the decorated function is not returning anything.  
-For e.g., if a function is returning an empty `string ""`, `tuple ()`, `list []`, `dict {}` `set()` or `None` `StatusCodeException` will be raised.
+`NotFoundErrorHandler` decorator will raise `StatusCodeException` with status `NOT_FOUND` when the decorated function returns a falsy value — `None`, `""`, `()`, `[]`, `{}`, `set()`, `0`, or `False`.
+
+> **Watch out:** the check is `not return_value`, not `return_value is None`. Only put this decorator on functions where a valid result is always truthy (e.g. a fetched ORM row). On a function whose valid result might be `0`, `False`, or `[]`, you'll convert legitimate empty results into HTTP 404s.
 
 **Example**
 
@@ -58,15 +59,15 @@ For e.g., if a function is returning an empty `string ""`, `tuple ()`, `list []`
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 @NotFoundErrorHandler()
-def raise_expection():
-    pass
+def find_user(user_id):
+    return user_data_access.get(user_id)  # returns User or None
 
-raise_expection() # will raise a StatusCodeException for parameter NOT_FOUND
+find_user(99)  # raises StatusCodeException(NOT_FOUND) when no row matches
 ```
 
 
 
-## StatusCodeAssert Function
+## StatusCodeAssert
 
 *core_lib.error_handling.status_code_assert.StatusCodeAssert* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_assert.py#L9){:target="_blank"}
 
@@ -81,18 +82,17 @@ with StatusCodeAssert(status_code=500, message="User must be active"):
     assert user_status == 'active' # will raise an AssertionError because the status is inactive.
 ```
 
-## CoreLibInitException Function
+## CoreLibInitException
 *core_lib.error_handling.core_lib_init_exception.CoreLibInitException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/core_lib_init_exception.py){:target="_blank"}
 
-`CoreLibInitException` decorator handles any exception raised while initialization of `core-lib`.
+Exception raised when something goes wrong while initializing a `CoreLib`. Catch this in your bootstrap code to distinguish startup failures from runtime errors.
 
-**Example**
- ```python
+```python
 class CoreLibInitException(Exception):
     pass
 ```
 
-## DuplicateErrorHandler Function
+## DuplicateErrorHandler Decorator
 *core_lib.error_handling.duplicate_error_decorator.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
 
 `DuplicateErrorHandler` decorator will raise `StatusCodeException` when the decorated function adds the same value in the column of the database table which accepts unique values only.

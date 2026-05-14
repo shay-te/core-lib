@@ -9,7 +9,7 @@ toc: false
 
 Django and Flask return responses differently. Web Helpers abstracts that difference so your service code doesn't need to know which framework is running. Set the server type once at startup, then use the same `response_json`, `response_ok`, and `response_status` functions everywhere.
 
-# WebHelpersUtils
+## WebHelpersUtils
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4){:target="_blank"}
 
@@ -69,7 +69,7 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 WebHelpersUtils.get_server_type() # returns flask
 ```
 
-# Request Response Helpers
+## Request Response Helpers
 
 Depending on the server type set in `WebHelpersUtils` class, request and response functions return data.
 

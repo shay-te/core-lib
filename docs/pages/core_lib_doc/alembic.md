@@ -1,6 +1,6 @@
 ---
 id: alembic
-title: Alembic
+title: Alembic Migrations
 sidebar: core_lib_doc_sidebar
 permalink: alembic.html
 folder: core_lib_doc

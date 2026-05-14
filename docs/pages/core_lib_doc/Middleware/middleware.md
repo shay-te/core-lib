@@ -73,7 +73,7 @@ class UserService(Service):
 
 ---
 
-# Middleware
+## Middleware
 
 *core_lib.middleware.middleware.Middleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/middleware/middleware.py){:target="_blank"}
 
@@ -91,7 +91,7 @@ class Middleware(ABC):
 
 ---
 
-# MiddlewareChain
+## MiddlewareChain
 
 *core_lib.middleware.middleware_chain.MiddlewareChain* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/middleware/middleware_chain.py){:target="_blank"}
 

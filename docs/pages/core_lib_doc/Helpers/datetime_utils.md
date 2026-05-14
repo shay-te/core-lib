@@ -58,12 +58,12 @@ def reset_datetime(date: datetime):
 
 **Arguments**
 
-- **`date`** *`(datetime)`*: The DateTime to convert.
+- **`date`** *`(datetime)`*: The datetime to convert.
 
 
 **Returns**
 
-*`(datetime)`*: Returns the DateTime with `hour`, `minute`, `second` and `microsecond` as  `0`.
+*`(datetime)`*: Returns the datetime with `hour`, `minute`, `second` and `microsecond` set to `0`.
 
 **Example**
 

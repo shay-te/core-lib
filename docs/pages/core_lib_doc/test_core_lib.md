@@ -1,12 +1,14 @@
 ---
 id: test_core_lib_legacy
-title: Testing Core-Lib (legacy)
+title: Testing Core-Lib (archived)
 sidebar: core_lib_doc_sidebar
 permalink: test_core_lib_legacy.html
 folder: core_lib_doc
 toc: false
 published: false
 ---
+
+> **Archived.** Superseded by the current [Testing Core-Lib](/test_core_lib.html) page. Kept here for history; safe to delete.
 
 Let's understand how `Core-Lib` is initialized and tested and how to integrate it with your new or existing application.
 

@@ -17,20 +17,19 @@ Use the `Observer` class to `attach`, `detach`, and `notify` listeners for named
 
 *core_lib.observer.observer_listener.ObserverListener* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_listener.py#L4){:target="_blank"}
 
-
-`ObserverListener` listener class to be implemented by the user. 
+Subclass `ObserverListener` and implement `update(key, value)` to react to events. The `key` identifies which event fired; `value` carries event data. Define your event keys as constants on the listener so emitters can reference them by name.
 
 ```python
 from core_lib.observer.observer_listener import ObserverListener
 
 
 class UserObserverListener(ObserverListener):
-
     EVENT_USER_CHANGE = "EVENT_USER_CHANGE"
 
     def update(self, key: str, value):
-        if key == "":
-            pass
+        if key == UserObserverListener.EVENT_USER_CHANGE:
+            # invalidate cache, send notification, etc.
+            ...
 ```
 
 

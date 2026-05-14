@@ -8,30 +8,14 @@ toc: false
 ---
 Core-Lib needs to look up named instances at runtime — the right cache backend, the right observer, the right connection — without hard-coding them in business logic. `Registry` is the base class for all of these lookups: a typed key-value store where you register instances by name and retrieve them by key (or get the default when only one is registered).
 
-## Registry
+## Registry types
 
 *core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py){:target="_blank"}
 
-`Core-Lib`  basic `Registry` class is used by most of `Core-Lib` modules
-
-1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py){:target="_blank"}
-
-   Base basic implementation of the `Registry` class with four basic functions `register`, `unregister`, `get`, `registered`
-
-
-2. `core_lib.connection.connection_factory_registry.ConnectionFactoryRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_factory_registry.py){:target="_blank"}
-
-   Extends `DefaultRegistry` and is the base class for all `ConnectionFactory` registries.
-
-3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
-
-Extends the `DefaultRegistry` and is limited to storing only `CacheHandler` instances using an `object_type` parameter
-
-4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py){:target="_blank"}
-
-Extends the `DefaultRegistry` and is limited to storing only `Observer` instances using an `object_type` parameter
-
-
+- **`DefaultRegistry`** — generic key-value store with `register` / `unregister` / `get` / `registered`. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py){:target="_blank"}
+- **`ConnectionFactoryRegistry`** — base class for connection factory registries. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_factory_registry.py){:target="_blank"}
+- **`CacheRegistry`** — restricted to `CacheHandler` instances. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
+- **`ObserverRegistry`** — restricted to `Observer` instances. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py){:target="_blank"}
 
 ## Default Registry
 
@@ -73,7 +57,7 @@ class CustomerRegistry(DefaultRegistry):
 
 *core_lib.registry.default_registry.DefaultRegistry.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L30){:target="_blank"}
 
-Returns an fresh entry from the registry with the specified key.
+Returns the registered object for the given key — the same instance that was passed to `register()`, not a copy.
 
 ```python
 def get(self, key: str = None, *args, **kwargs):

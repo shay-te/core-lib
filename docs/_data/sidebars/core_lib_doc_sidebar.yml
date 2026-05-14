@@ -24,7 +24,7 @@ entries:
           - title: Core-Lib
             output: web
             folderitems:
-                - title: Core Lib Class
+                - title: The CoreLib Class
                   url: /core_lib_main_class.html
                   output: web
 
@@ -118,7 +118,7 @@ entries:
                   url: /crud.html
                   output: web
 
-                - title: Soft Delete
+                - title: Soft Delete Handler
                   url: /soft_delete.html
                   output: web
 
@@ -187,10 +187,10 @@ entries:
                   url: /constants.html
                   output: web
 
-          - title: Testing Core-lib
+          - title: Testing Core-Lib
             output: web
             folderitems:
-                - title: Testing Core-lib
+                - title: Testing Core-Lib
                   url: /test_core_lib.html
                   output: web
 
@@ -201,7 +201,7 @@ entries:
                   url: /observer.html
                   output: web
 
-                - title: Core Lib Listener
+                - title: CoreLib Listener
                   url: /core_lib_listener.html
                   output: web
 

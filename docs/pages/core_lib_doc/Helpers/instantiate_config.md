@@ -38,7 +38,7 @@ Can be loaded from a YAML file using [hydra compose](https://hydra.cc/docs/1.0/e
 
 ### Examples
 
-### Core-Lib Yaml with target
+### Core-Lib YAML with target
 customer_core_lib.yaml
 ```yaml
 core_lib:

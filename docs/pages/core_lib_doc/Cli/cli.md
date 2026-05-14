@@ -1,12 +1,14 @@
 ---
 id: cli
-title: Command Line
+title: Command Line (archived)
 sidebar: core_lib_doc_sidebar
 permalink: cli.html
 folder: core_lib_doc
 toc: false
 published: false
 ---
+
+> **Archived.** This page is superseded by [Migrations](/migrations.html) and [Generation](/generation.html) under the Command Line section. Kept here for history; safe to delete.
 
 `core_lib_main` is the single gateway to interact with `Core-Lib` using the command line.  
 It offers the following tools:

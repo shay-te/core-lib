@@ -7,6 +7,8 @@ folder: core_lib_doc
 toc: false
 ---
 
+Schema changes in production are risky when run manually — wrong order, forgotten step, no rollback path. Core-Lib's `core_lib migrate` command wraps Alembic so every migration is a versioned, reversible step that runs the same way locally, in CI, and in production.
+
 ## Commands for **`Alembic`** migrations
 
 ### New Migration

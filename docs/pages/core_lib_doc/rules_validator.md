@@ -84,7 +84,7 @@ class User(Base):
 
 
 
-# ValueRuleValidator
+## ValueRuleValidator
 
 *core_lib.rule_validator.rule_validator.ValueRuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L5){:target="_blank"}
 
@@ -115,7 +115,7 @@ class ValueRuleValidator(object):
 
 
 
-# RuleValidator
+## RuleValidator
 
 *core_lib.rule_validator.rule_validator.RuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L14){:target="_blank"}
 
