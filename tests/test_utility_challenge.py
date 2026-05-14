@@ -347,7 +347,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
         )
 
     def test_with_username_and_password(self):
-        # NOSONAR — "p" is a URL-builder fixture, not a real credential.
+        # NOSONAR "p" is a URL-builder fixture, not a real credential.
         self.assertEqual(
             build_url(protocol='proto', username='u', password='p', host='h'),  # NOSONAR
             'proto://u:p@h',
@@ -355,7 +355,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
 
     def test_password_without_username_inserts_at_sign(self):
         self.assertEqual(
-            build_url(protocol='proto', password='p', host='h'),  # NOSONAR — fixture, not a credential.
+            build_url(protocol='proto', password='p', host='h'),  # NOSONAR fixture, not a credential.
             'proto://@h',
         )
 
@@ -384,7 +384,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
             build_url(
                 protocol='postgres',
                 username='u',
-                password='p',  # NOSONAR — URL-builder fixture, not a credential.
+                password='p',  # NOSONAR URL-builder fixture, not a credential.
                 host='h',
                 port=5432,
                 path='mydb',

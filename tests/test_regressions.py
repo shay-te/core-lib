@@ -412,7 +412,7 @@ class TestCacheHandlerRedisSetWithoutExpire(unittest.TestCase):
         with patch('core_lib.cache.cache_handler_redis.redis.from_url', return_value=mock_client):
             handler = CacheHandlerRedis('redis://localhost')
             handler.set('k', 'v', timedelta(seconds=30))
-            args, kwargs = mock_client.set.call_args
+            _, kwargs = mock_client.set.call_args
             self.assertEqual(kwargs['ex'], timedelta(seconds=30))
 
     def test_set_accepts_float_values(self):
@@ -590,16 +590,16 @@ class TestAssertValidationSurvivesOptimization(unittest.TestCase):
         from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
         access = CRUDDataAccess(MagicMock(), MagicMock())
         with self.assertRaises(AssertionError):
-            access.get(0)  # falsy id  # NOSONAR(python:S5655)
+            access.get(0)  # falsy id  # NOSONAR
         with self.assertRaises(AssertionError):
-            access.delete(None)  # NOSONAR(python:S5655)
+            access.delete(None)  # NOSONAR
 
     def test_observer_validate_raises_explicitly(self):
         # Even with -O the validation must still raise
         from core_lib.observer.observer import Observer
         obs = Observer()
         with self.assertRaises(AssertionError):
-            obs.attach(None)  # NOSONAR(python:S5655)
+            obs.attach(None)  # NOSONAR
 
 
 # ── Code-smell #16: mutable defaults ───────────────────────────────────────

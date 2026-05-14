@@ -586,7 +586,7 @@ class TestDecoratorsGaps(unittest.TestCase):
         bad_mw.execute.side_effect = RuntimeError('mw broken')
         CoreLib.handle_exception_middleware = bad_mw
         try:
-            dec._execute_error_middlewares(Exception('x'), lambda: None)
+            dec._execute_error_middlewares(RuntimeError('x'), lambda: None)
         finally:
             CoreLib.handle_exception_middleware = original
 
@@ -848,7 +848,7 @@ class TestBranchCoverage(unittest.TestCase):
         # Cover data_helpers.py 18->22 (False branch on `if username:`)
         from core_lib.data_layers.data.data_helpers import build_url
         self.assertEqual(
-            build_url(protocol='proto', password='pw', host='h'),  # NOSONAR — fixture, not a credential.
+            build_url(protocol='proto', password='pw', host='h'),  # NOSONAR fixture, not a credential.
             'proto://@h',
         )
 
@@ -1185,7 +1185,7 @@ class TestResultToDictRemaining(unittest.TestCase):
         from core_lib.data_transform.result_to_dict import result_to_dict
         from tests.test_data.test_utils import connect_to_mem_db
 
-        # NOSONAR(python:S5603) — SQLAlchemy entities resolved by string
+        # NOSONAR SQLAlchemy entities resolved by string
         # lookup in `relationship(...)` are not visible to static analysis.
         class OwnerRX(Base):
             __tablename__ = 'rtd_owner_rel_xyz'
@@ -1193,7 +1193,7 @@ class TestResultToDictRemaining(unittest.TestCase):
             id = Column(Integer, primary_key=True)
             items = relationship('ItemRX', back_populates='owner')
 
-        class ItemRX(Base):  # NOSONAR(python:S5603) — see comment above OwnerRX
+        class ItemRX(Base):  # NOSONAR see comment above OwnerRX
             __tablename__ = 'rtd_item_rel_xyz'
             __table_args__ = {'extend_existing': True}
             id = Column(Integer, primary_key=True)
@@ -1229,7 +1229,7 @@ class TestResultToDictRemaining(unittest.TestCase):
         from core_lib.data_transform.result_to_dict import result_to_dict
         from tests.test_data.test_utils import connect_to_mem_db
 
-        # NOSONAR(python:S5603) — SQLAlchemy entities resolved by string
+        # NOSONAR SQLAlchemy entities resolved by string
         # lookup in `relationship(...)` are not visible to static analysis.
         class Holder(Base):
             __tablename__ = 'rtd_holder_xyz'
@@ -1238,7 +1238,7 @@ class TestResultToDictRemaining(unittest.TestCase):
             child_id = Column(Integer, ForeignKey('rtd_child_only_xyz.id'), nullable=True)
             child = relationship('ChildOnly')
 
-        class ChildOnly(Base):  # NOSONAR(python:S5603) — see comment above Holder
+        class ChildOnly(Base):  # NOSONAR see comment above Holder
             __tablename__ = 'rtd_child_only_xyz'
             __table_args__ = {'extend_existing': True}
             id = Column(Integer, primary_key=True)

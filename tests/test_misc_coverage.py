@@ -159,7 +159,7 @@ class TestObserverCoverage(unittest.TestCase):
     def test_observer_validate_assert(self):
         obs = Observer(listener_type=_Listener)
         with self.assertRaises(AssertionError):
-            obs.attach(None)  # NOSONAR(python:S5655)
+            obs.attach(None)  # NOSONAR
 
     def test_observer_validate_type(self):
         obs = Observer(listener_type=_Listener)

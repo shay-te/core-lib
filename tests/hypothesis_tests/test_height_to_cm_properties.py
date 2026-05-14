@@ -20,12 +20,12 @@ class TestHeightToCmProperties(unittest.TestCase):
     def test_meters_under_3_converted_to_cm(self, m):
         # `round()` returns int — this is an integer comparison, not
         # float-equality.
-        self.assertEqual(height_to_cm(m), round(m * 100))  # NOSONAR(python:S1244)
+        self.assertEqual(height_to_cm(m), round(m * 100))  # NOSONAR
 
     @given(st.floats(min_value=3.0, max_value=300.0, allow_nan=False, allow_infinity=False))
     @SETTINGS
     def test_floats_3_or_more_are_cm(self, val):
-        self.assertEqual(height_to_cm(val), round(val))  # NOSONAR(python:S1244)
+        self.assertEqual(height_to_cm(val), round(val))  # NOSONAR
 
     @given(st.integers(min_value=100, max_value=250))
     @SETTINGS

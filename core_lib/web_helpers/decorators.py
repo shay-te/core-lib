@@ -89,13 +89,14 @@ def handle_exception(func, *args, **kwargs):
         # Run middlewares on all failures
         _execute_error_middlewares(exc, func)
 
-        # Use logger.exception() inside `except` blocks when we want the
-        # traceback; plain logger.error() when we deliberately don't.
-        msg = "handle_exception got %s error for function `%s`"
-        if log_exception:
-            logger.exception(msg, type(exc).__name__, func)
-        else:
-            logger.error(msg, type(exc).__name__, func)
+        # `logger.exception` always attaches the active traceback. When the
+        # caller asked to suppress the traceback (log_exception=False), we
+        # explicitly pass `exc_info=False`. Single call → no S8572 split.
+        logger.exception(
+            "handle_exception got %s error for function `%s`",
+            type(exc).__name__, func,
+            exc_info=log_exception,
+        )
 
         return _get_exception_status_code(exc)
 
