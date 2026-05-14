@@ -20,8 +20,16 @@ class DuplicateErrorHandler(object):
             try:
                 return func(*args, **kwargs)
             except exc.IntegrityError as e:
-                logger.debug(f'DuplicateErrorHandler for function `{func.__qualname__}`.')
+                # Surface which constraint actually violated; otherwise the
+                # caller (and ops dashboards) see only "Conflict" with no
+                # detail about which row / index collided.
+                logger.warning(
+                    'DuplicateErrorHandler caught IntegrityError in `%s`: %s',
+                    func.__qualname__,
+                    e.orig if getattr(e, 'orig', None) else e,
+                )
                 exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
-                raise StatusCodeException(HTTPStatus.CONFLICT, exception_message)
+                # Chain the original error so a debugger / Sentry sees both.
+                raise StatusCodeException(HTTPStatus.CONFLICT, exception_message) from e
 
         return _wrapper

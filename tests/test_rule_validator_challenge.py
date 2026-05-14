@@ -131,8 +131,11 @@ class TestRuleValidatorCustomConverter(unittest.TestCase):
             rv.validate_dict({'k': 5}, strict_mode=False)
 
     def test_validator_raising_wraps(self):
+        def raise_inside(_v):
+            raise KeyError('inside')
+
         rule = ValueRuleValidator(
-            'k', int, custom_validator=lambda v: (_ for _ in ()).throw(KeyError('inside'))
+            'k', int, custom_validator=raise_inside,
         )
         rv = RuleValidator([rule])
         with self.assertRaises(PermissionError):

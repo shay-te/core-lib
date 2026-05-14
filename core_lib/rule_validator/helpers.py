@@ -1,9 +1,10 @@
 import datetime
+from typing import Optional
 
 from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 
 
-def convert_location(location: dict):
+def convert_location(location: Optional[dict]):
     if location:
         latitude = location.get('lat') or location.get('latitude')
         longitude = location.get('lng') or location.get('longitude')
@@ -11,12 +12,12 @@ def convert_location(location: dict):
     return None
 
 
-def validate_location(point: str):
+def validate_location(point: Optional[str]):
     if point:
         location = Point.from_point_str(point)
         latitude = location.get('lat') or location.get('latitude')
         longitude = location.get('lng') or location.get('longitude')
-        return True if -90 <= latitude <= 90 and -180 <= longitude <= 180 else False
+        return -90 <= latitude <= 90 and -180 <= longitude <= 180
     return True
 
 

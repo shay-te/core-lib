@@ -82,7 +82,7 @@ class TestCacheFlags(unittest.TestCase):
 
         fn()
         cache = CoreLib.cache_registry.get(HANDLER)
-        stored_key = list(cache.cached_function_responses.keys())[0]
+        stored_key = next(iter(cache.cached_function_responses.keys()))
         self.assertNotIn(' ', stored_key)
         self.assertEqual(stored_key, 'my_key_with_spaces')
 

@@ -298,15 +298,8 @@ class TestFuncUtilsChallenges(unittest.TestCase):
 
     def test_unseen_formatter_keyable_falsy_marker(self):
         f = UnseenFormatter()
-        # Force the empty-value path of _get_key_value via the exception handler
-        class Bad:
-            def __getitem__(self, k):
-                raise RuntimeError('boom')
-
-        # When the formatter passes a string key into a "dict" that raises,
-        # the exception is caught and returns !EkE!
-        result = f.format('{foo}', foo=None)
         # foo is None → _get_key_value returns the marker
+        result = f.format('{foo}', foo=None)
         self.assertEqual(result, '!EfooE!')
 
 

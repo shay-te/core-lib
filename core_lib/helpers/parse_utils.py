@@ -29,7 +29,10 @@ def similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
-def clean_list(list_to_clean: list) -> list:
+def clean_list(list_to_clean) -> list:
+    # Untyped on input — the function explicitly handles non-list values
+    # by returning []. Marking it `list` would be a lie callers/linters
+    # could rely on.
     if not isinstance(list_to_clean, list):
         return []
 
@@ -139,7 +142,9 @@ def parse_date(value: Union[str, datetime, int, float]) -> Optional[datetime]:
 # Range Parsing
 # -----------------------------------
 
-def parse_range(range_str: str, min_limit=None, max_limit=None):
+def parse_range(range_str, min_limit=None, max_limit=None):
+    # Untyped on input — the function explicitly handles non-str inputs
+    # by returning None.
     if not isinstance(range_str, str):
         return None
     range_str = range_str.strip().lower()
@@ -245,7 +250,9 @@ def find_key_by_value(data, target):
             return key
     return None
 
-def fetch_closest_option(source: str, options: list, threshold: float = 0.89) -> Union[str, None]:
+def fetch_closest_option(source, options: list, threshold: float = 0.89) -> Union[str, None]:
+    # Untyped on `source` — non-string inputs are explicitly rejected
+    # (return None) rather than being a type error.
     if not isinstance(source, str):
         return None
 

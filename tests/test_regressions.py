@@ -590,16 +590,16 @@ class TestAssertValidationSurvivesOptimization(unittest.TestCase):
         from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
         access = CRUDDataAccess(MagicMock(), MagicMock())
         with self.assertRaises(AssertionError):
-            access.get(0)  # falsy id
+            access.get(0)  # falsy id  # NOSONAR(python:S5655)
         with self.assertRaises(AssertionError):
-            access.delete(None)
+            access.delete(None)  # NOSONAR(python:S5655)
 
     def test_observer_validate_raises_explicitly(self):
         # Even with -O the validation must still raise
         from core_lib.observer.observer import Observer
         obs = Observer()
         with self.assertRaises(AssertionError):
-            obs.attach(None)
+            obs.attach(None)  # NOSONAR(python:S5655)
 
 
 # ── Code-smell #16: mutable defaults ───────────────────────────────────────
@@ -1305,7 +1305,9 @@ class TestErrorHandlerStatusCodeIsIntCompatible(unittest.TestCase):
 
         @DuplicateErrorHandler()
         def insert():
-            raise exc.IntegrityError('stmt', {}, Exception('orig'))
+            # Use RuntimeError (a specific exception) rather than the
+            # generic Exception base class for the underlying DB-error stand-in.
+            raise exc.IntegrityError('stmt', {}, RuntimeError('orig'))
 
         with self.assertRaises(StatusCodeException) as cm:
             insert()
@@ -1448,7 +1450,9 @@ class TestAlembicCreateMigrationLocked(unittest.TestCase):
                        side_effect=fake_revision), \
                  patch.object(alembic, '_write_version', side_effect=fake_write):
                 threads = [threading.Thread(
-                    target=lambda: alembic.create_migration(f'm{i}')
+                    # Bind `idx` as a default arg so each thread captures
+                    # its own value (vs. closing over the late-bound `i`).
+                    target=lambda idx=i: alembic.create_migration(f'm{idx}')
                 ) for i in range(5)]
                 for t in threads:
                     t.start()
@@ -1633,3 +1637,117 @@ class TestIntEnumStrictBindType(unittest.TestCase):
         col = SQLAIntEnum(Flag)
         self.assertEqual(col.process_bind_param(Flag.OFF, None), 0)
         self.assertEqual(col.process_bind_param(Flag.ON, None), 1)
+
+
+# ── Bug 41: get_dict_attr only caught KeyError ─────────────────────────
+
+
+class TestGetDictAttrTypeErrorSafe(unittest.TestCase):
+    """`get_dict_attr` was wrapped in `try / except KeyError`. Paths that
+    descended through a non-dict (None, scalar, list) raised TypeError or
+    IndexError, escaping the try/except. The whole point of the `default`
+    argument was lost in that case. Now also catches TypeError and
+    IndexError so the fallback always applies."""
+
+    def test_descend_through_none_returns_default(self):
+        from core_lib.data_transform.helpers import get_dict_attr
+        self.assertEqual(
+            get_dict_attr({'a': None}, 'a.b', 'fallback'),
+            'fallback',
+        )
+
+    def test_descend_through_scalar_returns_default(self):
+        from core_lib.data_transform.helpers import get_dict_attr
+        self.assertEqual(
+            get_dict_attr({'a': 'string'}, 'a.b', 'fallback'),
+            'fallback',
+        )
+
+    def test_descend_through_list_with_named_key_returns_default(self):
+        from core_lib.data_transform.helpers import get_dict_attr
+        self.assertEqual(
+            get_dict_attr({'a': [1, 2]}, 'a.b', 'fallback'),
+            'fallback',
+        )
+
+    def test_normal_resolution_still_works(self):
+        from core_lib.data_transform.helpers import get_dict_attr
+        self.assertEqual(
+            get_dict_attr({'a': {'b': 'value'}}, 'a.b'),
+            'value',
+        )
+
+    def test_default_none_when_path_missing(self):
+        from core_lib.data_transform.helpers import get_dict_attr
+        self.assertIsNone(get_dict_attr({}, 'no.such.path'))
+
+
+# ── Bug 42: set_dict_attr crashed on non-dict intermediate ─────────────
+
+
+class TestSetDictAttrReplacesNonDictIntermediate(unittest.TestCase):
+    """`set_dict_attr` did `if obj_temp.get(key) is None: setdefault(...)`,
+    which only created a new dict when the slot was None. If the slot held
+    a scalar/list/etc., the next iteration's `obj_temp[next_key] = ...`
+    crashed with TypeError. Now any non-dict intermediate is replaced with
+    a fresh dict."""
+
+    def test_replaces_scalar_intermediate(self):
+        from core_lib.data_transform.helpers import set_dict_attr
+        result = set_dict_attr({'a': 5}, 'a.b', 100)
+        self.assertEqual(result, {'a': {'b': 100}})
+
+    def test_replaces_list_intermediate(self):
+        from core_lib.data_transform.helpers import set_dict_attr
+        result = set_dict_attr({'a': [1, 2]}, 'a.b', 'x')
+        self.assertEqual(result, {'a': {'b': 'x'}})
+
+    def test_replaces_string_intermediate(self):
+        from core_lib.data_transform.helpers import set_dict_attr
+        result = set_dict_attr({'a': 'string'}, 'a.b.c', 1)
+        self.assertEqual(result, {'a': {'b': {'c': 1}}})
+
+    def test_creates_new_path_when_absent(self):
+        from core_lib.data_transform.helpers import set_dict_attr
+        result = set_dict_attr({}, 'a.b.c', 'value')
+        self.assertEqual(result, {'a': {'b': {'c': 'value'}}})
+
+    def test_preserves_existing_dict_intermediate(self):
+        from core_lib.data_transform.helpers import set_dict_attr
+        obj = {'a': {'existing': 'kept'}}
+        result = set_dict_attr(obj, 'a.b', 'new')
+        self.assertEqual(result, {'a': {'existing': 'kept', 'b': 'new'}})
+
+
+# ── Bug 43: DuplicateErrorHandler swallowed IntegrityError detail ──────
+
+
+class TestDuplicateErrorHandlerPreservesOrigError(unittest.TestCase):
+    """Previously the caught IntegrityError was discarded. Now we log the
+    underlying DB error and chain it onto the StatusCodeException via
+    `raise ... from e`, so Sentry / debuggers see the real constraint
+    that violated."""
+
+    def test_logs_orig_error_and_chains(self):
+        from sqlalchemy import exc
+        from core_lib.error_handling.duplicate_error_decorator import DuplicateErrorHandler
+        from core_lib.error_handling.status_code_exception import StatusCodeException
+
+        original = RuntimeError('UNIQUE constraint failed: users.email')
+
+        @DuplicateErrorHandler()
+        def insert():
+            # SQLAlchemy IntegrityError carries .orig referencing the
+            # underlying DBAPI error.
+            raise exc.IntegrityError('INSERT INTO ...', {}, original)
+
+        with self.assertLogs('core_lib.error_handling.duplicate_error_decorator',
+                             level='WARNING') as cm:
+            with self.assertRaises(StatusCodeException) as ctx:
+                insert()
+
+        # The log line contains the underlying DB error message.
+        joined = ' '.join(cm.output)
+        self.assertIn('UNIQUE constraint failed', joined)
+        # The StatusCodeException chains the IntegrityError.
+        self.assertIsInstance(ctx.exception.__cause__, exc.IntegrityError)

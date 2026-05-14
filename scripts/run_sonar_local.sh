@@ -13,8 +13,8 @@
 set -euo pipefail
 
 if [[ -z "${SONAR_TOKEN:-}" ]]; then
-    echo "ERROR: SONAR_TOKEN env var is not set."
-    echo "  Create a token at https://sonarcloud.io/account/security"
+    echo "ERROR: SONAR_TOKEN env var is not set." >&2
+    echo "  Create a token at https://sonarcloud.io/account/security" >&2
     exit 1
 fi
 
@@ -25,9 +25,9 @@ if command -v sonar-scanner >/dev/null 2>&1; then
 elif command -v pysonar >/dev/null 2>&1; then
     SCANNER=pysonar
 else
-    echo "ERROR: neither sonar-scanner nor pysonar found on PATH."
-    echo "  Install one of:  pip install pysonar"
-    echo "                   brew install sonar-scanner"
+    echo "ERROR: neither sonar-scanner nor pysonar found on PATH." >&2
+    echo "  Install one of:  pip install pysonar" >&2
+    echo "                   brew install sonar-scanner" >&2
     exit 1
 fi
 

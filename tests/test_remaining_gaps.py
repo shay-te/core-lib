@@ -272,13 +272,18 @@ class TestCRUDAbstractCalls(unittest.TestCase):
 
 class TestResultToDictGaps(unittest.TestCase):
     def test_wkbelement_branch(self):
+        # Exercises the WKBElement → from_point_wkb path inside __convert_value
+        # when wrapped in a dict input. (TestResultToDictRemaining has a
+        # similar test using `MagicMock(spec=WKBElement)` for stricter
+        # isinstance behavior; this one patches the class itself so any
+        # MagicMock passes the isinstance check.)
         from core_lib.data_transform import result_to_dict as rtd
         wkb_value = MagicMock()
         with patch.object(rtd, 'WKBElement', new=type(wkb_value)), patch.object(
             rtd.Point, 'from_point_wkb', return_value={'longitude': 1, 'latitude': 2}
         ):
-            from core_lib.data_layers.data.db.sqlalchemy.base import Base
-            self.assertEqual(rtd.__dict__['_result_to_dict__convert_value'](wkb_value) if False else rtd._result_to_dict__dict_to_dict({'pos': wkb_value})['pos'] if False else {'longitude': 1, 'latitude': 2}, {'longitude': 1, 'latitude': 2})
+            result = rtd.result_to_dict({'pos': wkb_value})
+            self.assertEqual(result['pos'], {'longitude': 1, 'latitude': 2})
 
     def test_base_to_dict_with_relations(self):
         # Build a Base entity with a relationship to another entity.
@@ -1180,13 +1185,15 @@ class TestResultToDictRemaining(unittest.TestCase):
         from core_lib.data_transform.result_to_dict import result_to_dict
         from tests.test_data.test_utils import connect_to_mem_db
 
+        # NOSONAR(python:S5603) — SQLAlchemy entities resolved by string
+        # lookup in `relationship(...)` are not visible to static analysis.
         class OwnerRX(Base):
             __tablename__ = 'rtd_owner_rel_xyz'
             __table_args__ = {'extend_existing': True}
             id = Column(Integer, primary_key=True)
             items = relationship('ItemRX', back_populates='owner')
 
-        class ItemRX(Base):
+        class ItemRX(Base):  # NOSONAR(python:S5603) — see comment above OwnerRX
             __tablename__ = 'rtd_item_rel_xyz'
             __table_args__ = {'extend_existing': True}
             id = Column(Integer, primary_key=True)
@@ -1222,6 +1229,8 @@ class TestResultToDictRemaining(unittest.TestCase):
         from core_lib.data_transform.result_to_dict import result_to_dict
         from tests.test_data.test_utils import connect_to_mem_db
 
+        # NOSONAR(python:S5603) — SQLAlchemy entities resolved by string
+        # lookup in `relationship(...)` are not visible to static analysis.
         class Holder(Base):
             __tablename__ = 'rtd_holder_xyz'
             __table_args__ = {'extend_existing': True}
@@ -1229,7 +1238,7 @@ class TestResultToDictRemaining(unittest.TestCase):
             child_id = Column(Integer, ForeignKey('rtd_child_only_xyz.id'), nullable=True)
             child = relationship('ChildOnly')
 
-        class ChildOnly(Base):
+        class ChildOnly(Base):  # NOSONAR(python:S5603) — see comment above Holder
             __tablename__ = 'rtd_child_only_xyz'
             __table_args__ = {'extend_existing': True}
             id = Column(Integer, primary_key=True)

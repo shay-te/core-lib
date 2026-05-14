@@ -86,5 +86,5 @@ class TestRuleValidatorProperties(unittest.TestCase):
         rv = RuleValidator(rules, mandatory_keys=['_definitely_missing_'])
         with self.assertRaises(PermissionError):
             rv.validate_dict(
-                {n: 'v' for n in present_keys}, strict_mode=False
+                dict.fromkeys(present_keys, 'v'), strict_mode=False
             )

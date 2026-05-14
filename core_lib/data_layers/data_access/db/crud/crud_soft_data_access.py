@@ -18,7 +18,10 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
-                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)
+                # Use `.is_(None)` (the SQLAlchemy idiom for `IS NULL`) so
+                # linters don't flag `== None` while still emitting the
+                # same SQL.
+                .filter(self._db_entity.id == id, self._db_entity.deleted_at.is_(None))
                 .first()
             )
 

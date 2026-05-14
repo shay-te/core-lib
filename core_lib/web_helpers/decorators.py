@@ -89,10 +89,13 @@ def handle_exception(func, *args, **kwargs):
         # Run middlewares on all failures
         _execute_error_middlewares(exc, func)
 
-        logger.error("handle_exception got %s error for function `%s`",
-                     type(exc).__name__, func)
+        # Use logger.exception() inside `except` blocks when we want the
+        # traceback; plain logger.error() when we deliberately don't.
+        msg = "handle_exception got %s error for function `%s`"
         if log_exception:
-            logger.exception(exc)
+            logger.exception(msg, type(exc).__name__, func)
+        else:
+            logger.error(msg, type(exc).__name__, func)
 
         return _get_exception_status_code(exc)
 
