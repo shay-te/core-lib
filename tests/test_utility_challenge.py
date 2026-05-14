@@ -338,7 +338,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
         self.assertEqual(build_url(), '')
 
     def test_protocol_only(self):
-        self.assertEqual(build_url(protocol='http'), 'http://')
+        self.assertEqual(build_url(protocol='http'), 'http://')  # NOSONAR test fixture protocol, never dispatched
 
     def test_with_username_no_password(self):
         self.assertEqual(
@@ -375,7 +375,7 @@ class TestBuildUrlChallenges(unittest.TestCase):
     def test_kwargs_ignored(self):
         # Extra kwargs are accepted but ignored (the function uses *args/**kwargs)
         self.assertEqual(
-            build_url(protocol='http', host='h', extra_field='ignored'),
+            build_url(protocol='http', host='h', extra_field='ignored'),  # NOSONAR test fixture protocol, never dispatched
             'http://h',
         )
 

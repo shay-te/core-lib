@@ -83,7 +83,7 @@ class TestFiles(unittest.TestCase):
             with patch('core_lib.helpers.files.requests.get') as mock_get:
                 mock_get.return_value.__enter__.return_value = mock_get.return_value
                 mock_get.return_value.iter_content.return_value = [b'data']
-                download_file('http://example.com/x', tmp_path)
+                download_file('http://example.com/x', tmp_path)  # NOSONAR mocked URL fixture, no real network I/O
             with open(tmp_path, 'rb') as fh:
                 self.assertEqual(fh.read(), b'data')
         finally:

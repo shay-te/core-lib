@@ -316,7 +316,7 @@ class TestRequireLoginViewExceptionsNotSwallowed(unittest.TestCase):
         def view():
             raise RuntimeError('boom')
 
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         with app.app_context():
             result = require_login(unittest.mock.MagicMock(), [], view)
             # Result is a Flask response with status 500 — not None
@@ -374,7 +374,7 @@ class TestHandleExceptionDoesNotCatchKeyboardInterrupt(unittest.TestCase):
                 raise ValueError('regular error')
 
             from flask import Flask
-            app = Flask(__name__)
+            app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
             with app.app_context():
                 result = handle_exception(view)
                 # Normal Exception still converted to 500 response
@@ -1118,7 +1118,7 @@ class TestStreamingFileOps(unittest.TestCase):
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 path = tmp.name
             try:
-                download_file('http://example.com/x', path)
+                download_file('http://example.com/x', path)  # NOSONAR mocked URL fixture, no real network I/O
             finally:
                 os.unlink(path)
             _, kwargs = mock_get.call_args
@@ -1134,7 +1134,7 @@ class TestStreamingFileOps(unittest.TestCase):
             tmp.write(data)
             path = tmp.name
         try:
-            expected = hashlib.md5(data).hexdigest()
+            expected = hashlib.md5(data).hexdigest()  # NOSONAR non-security hash, round-trip parity check against get_file_md5
             self.assertEqual(get_file_md5(path), expected)
         finally:
             os.unlink(path)
@@ -1362,7 +1362,7 @@ class TestHandleExceptionDoesNotStealLogExceptionKwarg(unittest.TestCase):
             django_settings.DEFAULT_CHARSET = 'utf-8'
         from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         original = WebHelpersUtils.server_type
         try:
             WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)

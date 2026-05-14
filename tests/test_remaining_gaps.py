@@ -41,7 +41,7 @@ class TestCacheHandlerRamCoverage(unittest.TestCase):
 class TestClientBase(unittest.TestCase):
     def _build(self):
         from core_lib.client.client_base import ClientBase
-        return ClientBase('http://api.example.com')
+        return ClientBase('http://api.example.com')  # NOSONAR test fixture URL, never dispatched
 
     def test_setters(self):
         c = self._build()
@@ -64,7 +64,7 @@ class TestClientBase(unittest.TestCase):
         c._delete('/path')
         self.assertEqual(c.session.get.call_count, 1)
         c.session.get.assert_called_with(
-            'http://api.example.com/path',
+            'http://api.example.com/path',  # NOSONAR test fixture URL, never dispatched
             headers={'A': 'B', 'X-Test': 'yes'},
             timeout=5,
             auth=('u', 'p'),
@@ -657,7 +657,7 @@ class TestRequireLoginHelper(unittest.TestCase):
         from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
 
         def view():
             raise RuntimeError('boom')
@@ -698,7 +698,7 @@ class TestRequestResponseHelpersGaps(unittest.TestCase):
     def test_response_error_default_message_resolved(self):
         from core_lib.web_helpers.request_response_helpers import response_error
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         with app.app_context():
             resp = response_error()
             self.assertEqual(resp.status_code, 500)
@@ -706,7 +706,7 @@ class TestRequestResponseHelpersGaps(unittest.TestCase):
     def test_response_error_with_explicit_message(self):
         from core_lib.web_helpers.request_response_helpers import response_error
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         with app.app_context():
             resp = response_error('custom', status=503)
             self.assertEqual(resp.status_code, 503)
@@ -715,7 +715,7 @@ class TestRequestResponseHelpersGaps(unittest.TestCase):
         from core_lib.web_helpers.request_response_helpers import response_download_content
         from core_lib.helpers.constants import MediaType
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         with app.app_context():
             resp = response_download_content(b'binary', MediaType.TEXT_HTML, 'f.html')
             self.assertIn('attachment', resp.headers.get('Content-Disposition', ''))
@@ -758,11 +758,11 @@ class TestBranchCoverage(unittest.TestCase):
 
     def test_client_base_get_without_headers_uses_default(self):
         from core_lib.client.client_base import ClientBase
-        c = ClientBase('http://api.example.com')
+        c = ClientBase('http://api.example.com')  # NOSONAR test fixture URL, never dispatched
         c.session = MagicMock()
         c._get('/path')
         c.session.get.assert_called_once_with(
-            'http://api.example.com/path', timeout=None
+            'http://api.example.com/path', timeout=None  # NOSONAR test fixture URL, never dispatched
         )
 
     def test_sql_alchemy_connection_exit_without_callback(self):
@@ -1104,7 +1104,7 @@ class TestDecoratorsRemaining(unittest.TestCase):
         from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
         with app.app_context():
             resp = _get_exception_status_code(ExpiredSignatureError('expired'))
             self.assertEqual(resp.status_code, 401)
@@ -1150,7 +1150,7 @@ class TestRequireLoginDecorators(unittest.TestCase):
         from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
         from flask import Flask
-        app = Flask(__name__)
+        app = Flask(__name__)  # NOSONAR test-only Flask app, no routes registered, CSRF not applicable
 
         @RequireLogin(policies=[])
         def view(x):

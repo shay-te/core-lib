@@ -49,7 +49,7 @@ class TestIsUrlProperties(unittest.TestCase):
            c=st.integers(min_value=0, max_value=255), d=st.integers(min_value=0, max_value=255))
     @SETTINGS
     def test_ipv4_urls_accepted(self, a, b, c, d):
-        self.assertTrue(is_url(f'http://{a}.{b}.{c}.{d}'))
+        self.assertTrue(is_url(f'http://{a}.{b}.{c}.{d}'))  # NOSONAR test fixture URL exercising parser, never dispatched
 
     def test_localhost_accepted(self):
         self.assertTrue(is_url('http://localhost'))

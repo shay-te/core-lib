@@ -168,8 +168,8 @@ class TestPrompts(unittest.TestCase):
             self.assertEqual(prompt_url('q', allow_empty=True), '')
 
     def test_prompt_url_invalid_then_valid(self):
-        with patch('builtins.input', _inputs('nope', 'http://example.com')):
-            self.assertEqual(prompt_url('q'), 'http://example.com')
+        with patch('builtins.input', _inputs('nope', 'http://example.com')):  # NOSONAR test fixture URL, never dispatched
+            self.assertEqual(prompt_url('q'), 'http://example.com')  # NOSONAR test fixture URL, never dispatched
 
     def test_prompt_timeframe_boot(self):
         with patch('builtins.input', _inputs('boot')):
