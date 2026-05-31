@@ -108,12 +108,138 @@ catches at import time, not a silent string mismatch at runtime. The dict from
 `ResultToDict()` is keyed by the SQLAlchemy `Column.key`, so the reference
 resolves to the exact same string while staying coupled to the entity.
 
-**What still stays a string:** keys that are *not* DB columns — DSL keys in a
-spec (`'field_key'`, `'eligibility'`, `'scores'`), Python keyword-argument
-names (`operator=…`), JSON-payload keys inside a `meta_data` value (those use
-the enum: `MetaDataField.<X>.value`). The rule applies to anything that names
-an actual `Column` on an entity.
+**What still stays a string:** Python keyword-argument names in a function
+call (e.g. `name=stage_def[FunnelStage.name.key]` — `name=` is the parameter
+name, not a string), and class/attribute identifiers in code. Everything that
+*is* a string literal naming something — a column, a JSON-payload key, a spec
+DSL key — should have a named constant or `.key`/`.value` you reach for instead.
 
 **More generally — prefer a constant over a literal whenever one exists.** If
 there's an enum value, a class attribute, or a known `.key`/`.value` for what
 you're typing, reach for that instead of writing the string by hand.
+
+## Spec DSL keys belong in their consumer's module as constants
+
+**Rule.** When a "spec" (a plain-data dict structure) is read by a consumer
+module (e.g. a seeder, a renderer), the **dict keys that aren't DB columns**
+still get module-level constants, defined in the **consumer** module and
+imported by every spec.
+
+```python
+# in funnel_seed.py — the consumer owns the spec-shape contract:
+STAGE_ELIGIBILITY = 'eligibility'
+STAGE_SCORES = 'scores'
+FIELD_KEY = 'field_key'
+
+# in madigan_funnel_spec.py — every spec imports them and uses them as keys:
+from .funnel_seed import FIELD_KEY, STAGE_ELIGIBILITY, STAGE_SCORES
+MADIGAN_FUNNEL_STAGES = [
+    {FunnelStage.name.key: '…',
+     STAGE_ELIGIBILITY: [{FIELD_KEY: RecordTypeField.key, …}],
+     STAGE_SCORES:      [{FIELD_KEY: ServiceTierField.key, …}]},
+    …
+]
+```
+
+**Why.** Renaming a DSL key then happens in *one* place (the consumer), every
+spec picks it up, and a reader can find every site by grep on a symbol instead
+of a fuzzy string.
+
+## Define functions and methods at module/file top level — never re-define per call
+
+**Rule.** A function or method gets defined **once at import**, not rebuilt
+inside a loop, inside another function called per object, or inside an
+orchestration method that runs per row/per organization.
+
+```python
+# NO — `get_external_field_id` is rebuilt for every organization:
+def seed_funnel(name, stages):
+    def seed_for_org(org_id):
+        def get_external_field_id(field_key):
+            ...
+        for stage_def in stages:
+            ...
+
+# YES — methods defined once on a class at module top level; a single
+# lightweight instance is built per call, and the per-org cache is just data:
+class _FunnelSeeder:
+    def __init__(self, conn, …): ...
+    def _resolve_external_field_id(self, org_id, field_key, cache): ...
+    def seed_org(self, org_id, stages): ...
+```
+
+If the helper needs per-call state (conn, entities, names), a small class
+holding that state is the cleanest solution — the methods are then defined
+once on the class, and per-call state is on the instance. Pure helpers go at
+module level. Per-row state (caches, accumulators) is just data passed in.
+
+## Every DB query belongs in its own private function/method
+
+**Rule.** A method or function does **one DB statement**, named for what it
+does. The orchestration method then reads as a sequence of named calls — no
+inline `conn.execute(sa.select(…))` / `sa.insert(…)` / `sa.delete(…)` mixed
+into business logic.
+
+```python
+# YES — every query has a name; orchestration is a readable script:
+class _FunnelSeeder:
+    def _funnel_already_seeded(self, org_id): ...   # one SELECT
+    def _insert_funnel(self, org_id): ...           # one INSERT
+    def _insert_stage(self, …): ...                 # one INSERT
+    def _insert_rule(self, …): ...                  # one INSERT
+    def _insert_score(self, …): ...                 # one INSERT
+    def seed_org(self, org_id, stages):
+        if self._funnel_already_seeded(org_id):
+            return
+        funnel_id = self._insert_funnel(org_id)
+        for stage_def in stages:
+            stage_id = self._insert_stage(funnel_id, stage_def, …)
+            …
+```
+
+**Why.** Each query gets a real name (you can grep for it, refactor it, test
+it), the orchestration reads top-to-bottom as intent, and a future change to
+"how do we look up X" is one method to edit, not five inline patches.
+
+## Naming reflects *what* and *which kind*
+
+**Rule.** A symbol's name says *what* it returns/operates on **and**, when
+there's a kind/variant distinction, *which kind*. Don't make the reader infer
+either from context or the docstring.
+
+```python
+# NO — "of what?" the reader has to read the body to know.
+def _resolve_target_id(self, field_key): ...
+
+# Better — says what:
+def _resolve_field_target_id(self, field_key): ...
+
+# Best — also says which kind, because there's also a custom-field path:
+def _resolve_built_in_field_target_id(self, field_key): ...
+def _resolve_external_field_id(self, …): ...   # different "id" — distinct name
+```
+
+The same applies to types and parameters. `field_key_to_custom_label:
+dict[str, str]` smuggled in a "label" that the consumer didn't care about —
+`field_key_to_is_built_in: dict[str, bool]` names the actual decision being
+made. If your name needs a docstring to disambiguate "is this the built-in
+path or the custom one?", rename it instead of explaining it.
+
+## Reusable engines live in their own file
+
+**Rule.** Generic mechanics that any client (or any spec) could call go in a
+separate, client-agnostic module. The client file only owns its *data* (its
+spec / its constants) and a thin call into the engine. A new client = a new
+data file + a thin call — never a copy-pasted engine.
+
+```python
+# YES — engine and client are different files:
+#   admin_core_lib/.../funnel/funnel_seed.py        ← engine (reconcile_funnel)
+#   admin_core_lib/.../funnel/madigan_funnel_spec.py← Madigan data
+#   admin_core_lib/.../funnel/acme_funnel_spec.py   ← Acme data (one day)
+# Each spec file is just: MY_FUNNEL_STAGES = [...] + a call to reconcile_funnel.
+```
+
+This pairs with the spec-DSL-keys rule above: the engine module owns the
+*shape* (the key constants and the contract), the data module owns the
+*content*.
