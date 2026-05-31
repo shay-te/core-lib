@@ -81,3 +81,39 @@
 - If prompt-related code changes again, treat `core_lib/helpers/shell_utils.py` as the source of truth for exported names.
 - Before mass-renaming prompt helpers, scan the repo with `rg` for both imports and call sites.
 - Keep prompt helpers simple because this repo is checked by SonarCloud and small readability warnings can block PRs.
+
+## Database column access — use `<Entity>.<column>.key`, never strings
+
+**Rule.** Whenever code reads or names a DB column — keying into a dict that
+came back from a `ResultToDict()` data-access call, naming a column in a query
+condition, etc. — reference it as `<Entity>.<column>.key` (or `.value` for an
+enum), **not** as the raw `'column'` string literal.
+
+```python
+# YES
+lead[FunnelLead.score.key]
+stage_def[FunnelStage.name.key]
+score_row[FunnelStageFieldScore.comparison_value.key]
+meta_data.get(MetaDataField.BETWEEN_HIGH.value)
+
+# NO — magic string that won't move when the column is renamed
+lead['score']
+stage_def['name']
+score_row['comparison_value']
+meta_data.get('between_high')
+```
+
+**Why.** Renaming a column then becomes a typed reference that the IDE / Python
+catches at import time, not a silent string mismatch at runtime. The dict from
+`ResultToDict()` is keyed by the SQLAlchemy `Column.key`, so the reference
+resolves to the exact same string while staying coupled to the entity.
+
+**What still stays a string:** keys that are *not* DB columns — DSL keys in a
+spec (`'field_key'`, `'eligibility'`, `'scores'`), Python keyword-argument
+names (`operator=…`), JSON-payload keys inside a `meta_data` value (those use
+the enum: `MetaDataField.<X>.value`). The rule applies to anything that names
+an actual `Column` on an entity.
+
+**More generally — prefer a constant over a literal whenever one exists.** If
+there's an enum value, a class attribute, or a known `.key`/`.value` for what
+you're typing, reach for that instead of writing the string by hand.
