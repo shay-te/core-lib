@@ -118,32 +118,53 @@ DSL key — should have a named constant or `.key`/`.value` you reach for instea
 there's an enum value, a class attribute, or a known `.key`/`.value` for what
 you're typing, reach for that instead of writing the string by hand.
 
-## Spec DSL keys belong in their consumer's module as constants
+## Specs are dataclasses, not dicts
 
-**Rule.** When a "spec" (a plain-data dict structure) is read by a consumer
-module (e.g. a seeder, a renderer), the **dict keys that aren't DB columns**
-still get module-level constants, defined in the **consumer** module and
-imported by every spec.
+**Rule.** When a "spec" (a plain-data description of rules/stages/etc.) is
+read by a consumer module (e.g. a seeder), it is authored as a **frozen
+dataclass DSL** owned by the consumer module — never as a nested-dict
+literal.
 
 ```python
-# in funnel_seed.py — the consumer owns the spec-shape contract:
-STAGE_ELIGIBILITY = 'eligibility'
-STAGE_SCORES = 'scores'
-FIELD_KEY = 'field_key'
+# in funnel-core-lib: the consumer owns the DSL —
+#   funnel_core_lib/data_layers/data/seed_dsl/{__init__.py, helpers.py}
+@dataclass(frozen=True)
+class Rule:
+    field: str
+    operator: Operator
+    value: Any
+    meta_data: Optional[dict] = None
+# … plus ScoreRule, FunnelStageSeed, FunnelSeed and helpers (equal, in_,
+#   gte, between, score_equal, score_gte, score_between, …).
 
-# in madigan_funnel_spec.py — every spec imports them and uses them as keys:
-from .funnel_seed import FIELD_KEY, STAGE_ELIGIBILITY, STAGE_SCORES
-MADIGAN_FUNNEL_STAGES = [
-    {FunnelStage.name.key: '…',
-     STAGE_ELIGIBILITY: [{FIELD_KEY: RecordTypeField.key, …}],
-     STAGE_SCORES:      [{FIELD_KEY: ServiceTierField.key, …}]},
-    …
-]
+# in madigan_funnel_spec.py — every spec composes the DSL:
+MADIGAN_FUNNEL_SEED = FunnelSeed(
+    key='madigan', name='funnel.una.name', description='funnel.una.description',
+    stages=[
+        FunnelStageSeed(
+            name='funnel.una.stage.users.name',
+            eligibility=[in_(RecordTypeField.key, ['user', 'lead'])],
+            scores=[score_equal(ServiceTierField.key, 'premium', 20), …],
+        ),
+        …
+    ],
+)
 ```
 
-**Why.** Renaming a DSL key then happens in *one* place (the consumer), every
-spec picks it up, and a reader can find every site by grep on a symbol instead
-of a fuzzy string.
+**Why.** Renames are caught by the type checker, not a string grep; spec
+authors can't typo a field; reviewers see the operator semantics in the
+helper name (`score_between`, `gte`) instead of decoding `{...: Operator.X,
+'comparison_value': '…'}`. The seeder
+(`funnel_core_lib.data_layers.service.funnel_seed_service.reconcile_funnel`)
+walks the dataclass directly — `to_dict()` exists for logging only.
+
+**What's authored separately.** The DSL + seeder live in funnel-core-lib so
+every integrator can build a funnel. Integrator code (e.g.
+`ob-love-admin-backend/admin_core_lib/core_lib_dependencies/funnel/`) holds
+**only** integrator-specific pieces — the spec
+(`MADIGAN_FUNNEL_SEED`), the DB-side org/custom-field loader, and the
+orchestration class that wires `FunnelCoreLib` to the loader and
+`reconcile_funnel`.
 
 ## Define functions and methods at module/file top level — never re-define per call
 
