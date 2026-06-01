@@ -1,5 +1,11 @@
 # AGENTS Notes
 
+## Workspace-wide coding convention (non-negotiable)
+
+**Every Python method that reads fields out of a config or a raw response object follows fetch → validate → use, in that order, with no fallback defaults and no aliases.** See the "Coding conventions (workspace-wide, all Python repos)" section in `architecture.md` — the canonical examples are the three `*ConnectionFactory.__init__` methods in `llm-core-lib/llm_core_lib/connections/` and their `_invoke` / `_invoke_chat` / `_extract_text` / `embed` response-parsing methods.
+
+Concretely: no `config.get('region', 'us-east-1')` inline defaults, no `model_id or model` alias chains, no `getattr(block, 'text', '') or ''` inside generator expressions or final returns. Pull every field into a named local at the top, validate / normalize next, then use the named locals.
+
 ## Repo-specific context
 
 - `core_lib/helpers/shell_utils.py` currently exposes `prompt_*` helpers, not `input_*` helpers and not `prompt__*` helpers.
