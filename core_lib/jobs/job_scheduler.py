@@ -33,7 +33,7 @@ class JobScheduler(object):
 
     def _schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = True, params: dict = {}):
         self._lock.acquire()
-        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency, 'params': params})
+        timer = Timer(parse(initial_delay), self._run_job, kwargs={'job': job, 'frequency': frequency, 'is_run_in_parallel': is_run_in_parallel, 'params': params})
         timer.daemon = True
         if not is_run_in_parallel:
             job_instance = self._job_class_name_to_job.get(job.__class__.__name__)
@@ -44,7 +44,7 @@ class JobScheduler(object):
         timer.start()
         self._lock.release()
 
-    def _run_job(self, job: Job, frequency: str, params: dict = {}):
+    def _run_job(self, job: Job, frequency: str, is_run_in_parallel: bool = True, params: dict = {}):
         try:
             logger.debug(f'Running job {job.__repr__() if job else "<None Job>"}')
             job.run(**params)
@@ -54,7 +54,7 @@ class JobScheduler(object):
 
         del self._job_to_timer[job]
         if frequency:
-            self._schedule(frequency, frequency, job)
+            self._schedule(frequency, frequency, job, is_run_in_parallel)
 
     def _validate(self, initial_delay: str, job: Job):
         assert job

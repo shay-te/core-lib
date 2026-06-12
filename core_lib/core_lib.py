@@ -35,6 +35,7 @@ class CoreLib(object):
         ):
             initial_delay = job_config.get('initial_delay')
             frequency = job_config.get('frequency')
+            is_run_in_parallel = job_config.get('is_run_in_parallel', True)
 
             if not initial_delay:
                 raise ValueError(f'job invalid initial_delay config `{job_config.initial_delay}`')
@@ -46,9 +47,9 @@ class CoreLib(object):
                 job.set_data_handler(job_to_data_handler.get(job_name))
 
             if frequency:
-                CoreLib.scheduler.schedule(initial_delay, frequency, job)
+                CoreLib.scheduler.schedule(initial_delay, frequency, job, is_run_in_parallel)
             else:
-                CoreLib.scheduler.schedule_once(initial_delay, job)
+                CoreLib.scheduler.schedule_once(initial_delay, job, is_run_in_parallel)
 
             if isinstance(job, CoreLibListener):
                 logger.debug(
