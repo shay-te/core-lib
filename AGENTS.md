@@ -1,21 +1,15 @@
 # AGENTS Notes — core-lib (canonical rulebook for every `*-core-lib`)
 
 > **This file is the single, generic rulebook for every `*-core-lib` package
-> in the workspace — present or future.** It consolidates the rules that were
-> previously scattered across the individual `*-core-lib/AGENTS.md` files so
-> that anyone writing a new core-lib library starts out knowing all of them.
+> — present or future.** It consolidates the conventions a new core-lib
+> library should follow so its author starts out knowing all of them.
 >
 > Every rule below is stated **generically** — substitute your own entity,
 > service, config, and connection names for the placeholders (`Entity`,
 > `MyService`, `MyConnectionFactory`, `my_field`, …). Nothing here is tied to
-> a specific core-lib; repo-specific lessons stay in that repo's own
-> `AGENTS.md`.
->
-> For the framework's folder layout, the three data layers, decorators, the
-> main-class composition root, Hydra config, and migrations, also read the
-> **"core-lib framework conventions"** section in `architecture.md`. Where a
-> rule below has a canonical home elsewhere, it is cross-referenced; the rule
-> itself is restated here so this file is self-contained.
+> a specific core-lib; library-specific lessons stay in that library's own
+> `AGENTS.md`. This file is self-contained: it references no file outside this
+> library.
 
 ---
 
@@ -79,10 +73,6 @@ not, it isn't agnostic yet.
 
 ### 1.1 Fetch → validate → use, always in that order
 
-> Canonical home: `architecture.md` → "Coding conventions (workspace-wide,
-> all Python repos)". Restated here because it is the most-applied rule in
-> the workspace.
-
 Any method that pulls fields out of an external value source — a Hydra
 `DictConfig` / plain `dict`, a raw SDK response object, a config dataclass,
 an HTTP response payload, anything you reach into with `.get(...)` or
@@ -144,8 +134,6 @@ tuple destructuring.
   blocks; pythonic `self` / `cls`; `id` / `db` (already full words).
 
 ### 1.3 No single-letter loop variables (except `i` / `j`)
-
-> Canonical home: `architecture.md` → workspace-wide conventions.
 
 Loop variables and comprehension bindings get **meaningful names** in both
 production code and tests. `for row in rows`, `for document in documents`,
@@ -251,8 +239,6 @@ layer the single place to read business rules from.
 
 ### 3.2 DataAccess never returns soft-deleted rows
 
-> Canonical home: `architecture.md` → "The three data layers".
-
 Every read method (`get`, `get_by_*`, `all`, …) filters
 `deleted_at == None` unconditionally. Do **not** add an `include_deleted`
 parameter (or any other knob) that lets a caller ask for soft-deleted rows
@@ -296,8 +282,6 @@ that gates writes with a strict-mode rule validator gets the same outcome —
 the rule is "no whitelist constants either way".
 
 ### 3.4 Entity column names come from the entity — never hardcode the string
-
-> Canonical home: `architecture.md` → "The three data layers".
 
 Anywhere code refers to a column by name — create/update payload dicts, field
 allowlists, `data.get(...)` / `data.pop(...)` / `key in data` look-ups, rule
@@ -344,9 +328,6 @@ a single bulk / public entry point for each external concern and keep the
 step methods private.
 
 ### 4.2 Enums cross the service boundary as enums — never raw ints
-
-> Canonical home: `architecture.md` → "The three data layers" (Enum
-> boundaries).
 
 When a service method parameter semantically *is* one of an entity's nested
 enums, the signature declares the enum type and the body enforces it with an
@@ -395,8 +376,6 @@ Decorator order: `@DuplicateErrorHandler()` sits **outside** `@ResultToDict()`
 decorator outermost matches the cache-decorator convention).
 
 ### 4.4 Cache where the win is real — not on host-read PK lookups
-
-> Canonical home: `architecture.md` → "The three data layers" (caching).
 
 A `@Cache` belongs only where service A repeatedly asks service B the same
 question inside a single request (e.g. a workspace-id resolution hit by every
