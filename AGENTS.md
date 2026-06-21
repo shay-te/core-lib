@@ -19,6 +19,62 @@
 
 ---
 
+# Core-Lib Rules — this library is AGNOSTIC
+
+This package is a **standalone, product-agnostic library**. Treat it as if it
+will be published on its own and dropped into any application that has never
+heard of this project. It must know nothing about the host that consumes it.
+
+## 1. No host/product knowledge — anywhere
+
+The name of the host application or product (its brand, its CLI, its env-var
+prefix) must **NOT** appear **anywhere** in this library — not in source, not in
+tests, not in comments, not in docstrings, not in field names, not in fixtures.
+
+- This library reads **generic, library-owned** names (its own env vars / config
+  keys) or — better — takes everything it needs through **constructor params /
+  function arguments**.
+- It NEVER reads a host-specific env var. The host owns its own config and
+  **bridges** it: it passes the value in (a param) or exports it under the
+  generic name this library reads.
+- Product-specific TEXT (prompts, operator messages, workflow wording, brand
+  strings) is **injected by the caller** as a parameter — never hardcoded here.
+  Provide a safe, neutral default so the library works standalone.
+
+## 2. Minimal dependencies
+
+- Import only **stdlib + third-party** packages. Do not import sibling libraries
+  peer-to-peer; depend only on a declared shared base, if one exists.
+- No compatibility shims, barrel files, or re-export-only modules — import from
+  the real module. A package `__init__.py` exposing its own package's public API
+  is the only allowed re-export.
+
+## 3. Self-contained and fully tested
+
+- Tests live **inside this library**, never in a top-level/host test folder, and
+  never importing host code or a host test package. A test in this library tests
+  **only this library**.
+- **100% coverage** — every public function, every input permutation.
+- **One end-to-end flow test** (`test_flow.py`) driving the primary workflow A→Z
+  against mocked I/O (`unittest.mock`; no network, no DB, no real subprocess).
+- Fixtures use **generic example data** (`acme/widget`, `reviewer`, `PROJ-1`) —
+  never product-flavored names.
+
+## 4. When a feature needs host-specific behavior
+
+Do NOT reach back into the host. Add a **parameter** (constructor or function
+arg) with a safe agnostic default, and let the host pass the value in. If you
+find yourself typing the product/host name, a host env-var prefix, or
+host-specific text in this library — stop, and inject it instead.
+
+## 5. The litmus test
+
+Could you publish this package as-is, with its tests, to a public registry and
+have a stranger use it without ever learning what application it came from? If
+not, it isn't agnostic yet.
+
+---
+
 ## 1. Coding conventions (apply to every Python file)
 
 ### 1.1 Fetch → validate → use, always in that order
