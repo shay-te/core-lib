@@ -14,6 +14,12 @@ class CacheHandler(ABC):
     # None `expire` will tell the storage to hold the value "forever" or after the designated period expires
     @abstractmethod
     def set(self, key: str, value, expire: Optional[timedelta]):
+        """
+        Store a value in the cache under the given key.
+        
+        Parameters:
+        	expire (Optional[timedelta]): Time until the cached value expires. If None, the value is stored indefinitely.
+        """
         pass
 
     # Remove the value from the cache using the `key`

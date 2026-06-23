@@ -9,6 +9,16 @@ from core_lib.alembic.alembic import Alembic
 
 
 def _build_config(script_dir: str, version_file_name: str = '.migration_ver'):
+    """
+    Build configuration settings for Alembic migrations and SQLAlchemy database connection.
+    
+    Parameters:
+        script_dir (str): Path to the directory containing Alembic migration scripts.
+        version_file_name (str): Name of the version file. Defaults to '.migration_ver'.
+    
+    Returns:
+        OmegaConf: Configuration object containing Alembic and SQLAlchemy settings.
+    """
     return OmegaConf.create(
         {
             'core_lib': {

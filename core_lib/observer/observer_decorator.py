@@ -17,6 +17,10 @@ class Observe(object):
         self.notify_before = notify_before
 
     def __call__(self, func, *args, **kwargs):
+        Wraps a function with observer notification hooks.
+        
+        Returns:
+            A wrapped function that notifies an observer before or after execution, based on the configured timing.
         @wraps(func)
         def __wrapper(*args, **kwargs):
             if self.value_param_name:

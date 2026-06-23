@@ -13,6 +13,15 @@ class NotFoundErrorHandler(object):
         self.message = message
 
     def __call__(self, func, *args, **kwargs):
+        """
+        Decorates a function to raise a 404 error when it returns None.
+        
+        Parameters:
+            func: The function to decorate.
+        
+        Returns:
+            The decorated function.
+        """
         @wraps(func)
         def _wrapper(*args, **kwargs):
             result = func(*args, **kwargs)

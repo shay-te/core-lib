@@ -62,5 +62,14 @@ class TestGenerateDatetimeProperties(unittest.TestCase):
     @SETTINGS
     def test_only_to_date_uses_default_from(self, to_d):
         # Same constraint: to_d must be > today-10 so randint range is valid.
+        """
+        Verify that generate_datetime uses a default start date when only an end date is provided.
+        
+        Parameters:
+        	to_d (datetime.datetime): The end date boundary for datetime generation.
+        
+        Returns:
+        	None
+        """
         result = generate_datetime(to_date=to_d)
         self.assertIsInstance(result, datetime.datetime)

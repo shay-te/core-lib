@@ -16,6 +16,12 @@ class TestFloatToStrProperties(unittest.TestCase):
     @given(st.floats(allow_nan=False, allow_infinity=False))
     @SETTINGS
     def test_finite_float_never_empty_unless_int_zero(self, f):
+        """
+        Verify that float_to_str returns a non-empty string for all finite floats, except zero values which must be '0' or '-0'.
+        
+        Parameters:
+        	f (float): A finite float value (non-NaN, non-infinite).
+        """
         result = float_to_str(f)
         # `not f` is True iff f is 0.0 or -0.0 (NaN/inf filtered above).
         # Avoids `f == 0.0` which sonar flags as float-equality.

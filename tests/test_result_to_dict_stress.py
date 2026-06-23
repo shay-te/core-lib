@@ -276,6 +276,12 @@ class TestDeepNesting(unittest.TestCase):
 class TestCallbackEdges(unittest.TestCase):
     def test_callback_mutates_in_place(self):
         def cb(results):
+            """
+            Add an 'injected' key-value pair to dictionary results.
+            
+            Returns:
+                The results object, with 'injected': 'yes' added if it is a dict.
+            """
             if isinstance(results, dict):
                 results['injected'] = 'yes'
             return results
@@ -344,6 +350,9 @@ class TestResultToDictDecoratorEdges(unittest.TestCase):
     def test_decorator_on_list_return(self):
         @ResultToDict()
         def producer():
+            """
+            Return a list of dictionaries containing Decimal values.
+            """
             return [{'a': Decimal('5')}, {'b': Decimal('6')}]
 
         self.assertEqual(producer(), [{'a': 5.0}, {'b': 6.0}])

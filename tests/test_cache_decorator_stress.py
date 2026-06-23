@@ -23,6 +23,9 @@ _HANDLER = 'stress_cache_handler'
 
 
 def _ensure_handler():
+    """
+    Ensures the stress cache handler is registered in the cache registry.
+    """
     if _HANDLER not in CoreLib.cache_registry.registered():
         CoreLib.cache_registry.register(_HANDLER, CacheHandlerRam())
 
@@ -151,9 +154,15 @@ class TestCacheConstructor(unittest.TestCase):
 class TestCacheDecoratorEdges(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Initialize the test class by registering the cache handler if not already present.
+        """
         _ensure_handler()
 
     def setUp(self):
+        """
+        Clear all cached entries from the cache handler before each test.
+        """
         CoreLib.cache_registry.get(_HANDLER).flush_all()
 
     def test_exception_in_function_propagates_and_not_cached(self):
@@ -189,6 +198,12 @@ class TestCacheDecoratorEdges(unittest.TestCase):
             @classmethod
             @Cache(key='cls-key', expire=timedelta(seconds=60), handler_name=_HANDLER)
             def get(cls):
+                """
+                Increment and return the call counter.
+                
+                Returns:
+                    int: The incremented counter value.
+                """
                 cls.counter += 1
                 return cls.counter
 
@@ -332,12 +347,28 @@ class TestCacheDecoratorEdges(unittest.TestCase):
 class TestCachedValueTypes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Initialize the test class by registering the cache handler if not already present.
+        """
         _ensure_handler()
 
     def setUp(self):
+        """
+        Clear all cached entries from the cache handler before each test.
+        """
         CoreLib.cache_registry.get(_HANDLER).flush_all()
 
     def _build_fn(self, value, key):
+        """
+        Create a cached function that returns the specified value.
+        
+        Parameters:
+        	value: The value the created function will return
+        	key: The cache key for the decorated function
+        
+        Returns:
+        	A function decorated with caching
+        """
         @Cache(key=key, expire=timedelta(seconds=60), handler_name=_HANDLER)
         def fn():
             return value
@@ -475,6 +506,12 @@ class TestCacheExpireResolution(unittest.TestCase):
 
 class TestCacheMultipleHandlers(unittest.TestCase):
     def setUp(self):
+        """
+        Prepare two cache handlers with a clean state for the test.
+        
+        Ensures both handlers are registered in the cache registry and removes
+        any cached entries from prior tests.
+        """
         self._handler_a = 'stress_handler_a'
         self._handler_b = 'stress_handler_b'
         for name in (self._handler_a, self._handler_b):

@@ -13,6 +13,18 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
+        """
+        Retrieve a single entity by ID, excluding soft-deleted records.
+        
+        Parameters:
+            id (int): The entity ID. Must be truthy.
+        
+        Returns:
+            The entity with the given ID if found and not soft-deleted, or None.
+        
+        Raises:
+            AssertionError: If id is falsy.
+        """
         if not id:
             raise AssertionError('CRUDSoftDeleteDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
@@ -26,6 +38,18 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
             )
 
     def delete(self, id: int):
+        """
+        Soft-deletes a record by marking it as deleted.
+        
+        Parameters:
+            id (int): The record identifier. Must be a truthy value.
+        
+        Returns:
+            The number of rows affected by the update.
+        
+        Raises:
+            AssertionError: If id is falsy.
+        """
         if not id:
             raise AssertionError('CRUDSoftDeleteDataAccess.delete requires a truthy `id`')
         with self._db.get() as session:

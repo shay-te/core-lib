@@ -14,6 +14,9 @@ from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnect
 
 class _FakeFactory(ConnectionFactory):
     def get(self, *args, **kwargs):
+        """
+        Return a fake connection object for testing purposes.
+        """
         return 'connection'
 
 

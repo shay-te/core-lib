@@ -74,6 +74,18 @@ class RuleValidator(object):
         return result_dict
 
     def _validate_rule(self, rule, key, value):
+        """
+        Validate and optionally coerce a value according to its rule configuration.
+        
+        Parameters:
+            rule: The ValueRuleValidator configuration for this value.
+        
+        Returns:
+            The validated and optionally coerced value.
+        
+        Raises:
+            PermissionError: If the value fails null check, type coercion, or custom validation.
+        """
         parsed_value = value
 
         if not rule.nullable and value is None:

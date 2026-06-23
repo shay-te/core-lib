@@ -13,6 +13,12 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
+        """
+        Retrieve a record by ID, excluding soft-deleted records.
+        
+        Returns:
+        	The database entity if found, `None` otherwise.
+        """
         if not id:
             raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
@@ -23,6 +29,12 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
             )
 
     def delete(self, id: int):
+        """
+        Soft-deletes a record by marking it with a deletion timestamp.
+        
+        Returns:
+            int: The number of rows affected by the deletion
+        """
         if not id:
             raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.delete requires a truthy `id`')
         # Compute deletion time once to avoid TOCTOU drift between the

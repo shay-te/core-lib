@@ -16,6 +16,9 @@ from core_lib.registry.registry import Registry
 
 class _Item:
     def __init__(self, name):
+        """
+        Initialize an Item with a name.
+        """
         self.name = name
 
 
@@ -76,6 +79,9 @@ class TestDefaultRegistryRegister(unittest.TestCase):
             self.r.register('a', 123)
 
     def test_register_duplicate_key_raises(self):
+        """
+        Assert that registering a duplicate key raises ValueError.
+        """
         self.r.register('a', _Item('a'))
         with self.assertRaises(ValueError):
             self.r.register('a', _Item('b'))
@@ -161,6 +167,9 @@ class TestDefaultRegistryGet(unittest.TestCase):
 
     def test_get_with_no_arg_on_empty_returns_none(self):
         # No registered entries → result is None and the `len > 0` branch is False
+        """
+        Verify that get() returns None when the registry is empty.
+        """
         self.assertIsNone(self.r.get())
 
     def test_get_passes_extra_args_kwargs_silently(self):

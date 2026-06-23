@@ -44,6 +44,9 @@ class TestGenerateEmailProperties(unittest.TestCase):
     @SETTINGS
     def test_multiple_calls_produce_unique_emails(self, domain, n):
         # Local part is random, so n calls should produce mostly-unique emails
+        """
+        Verify that multiple invocations of generate_email with the same domain produce different emails.
+        """
         emails = {generate_email(domain=domain) for _ in range(n * 5)}
         # Very low probability of all collisions
         self.assertGreater(len(emails), 1)

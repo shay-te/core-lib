@@ -55,6 +55,9 @@ class TestCacheHandlerRamProperties(unittest.TestCase):
     )
     @SETTINGS
     def test_set_overwrites_previous_value(self, key, v1, v2):
+        """
+        Verify that setting a key multiple times overwrites the previous value with the most recent one.
+        """
         h = CacheHandlerRam()
         h.set(key, v1, None)
         h.set(key, v2, None)

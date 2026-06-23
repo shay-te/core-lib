@@ -10,10 +10,19 @@ from tests.hypothesis_tests._settings import SETTINGS
 
 class _Recorder(Middleware):
     def __init__(self, label):
+        """
+        Initialize a recorder to track middleware invocations.
+        
+        Parameters:
+        	label: An identifier for this recorder instance.
+        """
         self.label = label
         self.calls = []
 
     def handle(self, context):
+        """
+        Record the provided context.
+        """
         self.calls.append(context)
 
 

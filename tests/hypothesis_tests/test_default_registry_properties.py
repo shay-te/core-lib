@@ -10,6 +10,12 @@ from tests.hypothesis_tests._settings import SETTINGS
 
 class _Item:
     def __init__(self, n):
+        """
+        Initialize a test item with a single value.
+        
+        Parameters:
+            n: The value to store in the n attribute.
+        """
         self.n = n
 
 

@@ -22,6 +22,9 @@ _HANDLER = 'hyp_cache_handler'
 class TestCacheDecoratorProperties(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Ensure a RAM-backed cache handler is available for the test suite.
+        """
         if _HANDLER not in CoreLib.cache_registry.registered():
             CoreLib.cache_registry.register(_HANDLER, CacheHandlerRam())
 
@@ -60,6 +63,13 @@ class TestCacheDecoratorProperties(unittest.TestCase):
     )
     @SETTINGS
     def test_stored_key_truncated_to_max_key_length(self, max_len, key):
+        """
+        Verify that cached function keys are truncated to the specified maximum length.
+        
+        Parameters:
+        	max_len (int): Maximum allowed key length
+        	key (str): Input key string
+        """
         CoreLib.cache_registry.get(_HANDLER).flush_all()
 
         @Cache(
@@ -81,6 +91,12 @@ class TestCacheDecoratorProperties(unittest.TestCase):
     @given(value=st.integers(min_value=1))
     @SETTINGS
     def test_repeated_call_returns_cached(self, value):
+        """
+        Verify that repeated calls to a cached function return the cached result without re-executing the function body.
+        
+        Parameters:
+            value (int): A generated integer (≥ 1) used as the cached function's return value.
+        """
         CoreLib.cache_registry.get(_HANDLER).flush_all()
         counter = {'n': 0}
 

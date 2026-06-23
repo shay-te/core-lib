@@ -2,12 +2,18 @@ import enum as _enum
 
 
 def get_dict_attr(obj: dict, path: str, default=None):
-    """Look up a dotted path in a nested dict-like object, returning
-    ``default`` if the path can't be resolved.
-
-    Previously only ``KeyError`` was caught, so paths that descended through
-    a non-dict (e.g. None, a scalar, a list) propagated ``TypeError``
-    instead of falling back to ``default``.
+    """
+    Look up a nested value using a dotted path in a dictionary.
+    
+    Traverses the dictionary by splitting the path on `.` and indexing into each successive level. Returns the value at the final path component, or `default` if any key is missing, a non-subscriptable value is encountered during traversal, or a numeric index is out of range.
+    
+    Parameters:
+    	obj (dict): Dictionary to traverse
+    	path (str): Dotted path (e.g. "foo.bar.baz")
+    	default: Value to return if the path cannot be fully resolved
+    
+    Returns:
+    	The value at the specified path, or `default` if resolution fails
     """
     path_list = path.split('.')
     obj_temp = obj
@@ -23,13 +29,13 @@ def get_dict_attr(obj: dict, path: str, default=None):
 
 
 def set_dict_attr(obj: dict, path: str, value) -> dict:
-    """Set ``value`` at a dotted path inside a nested dict, creating
-    intermediate dicts as needed.
-
-    If an intermediate position exists but is NOT a dict (e.g. it's a
-    scalar / list), it is replaced with a fresh dict. The previous
-    implementation crashed with ``TypeError: ... does not support item
-    assignment`` in that case.
+    """
+    Set a value at a dotted path within a nested dictionary, creating intermediate dictionaries as needed.
+    
+    If an intermediate position is not a dictionary, it is replaced with an empty dictionary.
+    
+    Returns:
+        dict: The modified dictionary (same object as obj).
     """
     path_list = path.split('.')
     obj_temp = obj
@@ -43,5 +49,10 @@ def set_dict_attr(obj: dict, path: str, value) -> dict:
 
 
 def enum_to_dict(enum_cls: _enum.EnumMeta) -> dict:
-    """Return ``{member_name: member_value}`` for an Enum class."""
+    """
+    Create a dictionary mapping Enum member names to their values.
+    
+    Returns:
+        dict: Dictionary with member names as keys and member values as values
+    """
     return {name: member.value for name, member in enum_cls.__members__.items()}

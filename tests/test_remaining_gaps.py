@@ -101,6 +101,9 @@ class TestCoreLibCoverage(unittest.TestCase):
             def on_core_lib_ready(self):
                 pass  # intentionally empty
             def on_core_lib_destroy(self):
+                """
+                Lifecycle hook invoked when CoreLib is destroyed.
+                """
                 pass  # intentionally empty
 
         listener = L()
@@ -117,12 +120,18 @@ class TestCoreLibCoverage(unittest.TestCase):
             def __init__(self, initial_delay=None, frequency=None):
                 self.runs = []
             def initialized(self, data_handler):
+                """
+                Record an initialized data handler.
+                """
                 self.runs.append(data_handler)
             def run(self):
                 pass  # intentionally empty
             def on_core_lib_ready(self):
                 pass  # intentionally empty
             def on_core_lib_destroy(self):
+                """
+                Lifecycle hook invoked when CoreLib is destroyed.
+                """
                 pass  # intentionally empty
 
         config = OmegaConf.create(
@@ -940,6 +949,9 @@ class TestBranchCoverage(unittest.TestCase):
             def encode(self, m):
                 return 'tok'
             def decode(self, e):
+                """
+                Return None.
+                """
                 return None
 
         class US(UserSecurity):

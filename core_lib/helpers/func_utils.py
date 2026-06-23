@@ -30,6 +30,17 @@ def _get_key_value(key, value):
 
 class UnseenFormatter(Formatter):
     def get_value(self, key, args, kwargs):
+        """
+        Retrieve and format a value from positional or keyword arguments.
+        
+        Fetches a value using the provided key from either positional arguments (if key is an integer index) or keyword arguments (if key is a string). Returns a sentinel placeholder if the key is not found or if an exception occurs during retrieval.
+        
+        Parameters:
+            key: An integer index for positional arguments or a string name for keyword arguments.
+        
+        Returns:
+            The formatted value from args or kwargs. Returns !M{key}M! if the key is missing, or !E{key}E! if an exception occurs during retrieval.
+        """
         try:
             if isinstance(key, int) and key < len(args):
                 return _get_key_value(key, args[key])

@@ -13,6 +13,7 @@ class _Recorder(ObserverListener):
         self.events = []
 
     def update(self, key, value):
+        """Record a notification event."""
         self.events.append((key, value))
 
 

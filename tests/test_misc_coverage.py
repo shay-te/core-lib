@@ -139,6 +139,16 @@ class _Listener(ObserverListener):
         self.fail = False
 
     def update(self, key, value):
+        """
+        Store the key-value pair as the last update, or raise an exception if configured to fail.
+        
+        Parameters:
+        	key: The event key.
+        	value: The event value.
+        
+        Raises:
+        	RuntimeError: If self.fail is True.
+        """
         if self.fail:
             raise RuntimeError('boom')
         self.last = (key, value)
@@ -191,6 +201,9 @@ class TestObserverDecorator(unittest.TestCase):
 
         class L(ObserverListener):
             def update(self, key, value):
+                """
+                Record the update event with the given key and value.
+                """
                 events.append((key, value))
 
         obs = Observer(listener_type=L)
@@ -217,6 +230,9 @@ class TestObserverDecorator(unittest.TestCase):
 
         class L(ObserverListener):
             def update(self, key, value):
+                """
+                Record the update event with the given key and value.
+                """
                 events.append((key, value))
 
         obs = Observer(listener_type=L)
@@ -293,6 +309,12 @@ class TestSecurityHandler(unittest.TestCase):
 
 class TestUserSecurityCoverage(unittest.TestCase):
     def _make(self):
+        """
+        Create a test fixture with a mocked token handler and NoopUserSecurity instance.
+        
+        Returns:
+            tuple: A tuple of (_NoopUserSecurity instance, MagicMock token_handler).
+        """
         token_handler = MagicMock()
         return _NoopUserSecurity('cookie', token_handler), token_handler
 

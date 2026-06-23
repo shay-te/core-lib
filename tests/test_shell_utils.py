@@ -29,10 +29,23 @@ class _Color(enum.Enum):
 
 
 def _inputs(*values):
-    """Patch input with a queue of values to consume."""
+    """
+    Create a callable that returns test input values sequentially.
+    
+    Parameters:
+        *values: Values to return sequentially.
+    
+    Returns:
+        A callable for mocking `builtins.input` that returns the next value on each invocation.
+    """
     iterator = iter(values)
 
     def fake_input(_):
+        """
+        Return the next value from the iterator, ignoring the prompt argument.
+        
+        Used to replace builtins.input during testing to supply predetermined values.
+        """
         return next(iterator)
 
     return fake_input

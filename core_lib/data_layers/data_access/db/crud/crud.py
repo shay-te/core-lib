@@ -12,11 +12,19 @@ class CRUD(ABC):
 
     @abstractmethod
     def get(self, id: int):
+        """
+        Retrieve an entity by its ID.
+        """
         pass
 
     def update(self, id: int, data: dict):
         # Use explicit raises (not `assert`) so `python -O` doesn't strip the
         # validation. Keep AssertionError to preserve the historical contract.
+        """
+        Update a database entity record by its ID with the provided data.
+        
+        The 'id' field is excluded from the update payload to prevent modification of the primary key.
+        """
         if not id:
             raise AssertionError('CRUD.update requires a truthy `id`')
         if not data:
@@ -30,6 +38,15 @@ class CRUD(ABC):
             session.query(self._db_entity).filter(self._db_entity.id == id).update(updated_data)
 
     def create(self, data: dict):
+        """
+        Create and persist a new entity from the provided data.
+        
+        Parameters:
+        	data (dict): Field values to assign to the new entity.
+        
+        Returns:
+        	entity: The newly created entity.
+        """
         if not data:
             raise AssertionError('CRUD.create requires non-empty `data`')
         updated_data = self._rule_validator.validate_dict(data, strict_mode=False) if self._rule_validator else data

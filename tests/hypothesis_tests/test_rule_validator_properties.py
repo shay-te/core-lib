@@ -18,6 +18,11 @@ class TestRuleValidatorProperties(unittest.TestCase):
     @given(value=st.text(min_size=0, max_size=50))
     @SETTINGS
     def test_str_rule_passes_strings_through(self, value):
+        """
+        Verify that string values pass through unchanged when a RuleValidator has a str rule.
+        
+        This property-based test validates that for any string value, when a RuleValidator is configured with a rule mapping key 'k' to str type, the value is returned unchanged after validation.
+        """
         rv = RuleValidator([ValueRuleValidator('k', str)])
         out = rv.validate_dict({'k': value}, strict_mode=False)
         self.assertEqual(out['k'], value)
@@ -40,6 +45,11 @@ class TestRuleValidatorProperties(unittest.TestCase):
     @SETTINGS
     def test_int_rule_str_target_coerces_int_to_str(self, value):
         # After bug fix: falsy ints (0) are also coerced to '0'.
+        """
+        Verify that integer values are coerced to their string representation when a rule expects the string type.
+        
+        This includes handling of falsy values like 0.
+        """
         rv = RuleValidator([ValueRuleValidator('k', str)])
         out = rv.validate_dict({'k': value}, strict_mode=False)
         self.assertEqual(out['k'], str(value))

@@ -17,6 +17,16 @@ pymysql.install_as_MySQLdb()
 
 class Alembic(object):
     def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
+        """
+        Initialize an Alembic migration manager with database and configuration settings.
+        
+        Parameters:
+            core_lib_path (str): Root directory for resolving relative migration script paths.
+            core_lib_config (DictConfig): Configuration containing Alembic and SQLAlchemy settings.
+        
+        Raises:
+            ValueError: If the script location does not exist or is not a directory, or if version_file_name is not configured.
+        """
         logging.basicConfig(level=logging.INFO)
         self.config = core_lib_config.core_lib.alembic
         OmegaConf.set_struct(self.config, False)
@@ -88,6 +98,15 @@ class Alembic(object):
         return command.history(self.alembic_cfg)
 
     def create_migration(self, migration_name):
+        """
+        Create a new database migration with the specified name.
+        
+        Parameters:
+        	migration_name (str): The descriptive name for the migration. Must not be empty.
+        
+        Raises:
+        	ValueError: If migration_name is empty or not provided.
+        """
         if not migration_name:
             logging.error("Value ERROR 'Migration name must be set'")
             raise ValueError("Migration name must be set")
@@ -104,6 +123,12 @@ class Alembic(object):
             logging.info(f'Successfully created migration "{migration_name}" version {new_version}')
 
     def _read_version(self) -> int:
+        """
+        Count the total number of revisions in the Alembic migration history.
+        
+        Returns:
+        	int: The number of revisions.
+        """
         script = ScriptDirectory.from_config(self.alembic_cfg)
         count = 0
         for _ in script.walk_revisions():

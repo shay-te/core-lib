@@ -41,6 +41,12 @@ class TestSoftDeleteTokenTimezone(unittest.TestCase):
 
         class _FakeSession:
             def __enter__(self):
+                """
+                Enter the runtime context.
+                
+                Returns:
+                    The context manager instance.
+                """
                 return self
             def __exit__(self, *a):
                 return False
@@ -650,6 +656,9 @@ class TestCoreLibDestroyIdempotent(unittest.TestCase):
 
         class L(CoreLibListener):
             def on_core_lib_ready(self):
+                """
+                Invoked when CoreLib is ready. Override in subclasses to perform custom initialization.
+                """
                 pass  # intentionally empty
             def on_core_lib_destroy(self):
                 events.append('destroy')
@@ -772,6 +781,9 @@ class TestObserverThreadSafety(unittest.TestCase):
                 self.name = name
 
             def update(self, key, value):
+                """
+                Record this listener's name and the event key.
+                """
                 events.append((self.name, key))
 
         class SelfDetaching(ObserverListener):
@@ -892,8 +904,17 @@ class TestNewValidationBranchesCoverage(unittest.TestCase):
             def secure_entry(self, request, session_obj, policies):
                 return None
             def from_session_data(self, session_data):
+                """
+                Extract a user from the provided session data.
+                
+                Returns:
+                    None
+                """
                 return None
             def generate_session_data(self, obj):
+                """
+                Return the provided object unchanged.
+                """
                 return obj
 
         with self.assertRaises(AssertionError):
@@ -938,6 +959,9 @@ class TestNewValidationBranchesCoverage(unittest.TestCase):
 
         class BadL(CoreLibListener):
             def on_core_lib_ready(self):
+                """
+                Invoked when CoreLib is ready. Override in subclasses to perform custom initialization.
+                """
                 pass  # intentionally empty
             def on_core_lib_destroy(self):
                 raise RuntimeError('listener crashed during destroy')
@@ -1038,9 +1062,20 @@ class TestUserSecurityCatchesExceptionNotBase(unittest.TestCase):
                 raise KeyboardInterrupt('user pressed ctrl-c')
 
         class US(UserSecurity):
-            def secure_entry(self, request, session_obj, policies): return None
-            def from_session_data(self, session_data): return session_data
-            def generate_session_data(self, obj): return obj
+            def secure_entry(self, request, session_obj, policies): """
+Always return None, regardless of request, session, or policies.
+
+This method serves as a stub or mock implementation for security entry validation.
+"""
+return None
+            def from_session_data(self, session_data): """
+Return the provided session data unchanged.
+"""
+return session_data
+            def generate_session_data(self, obj): """
+Return the input object unchanged.
+"""
+return obj
 
         us = US('cookie', TH())
         with self.assertRaises(KeyboardInterrupt):
@@ -1056,9 +1091,20 @@ class TestUserSecurityCatchesExceptionNotBase(unittest.TestCase):
                 raise ValueError('bad token')
 
         class US(UserSecurity):
-            def secure_entry(self, request, session_obj, policies): return None
-            def from_session_data(self, session_data): return session_data
-            def generate_session_data(self, obj): return obj
+            def secure_entry(self, request, session_obj, policies): """
+Always return None, regardless of request, session, or policies.
+
+This method serves as a stub or mock implementation for security entry validation.
+"""
+return None
+            def from_session_data(self, session_data): """
+Return the provided session data unchanged.
+"""
+return session_data
+            def generate_session_data(self, obj): """
+Return the input object unchanged.
+"""
+return obj
 
         us = US('cookie', TH())
         self.assertIsNone(us.token_to_session_object('token'))
@@ -1261,6 +1307,12 @@ class TestNotFoundErrorHandlerOnFalsyReturns(unittest.TestCase):
         from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
         @NotFoundErrorHandler()
         def get_items():
+            """
+            Return an empty list.
+            
+            Returns:
+                An empty list.
+            """
             return []
         self.assertEqual(get_items(), [])
 
@@ -1275,6 +1327,12 @@ class TestNotFoundErrorHandlerOnFalsyReturns(unittest.TestCase):
         from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
         @NotFoundErrorHandler()
         def is_present():
+            """
+            Indicate that something is not present.
+            
+            Returns:
+                False
+            """
             return False
         self.assertFalse(is_present())
 

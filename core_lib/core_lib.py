@@ -24,12 +24,28 @@ class CoreLib(object):
     scheduler = JobScheduler()
 
     def __init__(self):
+        """Initialize a CoreLib instance."""
         self._core_lib_started = False
         self._observer = Observer(listener_type=CoreLibListener)
 
     def load_jobs(self, config: DictConfig, job_to_data_handler: dict = None):
         # Resolve mutable default internally — avoids the Python gotcha
         # where every caller shares the same default dict instance.
+        """
+        Load and schedule jobs from a configuration object.
+        
+        Jobs are instantiated from the configuration, optionally assigned data handlers,
+        and scheduled for execution based on their initial_delay and frequency settings.
+        If a job implements CoreLibListener, it is automatically attached as a core library
+        event listener.
+        
+        Parameters:
+            config (DictConfig): Configuration containing job definitions.
+            job_to_data_handler (dict): Optional mapping of job names to their data handlers.
+        
+        Raises:
+            ValueError: If a job's initial_delay configuration is missing or invalid.
+        """
         if job_to_data_handler is None:
             job_to_data_handler = {}
         logger.info(f'Loading CoreLib jobs `{self.__class__.__qualname__}`')
@@ -72,12 +88,20 @@ class CoreLib(object):
         self._observer.detach(core_lib_listener)
 
     def fire_core_lib_ready(self):
+        """
+        Notifies all listeners that CoreLib is ready.
+        """
         self._observer.notify(CoreLibListener.CoreLibEventType.CORE_LIB_READY, None)
 
     def fire_core_lib_destroy(self):
         # Idempotent: fires the destroy event at most once. `__del__` is an
         # unreliable trigger in Python (may fire during interpreter shutdown
         # when state is already partially torn down), so guard everything.
+        """
+        Notify all attached listeners that CoreLib is being destroyed.
+        
+        This method is idempotent and safe to call multiple times. It suppresses any exceptions during notification to prevent errors during interpreter shutdown or destructor execution.
+        """
         if getattr(self, '_destroyed', False):
             return
         if hasattr(self, '_observer'):
@@ -90,6 +114,12 @@ class CoreLib(object):
         self._destroyed = True
 
     def start_core_lib(self):
+        """
+        Initialize CoreLib and notify all listeners that it is ready.
+        
+        Raises:
+            CoreLibInitException: If CoreLib has already been initialized.
+        """
         logger.info('Starting CoreLib `{}`'.format(self.__class__.__name__))
         if self._core_lib_started:
             raise CoreLibInitException('CoreLib already initialized')
@@ -100,4 +130,9 @@ class CoreLib(object):
     def __del__(self):
         # fire_core_lib_destroy is idempotent and swallows its own listener
         # exceptions, so this call is safe even during interpreter shutdown.
+        """
+        Ensure cleanup of CoreLib resources when the object is garbage collected.
+        
+        This destructor is safe to call even during interpreter shutdown, as fire_core_lib_destroy is idempotent and handles exceptions internally.
+        """
         self.fire_core_lib_destroy()

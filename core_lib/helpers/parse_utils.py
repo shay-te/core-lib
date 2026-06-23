@@ -26,6 +26,12 @@ def normalize(text: str) -> str:
 
 
 def similarity(a: str, b: str) -> float:
+    """
+    Compute the similarity between two strings.
+    
+    Returns:
+    	float: A value between 0 and 1 indicating similarity, where 1.0 means the strings are identical.
+    """
     return SequenceMatcher(None, a, b).ratio()
 
 
@@ -33,6 +39,14 @@ def clean_list(list_to_clean) -> list:
     # Untyped on input — the function explicitly handles non-list values
     # by returning []. Marking it `list` would be a lie callers/linters
     # could rely on.
+    """
+    Remove empty and null-like values from a list.
+    
+    If the input is not a list, returns an empty list.
+    
+    Returns:
+    	list: The input list with None, empty strings, empty lists, empty dictionaries, and empty tuples removed.
+    """
     if not isinstance(list_to_clean, list):
         return []
 
@@ -145,6 +159,16 @@ def parse_date(value: Union[str, datetime, int, float]) -> Optional[datetime]:
 def parse_range(range_str, min_limit=None, max_limit=None):
     # Untyped on input — the function explicitly handles non-str inputs
     # by returning None.
+    """
+    Parse a range expression and extract its bounds.
+    
+    Parameters:
+        min_limit: Default value for the lower bound if it is "any".
+        max_limit: Default value for the upper bound if it is "any".
+    
+    Returns:
+        A tuple (lower, upper) of the extracted bounds, or None if parsing fails.
+    """
     if not isinstance(range_str, str):
         return None
     range_str = range_str.strip().lower()
@@ -179,6 +203,20 @@ def parse_range(range_str, min_limit=None, max_limit=None):
 # -----------------------------------
 def height_to_cm(height_str):
     # Reject iterable/collection types
+    """
+    Convert a height value to centimeters.
+    
+    Accepts numeric heights or strings in multiple formats (metric, imperial, Hebrew, or plain 
+    numbers). For numeric input, values less than 3 are interpreted as meters; values 3 and 
+    above are interpreted as centimeters. Non-positive numeric values, NaN, and infinity are 
+    rejected.
+    
+    Parameters:
+    	height_str: A numeric height or string representation.
+    
+    Returns:
+    	int or None: The height in centimeters, or `None` if the input cannot be parsed.
+    """
     if isinstance(height_str, (pd.Series, np.ndarray, list, dict, set, tuple)):
         return None
     # bool is a subclass of int in Python — reject explicitly so
@@ -245,6 +283,12 @@ def height_to_cm(height_str):
 
 
 def find_key_by_value(data, target):
+    """
+    Finds the first key whose value matches the target.
+    
+    Returns:
+        The matching key, or `None` if no value matches the target.
+    """
     for key, value in data.items():
         if value == target:
             return key
@@ -253,6 +297,12 @@ def find_key_by_value(data, target):
 def fetch_closest_option(source, options: list, threshold: float = 0.89) -> Union[str, None]:
     # Untyped on `source` — non-string inputs are explicitly rejected
     # (return None) rather than being a type error.
+    """
+    Finds the option most similar to the source string if the similarity score meets the threshold.
+    
+    Returns:
+        The original option string with the highest similarity to the source if the score exceeds the threshold, or None otherwise.
+    """
     if not isinstance(source, str):
         return None
 

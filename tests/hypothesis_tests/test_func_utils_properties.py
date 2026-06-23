@@ -41,6 +41,12 @@ class TestGetFuncParamsProperties(unittest.TestCase):
     @SETTINGS
     def test_param_index_matches_position(self, n):
         # Build a function with n params named p0..p(n-1)
+        """
+        Verify that `get_func_parameter_index_by_name` returns the correct zero-based index for each parameter in a dynamically generated function.
+        
+        Parameters:
+        	n (int): The number of parameters to include in the generated function.
+        """
         param_names = [f'p{i}' for i in range(n)]
         source = f"def f({', '.join(param_names)}): pass"
         namespace = {}

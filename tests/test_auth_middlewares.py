@@ -7,12 +7,23 @@ from django.conf import settings as django_settings
 class TestDjangoUserAuthMiddleware(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Configure Django settings for the test class.
+        
+        Ensures Django is configured with UTF-8 charset and sets the authentication cookie name to 'my_cookie'.
+        """
         if not django_settings.configured:
             django_settings.configure()
             django_settings.DEFAULT_CHARSET = 'utf-8'
         django_settings.COOKIE_NAME = 'my_cookie'
 
     def _build_middleware(self):
+        """
+        Create a UserAuthMiddleware instance configured for testing.
+        
+        Returns:
+            UserAuthMiddleware: Middleware instance with a pass-through get_response handler.
+        """
         from core_lib.web_helpers.django.user_auth_middleware import UserAuthMiddleware
         return UserAuthMiddleware(get_response=lambda r: r)
 

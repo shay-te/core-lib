@@ -19,6 +19,12 @@ from core_lib.rule_validator.rule_validator import (
 
 
 def _rules():
+    """
+    Create a standard set of validation rules for testing.
+    
+    Returns:
+    	list: A list of four ValueRuleValidator instances defining rules for 'name' (str), 'age' (int), 'opt' (str, nullable), and 'required_field' (str, non-nullable).
+    """
     return [
         ValueRuleValidator('name', str),
         ValueRuleValidator('age', int),

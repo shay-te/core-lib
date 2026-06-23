@@ -7,6 +7,23 @@ logger = logging.getLogger(__name__)
 
 
 def require_login(request, policies, func, *args, **kwargs):
+    """
+    Enforce authorization and conditionally invoke a function with exception handling.
+    
+    Checks authorization for the given request and policies. If authorization fails, 
+    returns the failure response. If authorization passes, invokes the provided function 
+    and converts any exceptions into HTTP responses.
+    
+    Parameters:
+        request: The HTTP request object.
+        policies: Authorization policies to enforce.
+        func: The callable to invoke if authorization passes.
+        *args: Positional arguments to pass to func.
+        **kwargs: Keyword arguments to pass to func.
+    
+    Returns:
+        HTTP response indicating authorization failure, or the result of calling func.
+    """
     response = handle_exception(SecurityHandler.get()._secure_entry, request, policies)
     if not response:
         # Route the view function through handle_exception so its exceptions

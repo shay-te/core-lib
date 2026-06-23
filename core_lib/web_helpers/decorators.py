@@ -18,6 +18,15 @@ def _get_request():
     # Flask exposes a thread-local proxy; Django does not, so this function
     # returns None for Django (callers are expected to pass the request via
     # the middleware context instead).
+    """
+    Retrieve the current HTTP request object from the thread-local context, if available.
+    
+    For Flask applications, returns the Flask request object. For Django, unknown
+    server types, or if server-type detection fails, returns None.
+    
+    Returns:
+    	The Flask request object for Flask applications, None otherwise.
+    """
     try:
         server_type = WebHelpersUtils.get_server_type()
     except Exception as e:
@@ -35,6 +44,13 @@ def _get_request():
     return None
 
 def _execute_error_middlewares(exc, func):
+    """
+    Execute centralized exception-handling middleware with execution context.
+    
+    Parameters:
+    	exc (Exception): The exception that was caught
+    	func (callable): The function that was being executed when the exception occurred
+    """
     request = _get_request()
 
     context = {
@@ -51,6 +67,15 @@ def _execute_error_middlewares(exc, func):
 
 
 def _get_exception_status_code(exc):
+    """
+    Map an exception to an HTTP error response with appropriate status code.
+    
+    Returns a response message where StatusCodeException uses its own status code,
+    ExpiredSignatureError maps to 401, and other exceptions map to 500.
+    
+    Returns:
+        A response message with the corresponding HTTP status code.
+    """
     if isinstance(exc, StatusCodeException):
         return response_message(status=exc.status_code)
     elif isinstance(exc, ExpiredSignatureError):
@@ -69,6 +94,17 @@ def handle_exception(func, *args, **kwargs):
     # `kwargs.pop("log_exception", True)`, which both stole a user kwarg of
     # that name and produced "got multiple values for argument" when the
     # HandleException decorator forwarded `log_exception=...`.
+    """
+    Execute a function and return an error response if an exception is caught.
+    
+    If the function executes successfully, returns its result. If an exception is caught, runs configured error middleware, logs the exception, and returns an error response. The log_exception parameter controls whether the exception traceback is included in logs.
+    
+    Parameters:
+    	log_exception (bool, optional): If False, exception traceback is not logged. Defaults to True.
+    
+    Returns:
+    	The return value of the wrapped function, or an error response if an exception occurs.
+    """
     sentinel_present = _HANDLE_EXCEPTION_LOG_SENTINEL in kwargs
     log_exception = kwargs.pop(_HANDLE_EXCEPTION_LOG_SENTINEL, True)
     # Backwards-compat: direct callers (NOT the HandleException decorator)
@@ -107,6 +143,12 @@ class HandleException(object):
         self._log_exception = log_exception
 
     def __call__(self, func, *args, **kwargs):
+        """
+        Return a wrapper that applies exception handling to the decorated function.
+        
+        Returns:
+        	A callable wrapper of the provided function with exception handling applied.
+        """
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Pass log_exception via the private sentinel so we don't shadow

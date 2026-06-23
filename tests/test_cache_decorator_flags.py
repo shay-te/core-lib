@@ -315,6 +315,9 @@ class TestCacheFlags(unittest.TestCase):
         # UnseenFormatter inserts !M<key>M! for missing kwargs;
         # the Cache decorator then replaces spaces with underscores
         # before truncation/storage.
+        """
+        Verify that cache keys with placeholders for missing function parameters include the missing-parameter marker.
+        """
         @Cache(key='missing-{nonexistent}', expire=timedelta(seconds=60),
                handler_name=HANDLER)
         def fn(a):

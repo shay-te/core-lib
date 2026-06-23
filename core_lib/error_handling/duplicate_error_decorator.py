@@ -15,6 +15,14 @@ class DuplicateErrorHandler(object):
         self.message = message
 
     def __call__(self, func, *args, **kwargs):
+        """
+        Wrap a function to intercept database constraint violations and re-raise as HTTP 409 Conflict.
+        
+        The returned wrapper catches `IntegrityError` exceptions from the decorated function, logs the constraint violation details, and raises a `StatusCodeException` with HTTP 409 status instead. The original exception is chained to preserve the traceback for debugging.
+        
+        Returns:
+            A wrapper function that applies this error handling to the original function.
+        """
         @wraps(func)
         def _wrapper(*args, **kwargs):
             try:

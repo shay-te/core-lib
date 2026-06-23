@@ -19,6 +19,16 @@ def generate_email(domain: str = 'domain.com') -> str:
 
 
 def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> datetime:
+    """
+    Generate a random datetime within an optional date range.
+    
+    Parameters:
+    	from_date (datetime): Start of the date range. Defaults to 10 days before today if not provided. If greater than to_date, the two dates are automatically swapped.
+    	to_date (datetime): End of the date range. Defaults to 10 days after today if not provided.
+    
+    Returns:
+    	datetime: A random date within the specified range, with time set to midnight.
+    """
     today = datetime.today()
     if not from_date:
         from_date = today - timedelta(days=10)
