@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core_lib.data_layers.data_access.data_access import DataAccess
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
@@ -13,7 +13,14 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
-        assert id
+        """
+        Retrieve a record by ID, excluding soft-deleted records.
+        
+        Returns:
+        	The database entity if found, `None` otherwise.
+        """
+        if not id:
+            raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
@@ -22,15 +29,28 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
             )
 
     def delete(self, id: int):
-        assert id
+        """
+        Soft-deletes a record by marking it with a deletion timestamp.
+        
+        Returns:
+            int: The number of rows affected by the deletion
+        """
+        if not id:
+            raise AssertionError('CRUDSoftDeleteWithTokenDataAccess.delete requires a truthy `id`')
+        # Compute deletion time once to avoid TOCTOU drift between the
+        # datetime column and the integer token (both must encode the
+        # same instant).  Use timezone-aware UTC: datetime.utcnow().timestamp()
+        # interprets naive UTC as local time, producing an incorrect epoch
+        # on non-UTC systems.
+        now = datetime.now(tz=timezone.utc)
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
                 .filter(self._db_entity.id == id)
                 .update(
                     {
-                        self._db_entity.deleted_at: datetime.utcnow(),
-                        self._db_entity.deleted_at_token: int(datetime.utcnow().timestamp()),
+                        self._db_entity.deleted_at: now.replace(tzinfo=None),
+                        self._db_entity.deleted_at_token: int(now.timestamp()),
                     }
                 )
             )

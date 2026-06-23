@@ -62,6 +62,17 @@ def generate(yaml):
 @click.option('--name', help='name of new revision')
 @click.option('--env_file', help='what environment variable to load, default ".env"')
 def migrate(rev, name, env_file):
+    """
+    Execute a database migration using Alembic based on the specified revision target.
+    
+    Parameters:
+        rev (str): The target revision. Accepts 'head', 'base', 'new', or integer offsets (e.g., '1' to upgrade one step, '-1' to downgrade one step).
+        name (str, optional): The name for the new migration when rev is 'new'. Required if rev is 'new'.
+        env_file (str, optional): Path to the environment file. Defaults to '.env' in the current working directory.
+    
+    Raises:
+        click.UsageError: If rev is 'new' without a name, or if rev is not a recognized value.
+    """
     load_dotenv(os.path.abspath(env_file or '.env'))
     config = load_config()
     alembic = Alembic(os.path.join(os.getcwd(), config.core_lib_module), config)
@@ -81,11 +92,17 @@ def migrate(rev, name, env_file):
         else:
             alembic.downgrade(str(number))
     elif rev == 'new':
-        if name:
-            click.echo(f'new revision named `{name}`')
-            alembic.create_migration(name)
-        else:
-            click.echo(f'--name parameter is mandatory when creating a new revision')
+        if not name:
+            # Previously this only echoed and exited 0 — a non-zero exit
+            # signals real failure to CI / scripts.
+            raise click.UsageError('--name is mandatory when creating a new revision')
+        click.echo(f'new revision named `{name}`')
+        alembic.create_migration(name)
+    else:
+        # Previously unknown --rev silently no-op'd with exit code 0.
+        raise click.UsageError(
+            f'unknown --rev value `{rev}`. Expected one of: {", ".join(get_rev_options())}'
+        )
 
 # @click.command()
 # @click.option('--value', help=' '.join(get_rev_options()))

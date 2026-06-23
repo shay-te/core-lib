@@ -74,6 +74,18 @@ class RuleValidator(object):
         return result_dict
 
     def _validate_rule(self, rule, key, value):
+        """
+        Validate and optionally coerce a value according to its rule configuration.
+        
+        Parameters:
+            rule: The ValueRuleValidator configuration for this value.
+        
+        Returns:
+            The validated and optionally coerced value.
+        
+        Raises:
+            PermissionError: If the value fails null check, type coercion, or custom validation.
+        """
         parsed_value = value
 
         if not rule.nullable and value is None:
@@ -82,39 +94,45 @@ class RuleValidator(object):
                 f'(`ValueRuleValidator.nullable` is set to `True`)'
             )
 
+        # `value is not None` guards (instead of `if value:`) so falsy values
+        # like 0, 0.0, '', False go through coercion + type-checking instead
+        # of silently passing through unchanged.
         if rule.custom_converter:
             parsed_value = rule.custom_converter(value)
 
         # `number` to `str`
-        elif value and rule.value_type is str and type(value) in [int, float]:
+        elif value is not None and rule.value_type is str and type(value) in [int, float]:
             parsed_value = str(value)
 
-        # `str` to `int`
-        elif value and rule.value_type is int and type(value) is str:
-            if value.isdigit():
+        # `str` to `int` — use int() directly so negative numbers (which
+        # `.isdigit()` rejects) are also accepted.
+        elif value is not None and rule.value_type is int and type(value) is str:
+            try:
                 parsed_value = int(value)
-            else:
+            except ValueError:
                 raise PermissionError(f'Invalid update key:`{key}` expected `int`, got `{type(value)}`')
         # `str` to `datetime`
-        elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
+        elif value is not None and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
-            except BaseException as ex:
+            # Narrow to Exception so KeyboardInterrupt / SystemExit propagate.
+            except Exception as ex:
                 raise PermissionError(
                     f'Invalid update key:{key} illegal datetime formatted value {value}. '
                     f'only ISO format is accepted'
                 ) from ex
 
-        elif value and not isinstance(parsed_value, rule.value_type):
+        elif value is not None and not isinstance(parsed_value, rule.value_type):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}` expected {rule.value_type}')
 
         try:
             if rule.custom_validator:
                 custom_valid = rule.custom_validator(parsed_value)
-                is_allow_null = parsed_value == None and rule.nullable
+                is_allow_null = parsed_value is None and rule.nullable
                 if custom_valid is not True and not is_allow_null:
                     raise PermissionError(f'Update of key:`{key}` failed by custom validation')
-        except BaseException as ex:
+        # Same — narrow from BaseException so process signals propagate.
+        except Exception as ex:
             raise PermissionError(f'Error running custom validator with  `{key}` and value `{parsed_value}`') from ex
 
         return parsed_value

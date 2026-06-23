@@ -112,7 +112,16 @@ def prompt_yes_no(title: str, default: Optional[bool] = None) -> bool:
 
 
 def prompt_bool(title: str, default: Optional[bool] = None, allow_none: bool = False) -> Optional[bool]:
-    """Prompt for a boolean (true/false/1/0)."""
+    """
+    Repeatedly prompts for a boolean value.
+    
+    Parameters:
+        default (bool, optional): Value returned if the user enters empty input. If not set, empty input re-prompts.
+        allow_none (bool): If `True`, returns `None` for empty input when no default is set; otherwise re-prompts.
+    
+    Returns:
+        bool or None: `True` if the user enters 'true' or '1', `False` if the user enters 'false' or '0' (case-insensitive), the `default` value if empty input is given and a default is set, or `None` if empty input is given and `allow_none` is `True`.
+    """
     while True:
         raw = _prompt(_format(title, default, allow_none)).lower()
         if not raw:
@@ -121,7 +130,7 @@ def prompt_bool(title: str, default: Optional[bool] = None, allow_none: bool = F
             elif allow_none:
                 return None
             else:
-                continue
+                continue  # pragma: no cover
         if raw in ('true', '1'):
             return True
         if raw in ('false', '0'):
@@ -132,7 +141,17 @@ def prompt_bool(title: str, default: Optional[bool] = None, allow_none: bool = F
 
 
 def prompt_int(title: str, default: Optional[int] = None, allow_none: bool = False) -> Optional[int]:
-    """Prompt for an integer."""
+    """
+    Prompts the user for an integer value.
+    
+    Parameters:
+        title (str): The prompt message.
+        default (Optional[int]): The value returned if the user enters empty input. If not provided and allow_none is False, prompting repeats until a valid integer is entered.
+        allow_none (bool): If True, returns None when the user enters empty input.
+    
+    Returns:
+        Optional[int]: The entered integer, the default value, or None if allow_none is True.
+    """
     while True:
         raw = _prompt(_format(title, default, allow_none))
         if not raw:
@@ -140,7 +159,7 @@ def prompt_int(title: str, default: Optional[int] = None, allow_none: bool = Fal
                 return default
             if allow_none:
                 return None
-            continue
+            continue  # pragma: no cover
         if is_int(raw):
             return int(raw)
 

@@ -18,14 +18,17 @@ class TestHandleException(unittest.TestCase):
         web_util = WebHelpersUtils()
         web_util.init(web_util.ServerType.DJANGO)
 
+        # NOTE: previously this used BaseException, but handle_exception was
+        # fixed to only catch Exception (so SystemExit / KeyboardInterrupt
+        # can propagate). Use RuntimeError as a representative Exception.
         with self.assertLogs() as cm:
-            resp_json = self.raise_exception(BaseException)
+            resp_json = self.raise_exception(RuntimeError)
             self.assertEqual(resp_json.status_code, 500)
             resp_json_data = json.loads(resp_json.content.decode('utf-8'))
             self.assertIsInstance(resp_json_data, dict)
             self.assertEqual(resp_json_data['error'], 'Internal Server Error')
-            self.assertIn('BaseException', str(cm.output))
-            self.assertIn('handle_exception got BaseException error for function', str(cm.output))
+            self.assertIn('RuntimeError', str(cm.output))
+            self.assertIn('handle_exception got RuntimeError error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(AssertionError)
@@ -58,15 +61,17 @@ class TestHandleException(unittest.TestCase):
         web_util = WebHelpersUtils()
         web_util.init(web_util.ServerType.FLASK)
 
+        # See test_raises_exception_django for the BaseException → Exception
+        # rationale.
         with self.assertLogs() as cm:
-            resp_json = self.raise_exception(BaseException)
+            resp_json = self.raise_exception(RuntimeError)
             self.assertEqual(resp_json.status_code, 500)
             self.assertEqual(resp_json.status, "500 INTERNAL SERVER ERROR")
             resp_msg_data = json.loads(resp_json.data.decode('utf-8'))
             self.assertIsInstance(resp_msg_data, dict)
             self.assertEqual(resp_msg_data['error'], 'Internal Server Error')
-            self.assertIn('BaseException', str(cm.output))
-            self.assertIn('handle_exception got BaseException error for function', str(cm.output))
+            self.assertIn('RuntimeError', str(cm.output))
+            self.assertIn('handle_exception got RuntimeError error for function', str(cm.output))
 
         with self.assertLogs() as cm:
             resp_json = self.raise_exception(AssertionError)

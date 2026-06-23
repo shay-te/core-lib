@@ -13,16 +13,45 @@ class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
 
     @NotFoundErrorHandler()
     def get(self, id: int):
-        assert id
+        """
+        Retrieve a single entity by ID, excluding soft-deleted records.
+        
+        Parameters:
+            id (int): The entity ID. Must be truthy.
+        
+        Returns:
+            The entity with the given ID if found and not soft-deleted, or None.
+        
+        Raises:
+            AssertionError: If id is falsy.
+        """
+        if not id:
+            raise AssertionError('CRUDSoftDeleteDataAccess.get requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
-                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)
+                # Use `.is_(None)` (the SQLAlchemy idiom for `IS NULL`) so
+                # linters don't flag `== None` while still emitting the
+                # same SQL.
+                .filter(self._db_entity.id == id, self._db_entity.deleted_at.is_(None))
                 .first()
             )
 
     def delete(self, id: int):
-        assert id
+        """
+        Soft-deletes a record by marking it as deleted.
+        
+        Parameters:
+            id (int): The record identifier. Must be a truthy value.
+        
+        Returns:
+            The number of rows affected by the update.
+        
+        Raises:
+            AssertionError: If id is falsy.
+        """
+        if not id:
+            raise AssertionError('CRUDSoftDeleteDataAccess.delete requires a truthy `id`')
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)

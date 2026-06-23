@@ -19,11 +19,27 @@ def generate_email(domain: str = 'domain.com') -> str:
 
 
 def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> datetime:
+    """
+    Generate a random datetime within an optional date range.
+    
+    Parameters:
+    	from_date (datetime): Start of the date range. Defaults to 10 days before today if not provided. If greater than to_date, the two dates are automatically swapped.
+    	to_date (datetime): End of the date range. Defaults to 10 days after today if not provided.
+    
+    Returns:
+    	datetime: A random date within the specified range, with time set to midnight.
+    """
     today = datetime.today()
     if not from_date:
         from_date = today - timedelta(days=10)
     if not to_date:
         to_date = today + timedelta(days=10)
+    # Auto-swap if the caller passed `from_date > to_date` (or only one of
+    # them, putting the auto-default on the wrong side). Previous behavior
+    # raised `ValueError: empty range for randrange()` from inside
+    # `random.randint`, exposing an implementation detail.
+    if from_date > to_date:
+        from_date, to_date = to_date, from_date
     first_timestamp = int(from_date.timestamp())
     second_timestamp = int(to_date.timestamp())
     random_timestamp = random.randint(first_timestamp, second_timestamp)

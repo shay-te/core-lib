@@ -1,0 +1,100 @@
+"""Property-based tests for rule_validator.rule_validator.RuleValidator."""
+import string as stringmod
+import unittest
+
+from hypothesis import given, strategies as st
+
+from core_lib.rule_validator.rule_validator import (
+    RuleValidator,
+    ValueRuleValidator,
+)
+from tests.hypothesis_tests._settings import SETTINGS
+
+
+_VALID_NAMES = st.text(alphabet=stringmod.ascii_lowercase, min_size=1, max_size=10)
+
+
+class TestRuleValidatorProperties(unittest.TestCase):
+    @given(value=st.text(min_size=0, max_size=50))
+    @SETTINGS
+    def test_str_rule_passes_strings_through(self, value):
+        """
+        Verify that string values pass through unchanged when a RuleValidator has a str rule.
+        
+        This property-based test validates that for any string value, when a RuleValidator is configured with a rule mapping key 'k' to str type, the value is returned unchanged after validation.
+        """
+        rv = RuleValidator([ValueRuleValidator('k', str)])
+        out = rv.validate_dict({'k': value}, strict_mode=False)
+        self.assertEqual(out['k'], value)
+
+    @given(value=st.integers(min_value=-10000, max_value=10000))
+    @SETTINGS
+    def test_int_rule_passes_integers_through(self, value):
+        rv = RuleValidator([ValueRuleValidator('k', int)])
+        out = rv.validate_dict({'k': value}, strict_mode=False)
+        self.assertEqual(out['k'], value)
+
+    @given(value=st.integers(min_value=0, max_value=10000))
+    @SETTINGS
+    def test_digit_str_coerced_to_int(self, value):
+        rv = RuleValidator([ValueRuleValidator('k', int)])
+        out = rv.validate_dict({'k': str(value)}, strict_mode=False)
+        self.assertEqual(out['k'], value)
+
+    @given(value=st.integers())
+    @SETTINGS
+    def test_int_rule_str_target_coerces_int_to_str(self, value):
+        # After bug fix: falsy ints (0) are also coerced to '0'.
+        """
+        Verify that integer values are coerced to their string representation when a rule expects the string type.
+        
+        This includes handling of falsy values like 0.
+        """
+        rv = RuleValidator([ValueRuleValidator('k', str)])
+        out = rv.validate_dict({'k': value}, strict_mode=False)
+        self.assertEqual(out['k'], str(value))
+
+    @given(
+        names=st.lists(_VALID_NAMES, min_size=1, max_size=10, unique=True),
+    )
+    @SETTINGS
+    def test_update_and_remove_round_trip(self, names):
+        rv = RuleValidator([])
+        rv.update([ValueRuleValidator(n, str) for n in names])
+        # All registered
+        for n in names:
+            self.assertIn(n, rv.rules)
+        # Remove all
+        for n in names:
+            rv.remove(n)
+        # None remaining
+        for n in names:
+            self.assertNotIn(n, rv.rules)
+
+    @given(
+        names=st.lists(_VALID_NAMES, min_size=1, max_size=5, unique=True),
+        value=st.text(min_size=1, max_size=10),
+    )
+    @SETTINGS
+    def test_prohibited_key_always_raises(self, names, value):
+        rv = RuleValidator(
+            [ValueRuleValidator(n, str) for n in names],
+            prohibited_keys=names,
+        )
+        # Any one of the prohibited keys triggers PermissionError
+        target = names[0]
+        with self.assertRaises(PermissionError):
+            rv.validate_dict({target: value}, strict_mode=False)
+
+    @given(
+        present_keys=st.lists(_VALID_NAMES, min_size=1, max_size=5, unique=True),
+    )
+    @SETTINGS
+    def test_mandatory_missing_raises(self, present_keys):
+        # Add one rule for each present key, then make a different name mandatory
+        rules = [ValueRuleValidator(n, str) for n in present_keys]
+        rv = RuleValidator(rules, mandatory_keys=['_definitely_missing_'])
+        with self.assertRaises(PermissionError):
+            rv.validate_dict(
+                dict.fromkeys(present_keys, 'v'), strict_mode=False
+            )

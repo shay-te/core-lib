@@ -38,7 +38,7 @@ def is_int(val) -> bool:
 #
 # complex
 #
-'''
+r'''
 ^                    # Start of string
 (?!\.)               # Reject if starts with a dot
 (?!.*\.\.)           # Reject if contains consecutive dots
