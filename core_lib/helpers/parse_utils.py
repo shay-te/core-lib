@@ -142,10 +142,14 @@ def parse_date(value: Union[str, datetime, int, float]) -> Optional[datetime]:
 def parse_range(range_str: str, min_limit=None, max_limit=None):
     if not isinstance(range_str, str):
         return None
-    range_str = range_str.strip().lower()
-    if "to" not in range_str:
+    range_str = range_str.strip().lower().replace('–', '-').replace('—', '-')
+    # support both 'X to Y' and 'X-Y' (hyphen/dash) range formats
+    if 'to' in range_str:
+        parts = range_str.split('to')
+    elif '-' in range_str:
+        parts = range_str.split('-')
+    else:
         return None
-    parts = range_str.split("to")
     if len(parts) != 2:
         return None
 
