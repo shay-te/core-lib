@@ -13,6 +13,27 @@
 
 ---
 
+# Scaffolding skills — one per core-lib part
+
+Step-by-step, copy-paste-ready guides for building each part of a core-lib live
+under [`skills/`](skills/). They are **tool-neutral** (plain Markdown with
+`name` / `description` front-matter) so **any** AI agent — not just Claude
+Code — can read and follow them; Claude Code also auto-discovers them via thin
+pointers in `.claude/skills/`. Each guide encodes the rules below as concrete
+templates.
+
+| Skill | Use it to | Guide |
+|---|---|---|
+| `core-lib-entity` | Add a SQLAlchemy entity (Data layer) | [`skills/core-lib-entity/SKILL.md`](skills/core-lib-entity/SKILL.md) |
+| `core-lib-data-access` | Add a DataAccess (pure CRUD query layer) | [`skills/core-lib-data-access/SKILL.md`](skills/core-lib-data-access/SKILL.md) |
+| `core-lib-service` | Add a Service (business logic + caching + public API) | [`skills/core-lib-service/SKILL.md`](skills/core-lib-service/SKILL.md) |
+| `core-lib-connection` | Add an outbound integration (factory + connection) | [`skills/core-lib-connection/SKILL.md`](skills/core-lib-connection/SKILL.md) |
+| `core-lib-migration` | Add an Alembic migration after an entity change | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
+| `core-lib-tests` | Write tests (real collaborators, agnostic fixtures) | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
+| `core-lib-new` | Scaffold a whole new core-lib end to end | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
+
+---
+
 # Core-Lib Rules — this library is AGNOSTIC
 
 This package is a **standalone, product-agnostic library**. Treat it as if it
