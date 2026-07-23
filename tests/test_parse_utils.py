@@ -377,11 +377,12 @@ class TestParseUtils(unittest.TestCase):
     # =====================================================
     def test_parse_range(self):
         self.assertEqual(parse_range("10 to 20"), (10, 20))
+        self.assertEqual(parse_range("10-20"), (10, 20))  # hyphen ranges now accepted
         self.assertEqual(parse_range("any to 50", 0, 100), (0, 50))
         self.assertEqual(parse_range("5 to any", 0, 100), (5, 100))
 
     def test_parse_range_invalid(self):
-        for v in ["hello", "10-20", "to", "", None]:
+        for v in ["hello", "to", "", None]:
             self.assertIsNone(parse_range(v), v)
 
     def test_parse_range_case_insensitive(self):
