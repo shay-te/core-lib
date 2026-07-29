@@ -128,9 +128,9 @@ class TestParseUtils(unittest.TestCase):
         for val in [None, 123, 45.6, True, [], {}, "test"]:
             try:
                 result = normalize(val)
-                self.assertIsInstance(result, str)
-            except:
-                pass  # Some may raise, that's ok
+            except Exception:
+                continue  # Some inputs may raise, that's ok
+            self.assertIsInstance(result, str)
 
     def test_normalize_idempotent(self):
         """Normalizing twice should give same result as normalizing once"""
@@ -902,9 +902,9 @@ class TestParseUtils(unittest.TestCase):
         for val in ["test", 123, None, [], {}]:
             try:
                 result = normalize(val)
-                self.assertIsInstance(result, str)
-            except:
-                pass
+            except Exception:
+                continue
+            self.assertIsInstance(result, str)
 
     def test_similarity_always_returns_float(self):
         """similarity always returns float [0,1]"""
