@@ -1,6 +1,6 @@
 ---
 name: core-lib-service
-description: Scaffold a Service class (business logic + caching + transformation) for a *-core-lib — the library's public API surface over a DataAccess, with @Cache / @ResultToDict / @DuplicateErrorHandler, cache-key invalidation, and enum boundaries. Use when asked to add a service, business-logic layer, or public method to a core-lib, or to add caching/invalidation to a read/write.
+description: MANDATORY — load this skill BEFORE you add or change a Service, business-logic layer, public core-lib method or API, caching or cache invalidation, unique-constraint (409) handling, or state-transition/observer logic in a *-core-lib; do not write it from memory. Creates a Service over a DataAccess with @Cache/@ResultToDict/@DuplicateErrorHandler and history+outbox. Raw queries go in core-lib-data-access.
 ---
 
 The canonical, tool-neutral version of this skill lives at

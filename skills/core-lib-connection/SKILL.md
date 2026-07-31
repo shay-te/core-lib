@@ -1,6 +1,6 @@
 ---
 name: core-lib-connection
-description: Scaffold an outbound integration for a *-core-lib — a ConnectionFactory that builds a shared SDK client once and a Connection with the per-call surface (LLM provider, object storage, payment gateway, any external SDK). Use when asked to add an external client, provider, API integration, or connection factory to a core-lib.
+description: MANDATORY — load this skill BEFORE you add or change an external client, provider, API or SDK integration, HTTP client, connection factory, or any wrapper around a third-party service (LLM, object storage/S3, payment gateway) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors.
 ---
 
 # Create a core-lib Connection (outbound integration)

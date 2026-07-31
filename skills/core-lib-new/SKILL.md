@@ -1,6 +1,6 @@
 ---
 name: core-lib-new
-description: Scaffold a whole new *-core-lib from scratch — the package layout, main CoreLib class (composition root), singleton accessor, Hydra config + plugin, and the first entity → data-access → service vertical slice. Use when asked to create a new core-lib library, bootstrap a new persistence/integration package, or stand up a new data domain end-to-end.
+description: MANDATORY — load this skill BEFORE you create, bootstrap, or start a whole new *-core-lib library or persistence/integration package from nothing; do not scaffold from memory. Produces the package layout, the main CoreLib composition-root class, singleton accessor, Hydra config plus hydra_plugins, requirements.txt, and a first entity→data-access→service slice. To add one part to an existing lib, use the per-part skill.
 ---
 
 # Create a new *-core-lib (end to end)

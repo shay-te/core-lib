@@ -1,6 +1,6 @@
 ---
 name: core-lib-entity
-description: Scaffold a SQLAlchemy entity (the Data layer) for a *-core-lib — a table class under data_layers/data/db/entities/ with the right Base, soft-delete mixins, IntEnum columns, and INTEGER columns. Use when asked to add a new table, model, or entity to a core-lib, or when starting a new data domain that needs persistence.
+description: MANDATORY — load this skill BEFORE you add or change any table, model, ORM class, entity, column, field, or nested enum in a *-core-lib; do not write it from memory. Creates one SQLAlchemy entity (Data layer) under data_layers/data/db/entities/ on Base, soft-delete mixins, INTEGER, IntEnum. Pair with core-lib-migration (DDL) and core-lib-data-access (queries).
 ---
 
 The canonical, tool-neutral version of this skill lives at

@@ -1,6 +1,6 @@
 ---
 name: core-lib-data-access
-description: Scaffold a DataAccess class (the query layer) for a *-core-lib entity — pure CRUD over one entity, built on CRUDDataAccess / CRUDSoftDeleteDataAccess / CRUDSoftDeleteWithTokenDataAccess, with optional RuleValidator. Use when asked to add a data-access, DAO, repository, or query class for a core-lib entity, or to add a get_by_*/list query.
+description: MANDATORY — load this skill BEFORE you add or change a DataAccess, DAO, repository, query class, or any get_by/list/filter lookup for a *-core-lib entity; do not write it from memory. Creates pure-CRUD DataAccess on CRUDDataAccess / CRUDSoftDeleteDataAccess / CRUDSoftDeleteWithTokenDataAccess with an optional RuleValidator. Business logic and caching go in core-lib-service.
 ---
 
 # Create a core-lib DataAccess (query layer)

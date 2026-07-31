@@ -1,6 +1,6 @@
 ---
 name: core-lib-migration
-description: Create an Alembic migration for a *-core-lib after adding or changing an entity — a versioned revision under data_layers/data/db/migrations/versions/ that pins the physical DDL. Use when asked to add a migration, alter a table, add a column/index/constraint, or after creating/changing a core-lib entity.
+description: MANDATORY — load this skill BEFORE you add a migration or alter/create/drop any table, column, index, or constraint in a *-core-lib, and right after changing an entity; do not write it from memory. Creates an Alembic revision under data_layers/data/db/migrations/versions/ with matching upgrade/downgrade and sa.INTEGER. The model class itself is core-lib-entity.
 ---
 
 # Create a core-lib migration (Alembic)

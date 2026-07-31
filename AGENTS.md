@@ -13,24 +13,31 @@
 
 ---
 
-# Scaffolding skills — one per core-lib part
+# Scaffolding skills — MANDATORY routing gate (do not skip)
 
-Step-by-step, copy-paste-ready guides for building each part of a core-lib live
-under [`skills/`](skills/). They are **tool-neutral** (plain Markdown with
+Copy-paste-ready guides for building each part of a core-lib live under
+[`skills/`](skills/). They are **tool-neutral** (plain Markdown with
 `name` / `description` front-matter) so **any** AI agent — not just Claude
 Code — can read and follow them; Claude Code also auto-discovers them via thin
-pointers in `.claude/skills/`. Each guide encodes the rules below as concrete
-templates.
+pointers in `.claude/skills/`.
 
-| Skill | Use it to | Guide |
-|---|---|---|
-| `core-lib-entity` | Add a SQLAlchemy entity (Data layer) | [`skills/core-lib-entity/SKILL.md`](skills/core-lib-entity/SKILL.md) |
-| `core-lib-data-access` | Add a DataAccess (pure CRUD query layer) | [`skills/core-lib-data-access/SKILL.md`](skills/core-lib-data-access/SKILL.md) |
-| `core-lib-service` | Add a Service (business logic + caching + public API) | [`skills/core-lib-service/SKILL.md`](skills/core-lib-service/SKILL.md) |
-| `core-lib-connection` | Add an outbound integration (factory + connection) | [`skills/core-lib-connection/SKILL.md`](skills/core-lib-connection/SKILL.md) |
-| `core-lib-migration` | Add an Alembic migration after an entity change | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
-| `core-lib-tests` | Write tests (real collaborators, agnostic fixtures) | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
-| `core-lib-new` | Scaffold a whole new core-lib end to end | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
+**This is a hard rule, not a suggestion. Before you create or modify any
+core-lib part in the table below, you MUST first load — open and follow — the
+matching skill.** Loading is not a judgment call: match the row and load the
+skill *before* writing code. Never write core-lib code from memory when a
+matching skill exists. If more than one row matches (e.g. a new entity that
+also needs a migration), load all that apply. For a brand-new library, load
+`core-lib-new` first, then each per-part skill as you reach it.
+
+| If you are about to… | You MUST first load |
+|---|---|
+| add or change an entity / table / model / column / nested enum | [`skills/core-lib-entity/SKILL.md`](skills/core-lib-entity/SKILL.md) |
+| add or change a DataAccess / DAO / repository / query / get_by / list / filter | [`skills/core-lib-data-access/SKILL.md`](skills/core-lib-data-access/SKILL.md) |
+| add or change a Service / business logic / public method / caching / invalidation | [`skills/core-lib-service/SKILL.md`](skills/core-lib-service/SKILL.md) |
+| add or change an external client / provider / SDK / API integration / connection factory | [`skills/core-lib-connection/SKILL.md`](skills/core-lib-connection/SKILL.md) |
+| add a migration / alter / create / drop a table, column, index, or constraint | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
+| add / fix / restructure tests or raise coverage | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
+| create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
 
 ---
 
@@ -40,7 +47,7 @@ This package is a **standalone, product-agnostic library**. Treat it as if it
 will be published on its own and dropped into any application that has never
 heard of this project. It must know nothing about the host that consumes it.
 
-## 1. No host/product knowledge — anywhere
+## No host or product knowledge — anywhere
 
 The name of the host application or product (its brand, its CLI, its env-var
 prefix) must **NOT** appear **anywhere** in this library — not in source, not in
@@ -56,7 +63,7 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
   strings) is **injected by the caller** as a parameter — never hardcoded here.
   Provide a safe, neutral default so the library works standalone.
 
-## 2. Minimal dependencies
+## Minimal dependencies
 
 - Import only **stdlib + third-party** packages. Do not import sibling libraries
   peer-to-peer; depend only on a declared shared base, if one exists.
@@ -64,7 +71,7 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
   the real module. A package `__init__.py` exposing its own package's public API
   is the only allowed re-export.
 
-## 3. Self-contained and fully tested
+## Self-contained and fully tested
 
 - Tests live **inside this library**, never in a top-level/host test folder, and
   never importing host code or a host test package. A test in this library tests
@@ -75,20 +82,25 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
 - Fixtures use **generic example data** (`acme/widget`, `reviewer`, `PROJ-1`) —
   never product-flavored names.
 
-## 4. When a feature needs host-specific behavior
+## When a feature needs host-specific behavior
 
 Do NOT reach back into the host. Add a **parameter** (constructor or function
 arg) with a safe agnostic default, and let the host pass the value in. If you
 find yourself typing the product/host name, a host env-var prefix, or
 host-specific text in this library — stop, and inject it instead.
 
-## 5. The litmus test
+## The litmus test
 
 Could you publish this package as-is, with its tests, to a public registry and
 have a stranger use it without ever learning what application it came from? If
 not, it isn't agnostic yet.
 
 ---
+
+# Engineering rules — every core-lib
+
+The numbered sections below (§1–§7) are the canonical engineering rules. Skills
+and other docs reference them as `§<section>.<rule>` (e.g. `§3.4`).
 
 ## 1. Coding conventions (apply to every Python file)
 
@@ -214,6 +226,50 @@ complexity threshold and avoid nested conditional expressions:
   for that name. Before mass-renaming an exported helper, scan the repo with
   `rg` for both imports and call sites.
 
+### 1.7 Names say *what* — and *which kind*
+
+A symbol's name states *what* it returns / operates on **and**, when a
+kind/variant distinction exists, *which kind* — so the reader never has to
+infer either from context or a docstring.
+
+```python
+def _resolve_target_id(self, field_key): ...              # of what?
+def _resolve_field_target_id(self, field_key): ...        # better — says what
+def _resolve_built_in_field_target_id(self, field_key): ...   # best — also which kind
+def _resolve_external_field_id(self, ...): ...            # a different id → a distinct name
+```
+
+The same applies to types and parameters: `field_key_to_is_built_in:
+dict[str, bool]` names the actual decision; `field_key_to_custom_label:
+dict[str, str]` smuggles in a concept the consumer didn't ask about. If a name
+needs a docstring to disambiguate "which path is this?", rename it instead of
+explaining it.
+
+### 1.8 Define functions and methods once, at module top level — never per call
+
+A function or method is defined **once at import**, never rebuilt inside a
+loop, inside another function that runs per object, or inside an orchestration
+method that runs per row / per tenant.
+
+```python
+# NO — a fresh closure is rebuilt for every org:
+def seed(name, stages):
+    def seed_for_org(org_id):
+        def resolve_field_id(field_key): ...
+        ...
+
+# YES — methods defined once on a class; per-call state lives on a lightweight
+# instance, per-row state (caches, accumulators) is just data passed in:
+class SeedService:
+    def __init__(self, core_lib, ...): ...
+    def _resolve_field_id(self, org_id, field_key, cache): ...
+    def reconcile(self, seed, org_ids): ...
+```
+
+If a helper needs per-call state (a connection, loaded entities), hold that
+state on a small class instance and define the methods once on the class. Pure
+helpers go at module level.
+
 ---
 
 ## 2. File & package organization
@@ -236,6 +292,44 @@ the diff.
   split only when modules carry meaningfully different responsibilities.
 - Don't create a file just so it can be listed in a validation report. Every
   file in a PR should do real work.
+
+### 2.2 Specs are frozen dataclasses, not dict literals
+
+When a "spec" — a plain-data description of rules / stages / scores /
+config that a consumer module reads — is authored, model it as a **frozen
+dataclass DSL owned by the consumer module**, never as a nested-dict literal.
+
+```python
+@dataclass(frozen=True)
+class Rule:
+    field: str
+    operator: Operator
+    value: Any
+    meta_data: Optional[dict] = None
+
+MY_SEED = Seed(
+    key='acme', name='...', stages=[
+        StageSeed(name='...', eligibility=[in_(RecordTypeField.key, ['user'])],
+                  scores=[score_equal(TierField.key, 'premium', 20)]),
+    ],
+)
+```
+
+Renames are then caught by the type checker instead of a string grep, authors
+can't typo a field, and reviewers read operator semantics from the helper name
+(`score_between`, `gte`) instead of decoding a raw dict. The consumer walks the
+dataclass directly; a `to_dict()` (if any) is for logging only, never the
+input path. Add helper constructors (`equal`, `gte`, `in_`, …) on demand.
+
+### 2.3 Reusable engines live in their own file — engine vs. data split
+
+Generic mechanics that any client or any spec could call go in a **separate,
+client-agnostic module** (the engine). A client file owns only its *data* (its
+spec / constants) plus a thin call into the engine. A new client is a new data
+file + a thin call — never a copy-pasted engine.
+
+The engine module owns the *shape* (the DSL dataclasses and the contract);
+each client's data module owns the *content*. This pairs with §2.2.
 
 ---
 
@@ -322,6 +416,16 @@ declared *inside* the entity class sit next to the columns they name and are
 part of the entity definition; entity-schema tests that assert physical
 column names keep literals on purpose, else the assertion is a tautology.)
 
+**Corollary — prefer a constant over a literal whenever one exists, on both
+sides of a lookup.** This is not only the entity `.key` for reading a
+`@ResultToDict` dict (`lead[Lead.score.key]`, not `lead['score']`); it also
+covers *writing* the key, JSON-payload keys, spec/DSL keys, and enum-valued
+metadata keys — reach for the enum member's `.value`
+(`meta_data.get(MetaField.BETWEEN_HIGH.value)`, not `meta_data.get('between_high')`).
+If a constant, enum value, or `.key`/`.value` exists for the string you're
+about to type, use it. (A Python keyword-argument name in a call — `name=...` —
+is a parameter, not a string literal, and stays as-is.)
+
 ### 3.5 Use `INTEGER`, not `Integer`
 
 In every entity definition and every Alembic migration, integer columns use
@@ -331,6 +435,27 @@ the explicit SQL-standard form:
 - Migrations: `sa.Column('id', sa.INTEGER(), ...)`.
 
 Not the generic `sqlalchemy.Integer` alias.
+
+### 3.6 One DB statement per named method
+
+A method or function runs **one DB statement**, named for what it does. No
+inline `session.query(...)` / `insert` / `delete` mixed into business logic in
+an orchestration method — an orchestrator reads as a sequence of named calls,
+each of which you can grep for, test, and change in one place.
+
+```python
+class ReconcileService:
+    def _find_or_create_parent(self, tenant_id): ...
+    def _find_or_create_child(self, parent_id, spec): ...
+    def _link_child_field(self, child_id, field_id): ...
+    def reconcile(self, seed, tenant_ids):
+        for tenant_id in tenant_ids:
+            self._reconcile_tenant(tenant_id, seed)
+```
+
+In practice most queries already sit behind a `*DataAccess` method; the rule is
+to keep it that way — add a new named method rather than open-coding a query in
+the middle of a service flow.
 
 ---
 
