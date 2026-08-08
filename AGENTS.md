@@ -10,6 +10,12 @@
 > a specific core-lib; library-specific lessons stay in that library's own
 > `AGENTS.md`. This file is self-contained: it references no file outside this
 > library.
+>
+> **Building a whole core-lib (or a substantial feature)? Read
+> [`BUILDING_A_CORE_LIB.md`](BUILDING_A_CORE_LIB.md) first** — the end-to-end
+> architecture guide (mental model, full anatomy, build sequence, decision
+> guide, and the recurring-mistake list). This file is the *rules*; that guide
+> is the *how-to-architect-it*, and it cites these rules as `§x.y`.
 
 ---
 
@@ -210,6 +216,10 @@ check survives optimized runs. `assert` remains fine in tests and in
 import-time invariants meant to fail fast in dev. Each required-arg guard
 should have a covering negative test.
 
+The inherited CRUD base methods use `assert` internally (that's the
+framework's code, not yours) — you don't change the base. The rule applies to
+the methods **you** add: guard their required args with `raise`.
+
 ### 1.6 Keep functions simple — static analysis can block the PR
 
 These libraries are checked by static analysis (e.g. SonarCloud); small
@@ -330,6 +340,18 @@ file + a thin call — never a copy-pasted engine.
 
 The engine module owns the *shape* (the DSL dataclasses and the contract);
 each client's data module owns the *content*. This pairs with §2.2.
+
+### 2.4 Keep each layer dependency-pure — enforce direction with a boundary test
+
+Dependencies flow one way: a lower/transport layer stays free of the
+higher layer's frameworks. A concern that belongs to the higher layer (a
+validation framework like Pydantic, an agent-only contract) lives **in** that
+higher layer, so the lower one keeps a minimal dependency set and can be
+consumed on its own.
+
+Lock the direction with a **boundary test** that fails if the lower-layer
+package imports the higher-layer package. The test — not a comment — is what
+keeps the layering from eroding as the code grows.
 
 ---
 
@@ -456,6 +478,17 @@ class ReconcileService:
 In practice most queries already sit behind a `*DataAccess` method; the rule is
 to keep it that way — add a new named method rather than open-coding a query in
 the middle of a service flow.
+
+### 3.7 Pair a column's `server_default` with a Python-side `default`
+
+A `server_default` only fills the column when the row is written **through the
+DB** (raw SQL / a migration backfill). An ORM-created instance that hasn't been
+flushed+refreshed still has `None` for that attribute, so a service reading it
+back before commit gets `None` instead of the DB default. When a column carries
+a `server_default`, give it a matching Python-side `default` (or
+`default=`/`server_default=` pair) so the in-memory object and the persisted
+row agree. Enum columns backed by the core-lib `IntEnum` type are the common
+case.
 
 ---
 
@@ -591,6 +624,25 @@ Mutations call the service's cache-invalidation helper right before the
 observer fan-out. When you add a new cached read that could ship stale data
 after a write, add it to that helper.
 
+### 4.8 Entry points that must behave identically share one private core
+
+When two public methods must not diverge on a shared concern — the same
+detection set, the same logging, the same raising — route both through one
+private core method rather than duplicating the logic. Switching a caller from
+one entry point to the other then cannot silently change behaviour. (A
+validate-vs-apply pair both calling a single `_scan(...)` is the canonical
+shape.)
+
+### 4.9 Redacting sensitive data — one path, zero disclosure
+
+If the library ever emits a preview / log / error for a value that may be
+sensitive (PII, secrets, credentials), redact it to **zero bytes** of the raw
+value — e.g. `[REDACTED, len=N]`, pattern name + length only, never a prefix,
+suffix, hash, or partial. Route every redaction through **one** function so a
+new call site can't reintroduce a leak. A debug flow that genuinely needs more
+is a **separate** function with the trade-off stated in its docstring — never a
+loosening of the shared one.
+
 ---
 
 ## 5. Connections & external clients
@@ -633,9 +685,12 @@ connection, invalid provider, provider error) and raise those.
 
 Keep `requirements.txt` minimal: depend on `core-lib`, and let the common
 transitive deps (`SQLAlchemy`, `alembic`, `omegaconf`, `hydra-core`, etc.)
-arrive through it rather than re-declaring them. Optional/heavy backend SDKs
-(e.g. `openai`, `anthropic`, `boto3`) go in `extras_require` so consumers opt
-in (`pip install 'my-core-lib[openai]'`) — do not add them to
+arrive through it rather than re-declaring them. This applies to **any**
+optional library-backed feature, not just SDK connections — an optional
+detector, extractor, or provider (`phonenumbers`, `spacy`, `boto3`, …) goes in
+`extras_require` so consumers opt in (`pip install 'my-core-lib[ner]'`), with
+its import done lazily inside the function that needs it (§5.2) so a caller who
+never opts in pays no install or import cost. Do not add these to
 `requirements.txt`.
 
 ### 5.5 In-memory registries — no persistence
@@ -658,7 +713,36 @@ intent next to the declaration.
 
 ---
 
-## 7. core-lib repo-specific context (applies to this repo only)
+## 7. Testing
+
+> Coverage (100%) and generic, product-free fixtures are covered by the
+> "Self-contained and fully tested" principles above; the two rules below are
+> the concrete engineering conventions.
+
+### 7.1 One `unittest.TestCase` per file — filename mirrors the class
+
+Every test file owns exactly one `unittest.TestCase` subclass, and the filename
+is the snake_case of that class name (`TestWidgetServiceGet` →
+`test_widget_service_get.py`). The class name is the contract; the filename
+advertises the behaviour under test. Shared fakes/fixtures go in a sibling
+helper module with **no** `test_` prefix (so the runner skips it); a fake only
+one file uses stays at the top of that file. Apply forward — don't churn
+pre-existing multi-class files.
+
+### 7.2 Real collaborators over mocks — mock only true boundaries
+
+Wire the SUT with its **real** collaborators (sibling services, DataAccess
+against an in-memory DB, value objects, enums) so a test goes red the moment a
+contract drifts. Mock **only** genuine infrastructure edges: the DB session
+(or use in-memory SQLite), outbound HTTP / SDK clients (inject a fake through
+the connection factory's config), the clock, and destructive filesystem
+writes. The litmus test: if swapping a mock for one that always returns
+`None` / `{}` leaves every assertion passing, the test is testing the mock, not
+behaviour — rewrite it against the real path. Apply forward.
+
+---
+
+## 8. core-lib repo-specific context (applies to this repo only)
 
 > The notes below are specific to the `core-lib` framework repo itself and are
 > **not** generic core-lib rules. They are kept here as this repo's own

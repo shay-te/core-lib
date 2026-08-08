@@ -5,6 +5,11 @@ description: MANDATORY — load this skill BEFORE you create, bootstrap, or star
 
 # Create a new *-core-lib (end to end)
 
+**Read [`BUILDING_A_CORE_LIB.md`](../../BUILDING_A_CORE_LIB.md) first** — the
+full architecture guide (mental model, anatomy, ordered build sequence §9,
+decision guide §10, recurring-mistake list §11, Definition of Done §12). This
+skill is the mechanical scaffold; that guide is the plan.
+
 This skill orchestrates the others to stand up a complete, agnostic core-lib.
 Use the per-part skills for each layer: `core-lib-entity`,
 `core-lib-data-access`, `core-lib-service`, `core-lib-connection`,

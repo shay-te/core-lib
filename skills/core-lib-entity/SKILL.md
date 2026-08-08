@@ -63,6 +63,9 @@ class Widget(SoftDeleteMixin, Base):
   extend `int`.
 - **Priority-ordered enums** declare and number members in priority order so
   iteration yields that order (§6.1).
+- **Pair `server_default` with a Python-side `default`** (§3.7) — else an
+  ORM-created instance reads `None` for that column before commit while the DB
+  row has the default.
 - Keep this file logic-free; queries belong in a DataAccess (use the
   `core-lib-data-access` skill next), business rules in a Service.
 

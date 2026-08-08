@@ -73,8 +73,9 @@ Add one `test_flow.py` driving the primary workflow A→Z against mocked I/O
 
 ## Rules to enforce (from AGENTS.md)
 
-- One TestCase per file; filename mirrors the class.
-- Real collaborators; mock only at infra boundaries.
-- 100% coverage of public functions; one `test_flow.py`.
-- Generic fixtures — fully agnostic.
+- One `unittest.TestCase` per file; filename mirrors the class (§7.1).
+- Real collaborators; mock only at true infra boundaries (§7.2).
+- 100% coverage of public functions; one `test_flow.py` ("Self-contained and
+  fully tested").
+- Generic, product-free fixtures — fully agnostic.
 - Never commit `.coverage` / `.coverage.*` (delete before staging).
