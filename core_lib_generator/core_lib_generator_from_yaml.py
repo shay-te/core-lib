@@ -5,6 +5,7 @@ from omegaconf import DictConfig
 
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake
+from core_lib_generator.file_generators.agents_generator import AgentsGenerateTemplate
 from core_lib_generator.file_generators.config_generator import ConfigGenerateTemplate
 from core_lib_generator.file_generators.core_lib_class_generator import CoreLibClassGenerateTemplate
 from core_lib_generator.file_generators.default_config_generator import DefaultConfigGenerateTemplate
@@ -156,6 +157,9 @@ class CoreLibGenerator:
             f'{self.snake_core_lib_name}/README.md', self.core_lib_data_accesses, ReadmeGenerateTemplate()
         )
 
+    def generate_agents(self):
+        self._generate_template(f'{self.snake_core_lib_name}/AGENTS.md', {}, AgentsGenerateTemplate())
+
     def generate_requirements(self):
         self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
 
@@ -224,6 +228,7 @@ class CoreLibGenerator:
         self.generate_git_ignore()
         self.generate_docker_ignore()
         self.generate_readme()
+        self.generate_agents()
         self.generate_requirements()
         self.generate_default_config()
         self.generate_manifest()

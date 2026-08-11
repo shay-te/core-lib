@@ -108,7 +108,7 @@ class MyCoreLibInstance:
 - **No empty re-export-only modules**; import from the defining submodule
   (§2.1).
 
-## The litmus test
+## The agnosticism litmus test
 
 Could you publish this package as-is, with its tests, to a public registry and
 have a stranger use it without ever learning what application it came from? If

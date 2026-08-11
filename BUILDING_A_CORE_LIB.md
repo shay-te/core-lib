@@ -88,9 +88,7 @@ mixins, and their own nested enums.
 - Soft-delete via `SoftDeleteMixin` (adds `created_at`/`updated_at`/`deleted_at`);
   add `SoftDeleteTokenMixin` when a unique constraint must survive
   soft-delete + re-insert.
-- `INTEGER` not `Integer` (§3.5); nested enums are plain `enum.Enum` stored via
-  the core-lib `IntEnum` column type (§4.2); pair any `server_default` with a
-  Python `default` (§3.7).
+- **Rules:** §3.5 (`INTEGER`), §3.7 (`server_default` pairing), §4.2 (enum type).
 - **Skill:** `core-lib-entity`. **Then** `core-lib-migration` for the DDL.
 
 ### Layer 2 — DataAccess (`data_layers/data_access/`)
@@ -98,23 +96,21 @@ mixins, and their own nested enums.
 soft-delete one by PK, list by simple filters. That is the whole job.
 - Extend the right core-lib base: `CRUDDataAccess` (hard delete),
   `CRUDSoftDeleteDataAccess`, or `CRUDSoftDeleteWithTokenDataAccess`.
-- **No** business logic, **no** `if-exists-update-else-insert`, **no** "restore"
-  branches, **no** tenant/workspace scoping — those are the service's job
-  (§3.1). Never return soft-deleted rows (§3.2). Writes use entity
-  introspection, not whitelist constants (§3.3). Column names come from the
-  entity via `.key` (§3.4).
+- **Rules:** §3.1 (no logic here — reconciliation/scoping is the service's job),
+  §3.2 (soft-deleted rows are never returned), §3.3 (entity-introspection
+  writes), §3.4 (column names from the entity), §3.6 (one DB statement per
+  named method).
 - **Skill:** `core-lib-data-access`.
 
 ### Layer 3 — Service (`data_layers/service/`)
 Business logic, caching, transformation. **This is the library's public API
 surface.** Callers reach the lib only through
 `core_lib.some_service.some_method(...)` — never into a DataAccess.
-- `@ResultToDict()` serializes rows; `@Cache(KEY)` sits *outside* it (§4.5);
-  `@DuplicateErrorHandler()` outermost for unique-constraint writes (§4.3).
-- Cache only cross-service hot paths, not host PK reads (§4.4). Enums cross the
-  boundary as enums (§4.2). State transitions write history + outbox + observer
-  event (§4.6) and invalidate caches on mutation (§4.7). Identical entry points
-  share one private core (§4.8). One DB statement per named method (§3.6).
+- **Rules:** §4.1 (public vs private surface), §4.2 (enum boundaries), §4.3
+  (unique-constraint races), §4.4 (when to cache), §4.5 (cache keys,
+  invalidation, decorator order), §4.6 (state transitions → history + outbox +
+  observer), §4.7 (invalidate on mutation), §4.8 (shared private core), §4.9
+  (redaction).
 - **Skill:** `core-lib-service`.
 
 ---
@@ -172,41 +168,40 @@ interpolations the host supplies — never hardcoded here** (section 11).
 
 ## 6. External integrations (when needed)
 
-Talking to an SDK/API/storage/gateway? Use the **connection-factory shape**: a
-`*ConnectionFactory` that reads config with fetch → validate → use and builds
-the client **once** in `__init__` (lazy SDK import inside `_build_client`), and
-a `*Connection` exposing the per-call surface with typed errors. Optional/heavy
-SDKs go in `extras_require`, not `requirements.txt` (§5.4). **Skill:**
-`core-lib-connection`.
+Talking to an SDK / API / storage / gateway? It goes in `connections/` as a
+**factory + connection pair**, never inline in a service — that's what keeps the
+SDK swappable at the edge.
+
+- **Rules:** §5.1 (the factory/connection shape), §5.2 (lazy SDK import), §5.3
+  (typed errors), §5.4 (optional SDKs in `extras_require`), §5.5 (registries
+  stay in-memory).
+- **Skill:** `core-lib-connection`.
 
 ---
 
 ## 7. Testing strategy
 
-Tests live inside the library and test **only** the library. The shape:
+Tests live inside the library and test **only** the library. The shape to aim
+for: a per-layer test that wires the *real* collaborators (service over real
+DataAccess over in-memory SQLite), plus **one `test_flow.py`** driving the
+primary workflow A→Z.
 
-- **Per layer**, wire the *real* collaborators (service over real DataAccess
-  over in-memory SQLite); mock **only** true infra edges — DB session, outbound
-  SDK/HTTP, the clock, destructive FS (§7.2).
-- **One `test_flow.py`** drives the primary workflow A→Z against mocked I/O.
-- **One `unittest.TestCase` per file**, filename mirrors the class (§7.1).
-- **100% coverage** of new/changed lines; **generic, product-free fixtures**
-  (`acme/widget`, `PROJ-1`) — never a host name.
+- **Rules:** §7.1 (one `TestCase` per file), §7.2 (real collaborators, the mock
+  litmus test). Coverage and fixture rules live in the AGNOSTIC block's
+  "Self-contained and fully tested".
 - **Skill:** `core-lib-tests`.
-
-The litmus test: if swapping a mock for one that returns `None`/`{}` leaves every
-assertion green, you tested the mock, not the behavior — rewrite it.
 
 ---
 
 ## 8. Packaging & dependencies
 
-`requirements.txt` is essentially just `core-lib`; common deps (`SQLAlchemy`,
-`alembic`, `omegaconf`, `hydra-core`) arrive transitively. Any optional
-library-backed feature (an SDK, a detector, an extractor) goes in
-`extras_require` with a lazy import so a caller who never opts in pays nothing
-(§5.4). `__init__.py` files are empty package markers — no re-export facades
-(§2.1).
+A core-lib depends on `core-lib` and little else — `SQLAlchemy`, `alembic`,
+`omegaconf`, and `hydra-core` arrive transitively, so re-declaring them is a
+smell. Anything a caller might never use is an **opt-in extra**, not a hard
+dependency.
+
+**Rules:** §5.4 (`extras_require` + lazy import), §2.1 (empty `__init__.py`, no
+re-export facades).
 
 ---
 
@@ -295,5 +290,5 @@ If you catch yourself re-explaining one of these in a prompt, it belongs in
       coverage, one `TestCase` per file, agnostic fixtures.
 - [ ] `requirements.txt` is just `core-lib` (+ `extras_require`); `__init__.py`
       files are empty markers.
-- [ ] Fully agnostic — passes the litmus test: a stranger could publish and use
-      it without learning what app it came from.
+- [ ] Fully agnostic — passes the agnosticism litmus test: a stranger could
+      publish and use it without learning what app it came from.

@@ -74,8 +74,8 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
 - Import only **stdlib + third-party** packages. Do not import sibling libraries
   peer-to-peer; depend only on a declared shared base, if one exists.
 - No compatibility shims, barrel files, or re-export-only modules — import from
-  the real module. A package `__init__.py` exposing its own package's public API
-  is the only allowed re-export.
+  the real module. `__init__.py` files stay empty package markers; §2.1 owns the
+  full rule.
 
 ## Self-contained and fully tested
 
@@ -95,7 +95,7 @@ arg) with a safe agnostic default, and let the host pass the value in. If you
 find yourself typing the product/host name, a host env-var prefix, or
 host-specific text in this library — stop, and inject it instead.
 
-## The litmus test
+## The agnosticism litmus test
 
 Could you publish this package as-is, with its tests, to a public registry and
 have a stranger use it without ever learning what application it came from? If
@@ -105,7 +105,7 @@ not, it isn't agnostic yet.
 
 # Engineering rules — every core-lib
 
-The numbered sections below (§1–§7) are the canonical engineering rules. Skills
+The numbered sections below (§1–§8) are the canonical engineering rules. Skills
 and other docs reference them as `§<section>.<rule>` (e.g. `§3.4`).
 
 ## 1. Coding conventions (apply to every Python file)
@@ -736,9 +736,9 @@ against an in-memory DB, value objects, enums) so a test goes red the moment a
 contract drifts. Mock **only** genuine infrastructure edges: the DB session
 (or use in-memory SQLite), outbound HTTP / SDK clients (inject a fake through
 the connection factory's config), the clock, and destructive filesystem
-writes. The litmus test: if swapping a mock for one that always returns
-`None` / `{}` leaves every assertion passing, the test is testing the mock, not
-behaviour — rewrite it against the real path. Apply forward.
+writes. **The mock litmus test:** if swapping a mock for one that always
+returns `None` / `{}` leaves every assertion passing, the test is testing the
+mock, not behaviour — rewrite it against the real path. Apply forward.
 
 ---
 

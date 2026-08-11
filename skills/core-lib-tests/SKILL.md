@@ -49,7 +49,8 @@ class TestWidgetServiceGet(unittest.TestCase):
         self.assertEqual('acme-widget', loaded['name'])
 ```
 
-**Mock at infrastructure boundaries, not internal seams.** The litmus test: if
+**Mock at infrastructure boundaries, not internal seams.** The mock litmus
+test: if
 swapping a mock for one that always returns `None`/`{}` leaves every assertion
 passing, the test is testing the mock, not behaviour.
 
