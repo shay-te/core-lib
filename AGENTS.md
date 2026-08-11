@@ -1,5 +1,13 @@
 # AGENTS Notes
 
+## Workspace-wide coding convention (non-negotiable)
+
+**Every Python method that reads fields out of a config or a raw response object follows fetch → validate → use, in that order, with no fallback defaults and no aliases.** See the "Coding conventions (workspace-wide, all Python repos)" section in `architecture.md` for the full statement and rationale.
+
+Concretely: no `config.get('region', 'us-east-1')` inline defaults, no `model_id or model` alias chains, no `getattr(block, 'text', '') or ''` inside generator expressions or final returns. Pull every field into a named local at the top, validate / normalize next, then use the named locals.
+
+**Exception — direct dot-access on a DictConfig is allowed at the use site.** `config.region`, `config.bedrock.model_id`, `config.data.db.url` and the like read a *required* field: missing keys raise immediately, there is no silent fallback, and there is no alias chain. The rule is specifically against `config.get(key, default)` and `x or y` fallbacks — not against the natural DictConfig dotted-attribute idiom.
+
 ## Repo-specific context
 
 - `core_lib/helpers/shell_utils.py` currently exposes `prompt_*` helpers, not `input_*` helpers and not `prompt__*` helpers.
