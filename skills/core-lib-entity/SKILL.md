@@ -24,48 +24,68 @@ mixins. No queries, no business logic. One file per table under
 ```python
 import enum
 
-from sqlalchemy import Column, INTEGER, VARCHAR, Date
+from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index, UniqueConstraint
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 
 
-class Widget(SoftDeleteMixin, Base):
-    __tablename__ = 'widget'
+class ThingKind(enum.Enum):      # SAME file, directly ABOVE the entity — not nested
+    ALPHA = 1                    # IntEnum-column values MUST start at 1, never 0 (§12)
+    BETA = 2
 
-    class Status(enum.Enum):          # plain Enum, NOT IntEnum
-        DRAFT = enum.auto()
-        ACTIVE = enum.auto()
 
-    id = Column(INTEGER, primary_key=True, nullable=False)
+class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
+
+    __tablename__ = 'thing'                # singular
+
+    INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'      # every index/constraint name
+    INDEX_WORKSPACE_NAME = 'ix_thing_workspace_name'  # is a class constant
+
+    id = Column(INTEGER, primary_key=True, autoincrement=True)
+    workspace_id = Column(INTEGER, ForeignKey('workspace.id'), nullable=False)
     name = Column(VARCHAR(length=255), nullable=False)
-    status = Column(IntEnum(Status), nullable=False)
-    created_on = Column(Date)
+    kind = Column(IntEnum(ThingKind), nullable=False)
+    position = Column(INTEGER, nullable=False, default=0, server_default='0')
+
+    __table_args__ = (
+        Index(INDEX_WORKSPACE_ID, 'workspace_id', unique=False),
+        Index(INDEX_WORKSPACE_NAME, 'workspace_id', 'name', unique=False),
+    )
 ```
 
 ## Mixins (pick one delete strategy)
 
-- `SoftDeleteMixin` → adds `created_at`, `updated_at`, `deleted_at`.
-- `SoftDeleteTokenMixin` → adds `deleted_at_token` (int; `0` = active, non-zero
-  = ms timestamp). Add this **in addition** when a unique constraint must let a
-  fresh insert succeed after a soft-delete (indexing a DateTime is slow; the
-  token scopes uniqueness to active rows).
+- `SoftDeleteMixin` → `created_at` / `updated_at` / `deleted_at`.
+- `+ SoftDeleteTokenMixin` → adds `deleted_at_token` (`0` = live). **Use it
+  whenever the table carries a UNIQUE constraint over business columns** — the
+  constraint is then declared over `(business_cols…, deleted_at_token)` so a
+  soft-deleted row stops colliding with a fresh insert.
 - Neither → hard-delete table.
+
+The mixin choice decides the DataAccess base (§5).
 
 ## Rules to enforce (from AGENTS.md)
 
-- **`INTEGER`, not `Integer`** — explicit SQL-standard form everywhere
-  (§3.5).
-- **Nested enums are plain `enum.Enum`, never `enum.IntEnum`** (§4.2). DB
-  storage goes through the `IntEnum(...)` column type, which converts
-  `.value` on write and `Enum(value)` on read — the Python type must not
-  extend `int`.
-- **Priority-ordered enums** declare and number members in priority order so
-  iteration yields that order (§6.1).
-- **Pair `server_default` with a Python-side `default`** (§3.7) — else an
-  ORM-created instance reads `None` for that column before commit while the DB
-  row has the default.
+- **`INTEGER`, not `Integer`**; VARCHAR lengths always explicit
+  (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
+  dict payloads are `JSON` columns named `meta_data` (§4).
+- **The enum class is plain `enum.Enum`, in the same file directly ABOVE the
+  entity — not nested inside it.** Values for an `IntEnum(...)` column **must
+  start at 1, never 0** (§4, §12). Storage goes through the `IntEnum(...)`
+  column type; the Python type must not extend `int`.
+- **Derive enum-based strings from `.name`, not `.value`** — e.g.
+  `f'.{kind.name.lower()}'` (§4).
+- **Every index / unique constraint gets a class-constant name** referenced
+  from `__table_args__` **and** from the migration, so the name lives in one
+  place. Inside the class body the *column* references stay string literals
+  (`'workspace_id'`) (§4).
+- **Any column with `server_default` MUST also carry the matching Python
+  `default=`** (`default=0, server_default='0'`) — otherwise a freshly inserted
+  ORM row reads `None` for it before commit (§4).
+- **FKs whose children must die with the parent declare it in the schema:**
+  `ForeignKey('document.id', ondelete='CASCADE')` (§4).
 - Keep this file logic-free; queries belong in a DataAccess (use the
   `core-lib-data-access` skill next), business rules in a Service.
 

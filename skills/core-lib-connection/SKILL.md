@@ -3,90 +3,68 @@ name: core-lib-connection
 description: MANDATORY — load this skill BEFORE you add or change an external client, provider, API or SDK integration, HTTP client, connection factory, or any wrapper around a third-party service (LLM, object storage/S3, payment gateway) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors.
 ---
 
-# Create a core-lib Connection (outbound integration)
+# Create a non-DB backend (the `connections/` pattern)
 
-Outbound integrations follow one shape, the same for every backend present or
-future: a **factory** that builds the shared SDK client once, and a
-**connection** that exposes the per-call surface.
+An outbound backend (object storage, an external API) is **three pieces**,
+mirroring the DB stack. Files are named after the **backend**, with no lib
+prefix (`storage_connection_factory.py`, not `foo_storage_...`). §10.
 
-## Steps
+## The three pieces
 
-1. Create `<name>_core_lib/connections/<backend>_connection_factory.py` and
-   `<backend>_connection.py`.
-2. In the factory `__init__`, read config with **fetch → validate → use** and
-   build the SDK client once via `_build_client` (lazy SDK import inside it).
-3. Expose `get()` returning a fresh `Connection`.
-4. Define a small set of typed errors; wrap SDK exceptions in them.
+**1. `connections/storage_connection_factory.py`** — `class
+StorageConnectionFactory(ConnectionFactory)`. Validates **every** required
+config key in `__init__` (this validation layer is the one sanctioned place
+that may read with `config.get(...)`, because its whole job is to raise a
+better error per missing key). The heavy SDK import is **lazy** — `import
+boto3` is the first line *inside* the `_build_client` staticmethod, never at
+module top, so the SDK stays an optional extra.
 
-## Canonical template
+**2. `connections/storage_connection.py`** — **lifecycle only.** `__enter__`
+returns the raw client; `__exit__` does nothing. **No verbs here.**
+
+**3. `data_layers/data_access/storage_data_access.py`** — `class
+StorageDataAccess(DataAccess)` owns **all** the verbs (`put`, `get`, `delete`,
+`exists`, `list`, …).
 
 ```python
-# my_core_lib/connections/foo_connection_factory.py
-from core_lib.connection.connection_factory import ConnectionFactory
-
-from my_core_lib.connections.foo_connection import FooConnection
-from my_core_lib.error_handling.foo_errors import FooConfigError
-
-
-class FooConnectionFactory(ConnectionFactory):
+# connections/storage_connection_factory.py
+class StorageConnectionFactory(ConnectionFactory):
     def __init__(self, config):
-        # 1. fetch
-        api_key = config.get('api_key')
-        endpoint = config.get('endpoint')
-        injected_client = config.get('client')   # tests inject a fake here
-        # 2. validate
-        if not api_key:
-            raise FooConfigError('api_key is required')
-        if not endpoint:
-            raise FooConfigError('endpoint is required')
-        # 3. use
-        self._client = injected_client or self._build_client(api_key, endpoint)
+        provider = config.get('provider')          # sanctioned .get: validation layer
+        bucket = config.get('bucket')
+        if not provider:
+            raise FooConfigError('storage.provider is required')
+        if not bucket:
+            raise FooConfigError('storage.bucket is required')
+        self._client = self._build_client(provider, bucket)
 
-    def _build_client(self, api_key, endpoint):
-        import foo_sdk                       # lazy import — only when actually building
-        return foo_sdk.Client(api_key=api_key, base_url=endpoint)
+    @staticmethod
+    def _build_client(provider, bucket):
+        import boto3                                # LAZY — never at module top
+        return boto3.client('s3', ...)
 
-    def get(self) -> FooConnection:
-        return FooConnection(self._client)
+    def get(self) -> StorageConnection:
+        return StorageConnection(self._client)
 ```
+
+## Composition root wiring — name the variable what it IS
 
 ```python
-# my_core_lib/connections/foo_connection.py
-from my_core_lib.error_handling.foo_errors import FooProviderError
-
-
-class FooConnection:
-    def __init__(self, client):
-        self._client = client
-
-    def do_thing(self, payload):
-        try:
-            raw = self._client.call(payload)
-        except Exception as exc:            # wrap SDK errors in OUR typed error
-            raise FooProviderError(str(exc)) from exc
-        # fetch → validate → use when reading fields off `raw`
-        result = getattr(raw, 'result', None)
-        if result is None:
-            raise FooProviderError('response missing result')
-        return result
-
-    def close(self):
-        self._client.close()
+storage_data_access = StorageDataAccess(StorageConnectionFactory(storage_cfg))
 ```
 
-## Rules to enforce (from AGENTS.md)
+Not `storage = StorageDataAccess(...)` — vague names for composed parts were
+rejected in review (§0).
 
-- **Connection-factory shape only** — factory builds the client once in
-  `__init__`; `get()` returns a fresh connection. Don't add a parallel
-  provider ABC with a different method surface (§5.1).
-- **Lazy SDK import inside `_build_client`** so a one-backend install doesn't
-  import the others; tests inject a fake client through config (§5.2).
-- **fetch → validate → use** for both config reads and SDK-response parsing;
-  no inline defaults, no aliases, no scattered `.get`/`getattr` in
-  loops/returns (§1.1).
-- **Typed errors, not stringly-checked** — wrap SDK exceptions in the lib's own
-  error classes; callers never import the SDK's exception hierarchy (§5.3).
-- **Dependencies**: depend on `core-lib`; put optional/heavy backend SDKs in
-  `extras_require`, not `requirements.txt` (§5.4).
-- **Registries are in-memory** — re-register on boot, no DB-backed persistence
-  inside the library (§5.5).
+## Rules to enforce (§10)
+
+- **Three pieces, that split exactly** — factory (config + client), connection
+  (lifecycle only, no verbs), DataAccess (all verbs).
+- **Lazy SDK import inside `_build_client`**; the SDK ships as an optional
+  extra, never in `requirements.txt` (§14).
+- **Validate every required key in the factory** and raise the lib's own typed
+  error; callers never import the SDK's exception hierarchy.
+- **Provider quirks are absorbed in the factory** (e.g. `provider: minio` +
+  `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the
+  real local backend rather than faking it in tests.
+- Registries stay in-memory — re-register on process boot (§10).

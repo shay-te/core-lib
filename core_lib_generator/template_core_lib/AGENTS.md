@@ -9,8 +9,7 @@ there is exactly one source of truth:
 
 | Read | For |
 |---|---|
-| `core-lib/BUILDING_A_CORE_LIB.md` | **Read first** when building a new layer or feature — the mental model, full anatomy, ordered build sequence, decision guide, recurring mistakes, and Definition of Done. |
-| `core-lib/AGENTS.md` | The engineering rules (§1–§8): coding conventions, file/package organization, data layer, service layer, connections, enums, testing. |
+| `core-lib/AGENTS.md` | **Read first.** The AGNOSTIC principles, then the canonical recipe (§0–§17): naming, folder tree, config, entities, DataAccess, services, composition root, observers, jobs, migrations, tests, build order, things to avoid, final checklist. |
 | `core-lib/skills/` | Copy-paste scaffolding templates, one per core-lib part. |
 
 Find them in the `core-lib` checkout beside this repo (`../core-lib/`) or in the

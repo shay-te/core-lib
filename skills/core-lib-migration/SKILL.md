@@ -5,58 +5,77 @@ description: MANDATORY — load this skill BEFORE you add a migration or alter/c
 
 # Create a core-lib migration (Alembic)
 
-Each core-lib keeps Alembic migrations under
-`<name>_core_lib/data_layers/data/db/migrations/versions/`. A migration **pins
-the physical DDL at the moment it was written** and must not drift when the
-entity later changes — so it is the one place where literal column-name strings
-are correct.
+Migrations live in `<name>_core_lib/data_layers/data/db/migrations/versions/`.
 
-## Steps
+## How Alembic is wired — there is NO `alembic.ini`, anywhere
 
-1. Make the entity change first (use `core-lib-entity`).
-2. Generate the revision (autogenerate compares entity metadata to the DB):
-   ```bash
-   alembic -c <path-to-alembic.ini-or-hydra-config> revision --autogenerate -m "add widget status"
-   ```
-   If the repo wires Alembic through the main class
-   (`CoreLib.install(cfg)` → `Alembic(...).upgrade()`), follow that repo's
-   documented invocation instead.
-3. Review the generated `upgrade()` / `downgrade()` — autogenerate misses
-   server defaults, enum changes, and some index/constraint edits. Fix by hand.
-4. Use `sa.INTEGER()` (not `sa.Integer()`).
-5. Apply: `alembic upgrade head`.
+`Alembic(core_lib_path, cfg)` (`from core_lib.alembic.alembic import Alembic`)
+builds the Alembic `Config()` **in memory** from the yaml node
+`core_lib.alembic`. The lib exposes it via `install()` / `uninstall()`
+staticmethods on the CoreLib. Do **not** create an `alembic.ini` and do not
+invoke the `alembic` CLI with `-c` (§11.1).
 
-## Canonical revision shape
+## While the lib is UNRELEASED there is exactly ONE migration
+
+Every schema change during initial development is **folded back into**
+`<date>_1_create_db.py` — you do not stack revisions. Only after release do new
+revisions get added (§11.2).
+
+## Naming
+
+- File: `<YYYY-MM-DD>_<N>_<reason_slug>.py` — e.g. `2026-06-21_1_create_db.py`.
+- `revision` is a bare integer **as a string** (`'1'`, `'2'`, …); `down_revision`
+  is the previous number, or `None` for the first. **Never uuid-style ids.**
+- Keep `.migration_ver` (in the migrations dir) in sync — it holds the latest
+  revision number as plain text. `Alembic.create_migration(name)` maintains it;
+  if you hand-write a migration, update it yourself.
+
+## Canonical shape — everything referenced THROUGH the entities
 
 ```python
-"""add widget status
+"""create_db
 
-Revision ID: 2026_06_24_widget_status
-Revises: <down_revision>
+Revision ID: 1
+Revises:
+Create Date: 2026-06-21 08:26:06.852789
+
 """
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+from sqlalchemy import ForeignKey
 
-revision = '2026_06_24_widget_status'
-down_revision = '<previous_revision>'
+from foo_core_lib.data_layers.data.db.entities.thing import Thing
+
+revision = '1'
+down_revision = None
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.add_column('widget', sa.Column('status', sa.INTEGER(), nullable=False))
+    op.create_table(
+        Thing.__tablename__,
+        sa.Column(Thing.id.key, sa.Integer, primary_key=True, nullable=False),
+        sa.Column(Thing.workspace_id.key, sa.Integer, ForeignKey('workspace.id'), nullable=False),
+        sa.Column(Thing.name.key, sa.VARCHAR(length=255), nullable=False),
+    )
+    op.create_index(Thing.INDEX_WORKSPACE_ID, Thing.__tablename__, [Thing.workspace_id.key])
 
 
 def downgrade():
-    op.drop_column('widget', 'status')
+    op.drop_table(Thing.__tablename__)
 ```
 
-## Rules to enforce (from AGENTS.md)
+## Rules to enforce (§11)
 
-- **`sa.INTEGER()`, not `sa.Integer()`** (§3.5).
-- **Literal column-name strings are correct here** — a migration is the
-  documented exception to "names come from the entity"; it must not drift with
-  the entity (§3.4).
+- **Reference the entity, not literals** — `Thing.__tablename__`,
+  `Thing.id.key`, and the entity's `INDEX_*` / `UQ_*` class constants. The
+  index name then exists in exactly one place (entity + migration agree).
+- **No `alembic.ini`; no `alembic -c` CLI invocation** — go through the lib's
+  `install()` / `uninstall()`.
+- **One migration while unreleased** — fold changes into `_1_create_db.py`.
+- `revision` / `down_revision` are stringified integers; update `.migration_ver`.
 - Every `upgrade()` has a matching `downgrade()`.
-- Don't hand-edit an already-applied/published revision — add a new one.
 - Never commit `.coverage` or build artifacts alongside the migration.
+
+Create or change the entity first with the `core-lib-entity` skill.

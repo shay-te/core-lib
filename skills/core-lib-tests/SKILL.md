@@ -21,44 +21,67 @@ host code. Prefer real collaborators; mock only at infrastructure boundaries.
 
 ## One TestCase per file
 
-Class `TestWidgetServiceGet` → `test_widget_service_get.py`. The class name is
-the contract; the filename advertises the behaviour under test. Shared fakes go
-in a sibling **no-`test_`-prefix** helper module (`widget_service_helpers.py`);
-single-use fakes stay at the top of the one file that needs them.
+Class `TestThingService` → `test_thing_service.py`. One `unittest.TestCase` per
+file, every test a method of it (§13.6).
 
-## Real collaborators over mocks
+## Test the REAL composed lib — never a bespoke harness
+
+**A test calls only public service methods on the composed `FooCoreLib`.** The
+DataAccess is internal and is never touched from a test. Wiring
+`Service(DataAccess(db))` yourself is a **bespoke harness and is rejected in
+review** — "everything comes from the core lib, this is final" (§0, §13.2–13.3).
 
 ```python
 import unittest
 
-from my_core_lib.data_layers.data_access.widget_data_access import WidgetDataAccess
-from my_core_lib.data_layers.service.widget_service import WidgetService
-from tests.in_memory_db import build_in_memory_db          # real session, sqlite
-from tests.reset_cache_registry import reset_cache_registry
+from foo_core_lib.data_layers.data.db.entities.thing import Thing
+from tests.helpers.utils import sync_create_start_core_lib, new_project_id
+
+ABSENT_THING_ID = 2_000_000_000        # far above any autoincrement — never 99/999
 
 
-class TestWidgetServiceGet(unittest.TestCase):
-    def setUp(self):
-        reset_cache_registry()
-        self.db = build_in_memory_db()
-        self.service = WidgetService(WidgetDataAccess(self.db))   # real, not MagicMock
+class TestThingService(unittest.TestCase):
 
-    def test_get_returns_created_widget(self):
-        created = self.service.create({'name': 'acme-widget'})
-        loaded = self.service.get(created['id'])
-        self.assertEqual('acme-widget', loaded['name'])
+    @classmethod
+    def setUpClass(cls):
+        cls.foo_core_lib = sync_create_start_core_lib()   # FULL lib name, not cls.lib
+
+    def test_create_returns_the_thing(self):
+        project_id = new_project_id()                     # fresh scope per test
+        thing = self.foo_core_lib.thing.create(project_id, 'acme-widget')
+        self.assertEqual('acme-widget', thing[Thing.name.key])   # entity keys, not 'name'
 ```
 
-**Mock at infrastructure boundaries, not internal seams.** The mock litmus
-test: if
-swapping a mock for one that always returns `None`/`{}` leaves every assertion
-passing, the test is testing the mock, not behaviour.
+Load-bearing details (§13.4, §13.6):
 
-- **Mock**: DB session (or use in-memory SQLite), outbound HTTP/SDK clients
-  (inject a fake through the connection factory's `config['client']`), the
-  clock, destructive filesystem.
-- **Don't mock**: the SUT's pure-Python collaborators, enums/dataclasses/value
-  objects, sibling Services inside the same lib.
+- `setUpClass` is exactly `cls.foo_core_lib = sync_create_start_core_lib()`; the
+  bootstrap lives in `tests/helpers/utils.py` (ONE composed lib per process, a
+  `CoreLibInstance` holder, and a **mandatory `finally: threadLock.release()`** —
+  a lock held after a failed boot silently deadlocks the next suite).
+- Access is inline and fully spelled: `self.foo_core_lib.thing.create(...)`.
+  **No `@property` accessors, no `service = self.foo_core_lib.thing` aliases.**
+- The DB is shared across the whole run: take a fresh `new_project_id()` per
+  test; never assume an empty table or an absolute autoincrement value.
+- Read dict fields with entity keys (`row[Thing.name.key]`), never literals.
+  Enum columns assert the INT value, optionally round-tripped through the enum.
+- Fixtures are created THROUGH services, and state is verified THROUGH services.
+- The smoke file `test_foo_core_lib.py` asserts the PUBLIC surface only.
+
+## The formula (non-negotiable)
+
+**Assert the data you WANT the function to return — recomputed independently —
+never the data it happens to return.** Expected values are hardcoded (§13.1).
+
+## What may be mocked
+
+Only what genuinely cannot run on a test host: a backend requiring absent
+binaries (through a sanctioned seam in `tests/helpers/utils.py`, not in the
+test), or fake SDK *modules* via `mock.patch.dict(sys.modules, {...})`. The
+real `@Cache` / `@ResultToDict` / `@DuplicateErrorHandler`, real rule
+validators, and a real in-memory sqlite DB always run (§13.2).
+
+**No standalone DB-DataAccess test files** — the DA is exercised through its
+service (§13.3).
 
 ## Agnostic fixtures (non-negotiable)
 
@@ -74,8 +97,8 @@ Add one `test_flow.py` driving the primary workflow A→Z against mocked I/O
 
 ## Rules to enforce (from AGENTS.md)
 
-- One `unittest.TestCase` per file; filename mirrors the class (§7.1).
-- Real collaborators; mock only at true infra boundaries (§7.2).
+- One `unittest.TestCase` per file; filename mirrors the class (§13).
+- Real collaborators; mock only at true infra boundaries (§13).
 - 100% coverage of public functions; one `test_flow.py` ("Self-contained and
   fully tested").
 - Generic, product-free fixtures — fully agnostic.
