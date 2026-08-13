@@ -15,9 +15,8 @@
 
 Copy-paste-ready guides for building each part of a core-lib live under
 [`skills/`](skills/). They are **tool-neutral** (plain Markdown with
-`name` / `description` front-matter) so **any** AI agent — not just Claude
-Code — can read and follow them; Claude Code also auto-discovers them via thin
-pointers in `.claude/skills/`.
+`name` / `description` front-matter), so **any** AI agent can read and follow
+them — there is exactly one copy, and this table is how you reach it.
 
 **This is a hard rule, not a suggestion. Before you create or modify any
 core-lib part in the table below, you MUST first load — open and follow — the

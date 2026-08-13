@@ -25,12 +25,12 @@ entity that also needs a migration), load all that apply.
 
 | If you are about to… | You MUST first load |
 |---|---|
-| add or change an entity / table / model / column / nested enum | `core-lib-entity` |
-| add or change a DataAccess / DAO / repository / query / get_by / list | `core-lib-data-access` |
-| add or change a Service / business logic / public method / caching | `core-lib-service` |
-| add or change an external client / provider / SDK / connection factory | `core-lib-connection` |
-| add a migration / alter / create / drop a table, column, index, constraint | `core-lib-migration` |
-| add / fix / restructure tests or raise coverage | `core-lib-tests` |
+| add or change an entity / table / model / column / nested enum | [`core-lib-entity`](../core-lib/skills/core-lib-entity/SKILL.md) |
+| add or change a DataAccess / DAO / repository / query / get_by / list | [`core-lib-data-access`](../core-lib/skills/core-lib-data-access/SKILL.md) |
+| add or change a Service / business logic / public method / caching | [`core-lib-service`](../core-lib/skills/core-lib-service/SKILL.md) |
+| add or change an external client / provider / SDK / connection factory | [`core-lib-connection`](../core-lib/skills/core-lib-connection/SKILL.md) |
+| add a migration / alter / create / drop a table, column, index, constraint | [`core-lib-migration`](../core-lib/skills/core-lib-migration/SKILL.md) |
+| add / fix / restructure tests or raise coverage | [`core-lib-tests`](../core-lib/skills/core-lib-tests/SKILL.md) |
 
 ## This library is AGNOSTIC
 
