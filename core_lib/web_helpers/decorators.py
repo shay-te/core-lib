@@ -36,6 +36,23 @@ def _get_request():
             return None
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
+<<<<<<< Updated upstream
+=======
+        return None
+
+    if server_type == WebHelpersUtils.ServerType.FLASK:
+        try:
+            from flask import request as flask_request
+            return flask_request
+        except Exception as e:
+            logger.debug(f"Failed to fetch Flask request: {e}")
+            return None
+    # DJANGO / FASTAPI / unknown: no thread-local request available — both
+    # bind the request per-task (per-view for Django, per-async-task for
+    # FastAPI / Starlette). Callers should attach the request to the error
+    # middleware context explicitly.
+    return None
+>>>>>>> Stashed changes
 
 def _execute_error_middlewares(exc, func):
     request = _get_request()
