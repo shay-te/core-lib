@@ -96,16 +96,20 @@ class RuleValidator(object):
             else:
                 raise PermissionError(f'Invalid update key:`{key}` expected `int`, got `{type(value)}`')
         # `str` to `datetime`
-        elif value and rule.value_type in [datetime.datetime, datetime.date] and type(value) is str:
+        elif value and rule.value_type in [datetime.datetime, datetime.date, datetime.time] and type(value) is str:
             try:
                 parsed_value = datetime_parser.parse(value)
+                if rule.value_type is datetime.time:
+                    parsed_value = parsed_value.time()
+                elif rule.value_type is datetime.date:
+                    parsed_value = parsed_value.date()
             except BaseException as ex:
                 raise PermissionError(
                     f'Invalid update key:{key} illegal datetime formatted value {value}. '
                     f'only ISO format is accepted'
                 ) from ex
 
-        elif value and not isinstance(parsed_value, rule.value_type):
+        if value and not isinstance(parsed_value, rule.value_type):
             raise PermissionError(f'Invalid update key:`{key}` illegal type `{type(parsed_value)}` expected {rule.value_type}')
 
         try:

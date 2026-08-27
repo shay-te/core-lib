@@ -1,5 +1,6 @@
 import unittest
 import enum
+import datetime
 
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 
@@ -76,3 +77,27 @@ class TestUpdateValidate(unittest.TestCase):
         )
         self.assertNotIn('new_field_i_am', new_dict)
         self.assertEqual(len(new_dict), 5)
+
+    def test_time_string_is_converted_to_time(self):
+        rules_validator = RuleValidator([ValueRuleValidator('event_time', datetime.time)])
+
+        validated = rules_validator.validate_dict({'event_time': '10:11:12'})
+
+        self.assertIsInstance(validated['event_time'], datetime.time)
+        self.assertNotIsInstance(validated['event_time'], datetime.datetime)
+        self.assertEqual(validated['event_time'], datetime.time(10, 11, 12))
+
+    def test_time_string_invalid_value_raises(self):
+        rules_validator = RuleValidator([ValueRuleValidator('event_time', datetime.time)])
+
+        with self.assertRaises(PermissionError):
+            rules_validator.validate_dict({'event_time': 'not-a-time'})
+
+    def test_date_string_is_converted_to_date(self):
+        rules_validator = RuleValidator([ValueRuleValidator('birthday', datetime.date)])
+
+        validated = rules_validator.validate_dict({'birthday': '2026-04-13'})
+
+        self.assertIsInstance(validated['birthday'], datetime.date)
+        self.assertNotIsInstance(validated['birthday'], datetime.datetime)
+        self.assertEqual(validated['birthday'], datetime.date(2026, 4, 13))

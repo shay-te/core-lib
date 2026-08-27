@@ -45,6 +45,10 @@ class TestSoftDelete(unittest.TestCase):
     def setUpClass(cls):
         cls.db_data_session = connect_to_mem_db()
 
+    @staticmethod
+    def _timestamp_ms(value: datetime) -> int:
+        return int(value.timestamp() * 1000)
+
     def test_soft_delete(self):
         with self.db_data_session.get() as session:
             objects = [Data(name=self.data_name_1), Data(name=self.data_name_2), Data(name=self.data_name_3)]
@@ -82,8 +86,8 @@ class TestSoftDelete(unittest.TestCase):
                 self.assertNotEqual(data['deleted_at'], None)
                 self.assertEqual(data['created_at'], data['created_at'])
                 self.assertEqual(data['deleted_at_token'], int(self.dattime.timestamp()))
-                self.assertEqual(data['deleted_at'], self.dattime.timestamp())
-                self.assertGreater(int(data['updated_at']), int(self.dattime.timestamp()))
+                self.assertEqual(data['deleted_at'], self._timestamp_ms(self.dattime))
+                self.assertGreater(int(data['updated_at']), self._timestamp_ms(self.dattime))
 
             self.assertEqual(convert_deleted_data[0]['name'], self.data_name_1)
             self.assertEqual(convert_deleted_data[1]['name'], self.data_name_2)
