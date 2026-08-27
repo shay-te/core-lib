@@ -7,35 +7,37 @@ folder: core_lib_doc
 toc: false
 ---
 
-`core_lib_main` is the single gateway to interact with `Core-Lib` using the command line.  
-It offers the following tools:
+Setting up a new `CoreLib` by hand means creating ~20 files in the right folders with the right inheritance — easy to get wrong and tedious to repeat. The `core_lib generate` command takes a YAML description of your services and scaffolds the entire project structure: folders, base classes, entities, data accesses, services, and config.
 
-- Generating `Core-Lib` from YAML will create a `Core-Lib` folder with your `Core-Lib` inside.
-- Run Migration, `Alembic` upgrade, or downgrade for migrations.
-- List Migrations created until now.
+> **Where it fits:** Project setup. The generator creates the folders and starter classes for the six-layer structure; after generation, you fill in your domain logic.
 
+> Don't change the YAML's top-level structure — `core_lib generate` reads specific keys. You can freely add or remove entities, data accesses, and other items inside the layers.
 
-> Please don't change the structure of the Yaml data as this file is responsible for generating the `Core-Lib`, you can add or remove any Entity, DataAccess or any other items inside other layers.
+## Generate from a YAML file
 
-## Generate a new Core-Lib from the YAML file 
-
-### Command
-
-```python
-core_lib -g ExampleCoreLib.yaml
+```bash
+core_lib generate --yaml ExampleCoreLib.yaml
 ```
 
-Run this command where the Yaml file is located or re-locate the file to a location where you want to create the `Core-Lib`.
+Run this from the directory where the YAML file lives. If you omit `--yaml`, an interactive prompt walks you through creating the YAML first.
 
-### Outcome
+The command creates a folder named after your `CoreLib` containing a full project skeleton: entities, data access classes, services, config, and the wiring class. See [Project Structure](/project_structure.html) for what each folder is for.
 
-A folder by the `Core-Lib` name will be created and inside the folder will be your `Core-Lib`!
+Example output shape:
 
-Now that you have the `Core-Lib` you can initialize it and use it directly or integrate it with your current application.
-
-> Please read the documents to understand what each file does and understand `Core-Lib` more throughly.
+```text
+example_core_lib/
+├── config/
+├── data_layers/
+│   ├── data/
+│   ├── data_access/
+│   └── service/
+├── client/
+├── jobs/
+└── example_core_lib.py
+```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/migrations.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/cache.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/migrations.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/cache.html">Next</a></button>
 </div>

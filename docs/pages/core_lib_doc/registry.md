@@ -6,41 +6,26 @@ permalink: registry.html
 folder: core_lib_doc
 toc: false
 ---
-`Registry` provide base class for a simple `Registry pattern` with single abstract `get` function. 
-It being use by the `CacheRegistry`,  `ConnectionRegistry` and more...
+Core-Lib needs to look up named instances at runtime — the right cache backend, the right observer, the right connection — without hard-coding them in business logic. `Registry` is the base class for all of these lookups: a typed key-value store where you register instances by name and retrieve them by key (or get the default when only one is registered).
 
-## Registry
+> **Where it fits:** Infrastructure. `CacheRegistry`, `ObserverRegistry`, and the connection registries all inherit from `Registry`. You'll mostly use it indirectly — through `CoreLib.cache_registry` and `CoreLib.observer_registry` — when wiring backends in `CoreLib.__init__`.
+
+## Registry types
 
 *core_lib.registry.Registry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/registry.py){:target="_blank"}
 
-`Core-Lib`  basic `Registry` class is used by most of `Core-Lib` modules
-
-1. `core_lib.registry.default_registry.DefaultRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py){:target="_blank"}
-
-   Base basic implementation of the `Registry` class with four basic functions `register`, `unregister`, `get`, `registered`
-
-
-2. `core_lib.connection.connection_registry.ConnectionRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_registry.py){:target="_blank"}
-
-​	Extends the `Registry` and a base class for all  `ConnectionRegistry` classes.
-
-3. `core_lib.cache.cache_registry.CacheRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
-
-Extends the `DefaultRegistry` and is limited to storing only `CacheHandler` instances using an `object_type` parameter
-
-4. `core_lib.observer.observer_registry.ObserverRegistry` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py){:target="_blank"}
-
-Extends the `DefaultRegistry` and is limited to storing only `Observer` instances using an `object_type` parameter
-
-
+- **`DefaultRegistry`** — generic key-value store with `register` / `unregister` / `get` / `registered`. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py){:target="_blank"}
+- **`ConnectionFactoryRegistry`** — base class for connection factory registries. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/connection/connection_factory_registry.py){:target="_blank"}
+- **`CacheRegistry`** — restricted to `CacheHandler` instances. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py){:target="_blank"}
+- **`ObserverRegistry`** — restricted to `Observer` instances. [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/observer/observer_registry.py){:target="_blank"}
 
 ## Default Registry
 
 *core_lib.registry.default_registry.DefaultRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L4){:target="_blank"}
 
-`DefaultRegistry` is implementing the `Registry` abstract class and providing a boilerplate base class for `CacheRegistry`, `ObserverRegistry`, and more.
+`DefaultRegistry` implements the `Registry` interface and provides the common behavior used by `CacheRegistry`, `ObserverRegistry`, and connection registries.
 
-### Constractor:
+### Constructor
 
 ```python
 class DefaultRegistry(Registry):
@@ -51,7 +36,7 @@ class DefaultRegistry(Registry):
 
 **Arguments**
 
-- **`object_type`** *`(object)`*: Datatype of the object that is to be stored in the registry.
+- **`object_type`** *`(object)`*: Type that every registered value must match.
 
 #### Usage
 
@@ -68,13 +53,13 @@ class CustomerRegistry(DefaultRegistry):
 ```
 
 
-### Functions:
+### Functions
 
-### get()
+#### get()
 
 *core_lib.registry.default_registry.DefaultRegistry.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L30){:target="_blank"}
 
-Returns an fresh entry from the registry with the specified key.
+Returns the registered object for the given key — the same instance that was passed to `register()`, not a copy.
 
 ```python
 def get(self, key: str = None, *args, **kwargs):
@@ -83,15 +68,13 @@ def get(self, key: str = None, *args, **kwargs):
 
 **Arguments**
 
-- **`key`** *`(str)`*: Is the key of the registry entry to be returned.
+- **`key`** *`(str)`*: Key of the registry entry to return.
 
 
 
->If `get()` is used without any parameters, it will return the default value supplied by the user, or the 
->first entry in the registry if the default value also isn't provided. 
+> If `get()` is called without a key, it returns the explicitly registered default, or the first registered value if no default was set.
 
->If the registry is empty or the `get()` is called with a `key` that does not exist in the registry it will return
->`None`
+> If the registry is empty, or the key does not exist, `get()` returns `None`.
 
 
 
@@ -105,22 +88,22 @@ registry_factory.get('user_name')
 
 
 
-### register()
+#### register()
 
 *core_lib.registry.default_registry.DefaultRegistry.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L12){:target="_blank"}
 
-Register's the key and value into the registry.
+Registers the key and value into the registry.
 
-````python
+```python
 def register(self, key: str, object, is_default: bool = False):
     ...
-````
+```
 
 **Arguments**
 
-- **`key`** *`(str)`*: A unique string to identify the registered object; duplicate key's are not allowed and will cause an `ValueError`.
-- **`object`**: Any value we wish to store with the attached key
-- **`is_default`** *`(bool)`*: For multiple entries in a same registry `is_default` can be used to set the default value to  mark this object as default, default value can be fetched when calling `get` without a `key` parameter.
+- **`key`** *`(str)`*: A unique string to identify the registered object; duplicate keys are not allowed and will raise a `ValueError`.
+- **`object`**: Value to store under the key.
+- **`is_default`** *`(bool)`*: When multiple entries are registered, set `is_default=True` to mark this entry as the default. `get()` with no `key` returns the default.
 
 #### Usage
 ```python
@@ -133,11 +116,11 @@ registry_factory.register('user_name', user_name)
 
 
 
-### unregister()
+#### unregister()
 
 *core_lib.registry.default_registry.DefaultRegistry.unregister()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L24){:target="_blank"}
 
-Unregisters/removes an entry present in the registry.
+Removes an entry from the registry.
 
 ```python
 def unregister(self, key: str):
@@ -145,10 +128,10 @@ def unregister(self, key: str):
 ```
 **Arguments**
 
-- **`key`** *`(str)`*: Is the key of the entry to be unregistered from the registry.
+- **`key`** *`(str)`*: Key of the entry to remove.
 
 
->The first item in the registry becomes default when we unregister a default `key`.
+> If the default key is removed, the registry falls back to the first remaining entry.
 
 
 #### Usage
@@ -158,11 +141,11 @@ registry_factory.unregister('user_name')
 
 
 
-### registered()
+#### registered()
 
 *core_lib.registry.default_registry.DefaultRegistry.registered()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/registry/default_registry.py#L36){:target="_blank"}
 
-Returns all the registered entities in the registry in the type `list`.
+Returns the registered keys as a list.
 
 ```python
 def registered(self):
@@ -175,6 +158,6 @@ registry_factory.registered()
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/core_lib_main_class.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/result_to_dict.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/core_lib_main_class.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/result_to_dict.html">Next</a></button>
 </div>

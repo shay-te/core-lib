@@ -7,9 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
-`RuleValidator` decorator will make sure the `dict` parameter passed to a function is valid accourting to predefined rules. When validation fails a `PermissionError` will be raised
+`RuleValidator` validates `dict` parameters against predefined rules before they reach your data access layer. When validation fails, a `PermissionError` is raised — keeping bad data out of your database without littering your service layer with type checks.
 
-### Example
+> **Where it fits:** DataAccess-layer helper. Apply `@ParameterRuleValidator` to a DataAccess method to validate the incoming `dict` before queries run.
+
+## Example
 
 ### `user_data_access.py`
 
@@ -21,10 +23,12 @@ from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
 from your_core_lib.data_layers.data.db.entities.user import User
 
 def location_convertor(location: dict):
-	latitude = location.get('lat') or location.get('latitude')
-  longitude = location.get('lng') or location.get('longitude')
-  return Point.to_point_str(longitude, latitude)
+    latitude = location.get('lat') or location.get('latitude')
+    longitude = location.get('lng') or location.get('longitude')
+    return Point.to_point_str(longitude, latitude)
 
+def location_validate(location: dict):
+    return 'lat' in location or 'latitude' in location
 
 allowed_update_types = [
   ValueRuleValidator(User.email.key, str),
@@ -47,7 +51,7 @@ class UserDataAccess(DataAccess):
     with self._db.get() as session:
       user = User()
       for key, value in data.items():
-        if key != 'id' and hasattr(u	ser, key):
+        if key != 'id' and hasattr(user, key):
             setattr(user, key, value)
       session.add(user)
     return user
@@ -69,24 +73,24 @@ from geoalchemy2.types import Geometry
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 class User(Base):
-  __tablename__ = 'user'
-    
-  id = Column(Integer, primary_key=True, nullable=False)
-	email = Column(VARCHAR(length=255), nullable=False)
-  password = Column(LargeBinary(length=255))
-  agreement = Column(BOOLEAN(), default=False, nullable=False)
-  height = Column(Integer)
-	birthday = Column(Date)
-  location = Column(Geometry('POINT'))
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    email = Column(VARCHAR(length=255), nullable=False)
+    password = Column(LargeBinary(length=255))
+    agreement = Column(BOOLEAN(), default=False, nullable=False)
+    height = Column(Integer)
+    birthday = Column(Date)
+    location = Column(Geometry('POINT'))
 ```
 
 
 
-# ValueRuleValidator
+## ValueRuleValidator
 
 *core_lib.rule_validator.rule_validator.ValueRuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L5){:target="_blank"}
 
-`ValueRuleValidator` defines the validation rule for a specific field in the validated `dict` object
+`ValueRuleValidator` defines the validation rule for one key in the input dict.
 
 
 ```python
@@ -105,19 +109,19 @@ class ValueRuleValidator(object):
 
 **Arguments**
 
-- **`key`** *`(str)`*: The key in the `dict`, that this rule is apply for.
+- **`key`** *`(str)`*: The key this rule applies to.
 - **`value_type`**: The type of value associated with the specified `key`.
-- **`nullable`** *`(bool)`*: Default `True`, When `nullable` is set to `False,` and the value associated with the `key` is  `None`, The validation will fail
-- **`custom_validator`**: Default `None`, Custom `Callback` function that returns `True`/`False` if the value is valid or not.
-- **`custom_converter`**: Default `None`, Custom `Callback` function that converts the value associated with the key to any value and type.
+- **`nullable`** *`(bool)`*: Default `True`. When `False`, `None` fails validation.
+- **`custom_validator`**: Optional callback that returns `True` when the value is valid.
+- **`custom_converter`**: Optional callback that converts the value before it is returned.
 
 
 
-# RuleValidator
+## RuleValidator
 
 *core_lib.rule_validator.rule_validator.RuleValidator* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L14){:target="_blank"}
 
-`RuleValidator` class will be configured in the constructor with the following parameters 
+`RuleValidator` groups field rules and applies them to an input dict.
 
 ### RuleValidator.\_\_init\_\_
 
@@ -139,18 +143,46 @@ class RuleValidator(object):
 **Arguments**
 
 - **`value_rule_validators`** *`(list)`*: A list of `ValueRuleValidator` objects that define all fields to validate on the input `dict` object.
-- **`strict_mode`** *`(bool)`*: Default `True`, When `True` each key in the dictionary must have a rule.
-- **`strict_output`** *`(bool)`*: Default `False`, When `True` and `strict_mode` is `True` output `dict` will contain only keys that appear in the rules.
-- **`mandatory_keys`** *`(list)`*: List of `keys` that must be inside the validated rules.
-- **`prohibited_keys`** *`(list)`*: List of `keys` that can't be inside the dictionary data.
+- **`strict_mode`** *`(bool)`*: Default `True`. When `True`, every key in the input dict must have a rule.
+- **`strict_output`** *`(bool)`*: Default `False`. When `True` with `strict_mode`, the returned dict contains only keys that appear in the rules.
+- **`mandatory_keys`** *`(list)`*: Keys that must appear in the input dict.
+- **`prohibited_keys`** *`(list)`*: Keys that must not appear in the input dict.
 
 
+
+### RuleValidator.update()
+
+*core_lib.rule_validator.rule_validator.RuleValidator.update()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L31){:target="_blank"}
+
+Adds or updates validation rules at runtime. Accepts a list of `ValueRuleValidator` instances — each one replaces any existing rule with the same key.
+
+```python
+def update(self, additional_validators):
+```
+
+**Arguments**
+
+- **`additional_validators`** *`(list)`*: List of `ValueRuleValidator` instances to add or overwrite.
+
+### RuleValidator.remove()
+
+*core_lib.rule_validator.rule_validator.RuleValidator.remove()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L40){:target="_blank"}
+
+Removes a single validation rule by its key. No-op if the key is not present.
+
+```python
+def remove(self, rule_validator_key: str):
+```
+
+**Arguments**
+
+- **`rule_validator_key`** *`(str)`*: The key of the `ValueRuleValidator` to remove.
 
 ### RuleValidator.validate_dict
 
 *core_lib.rule_validator.rule_validator.RuleValidator.validate_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L37){:target="_blank"}
 
-`validate_dict` function will perform the `dict` validation and conversion 
+Validates the input dict, applies converters, and returns the validated dict.
 
 ```python
 class RuleValidator(object):
@@ -167,7 +199,7 @@ class RuleValidator(object):
 
 **Arguments**
 
-- **`update_dict`** *`(dict)`*: A `dict` of data we need to validate.
+- **`update_dict`** *`(dict)`*: Data to validate.
 - **`strict_mode`** *`(bool)`*: Override the default `self.strict_mode` for this specific validation.
 - **`strict_output`** *`(bool)`*: Override the default `self.strict_output` for this specific validation.
 - **`mandatory_keys`** *`(list)`*: Override the default `self.mandatory_keys` for this specific validation.
@@ -178,6 +210,6 @@ class RuleValidator(object):
 *`(dict)`*: Validated dict.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/result_to_dict.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/migrations.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/result_to_dict.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/migrations.html">Next</a></button>
 </div>

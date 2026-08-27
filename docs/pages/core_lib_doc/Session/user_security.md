@@ -7,16 +7,17 @@ folder: core_lib_doc
 toc: false
 ---
 
-`Core-Lib` has classes that provide user security implementations that users can tailor to their needs for authorization or authentication purposes.
-These classes function together, and the user must implement them in order for `User Security` to work as expected.
+Auth requirements differ per app — JWT tokens, session cookies, role-based access — but the request wiring is always the same: extract the token, decode it, validate it, decide whether to allow the request. `UserSecurity` is an abstract interface you implement once for your specific auth logic; everything else (cookie extraction, token decode, decorator wiring) is handled by Core-Lib.
 
-Classes that handle `User Security`
+> **Where it fits:** Web edge + Service. `UserSecurity` subclasses implement auth logic; `@RequireLogin` guards route handlers; `UserAuthMiddleware` plugs into the framework's request lifecycle.
 
-# UserSecurity
+> Unfamiliar with terms like "decorator", "session", or "WSGI"? See the [Glossary](/glossary.html).
+
+## UserSecurity
 
 *core_lib.session.user_security.UserSecurity* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L6){:target="_blank"}
 
-`UserSecurity` is an abstract class that provides security functions to be implemented by the user as per their needs. Must be extended in the class where we will implement the abstract methods.
+`UserSecurity` is an abstract class. Extend it and implement the abstract methods for your app's auth logic.
 
 ```python
 class UserSecurity(ABC):
@@ -38,8 +39,7 @@ class UserSecurity(ABC):
 
 *core_lib.session.user_security.UserSecurity.secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L14){:target="_blank"}
 
-Is an abstract method that the user must implement, it can be customized to perform actions according 
-to the `policies` supplied to the `RequireLogin` decorator.
+Implement this method to decide whether a decoded session is allowed to enter. Use `policies` for role or permission checks supplied by the `RequireLogin` decorator.
 
 ```python
 def secure_entry(self, request, session_obj, policies: list):
@@ -55,8 +55,7 @@ def secure_entry(self, request, session_obj, policies: list):
 
 *core_lib.session.user_security.UserSecurity.from_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L19){:target="_blank"}
 
-Also an abstract method to be implemented by the user, takes care of the formatting and 
-cleaning of the decoded session data.
+Implement this method to convert decoded token data into the session object your app uses.
 
 ```python
 def from_session_data(self, session_data: dict):
@@ -70,7 +69,7 @@ def from_session_data(self, session_data: dict):
 
 *core_lib.session.user_security.UserSecurity.generate_session_data()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L23){:target="_blank"}
 
-Also an abstract method to be implemented by user, returns a structured `dict` with the received data that will be used in the response object.
+Implement this method to convert your user object into the dict that will be encoded into the session token.
 
 ```python
 def generate_session_data(self, obj) -> dict:
@@ -89,7 +88,7 @@ def generate_session_data(self, obj) -> dict:
 
 *core_lib.session.user_security.UserSecurity.generate_session_data_token()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L26){:target="_blank"}
 
-Is a method that will encode the data returned by `generate_session_data()` and return the encoded token.
+Encodes the dict returned by `generate_session_data()` and returns the token.
 
 ```python
 def generate_session_data_token(self, obj):
@@ -97,7 +96,7 @@ def generate_session_data_token(self, obj):
 
 **Arguments**
 
-- **`obj`**: That is being passed to `generate_session_data` in order to create a structured `dict`.
+- **`obj`**: The user object passed to `generate_session_data()`.
 
 **Returns**
 
@@ -107,8 +106,7 @@ Returns encoded token.
 
 *core_lib.session.user_security.UserSecurity._secure_entry()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/user_security.py#L38){:target="_blank"}
 
-Is being called in the `@RequireLogin` decorator and is responsible for calling the `secure_entry` 
-method that is implemented.
+Called by the `@RequireLogin` decorator. It reads the token from the request, converts it to a session object, then calls your `secure_entry()` implementation.
 
 ```python
 def _secure_entry(self, request, policies):
@@ -116,32 +114,30 @@ def _secure_entry(self, request, policies):
 
 **Arguments**
 
-- **`request`**: Request object that is received by the decorator containing the cookie with token.
+- **`request`**: Request object received by the decorator. It must contain the auth cookie.
 
 - **`policies`**: List of policies that will be passed to `secure_entry()`
 
 **Returns**
 
-Returns the data returned implemented `secure_entry()` function.
+Returns whatever your `secure_entry()` implementation returns.
 
 
-# SecurityHandler
+## SecurityHandler
 
 *core_lib.session.security_handler.SecurityHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L4){:target="_blank"}
 
-`SecurityHandler` class registers our `UserSecurity` implemented class and is used to call `UserSecurity` methods using `get()`.
+A process-wide registry for your `UserSecurity` implementation. Register it once at startup; the `RequireLogin` decorator and any code that needs to issue tokens calls `SecurityHandler.get()` to reach it.
 
 ```python
 class SecurityHandler(object):
 ```
 
-## Functions
-
-### register()
+### `register()`
 
 *core_lib.session.security_handler.SecurityHandler.register()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L8){:target="_blank"}
 
-This function registers our `UserSecurity` implemented class.
+Registers your `UserSecurity` implementation.
 
 ```python
 def register(user_security: UserSecurity):
@@ -151,11 +147,11 @@ def register(user_security: UserSecurity):
 
 - **`user_security`** *`(UserSecurity)`*: `UserSecurity` implemented class.
 
-### get()
+### `get()`
 
 *core_lib.session.security_handler.SecurityHandler.get()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/session/security_handler.py#L14){:target="_blank"}
 
-This function returns the `UserSecurity` functions.
+Returns the registered `UserSecurity` instance.
 
 ```python
 def get() -> UserSecurity:
@@ -166,29 +162,27 @@ def get() -> UserSecurity:
 *`(UserSecurity)`*: Returns `UserSecurity` class object.
 
 
-# RequireLogin Decorator
+## RequireLogin Decorator
 
 *core_lib.web_helpers.django.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/require_login.py#L10){:target="_blank"}
 
-This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
-It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+This decorator runs authorization/authentication through the registered `UserSecurity` instance. It accepts `policies`, reads the request object using the matching Flask or Django integration, calls `_secure_entry()`, then returns that response.
 
 ```python
 class RequireLogin(object):
-    def __init__(self, policies: list = []):
+    def __init__(self, policies=None):
 ```
 
 **Arguments**
 
-- **`policies`** *`(list)`* : List of policies which will be further passed on the the `UserSecurity` functions.
+- **`policies`** *`(list)`*: List of policies that will be passed on to the `UserSecurity` functions.
 
 
-# UserAuthMiddleware
+## UserAuthMiddleware
 
 *core_lib.web_helpers.django.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/user_auth_middleware.py#L7){:target="_blank"}
 
-This middleware can be configured in the `Django` settings in the `MIDDLEWARE` list. This middleware will simply verify if 
-the specified cookie is present in the request, turn it to a `Session Object`, and append it to the `request.user` variable.
+Configure this middleware in Django's `MIDDLEWARE` list. It checks for the configured cookie, converts the token into your session object, and assigns it to `request.user`.
 
 ```python
 class UserAuthMiddleware(MiddlewareMixin):
@@ -196,195 +190,122 @@ class UserAuthMiddleware(MiddlewareMixin):
 
 ## Example
 
+A minimal end-to-end auth setup has three pieces: a session object, a `UserSecurity` subclass, and registration with `SecurityHandler`. After that, `@RequireLogin` on any view checks the cookie and enforces your policies.
+
+### 1. Define what a logged-in user looks like
+
 ```python
-import enum
-from datetime import timedelta
+class SessionUser:
+    def __init__(self, id: int, email: str, role: str):
+        self.id = id
+        self.email = email
+        self.role = role   # e.g. 'admin', 'editor', 'viewer'
+```
+
+### 2. Subclass `UserSecurity` with your auth rules
+
+```python
 from http import HTTPStatus
-
-from django.conf import settings
-from sqlalchemy import Integer, Column, VARCHAR
-
-from core_lib.data_layers.data.db.sqlalchemy.base import Base
-from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
-from core_lib.data_transform.result_to_dict import result_to_dict
-from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
-from core_lib.session.jwt_token_handler import JWTTokenHandler
-from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
-from core_lib.web_helpers.decorators import HandleException
-from core_lib.web_helpers.django.require_login import RequireLogin
+from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.web_helpers.request_response_helpers import response_status
 
 
-# CRUD SETUP
-class User(Base):
-    __tablename__ = 'user_security'
+class AppSecurity(UserSecurity):
+    def __init__(self, cookie_name, secret, expiration):
+        super().__init__(cookie_name, JWTTokenHandler(secret, expiration))
 
-    class PolicyRoles(enum.Enum):
-        ADMIN = 1
-        DELETE = 2
-        CREATE = 3
-        UPDATE = 4
-        USER = 5
-
-    class Status(enum.Enum):
-        ACTIVE = 1
-        NOT_ACTIVE = 0
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    username = Column(VARCHAR(length=255), nullable=False, default="")
-    email = Column(VARCHAR(length=255), nullable=False, default="")
-    role = Column('role', IntEnum(PolicyRoles), default=PolicyRoles.USER)
-    status = Column('status', IntEnum(Status), default=Status.ACTIVE)
-
-
-class UserDataAccess(CRUDDataAccess):
-    allowed_update_types = [
-        ValueRuleValidator('username', str),
-        ValueRuleValidator('email', str),
-    ]
-
-    rules_validator = RuleValidator(allowed_update_types)
-
-    def __init__(self):
-        CRUD.__init__(self, User, db_handler, UserDataAccess.rules_validator)
-
-
-@Cache(key='user_data_{u_id}', expire=timedelta(seconds=30))
-def get_user(u_id):
-    return result_to_dict(user_data_access.get(u_id))
-
-
-# USER SECURITY SETUP
-class SessionUser(object):
-    def __init__(self, id: int, email: str, role: int, status: int):
-        self.id = id
-        self.email = email
-        self.role = role
-        self.status = status
-
-    def __dict__(self):
-        return {'id': self.id, 'email': self.email, 'role': self.role, 'status': self.status}
-
-
-def has_access(user_session, check_policies):
-    user_role = user_session.role
-    role = []
-    status = User.Status.ACTIVE.value
-    user_status = user_session.status
-    for policy in check_policies:
-        if type(policy) == User.Status:
-            status = policy.value
-        if type(policy) == User.PolicyRoles:
-            role.append(policy.value)
-    if not role:
-        role.append(User.PolicyRoles.USER.value)
-    if user_role <= max(role) and user_status == status:
-        return True
-    else:
-        return False
-
-
-class CustomerSecurity(UserSecurity):
-    def __init__(self, cookie_name: str, secret: str, expiration_time: timedelta):
-        UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
-
-    def secure_entry(self, request, session_obj: SessionUser, policies: list):
-        if not policies:
-            return response_status(HTTPStatus.OK)
-        elif has_access(session_obj, policies):
-            return response_status(HTTPStatus.OK)
-        else:
-            return response_status(HTTPStatus.UNAUTHORIZED)
-
-    def from_session_data(self, session_data: dict) -> SessionUser:
-        return SessionUser(session_data['id'], session_data['email'], session_data['role'], session_data['status'])
+    def from_session_data(self, data: dict) -> SessionUser:
+        return SessionUser(data['id'], data['email'], data['role'])
 
     def generate_session_data(self, user) -> dict:
-        return {
-            'id': user['id'],
-            'email': user['email'],
-        }
+        return {'id': user['id'], 'email': user['email'], 'role': user['role']}
 
-
-# CRUD INIT
-user_data_access = UserDataAccess()
-
-# SECURITY HANDLER REGISTER
-secret_key = 'super-secret'
-security_handler = CustomerSecurity('user_cookie', secret_key, timedelta(seconds=2))
-SecurityHandler.register(security_handler)
-
-
-# IMPLEMENTATION
-@RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
-@HandleException()
-def admin_entry(request):
-    pass
-
-
-@RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
-@HandleException()
-def delete_entry(request):
-    pass
-
-
-@RequireLogin(policies=[User.PolicyRoles.CREATE, User.Status.ACTIVE])
-@HandleException()
-def create_entry(request):
-    pass
-
-
-@RequireLogin(policies=[User.PolicyRoles.UPDATE, User.Status.ACTIVE])
-@HandleException()
-def update_entry(request):
-    pass
-
-
-@RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
-@HandleException()
-def user_entry(request):
-    pass
-
-
-@RequireLogin(policies=[])
-@HandleException()
-def no_policy_entry(request):
-    pass
-
-
-# Function call with HttpRequest.COOKIES set as {'user_cookie': token}
-# where token is the JWT encoded token which will be decoded by UserSecurity
-# and the decoded object with data will be authenticated and authorized in secure_entry()
-response = user_entry(request)
-
-
-# Similarly, this process will happen with other function and the respective HTTP status code
-# will be returned. This is how UserSecurity is implemented in Core-lib
-
-# For authenticated user (Django example)
-@csrf_exempt
-@require_POST
-def api_login(request):
-    ...
-    body = request_body_dict(request)
-    email = body.get('email')
-    password = body.get('pass')
-    is_authenticated = core_lib.auth.authnticate(email, password)
-    if is_authenticated:
-        user = ...
-        get
-        the
-        user
-        user_session = SecurityHandler.get().generate_session_data(user)
-        response = response_json({'csrf_token': django.middleware.csrf.get_token(request), 'session': user_session})
-        response.set_cookie(key=settings.COOKIE_NAME, value=SecurityHandler.get().generate_session_data_token(user))
-        return response
-
+    def secure_entry(self, request, session: SessionUser, policies: list):
+        # session is None when no cookie / invalid token — reject before touching .role
+        if session and (not policies or session.role in policies):
+            return response_status(HTTPStatus.OK)
+        return response_status(HTTPStatus.UNAUTHORIZED)
 ```
 
+### 3. Register at startup and protect views
+
+The Flask version of `RequireLogin` reads from Flask's request context — your view takes no `request` parameter. The Django version takes `request` as usual. Use the matching import for your framework.
+
+Before using any `response_*` helper, initialize `WebHelpersUtils` once at startup so the helpers know which framework's response object to build.
+
+```python
+# Flask app bootstrap
+from datetime import timedelta
+from core_lib.session.security_handler import SecurityHandler
+from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.flask.require_login import RequireLogin
+
+WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+SecurityHandler.register(AppSecurity('app_cookie', 'super-secret', timedelta(hours=1)))
+
+@RequireLogin(policies=['admin'])
+def admin_dashboard():
+    ...
+```
+
+```python
+# Django app bootstrap (e.g. apps.py ready() or settings)
+from datetime import timedelta
+from core_lib.session.security_handler import SecurityHandler
+from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.django.require_login import RequireLogin
+
+WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)
+SecurityHandler.register(AppSecurity('app_cookie', 'super-secret', timedelta(hours=1)))
+
+@RequireLogin(policies=['admin'])
+def admin_dashboard(request):
+    ...
+```
+
+### 4. Issue tokens on login
+
+```python
+from core_lib.web_helpers.request_response_helpers import response_json, request_body_dict
+
+def login(request):
+    body = request_body_dict(request)
+    user = core_lib.user.authenticate(body['email'], body['password'])
+    token = SecurityHandler.get().generate_session_data_token(user)
+    response = response_json({'ok': True})
+    response.set_cookie('app_cookie', token)
+    return response
+```
+
+That is the whole flow. Everything else — multi-role policies, status flags, custom token handlers — is added on top of these four pieces. `policies`, `SessionUser.role`, and the values you put in `generate_session_data` must all share the same type — strings here, but enums or ints work equally well as long as they match across the three.
+
+---
+
+## Flask vs Django
+
+The API is identical for both frameworks — only the import path differs.
+
+| Class | Flask import | Django import |
+|---|---|---|
+| `RequireLogin` | `core_lib.web_helpers.flask.require_login` | `core_lib.web_helpers.django.require_login` |
+| `UserAuthMiddleware` | `core_lib.web_helpers.flask.user_auth_middleware` | `core_lib.web_helpers.django.user_auth_middleware` |
+
+The Flask version of `RequireLogin` reads from Flask's `request` context, so the decorated view takes no `request` parameter. The Django version takes `request` as usual.
+
+The Flask `UserAuthMiddleware` wraps the WSGI app directly:
+
+```python
+from flask import Flask
+from core_lib.web_helpers.flask.user_auth_middleware import UserAuthMiddleware
+
+app = Flask(__name__)
+app.wsgi_app = UserAuthMiddleware(app.wsgi_app, cookie_name='app_cookie')
+```
+
+The Django version is registered in `MIDDLEWARE` in `settings.py`.
+
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/core_lib_listener.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/handle_exceptions.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/core_lib_listener.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/handle_exceptions.html">Next</a></button>
 </div>

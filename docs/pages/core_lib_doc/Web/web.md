@@ -7,17 +7,17 @@ folder: core_lib_doc
 toc: false
 ---
 
-Web Helpers provides various response functions that help the users return data over a `Django` or `Flask` API.
+Django and Flask return responses differently. Web Helpers abstract that difference so your route handlers can return responses the same way in either framework. Set the server type once at startup, then use the same `response_json`, `response_ok`, and `response_status` functions at the web edge. Keep business logic in `Service` classes.
 
-# WebHelpersUtils
+> **Where it fits:** Web edge only. Route handlers call these to build framework-specific responses; Services and DataAccess never touch them.
+
+## WebHelpersUtils
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4){:target="_blank"}
 
-This class is used to set the type of web framework that will be utilized in the application i.e. `Django` or `Flask`.
+Sets the web framework — `Flask` or `Django` — that the request/response helpers should target. Call `init()` once at startup before using any `response_*` helper.
 
-## Functions
-
-### init()
+### `init()`
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L13){:target="_blank"}
 
@@ -47,11 +47,11 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 ```
 
-### get_server_type()
+### `get_server_type()`
 
 *core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L17){:target="_blank"}
 
-Returns the server type set by the `init()`.
+Returns the server type set by `init()`.
 
 ```python
 def get_server_type() -> ServerType:
@@ -66,16 +66,14 @@ def get_server_type() -> ServerType:
 ```python
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
-WebHelpersUtils.get_server_type() # returns flask
+WebHelpersUtils.get_server_type() # returns WebHelpersUtils.ServerType.FLASK
 ```
 
-# Request Response Helpers
+## Request / response helpers
 
-Depending on the server type set in `WebHelpersUtils` class, request and response functions return data.
+Depending on the server type set in `WebHelpersUtils`, these functions build the right framework-specific response object so your route handlers stay framework-agnostic.
 
-## Functions 
-
-### response_status()
+### `response_status()`
 
 *core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L14){:target="_blank"}
 
@@ -108,7 +106,7 @@ response_status(HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with empt
 ```
 
 
-### response_ok()
+### `response_ok()`
 
 *core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L18){:target="_blank"}
 
@@ -139,7 +137,7 @@ WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 response_ok(HTTPStatus.OK) # returns status 200 with data {'message': 'ok'}
 ```
 
-### response_message()
+### `response_message()`
 
 *core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
 
@@ -174,19 +172,19 @@ response_message('success', HTTPStatus.OK) # returns status 200 with data {'mess
 response_message('some error occurred', HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with data {'error': 'some error occurred'}
 ```
 
-### response_json()
+### `response_json()`
 
-*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
+*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L42){:target="_blank"}
 
 Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, and data transformed to JSON.
 
 ```python
-def response_json(data: dict, status: int = HTTPStatus.OK.value):
+def response_json(data: Union[dict, list], status: int = HTTPStatus.OK.value):
 ```
 
 **Arguments**
 
-- **`data`** *`(dict)`*: Dictionary data to be sent in the response.
+- **`data`** *`(dict, list)`*: Data to be sent in the response — either a dict or a list.
 - **`status`** *`(int)`*: Default `HTTPStatus.OK.value`, `HTTPStatus` value to be set.
 
 **Returns**
@@ -208,6 +206,63 @@ response_json({'error': 'Server Error'}, HTTPStatus.INTERNAL_SERVER_ERROR) # ret
 response_json({'error': 'file not found'}, HTTPStatus.NOT_FOUND) # returns status 404 with data {'error': 'file not found'}
 ```
 
+### `response_error()`
+
+*core_lib.web_helpers.request_response_helpers.response_error()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
+
+Returns an error response. Wraps the message in `{'error': message}` and defaults to status 500. If no message is provided, uses the standard HTTP reason phrase for the given status code.
+
+```python
+def response_error(message='', status: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
+```
+
+**Arguments**
+
+- **`message`**: Default `''`, error message to send. Falls back to the HTTP reason phrase if empty.
+- **`status`** *`(int)`*: Default `HTTPStatus.INTERNAL_SERVER_ERROR.value`, HTTP status code.
+
+**Example**
+
+```python
+from http import HTTPStatus
+
+from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.request_response_helpers import response_error
+
+WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+
+response_error('something went wrong')  # status 500, {'error': 'something went wrong'}
+response_error(status=HTTPStatus.BAD_REQUEST)  # status 400, {'error': 'Bad Request'}
+```
+
+### `request_body_dict()`
+
+*core_lib.web_helpers.request_response_helpers.request_body_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
+
+Parses the request body as JSON and returns it as a dict. Works transparently with both Django and Flask request objects.
+
+```python
+def request_body_dict(request):
+```
+
+**Arguments**
+
+- **`request`**: The framework request object (Django `HttpRequest` or Flask `Request`).
+
+**Returns**
+
+*`(dict)`*: The parsed JSON body.
+
+**Example**
+
+```python
+from core_lib.web_helpers.request_response_helpers import request_body_dict
+
+def create_user(request):
+    data = request_body_dict(request)
+    return response_json(core_lib.user.create(data))
+```
+
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/handle_exceptions.html"><< Previous</a></button>
+    <button class="pagePrevious-btn"><a href="/handle_exceptions.html">Previous</a></button>
 </div>

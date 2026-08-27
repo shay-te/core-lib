@@ -1,8 +1,13 @@
-Does **Time** give Me an Advantage?     
+---
+id: article
+title: Article (archived)
+sidebar: core_lib_doc_sidebar
+permalink: article.html
+folder: core_lib_doc
+toc: false
+published: false
+---
 
-The best variable to measure the resilience of our code is **Time**.    
-How much money does my development cycle cost after five years? is it cheaper or more expensive?
+> **Archived.** This unpublished draft is kept only for history.
 
-
-
-- 
+Use [Getting Started](/index.html) for the current introduction to Core-Lib.

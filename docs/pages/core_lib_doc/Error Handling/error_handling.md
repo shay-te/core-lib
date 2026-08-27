@@ -7,19 +7,21 @@ folder: core_lib_doc
 toc: false
 ---
 
-`Core-Lib` error handlers contain decorator and function which can raise exceptions for various scenarios.
+Different errors need different HTTP status codes, but mapping every exception in every handler is tedious and inconsistent. Core-Lib's error handling tools — `StatusCodeException`, `NotFoundErrorHandler`, `DuplicateErrorHandler` — encode the right status into the exception itself, so your endpoints return the correct response automatically.
+
+> **Where it fits:** Cross-cutting. `@HandleException` decorates web routes; `@NotFoundErrorHandler` and `@DuplicateErrorHandler` decorate `DataAccess` methods; `StatusCodeException` can be raised from any layer.
 
 ## StatusCodeException
 
 *core_lib.error_handling.status_code_exception.StatusCodeException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_exception.py#L1){:target="_blank"}
 
-`StatusCodeException` is the primary and single exception used by any `Core-Lib`.
+`StatusCodeException` carries an HTTP status code with the exception, so a web handler can turn it into the right response.
 
-It serves three primary purposes:
+Use it when:
 
-- Unified way to handle errors while using `Core-Lib`.
-- Reflect any error with a numeric status code.
-- Bridge between library errors and HTTP Status code.
+- a service or data access method needs to reject a request
+- the caller should receive a specific HTTP status
+- you want the error to pass through Core-Lib's exception handlers consistently
 
 ```python
 class StatusCodeException(Exception):
@@ -49,31 +51,32 @@ raise StatusCodeException(HTTPStatus.BAD_REQUEST, 'Input parameter is invalid')
 *core_lib.error_handling.not_found_decorator.NotFoundErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/not_found_decorator.py#L11){:target="_blank"}
 
 
-`NotFoundErrorHandler` decorator will raise `StatusCodeException` when the decorated function is not returning anything.  
-For e.g., if a function is returning an empty `string ""`, `tuple ()`, `list []`, `dict {}` `set()` or `None` `StatusCodeException` will be raised.
+`NotFoundErrorHandler` raises `StatusCodeException` with status `NOT_FOUND` when the decorated function returns a falsy value — `None`, `""`, `()`, `[]`, `{}`, `set()`, `0`, or `False`.
+
+> **Watch out:** the check is `not return_value`, not `return_value is None`. Only put this decorator on functions where a valid result is always truthy (e.g. a fetched ORM row). On a function whose valid result might be `0`, `False`, or `[]`, you'll convert legitimate empty results into HTTP 404s.
 
 **Example**
 
- ```python
+```python
 from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
 
 @NotFoundErrorHandler()
-def raise_expection():
-    pass
+def find_user(user_id):
+    return user_data_access.get(user_id)  # returns User or None
 
-raise_expection() # will raise a StatusCodeException for parameter NOT_FOUND
+find_user(99)  # raises StatusCodeException(NOT_FOUND) when no row matches
 ```
 
 
 
-## StatusCodeAssert Function
+## StatusCodeAssert
 
 *core_lib.error_handling.status_code_assert.StatusCodeAssert* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/status_code_assert.py#L9){:target="_blank"}
 
-Using `StatusCodeAssert` along with the `with` statement will capture any `AssertionError` and raise `StatusCodeException` with the status and message relevant to the application needs.
+`StatusCodeAssert` catches an `AssertionError` inside a `with` block and raises `StatusCodeException` with the status and message you provide.
 
 **Example**
- ```python
+```python
 from core_lib.error_handling.status_code_assert import StatusCodeAssert
 
 user_status = 'inactive'
@@ -81,55 +84,34 @@ with StatusCodeAssert(status_code=500, message="User must be active"):
     assert user_status == 'active' # will raise an AssertionError because the status is inactive.
 ```
 
-## CoreLibInitException Function
+## CoreLibInitException
 *core_lib.error_handling.core_lib_init_exception.CoreLibInitException* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/core_lib_init_exception.py){:target="_blank"}
 
-`CoreLibInitException` decorator handles any exception raised while initialization of `core-lib`.
+Exception raised when something goes wrong while initializing a `CoreLib`. Catch this in your bootstrap code to distinguish startup failures from runtime errors.
 
-**Example**
- ```python
+```python
 class CoreLibInitException(Exception):
     pass
 ```
 
-## DuplicateErrorHandler Function
-*core_lib.error_handling.duplicate_error_handler.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
+## DuplicateErrorHandler Decorator
+*core_lib.error_handling.duplicate_error_decorator.DuplicateErrorHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/error_handling/duplicate_error_decorator.py){:target="_blank"}
 
-`DuplicateErrorHandler` decorator will raise `StatusCodeException` when the decorated function adds the same value in the column of the database table which accepts unique values only.
+`DuplicateErrorHandler` raises `StatusCodeException` when the decorated function violates a unique database constraint.
 
 **Example**
- ```python
-import logging
-from functools import wraps
-from http import HTTPStatus
+```python
+from core_lib.error_handling.duplicate_error_decorator import DuplicateErrorHandler
 
-from sqlalchemy import exc
+class UserDataAccess(DataAccess):
 
-from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.func_utils import build_function_key
-
-logger = logging.getLogger(__name__)
-
-
-class DuplicateErrorHandler(object):
-    def __init__(self, message: str = None):
-        self.message = message
-
-    def __call__(self, func, *args, **kwargs):
-        @wraps(func)
-        def _wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except exc.IntegrityError as e:
-                logger.debug(f'DuplicateErrorHandler for function `{func.__qualname__}`.')
-                exception_message = build_function_key(self.message, func, *args, **kwargs) if self.message else None
-                raise StatusCodeException(HTTPStatus.CONFLICT, exception_message)
-
-        return _wrapper
-
+    @DuplicateErrorHandler('User with email {email} already exists')
+    def create(self, email: str):
+        with self.db_session.get() as session:
+            session.add(User(email=email))
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/client_base.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/client_base.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next</a></button>
 </div>

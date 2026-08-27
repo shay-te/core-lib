@@ -7,7 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-This helper provides functions that generate different types of data for us.
+Tests and seed scripts need realistic fake data — UUIDs, emails, datetimes, random strings. These generators produce common types with sensible defaults so you skip the boilerplate.
+
+> **Where it fits:** Tests and seed scripts. Not used by production code paths.
 
 ## Functions
 
@@ -60,13 +62,15 @@ def generate_email(domain: str = 'domain.com') -> str:
 
 **Returns**
 
-*`(str)`*: A randomly generated Email ID with the provided domain name and the length of the name will be `10`.
+*`(str)`*: A random email address with the given domain — local part is 10 random characters.
+
+**Example**
 
 ```python
 from core_lib.helpers.generate_data import generate_email
 
-generate_email() # returns an email id => qsrhbaykhg@domain.com
-generate_email('core-lib.com') # returns an email id => qsrhbaykhg@core-lib.com
+generate_email()                # qsrhbaykhg@domain.com
+generate_email('core-lib.com')  # qsrhbaykhg@core-lib.com
 ```
 
 ### generate_datetime()
@@ -86,17 +90,19 @@ def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> d
 
 **Returns**
 
-*`(datetime)`*: A randomly generated `datetime` within the given range.
+*`(datetime)`*: A random `datetime` within the given range.
+
+**Example**
 
 ```python
-from core_lib.helpers.generate_data import generate_datetime
 from datetime import datetime, timedelta
+from core_lib.helpers.generate_data import generate_datetime
 
-generate_datetime() # returns an datetime with from_date set to today - 10 days and to_date set to today + 10 days.
-generate_datetime(datetime.today(), datetime.today() + timedelta(days=10)) # returns an email id => qsrhbaykhg@core-lib.com
+generate_datetime()                                                  # between today-10d and today+10d
+generate_datetime(datetime.today(), datetime.today() + timedelta(days=10))  # between today and today+10d
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/function_utils.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/instantiate_config.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/function_utils.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/instantiate_config.html">Next</a></button>
 </div>

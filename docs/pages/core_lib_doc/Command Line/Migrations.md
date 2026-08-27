@@ -7,53 +7,38 @@ folder: core_lib_doc
 toc: false
 ---
 
-## Commands for **`Alembic`** migrations
+Schema changes in production are risky when run manually — wrong order, forgotten step, no rollback path. Core-Lib's `core_lib migrate` command wraps Alembic so every migration is a versioned, reversible step that runs the same way locally, in CI, and in production.
 
-### New Migration
+> **Where it fits:** Database schema management. Use this after changing SQLAlchemy entities under `data_layers/data/db/`.
 
-### Command
-```python
-core_lib rev -n create_db
+## Create a new migration
+
+```bash
+core_lib migrate --rev new --name create_db
 ```
 
-`rev -n` suggests new migration and the parameter after that will expect a name for the migration.
+`--rev new` creates a new migration revision. `--name` sets the migration name. The command creates a new migration file named `create_db` in your `data_layers/data/db/migrations/` folder.
 
-### Outcome
+Example generated file path:
 
-This command will create a new migration with the name `create_db`.
-
-### Upgrade or Downgrade migrations
-
-### Command
-```python
-core_lib rev -m head
+```text
+data_layers/data/db/migrations/2026-05-15_ab12cd_create_db.py
 ```
 
-`rev -m` suggests an existing migration and the parameter after that will expect the type of migration.
+## Upgrade or downgrade
 
-- `head`
-- `base`
-- `+1`, `+2` ..., `+10` : Mirgation upgrade versions
-- `-1`, `-2` ..., `-10` : Mirgation downgrade versions
-
-### Outcome
-
-This command will migrate to the specified version in the last parameter of the command.
-
-### Upgrade or Downgrade migrations
-
-### Command
-```python
-core_lib rev -l
+```bash
+core_lib migrate --rev head
 ```
 
-`rev -l` for listing the migration history.
+`--rev` accepts any of the following:
 
-### Outcome
-
-This command will list the migration history in a list format.
+- `head` — upgrade to the latest migration
+- `base` — downgrade all the way back
+- `+1`, `+2` ..., `+10` — upgrade by N versions
+- `-1`, `-2` ..., `-10` — downgrade by N versions
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/rules_validator.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/generation.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/rules_validator.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/generation.html">Next</a></button>
 </div>

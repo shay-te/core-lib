@@ -1,59 +1,77 @@
 ---
 id: core_lib_main_class
-title: Core Lib Class
+title: The CoreLib Class
 sidebar: core_lib_doc_sidebar
 permalink: core_lib_main_class.html
 folder: core_lib_doc
 toc: false
 ---
 
+`CoreLib` is the entry point of your application. It is where you wire services, data access, clients, and other dependencies together. Web frameworks, jobs, scripts, and tests all call into this class.
+
+> **Where it fits:** CoreLib layer. This is the single object your web routes, jobs, scripts, and tests call; it wires everything below it.
+
+In the [Hello, World](/index.html#a-complete-core-lib-app-in-one-file) the entire `CoreLib` subclass was three lines. In a real project you typically load config from YAML and wire several services. The shape is the same.
+
 *core_lib.core_lib.CoreLib* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L17){:target="_blank"}
 
-`CoreLib` class is the front of the entire library. It exposes all the "Services" your library offers by using simple `Services`, `DataAccess`, and `Clients` assignments to YourCoreLib class. You define your library interface. 
+---
 
+## Usage in a real project
 
-
-## Usage 
 ```python
+from omegaconf import DictConfig
 from core_lib.core_lib import CoreLib
-from core_lib.helpers.config_instances import instantiate_config
-...
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
+
 
 class YourCoreLib(CoreLib):
     def __init__(self, config: DictConfig):
-        CoreLib.__init__(self)
-        self.email = instantiate_config(self.config, EmailCoreLib)  # instantiate `EmailCoreLib` from config
-        user_da = UserDataAccess(instantiate_config(self.config.core_lib.data.db, SqlAlchemyConnectionFactory)) 
+        super().__init__()
+
+        # Connection at the edge — constructed once from config.
+        db = SqlAlchemyConnectionFactory(config.core_lib.your_core_lib.data.db)
+
+        # DataAccess wraps an entity and a Connection.
+        user_da = UserDataAccess(db)
+
+        # Services compose DataAccess (and Client) instances and expose business logic.
         self.user = UserService(user_da)
-        self.user_photos = UserPhotosService(user_da)        
-        ...
+        self.user_photos = UserPhotosService(user_da)
 ```
-#### Code Explained:
-- `YourCoreLib` class is extending CoreLib class
-- **`__init__ method`**: Services are being instantiated, such as `EmailCoreLib`, `UserDataAccess`, `UserService`, and `UserPhotosService`.
-- **`self.email`**: An instance of EmailCoreLib is instantiated using `instantiate_config` function, passing `self.config` as a parameter.
-- **`user_da`**: An instance of `UserDataAccess` is created, utilizing `SqlAlchemyConnectionFactory` instantiated from `self.config.core_lib.data.db`.
-- **`self.user`**: An instance of `UserService` is created, passing user_da as a parameter.
-- **`self.user_photos`**: An instance of `UserPhotosService` is created, also passing user_da as a parameter.
 
+A route handler, job, or test then just calls `your_core_lib.user.get(user_id)` — it never sees the database session.
 
-## init()
+---
+
+## Rules
+
+1. **All infrastructure is created in `__init__`.** Connections, clients, caches — nowhere else. Service code never imports a session, a Redis client, or an SDK.
+2. **Always call `super().__init__()` first.** This initializes the internal lifecycle hooks (event observers and the startup flag) the framework depends on.
+3. **Services receive their dependencies as constructor arguments.** No globals, no module-level state.
+
+That is what keeps services independent from frameworks, code testable without external services, and architecture from drifting over time.
+
+---
+
+## `__init__()`
 
 *core_lib.core_lib.CoreLib.\_\_init\_\_()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L22){:target="_blank"}
 
-When extending  `CoreLib` class call  `CoreLib.__init__(self)` to initialize event listeners and set the `core_lib_started` flag to `False`. 
-
 ```python
 class YourCoreLib(CoreLib):
-  
-  def __init__(self):
-      CoreLib.__init__(self)
-			...
+    def __init__(self, config: DictConfig):
+        super().__init__()
+        ...
 ```
-#### Code Explained:
--The `__init__` method of the parent class CoreLib using `CoreLib.__init__(self)`
+
+---
+
+## Composing multiple `CoreLib`s
+
+For larger systems you can nest a `CoreLib` inside another via Hydra's `_target_` — useful when a sub-system (e.g. an email module) is itself a self-contained Core-Lib that you want to drop in. See [Instantiate Config](/instantiate_config.html) for the pattern.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/project_structure.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/registry.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/glossary.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/registry.html">Next</a></button>
 </div>

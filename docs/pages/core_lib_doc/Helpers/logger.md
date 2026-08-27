@@ -7,9 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
-*core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7){:target="_blank"}
+Adding a log line to every service method is tedious and easy to forget. The `@Logging` decorator instruments any function automatically — logging call arguments and return values — without touching the function body.
 
-`Core-Lib`'s `Logging` decorator automatically logs function calls, it uses python's inbuilt `logging` to log function calls and the logs can also be customized in the logger.
+> **Where it fits:** Service or DataAccess helper. Apply `@Logging` to any method whose calls you want traced.
+
+*core_lib.helpers.logging.Logging* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/logging.py#L7){:target="_blank"}
 
 ```python
 class Logging(object):
@@ -17,12 +19,11 @@ class Logging(object):
 ```
 **Arguments**
 
-- **`message`** *`(str)`*: The message to be logged, by supplying the parameter keys in the message string, this can additionally log the function's arguments.  
-- **`level`** *`(int)`*: Default `logging.INFO` or int value `20`, accepts the logger level values as specified by the `logging` in python,
-to know about the logger values [click here](https://docs.python.org/3/library/logging.html#logging-levels){:target="_blank"}.
+- **`message`** *`(str)`*: Message template to log. Use parameter names in braces, e.g. `'get_user_{user_id}'`, to include argument values.
+- **`level`** *`(int)`*: Default `logging.INFO`. Accepts standard Python logging levels.
 
 
->**Warning** If you wish to log data, keep in mind that there's a potential that the data might include sensitive information, we recommend to use `Keyable` class implementation.
+> **Warning:** log messages can expose sensitive data. For objects that may contain secrets, implement `Keyable.key()` and return only the safe fields.
 
 
 **Example**
@@ -60,6 +61,6 @@ customer.login_data(CustomerCreds('jon_doe')) # logs ['ERROR:Customer.login_data
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/instantiate_config.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/strings.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="/instantiate_config.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="/strings.html">Next</a></button>
 </div>

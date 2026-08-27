@@ -21,10 +21,14 @@ entries:
                   url: /project_structure.html
                   output: web
 
+                - title: Glossary
+                  url: /glossary.html
+                  output: web
+
           - title: Core-Lib
             output: web
             folderitems:
-                - title: Core Lib Class
+                - title: The CoreLib Class
                   url: /core_lib_main_class.html
                   output: web
 
@@ -65,6 +69,13 @@ entries:
                   url: /job.html
                   output: web
 
+          - title: Middleware
+            output: web
+            folderitems:
+                - title: Middleware
+                  url: /middleware.html
+                  output: web
+
           - title: Connection
             output: web
             folderitems:
@@ -72,20 +83,28 @@ entries:
                   url: /connection.html
                   output: web
 
-                - title: SqlAlchemy Connection Registry
+                - title: SQLAlchemy Connection Factory
                   url: /sql_alchemy_connection.html
                   output: web
 
-                - title: MongoDB Connection Registry
+                - title: MongoDB Connection Factory
                   url: /mongodb_connection_factory.html
                   output: web
-                
-                - title: Solr Connection Registry
+
+                - title: Solr Connection Factory
                   url: /solr_connection_factory.html
                   output: web
 
-                - title: Neo4j Connection Registry
+                - title: Neo4j Connection Factory
                   url: /neo4j_connection_factory.html
+                  output: web
+
+                - title: Elasticsearch Connection Factory
+                  url: /elasticsearch_connection_factory.html
+                  output: web
+
+                - title: Object Connection Factory
+                  url: /object_connection_factory.html
                   output: web
         
           - title: Data Layers
@@ -103,8 +122,12 @@ entries:
                   url: /crud.html
                   output: web
 
-                - title: Soft Delete
+                - title: Soft Delete Handler
                   url: /soft_delete.html
+                  output: web
+
+                - title: SQLAlchemy Custom Types
+                  url: /sqlalchemy_types.html
                   output: web
         
           - title: Client
@@ -159,11 +182,19 @@ entries:
                 - title: Validation Helpers
                   url: /validation.html
                   output: web
-          
-          - title: Testing Core-lib
+
+                - title: Thread Utilities
+                  url: /thread.html
+                  output: web
+
+                - title: Constants
+                  url: /constants.html
+                  output: web
+
+          - title: Testing Core-Lib
             output: web
             folderitems:
-                - title: Testing Core-lib
+                - title: Testing Core-Lib
                   url: /test_core_lib.html
                   output: web
 
@@ -174,7 +205,7 @@ entries:
                   url: /observer.html
                   output: web
 
-                - title: Core Lib Listener
+                - title: CoreLib Listener
                   url: /core_lib_listener.html
                   output: web
 
