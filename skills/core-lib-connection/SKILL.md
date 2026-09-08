@@ -64,6 +64,17 @@ rejected in review (§0).
   extra, never in `requirements.txt` (§14).
 - **Validate every required key in the factory** and raise the lib's own typed
   error; callers never import the SDK's exception hierarchy.
+- **The keys you read are library-owned and generic — never host-specific.**
+  This is the agnosticism rule at the config boundary, and the factory is where
+  it breaks. A core-lib NEVER reads a host's env var or a host-prefixed config
+  key: it reads its own generic name, or better, takes the value as a
+  constructor param. The host owns its config and **bridges** it — passing the
+  value in, or exporting it under the generic name this library reads. Same for
+  any product-specific text (endpoints, bucket names, prompts, operator
+  messages): injected by the caller with a safe neutral default, never
+  hardcoded here. Litmus: could a stranger configure this package without ever
+  learning what application it came from? See "this library is AGNOSTIC" in
+  `AGENTS.md`.
 - **Provider quirks are absorbed in the factory** (e.g. `provider: minio` +
   `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the
   real local backend rather than faking it in tests.
