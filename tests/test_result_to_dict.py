@@ -9,6 +9,7 @@ import datetime
 import pymongo
 
 from sqlalchemy import Integer, Column, VARCHAR, DateTime, Enum, JSON, TEXT, Date, BLOB, Float, Boolean, Unicode
+from sqlalchemy.engine.row import Row
 from geoalchemy2 import WKTElement
 
 from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
@@ -193,6 +194,59 @@ class TestResultToDict(unittest.TestCase):
             self.assertEqual(converted_data[0]['data_float'], data_float)
             self.assertEqual(converted_data[0]['data_bool'], data_bool)
             self.assertEqual(converted_data[0]['data_unicode'], data_unicode)
+
+    @staticmethod
+    def __build_data(data_name, data_datetime, data_enum, data_float=1.0):
+        # every column is nullable=False with a default that the SQLite dialect
+        # rejects (''), so each one has to be set explicitly.
+        data = Data()
+        data.data_name = data_name
+        data.data_datetime = data_datetime
+        data.data_date = datetime.date(2022, 1, 1)
+        data.data_text = 'text'
+        data.data_json = {'key': 'value'}
+        data.data_blob = b'blob'
+        data.data_float = data_float
+        data.data_bool = True
+        data.data_unicode = 'unicode'
+        data.data_enum = data_enum
+        return data
+
+    def test_row_from_column_query(self):
+        # A column-level query yields a Row, not an entity. SQLAlchemy 2.0 Rows are
+        # tuples rather than mappings, so the Row branch must go through `_mapping`.
+        data_datetime = datetime.datetime.utcnow()
+        with self.__class__.db_data_session.get() as session:
+            session.add(self.__build_data('row_name', data_datetime, MyEnum.two, data_float=1.5))
+
+        with self.__class__.db_data_session.get() as session:
+            # the in-memory DB is shared across the class, so scope to this test's row
+            row = session.query(Data.id, Data.data_name, Data.data_float, Data.data_datetime, Data.data_enum)\
+                         .filter(Data.data_name == 'row_name').first()
+            self.assertIsInstance(row, Row)
+
+            converted = self.get_from_params(row)
+            self.assertTrue(isinstance(converted, dict))
+            self.assertEqual(
+                set(converted.keys()), {'id', 'data_name', 'data_float', 'data_datetime', 'data_enum'}
+            )
+            self.assertEqual(converted['data_name'], 'row_name')
+            self.assertEqual(converted['data_float'], 1.5)
+            # value conversion must still run over a Row: enum -> value, datetime -> timestamp
+            self.assertEqual(converted['data_enum'], MyEnum.two.value)
+            self.assertEqual(converted['data_datetime'], data_datetime.timestamp())
+
+    def test_row_list_from_column_query(self):
+        with self.__class__.db_data_session.get() as session:
+            for name in ('row_a', 'row_b'):
+                session.add(self.__build_data(name, datetime.datetime.utcnow(), MyEnum.one))
+
+        with self.__class__.db_data_session.get() as session:
+            rows = session.query(Data.id, Data.data_name).filter(Data.data_name.in_(('row_a', 'row_b'))).all()
+            converted = self.get_from_params(rows)
+            self.assertTrue(isinstance(converted, list))
+            self.assertEqual(len(converted), 2)
+            self.assertEqual([entry['data_name'] for entry in converted], ['row_a', 'row_b'])
 
     def test_callback(self):
         json_value = {
