@@ -11,6 +11,135 @@
 
 ---
 
+# A column name is NEVER a string literal — `Entity.column.key`
+
+One rule, stated once, because it is the single most repeated review
+correction. It already appears per-layer in §5, §6, §11.3 and §13; this is the
+consolidated form.
+
+**Anywhere you name a column outside the entity's own class body, write
+`Entity.column.key`.** Never `'scale_key'`, never `'normalized'`, never
+`'project_id'`.
+
+| Where | Correct | Wrong |
+|---|---|---|
+| Migration column | `sa.Column(Thing.name.key, …)` | `sa.Column('name', …)` |
+| Migration table / index | `Thing.__tablename__`, `Thing.INDEX_*` | `'thing'`, `'ix_thing_name'` |
+| Query filter | `Thing.workspace_id == x` | `text("workspace_id = …")` |
+| DataAccess payload | `{Thing.name.key: value}` | `{'name': value}` |
+| `ValueRuleValidator` | `ValueRuleValidator(Thing.name.key, str)` | `ValueRuleValidator('name', str)` |
+| Reading a service dict | `row[Thing.name.key]` | `row['name']` |
+| **Test assertion** | `self.assertEqual('x', row[Thing.name.key])` | `row['name']` |
+
+**Why.** A service returns plain dicts via `@ResultToDict`, whose keys are the
+column names. A literal is a silent copy of a name that lives somewhere else:
+rename the column and the literal still parses, still type-checks, and returns
+`None` or a `KeyError` at runtime instead of failing at the rename. `.key` makes
+the name exist in exactly ONE place, so a rename is caught by the import rather
+than by a user.
+
+**The two exceptions**, both because the mapping is not configured yet or the
+target is not ours:
+
+1. **Inside the entity's own `__table_args__`** — at class-body time `.key` on a
+   just-declared Column is not usable, so `Index('ix…', 'workspace_id')` uses
+   literals (§4).
+2. **A `ForeignKey` target** — `ForeignKey('workspace.id')` names another
+   table's column, which may not be importable (§11.3).
+
+## The same rule for dict payloads you invent — and ONE declaration only
+
+A library also builds dicts that are NOT rows: an observer event payload, a
+JSON column's inner shape, a params blob. Those keys are a contract with a
+consumer and deserve one home. But **only the keys nothing else already owns.**
+
+### If a name has an owner, use the owner. Do not re-declare it.
+
+The entity IS the declaration, and `Entity.column.key` is how every layer reads
+it — queries, migrations, row dicts, test assertions, and payloads. A payload
+key that is a column is read the same way, at the call site:
+
+```python
+entry = {
+    AssessmentScaleScore.normalized.key: score.normalized,   # the entity owns it
+    AssessmentSubmission.submitted_at.key: _epoch(submission.submitted_at),
+    'assessment_key': assessment.key,      # nothing owns this one -> enum
+}
+```
+
+**Both of these are wrong, and they fail differently:**
+
+```python
+class ScoreKey(str, enum.Enum):
+    NORMALIZED = 'normalized'                          # WRONG - a copy that DRIFTS
+    NORMALIZED = AssessmentScaleScore.normalized.key   # WRONG - an ALIAS
+```
+
+The literal is the classic bug: rename the column and the payload silently
+stops matching the table, with every test still green. The alias cannot drift —
+which is why it survives review — but it is a **third handle for one string**.
+Now three spellings exist and there is no rule saying which to use, so the next
+person picks whichever they saw last. Redundancy in a NAME is how a codebase
+grows three vocabularies for one concept.
+
+Same for a JSON param a rule reads: if the entity declares
+`AssessmentCompareRule.PARAM_CUTOFF = 'cutoff'`, a finding that echoes that
+value back reports it under `PARAM_CUTOFF` — not under a `CompareInputKey.CUTOFF`
+that merely points at it.
+
+### What an enum in `constants/` is actually for
+
+Only names **no entity owns**, AND only when there are enough of them to be a
+SHAPE:
+
+- composed names a payload invents — `a`, `b`, `delta`, `delta_seconds`
+- a name qualified to disambiguate a flat payload — a `key` column emitted as
+  `assessment_key` because the same dict already carries a `scale_key`
+
+A healthy `constants/core_lib_constants.py` **imports no entity at all.** If it
+needs one, the name it is declaring already has a home.
+
+**A ONE-MEMBER enum is not a shape — use a plain module constant.** An enum
+documents the shape of a payload; a single string has no shape to document, and
+two one-member enums in one module managed to declare the *same* value twice
+before anyone noticed.
+
+**An enum that mirrors a METHOD SIGNATURE is not a declaration.** `@Observe`
+builds its event value with `get_func_parameters_as_dict`, so the payload's keys
+ARE the emitting method's parameter names — rename a parameter and the real key
+moves while the enum keeps saying the old one. Worse, nothing outside the
+library sees that dict: a listener ABC takes positional arguments, so the enum
+documented a contract with nobody. Read it in the single internal unpacker and
+say in a comment where the names come from.
+
+**The test to apply to each enum**, in order — if any answer is no, it does not
+belong here:
+
+1. Does anything else already own these names (a column, an entity constant)?
+2. Does a CONSUMER OUTSIDE the library actually read this dict?
+3. Are there enough members that it describes a shape rather than a string?
+
+Mixing in `str` means a member compares, hashes and JSON-encodes as its own
+value, so a consumer may read a payload with either the member or the plain
+string. Note `str(member)` does **not** — it yields `'PayloadKey.PROJECT_ID'`.
+Use the member itself, or `.value`.
+
+For a fixed set of keys inside one entity's JSON column, plain class constants
+on that entity (`Entity.PARAM_MATRIX = 'matrix'`) are the right home — the
+entity owns its own blob's shape. What is never fine is the same literal at
+three call sites.
+
+### Enforce it, do not just document it
+
+A rename cannot catch an alias, and neither can any behavioural test — by
+runtime a literal, an alias and the column are the same string. It has to be
+checked in the SOURCE. Every core-lib should carry the equivalent of
+`tests/test_constants_contract.py`: parse `constants/`, and fail if any enum
+member is either a literal matching a known column/param name, or an expression
+derived from an entity.
+
+---
+
 # Scaffolding skills — MANDATORY routing gate (do not skip)
 
 Copy-paste-ready guides for building each part of a core-lib live under
@@ -35,6 +164,10 @@ also needs a migration), load all that apply. For a brand-new library, load
 | add a migration / alter / create / drop a table, column, index, or constraint | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
+| write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
+| add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md) |
+
+**Adding a skill? This table is not the only place it must appear.** Add the row here AND in `core_lib_generator/template_core_lib/AGENTS.md`, which carries a convenience copy that every generated lib ships — a skill missing from that copy is one a generated lib is never told to load. (`core-lib-new` is the one deliberate omission: a generated lib already exists.)
 
 ---
 
@@ -59,6 +192,334 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
 - Product-specific TEXT (prompts, operator messages, workflow wording, brand
   strings) is **injected by the caller** as a parameter — never hardcoded here.
   Provide a safe, neutral default so the library works standalone.
+
+## The library is the TOOL — never an instance of it
+
+Agnosticism is not only about names. **A core-lib knows nothing about who uses
+it, or what they use it for.** It ships the mechanism; every particular
+configuration of that mechanism belongs to the caller.
+
+This catches things the brand-name rule above lets through. A list like:
+
+```python
+NON_NEGOTIABLE_TOPICS = ['children', 'money', 'faith', 'location', 'timeline']
+```
+
+contains no product name and would pass the litmus test below — a stranger
+could still use the package. It is still wrong. Those five topics are one
+product's decision about one questionnaire. A library for scored assessments
+has no opinion on whether "faith" is a topic, exactly as a charting library has
+no opinion on which metrics you plot.
+
+**The test that catches it: could a second, completely different customer use
+this library for their own instrument without editing a single line of it?** If
+adding a third of anything means editing library source, the library has
+absorbed content that belongs to the host.
+
+The tell is almost always a **branch, or a table, keyed on a specific
+instance**:
+
+```python
+if key == FIVE_FACTOR_KEY:                 # <- the library now knows an
+    return five_factor_definition(fields)  #    instrument by name
+if key == NON_NEGOTIABLES_KEY:
+    return non_negotiables_definition(fields)
+raise ValueError('unknown built-in "{}"'.format(key))
+```
+
+Replace it with a **generic codec**: store the caller's configuration, hand it
+back, and never look at what it means. Then a third instrument is a row in a
+table, not a commit.
+
+Concrete examples of content that must live OUTSIDE the library — in the host,
+in `tests/`, or in `examples/`:
+
+- Named instruments, questionnaires, templates, or presets
+- Domain vocabularies (topic lists, category names, tag sets, status labels)
+- Tuned magic numbers that encode a product judgement (a specific cutoff, a
+  specific band boundary)
+- Any "built-in", "default", or "starter" content shipped for convenience
+
+Providing a *shape* is fine — `AnswerSetDefinition`, `bands`, a cutoff
+**parameter**. Providing *the* answer set, *the* bands, or *the* cutoff is not.
+
+A useful sanity check: a library's own `examples/` and `tests/` are where a
+realistic, named configuration SHOULD live. It proves the mechanism works on a
+real case without the mechanism knowing the case exists. If your flagship
+example is importable from library source rather than from `tests/` or
+`examples/`, that is the smell.
+
+## Before writing a helper, check core-lib for it
+
+The third form of the same mistake. A mirror type re-declares a shape; a
+re-typed constant re-declares a name; a hand-rolled helper re-declares
+BEHAVIOUR that already exists one package down — and this one hides best,
+because the copy is usually thinner than the original and looks correct.
+
+`result_to_dict` walks an entity's columns and converts enums to ints,
+datetimes to epoch floats and Decimals to floats. A hand-written encoder that
+"handles enums" passes a Decimal straight through — and every payload in the
+library now goes out under two slightly different projections, one of which
+nobody remembers exists.
+
+Grep before you write. If core-lib does 80% of it, call it and add the 20%:
+
+```python
+encoded = result_to_dict(value)          # core-lib's job
+return {k: v for k, v in encoded.items() if k not in _NOT_IN_A_TEMPLATE}
+```
+
+Do NOT assume the reverse exists. `result_to_dict` is encode-only; there is no
+decoder, no argument-guard helper, no "get or None", and no transient-default
+mixin. Writing those is right — say in the docstring that you checked, so the
+next reader does not re-check.
+
+**Full inventory: [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md)** — every decorator and helper module `core_lib` ships, what it does NOT ship, and the traps in adopting `result_to_dict`. Load it before writing any helper. The three that bite most often:
+
+- **A decorator usually already does it.** Before hand-writing a try/except or a conversion loop, check `@ResultToDict()`, `@NotFoundErrorHandler()`, `@DuplicateErrorHandler()`, `@Cache`, `@Observe`, `StatusCodeAssert`. A dict-building loop over `__table__.columns` IS `result_to_dict` with every conversion removed.
+- **`@NotFoundErrorHandler()` is not a get-or-none.** It goes the other way — falsy result → raise 404 — and it is already on the CRUD bases' `get`. A service that returns `None` for an absent row swallows that 404 itself, and must catch **only** 404: a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found".
+- **`result_to_dict` only converts values INSIDE a structure.** `result_to_dict(a_datetime)` returns the datetime unchanged. Convert a hand-built dict by decorating the METHOD with `@ResultToDict()`, not by calling the function per field. (Then mind the str-enum key trap — §skills.)
+
+## The entity IS the type. Do not mirror it in a second class.
+
+The same rule as names, one level up: an entity already declares a shape, so
+nothing else declares it again. A parallel `*Definition` / `*DTO` / `*Model`
+dataclass that mirrors a table is the same duplication as a re-typed column
+name, and costs more - now there are two classes, two field lists, and a
+conversion layer whose only job is to move values between them.
+
+```python
+# WRONG - a second declaration of a shape the entity already owns
+@dataclass
+class ScaleDefinition:
+    key: str
+    name_key: str
+    direction: Direction
+    raw_min: Optional[int] = None
+    ...          # every one of these is a column on AssessmentScale
+
+def build_definition(rows): ...   # ~100 lines that exist ONLY to convert
+```
+
+Pass the entity. A detached SQLAlchemy instance reads its attributes fine after
+its session closes, deep-copies, and pickles - so it works in a pure function,
+in a cache, and in a test with no database. Verify those three for your session
+config before assuming otherwise; they are the only things the mirror class
+actually bought.
+
+**The usual excuse and why it does not hold.** "The pure layer must not import
+SQLAlchemy, so the arithmetic can be tested without a database." Check whether
+it already imports the entity modules for their ENUMS - it almost always does,
+so the boundary is already crossed and the mirror is buying nothing. The real
+boundary worth keeping is *no session, no I/O*, and a detached instance honours
+it.
+
+**When a second type IS justified** - and say which in a docstring:
+
+- It carries fields NO table has (a computed result, a comparison of two rows).
+- It is a genuinely different shape: a tree, a union, several tables merged.
+- It is a narrowing you must enforce - a caller may set these three columns and
+  no others. Prefer the `RuleValidator` allow-list for that; it is the
+  mechanism core-lib already provides.
+
+A rename or a denormalisation is NOT a justification. `question_config_id` for
+the entity's `id`, or `scale_key` for a resolved `scale_id`, is a property or a
+join - not a reason to declare a whole second class.
+
+**The check:** list the mirror's fields against the table's columns. If the
+mirror adds nothing but `id` under another name, delete the mirror. If a
+`build_*` / `to_*` / `from_*` function exists whose entire body is field-for-field
+assignment, that function is the receipt.
+
+**Audit BOTH directions, and count renames.** Two traps that hid real mirrors
+for a whole review cycle each:
+
+- Only the INPUT side got audited first. The result types - what a pure
+  function RETURNS - were mirrors of the very rows the service then wrote them
+  into, and the persist method was a field-for-field copy between them. Check
+  what comes back, not just what goes in.
+- The first audit asked "are the mirror's fields a subset of the columns?",
+  which every renamed field defeats. `value` for `raw_value` and `points` for
+  `points_raw` made a 3-of-3 mirror read as "no table has this shape". Map the
+  renames first, THEN compare.
+
+### Doing it without breaking things
+
+Six things bite, in the order you will meet them. None is a reason not to do
+it; all are cheap once you know.
+
+**1. A transient entity has no defaults - and that is CORRECT. Do not "fix"
+it.** A column's `default=` fires at INSERT, so an entity built in memory
+carries `None` where the dataclass said `1`. The tempting move is a mixin that
+applies each column's declared default at construction. Do not write one:
+
+- Every row the library actually reads came from the database, so the default
+  has already been applied. There is no production path that sees the `None`.
+- `validate()` almost certainly already rejects the missing value - here it was
+  `weight_not_whole: question 1 has weight None`. Substituting the default
+  SILENCES that guard, so an author who omits a required value gets a silent
+  `1` instead of an error.
+- The only thing such a mixin fixes is test fixtures that left a required value
+  out. That is a fixture bug wearing a library's clothes: set the value in the
+  fixture, the way a real author would.
+
+A mixin IS warranted for something a generated `__init__` cannot do at all -
+letting an entity accept non-column attributes (its child collections) as
+kwargs. Keep that narrow, and say in its docstring that it supplies no
+defaults.
+
+**2. Value equality is gone.** Dataclasses compare field by field; entities
+compare by identity, so `a == b` on two separately built graphs is always
+False. Any test asserting `built == restored` silently starts asserting
+nothing. Compare the serialised form instead - that IS the contract.
+
+**3. Child collections: attach them, do not declare a `relationship()`.** The
+children are fetched with a soft-delete filter the ORM would not apply, and the
+library never traverses them lazily. Plain attributes on the instance;
+`__init__` must let them through as kwargs.
+
+**4. Serialisation now walks further than you think.** `result_to_dict` follows
+an entity's `__dict__`, so attached children come along - carrying `id`,
+`assessment_id`, `created_at` and the soft-delete columns. If the output is a
+TEMPLATE, filter that bookkeeping at EVERY depth, not just the top level.
+A round-trip test cannot catch this: it decodes exactly what it encoded, so a
+symmetric leak is invisible. Assert on the blob's contents directly.
+
+**5. Renames break assignment silently.** `response.points = 5` on a dataclass
+set a field; on an entity it creates a stray attribute nobody reads, and the
+guard checking `points_raw` never fires. Grep for `.<old_name> =`, not just
+reads.
+
+**6. The codec gets SIMPLER afterwards - delete the dead half.** Once nothing
+passed in is a dataclass, the `dataclasses.fields` / `typing.get_type_hints`
+machinery is unreachable. Coverage will tell you; the encoder shrinks to
+`result_to_dict` plus a filter, and the decoder to a column walk.
+
+## An entity is DATA. core-lib is not Active Record.
+
+An entity declares columns and nothing else: no query methods, no predicates,
+no `@property` that derives an answer, no lookups over its own children. Put
+those in the service layer.
+
+```python
+# WRONG - Active Record. The entity is answering questions about itself.
+class Assessment(Base):
+    scoring_mode = Column(IntEnum(ScoringMode), nullable=False)
+
+    @property
+    def is_categorical(self):
+        return self.scoring_mode == ScoringMode.CATEGORICAL
+
+    def scale(self, scale_key):
+        return next((s for s in self.scales if s.key == scale_key), None)
+
+# RIGHT - the entity holds the column, the service reads it.
+def is_categorical(assessment) -> bool:
+    return assessment.scoring_mode == ScoringMode.CATEGORICAL
+
+def scale(assessment, scale_key):
+    return next((s for s in assessment.scales or [] if s.key == scale_key), None)
+```
+
+**Why this is structural, not stylistic.** Every Service returns plain dicts
+through `@ResultToDict` - that is the contract with a host. So a host NEVER
+holds one of these objects. A method on an entity is therefore reachable only
+from inside the library, by code that already sits in the service layer and
+could have called a function. It buys nothing and costs the layering: `data/`
+starts holding logic, and `service/` stops being the only place that knows how
+a thing is interpreted.
+
+It also drags the entity somewhere it must not go. `is_categorical` needs
+`ScoringMode`; a lookup over children needs to know children exist. Soon the
+entity imports half the domain, and `data/` - the layer everything else depends
+on - depends back.
+
+**The check:** open every file in `entities/`. `grep -c "def "` should be zero,
+with no exception - not even an `__init__`.
+
+If you need an entity to accept a NON-COLUMN kwarg (a child collection
+attached when a row is read as part of a larger object), you do not need an
+`__init__` for it. Declare it as a plain class attribute with a safe empty
+default:
+
+```python
+class Thing(Base):
+    id = Column(INTEGER, primary_key=True)
+    children = ()          # not a column - a default, and a declaration
+```
+
+SQLAlchemy's declarative constructor accepts any kwarg for which
+`hasattr(type(self), key)` holds, so `Thing(children=[...])` already works. A
+mixin that pops those kwargs and re-sets them reimplements the base class.
+
+**Where the logic goes.** The service layer, as plain functions taking the
+entity as the first argument. If several services need them, one module owns
+them; import the MODULE and qualify the call (`definition_loader.scale(...)`)
+rather than the bare names, which collide with the local variables these
+functions are usually assigned to.
+
+## A DataAccess holds NO business logic. The RuleValidator does the checking.
+
+A DataAccess assembles a payload and runs a query. It does not decide whether
+its arguments are acceptable — that is a judgement about the operation, and the
+operation belongs to a Service.
+
+```python
+# WRONG — three kinds of logic that do not belong in this layer
+def create(self, assessment_id: int, data: dict = None):
+    require(assessment_id=assessment_id)                      # argument guard
+    payload = dict(data or {})
+    payload[Thing.assessment_id.key] = assessment_id
+    if not (payload.get('form_page_field_id') or payload.get('custom_field_id')):
+        raise ValueError('needs one of them')                 # DOMAIN rule
+    return super().create(payload)
+```
+
+There is no corrected version of that method — the whole override goes (§5.1).
+Each of the three moves somewhere that already exists:
+
+| what it is | where it belongs |
+|---|---|
+| `require(x=x)` — an argument guard | the **Service** method that owns the operation |
+| a domain rule (`must name one of A or B`) | **`validate()`**, at publish time |
+| "must be an int / max length / a rule no column type carries" | the DataAccess's **`RuleValidator`** |
+| "may not be null / must be present" | the **column** — `nullable=False` |
+
+**One validator, and it is the one `CRUD.__init__` already took.** core-lib runs
+that same list strictly on update and non-strictly on create, so a key with NO
+rule reaches its column unchecked on the way in — which means an append-only
+table whose allow-list is EMPTY validates nothing on the one path it uses.
+Write the columns into that single list rather than adding a second
+`create_rule_validator` (which could only run from inside an override you are
+not allowed to write). Do not restate what the column already declares: the
+database raises `IntegrityError` on a null `nullable=False` column by itself.
+
+**Read methods take what they are given.** With the guard gone, a `None`
+parent compiles to `IS NULL` and returns an empty list — never another
+tenant's rows. The Service that called it has already guarded; a second check
+in the DataAccess is a copy of a decision made one layer up.
+
+**The check:** `grep -n "raise ValueError\|require(" data_layers/data_access/`
+should return nothing but comments. A domain rule that is ALSO enforced in
+`validate()` is not defence in depth — it is a second copy that can disagree.
+
+## Every class declares what layer it is in
+
+- Everything in `data_access/` extends **`DataAccess`** - including shared
+  bases and mixins. That marker is what identifies a class which opens a
+  session and returns rows, and a shared reader written as a bare `object` is
+  the one thing in the folder not saying what it is.
+- Everything in `service/` extends **`Service`**.
+- A shared base sits ALONGSIDE the CRUD base rather than replacing it when its
+  users need different CRUD behaviour (one carries a delete token, another does
+  not). The MRO linearises cleanly with the marker resolving last:
+
+      ThingChildDataAccess -> ChildDataAccess
+                           -> CRUDSoftDeleteWithTokenDataAccess -> DataAccess
+
+- The corollary: if a module under `service/` is not a Service, it does not
+  belong there. `data_access/` and `service/` are layers, not folders to park
+  things in.
 
 ## Minimal dependencies
 
@@ -88,8 +549,19 @@ host-specific text in this library — stop, and inject it instead.
 
 ## The agnosticism litmus test
 
-Could you publish this package as-is, with its tests, to a public registry and
-have a stranger use it without ever learning what application it came from? If
+Two questions, and BOTH must pass. The first catches host names; the second
+catches host *decisions*, which is the one that gets missed:
+
+1. Could you publish this package as-is, with its tests, to a public registry
+   and have a stranger use it without ever learning what application it came
+   from?
+2. Could that stranger build their OWN instrument, template, or preset on it
+   without editing a line of library source? If "add a third one" means a
+   commit here, the library is carrying content that is not its own.
+
+If the answer to either is no, the fix is never to rename the offending thing.
+Move it out: take it as a parameter, or let the caller store it and hand it
+back. The library keeps the mechanism; the caller keeps the meaning.
 
 ---
 
@@ -134,7 +606,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 - Repo `foo-core-lib` → python package `foo_core_lib` → main class `FooCoreLib` in `foo_core_lib/foo_core_lib.py`.
 - `foo_core_lib/__init__.py` carries `__version__ = '0.0.0.1'` and (current convention) re-exports the class: `from foo_core_lib.foo_core_lib import FooCoreLib` plus `__all__`. **(divergence: the older libs top-level `__init__.py` contain ONLY `__version__` — so `from foo_core_lib import FooCoreLib` does NOT work; always import from the module path `foo_core_lib.foo_core_lib` when consuming siblings.)** Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
 - Constants in `foo_core_lib/constants.py` (current convention): the cache handler key `FOO_CORE_LIB_CACHE = 'foo_core_lib'` and (if the lib fires events) the observer key `FOO_CORE_LIB_NAME = 'FOO_CORE_LIB'`. **(divergence: an older lib uses `<name>_core_lib_constants.py`; an older lib uses `constants/core_lib_constants.py` with `CACHE = 'CACHE_CUSTOM_FIELD'`; an older lib’s key is `CACHE_WORKFLOW = 'WORKFLOW_CACHE'`. New libs use `constants.py` + the `FOO_CORE_LIB_CACHE = 'foo_core_lib'` name/value shape.)**
-- Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file.
+- Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file. A non-persisted data type `ThingResult` goes in `data_layers/data/data_types/thing_result.py` — same one-class-per-file rule, and never under `service/` (§4.1). A pure engine/helper module under `service/` ends `_helper.py` — those two suffixes are the only ones that folder allows (§6.1). Anything error-shaped goes in `error_handling/<snake_case_class>.py`, one class per file (§4.2).
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
 - The DataAccess instance is private: `self._thing_da` on the CoreLib (or a local variable in `__init__` if nothing else needs it — the older libs do that) and `self._thing_da` on the service that owns it. It is NEVER a public attribute.
 - Cache key templates (current convention): `'<lib>_<entity>_{param}'`, e.g. `'foo_thing_{project_id}_{thing_id}'`, defined as module-level constants next to the service: `CACHE_KEY_DOCUMENT = '...'`. **(divergence: the older libs keys predate this scheme and live as class attributes — `CACHE_WORKFLOW_GET_{workflow_id}`, `custom_field_{id}`. New libs use the current convention’s shape.)**
@@ -153,6 +625,11 @@ foo-core-lib/
     config/
       __init__.py                     # REQUIRED, empty — pkg://foo_core_lib.config won't resolve without it
       foo_core_lib.yaml               # '# @package _global_', env-var driven (§3.1)
+    error_handling/                   # ONLY if the lib defines its own errors (§4.2)
+      __init__.py
+      foo_error.py                    # the base: FooError(StatusCodeException)
+      immutable_foo_error.py          # one class per file, named after the class
+      validation_error.py             # error-shaped DATA lives here too, not in data_types/
     connections/                      # ONLY if the lib owns a non-DB backend (S3 etc.)
       __init__.py
       storage_connection_factory.py   # named after the BACKEND, no lib prefix (reference shape)
@@ -161,6 +638,9 @@ foo-core-lib/
       __init__.py
       data/
         __init__.py
+        data_types/                   # ONLY if the lib has non-persisted data types (§4.1)
+          __init__.py
+          thing_result.py             # one dataclass per file, named after the class
         db/
           __init__.py
           entities/
@@ -180,7 +660,8 @@ foo-core-lib/
         storage_data_access.py        # backend verbs, if the lib has a backend (no lib prefix)
       service/
         __init__.py
-        thing_service.py
+        thing_service.py              # a Service class
+        thing_helper.py               # a pure engine/helper — ONLY other allowed suffix (§6.1)
     observer/                         # ONLY if the lib fires events (the older libs shape)
       __init__.py
       foo_listener.py                 # FooListener(ABC) — host implements this
@@ -343,6 +824,110 @@ Rules, each load-bearing:
 - The enum class lives in the SAME file as its entity, right above it.
 - Derive enum-based strings from the member NAME, not the value: a file extension is `f'.{kind.name.lower()}'` — using `.value` after an IntEnum conversion produced the literal extension `.1` in production code. Real bug.
 
+### 4.0 An entity is where agnosticism is usually lost
+
+The agnosticism rules at the top of this document are enforced or broken HERE, because an entity is where a vocabulary gets written down and a schema is the hardest thing to walk back. Two forms, both of which pass the brand-name check:
+
+**A column whose MEANING is the host's is an opaque scalar. Store it; never read it.**
+
+```python
+cadence = Column(IntEnum(Cadence))    # ⛔ WEEKLY/MONTHLY/QUARTERLY — one product's schedule
+cadence = Column(INTEGER)             # ✅ opaque; the host defines the value AND owns the scheduling
+```
+
+The enum version forces every host onto the three intervals whoever wrote it happened to need, and the moment the library owns those members something will eventually branch on them. Take the value, persist it, hand it back. Say so in the docstring — *"`cadence` is OPAQUE to this library. The host defines the meaning of the value and owns all scheduling; nothing here reads it or branches on it. Do not add logic keyed on its value, and do not reintroduce an enum."* — because the next author's instinct is to "improve" the INTEGER into an enum. **The check: `grep -rn "<column>" ` outside the entity and the migration returns only the create/read payload, never a comparison.**
+
+An enum is right when the LIBRARY branches on the member (`ScoringMode.WEIGHTED_AVG` selects an algorithm this library implements). It is wrong when the library only stores and returns it.
+
+**An enum the library does branch on still must not carry one product's vocabulary.** Name members for the mechanism, not for the instance that prompted them: `Measures.STATE`/`TRAIT` is a property of assessments in general; a member named after one questionnaire's category is that questionnaire leaking into the schema. Ask of every member: would a completely different customer's instrument use this word? If it names *their* thing rather than *a kind of* thing, it belongs in the host's data — a row they store — not in a class here.
+
+Both are the "library is the TOOL, never an instance of it" rule applied to a schema. Neither contains a product name, so only the SECOND litmus question catches them.
+
+### 4.1 Non-persisted data types live in `data_layers/data/data_types/`, NOT in `service/`
+
+First reach for an ENTITY — most "result"/"input"/"node" types are one already, and a dataclass mirroring an entity field-for-field is the duplication rule at the top of this section. But some data genuinely has no table: what a pure engine returns, an aggregate of several entity lists plus computed fields, one validation error. Those are still **data**, and `data_layers/data/` is the data layer:
+
+```
+data_layers/
+  data/
+    data_types/
+      __init__.py
+      assessment_result.py      # @dataclass AssessmentResult  — what score() returns
+      compare_result.py         # @dataclass CompareResult     — one finding
+  service/
+    scorer_service.py           # the LOGIC that produces them
+```
+
+`service/` holds services and the pure engines they call — behaviour, not type declarations. A `@dataclass` under `service/` is a data type filed under the logic layer; move it. The check: **`grep -rn "@dataclass" data_layers/service/` returns nothing.**
+
+- One class per file, file named after the class in snake_case — same rule as entities.
+- Dependency direction is one-way: a data type may import entities and other data types, **never a service, DataAccess or engine.** That is what keeps it importable from any layer without a cycle.
+- The folder is conditional — a lib whose services only ever return entities doesn't create it.
+- Related exception (§A2): a *spec* — a frozen-dataclass DSL a consumer module reads as configuration — stays owned by that consumer module. `data_types/` is for types that flow through the layers, not for a module's private authoring DSL.
+- **`error_handling/` beats `data_types/`** — anything error-shaped goes there even when it is a plain `@dataclass` (§4.2). "It is a dataclass, not an exception" is not the test; what the type IS, is.
+
+### 4.2 Everything error-shaped lives in `error_handling/`, one class per file
+
+`core_lib/error_handling/` is the pattern — `status_code_exception.py`, `core_lib_init_exception.py`, one class per file named after the class. Copy that shape; there is no `errors.py` grab-bag. **The check: `grep -c "^class " error_handling/*.py` prints `1` for every file.**
+
+The scope is "error-shaped", not "is an exception". A `ValidationError(code, message)` that `validate()` RETURNS in a list and never raises still lives here, because it is the library's error vocabulary and is exactly what the matching exception carries (`AssessmentValidationError.errors` is a `List[ValidationError]`). Filing it under `data_types/` splits one concept across two packages and hides that the pair belongs together.
+
+Every exception subclasses a lib base which subclasses core-lib's `StatusCodeException`, with the status as a **class attribute, never a constructor argument** and **never defaulted**:
+
+```python
+class FooError(StatusCodeException):
+    STATUS_CODE = None                       # a default is a trap — see below
+    def __init__(self, *args):
+        super().__init__(self.STATUS_CODE, *args)
+```
+
+- A host maps any of them by reading `error.status_code`, without importing your classes. A bare `Exception` forces every consumer to keep its own mapping table in step with your package.
+- Each subclass names ONE situation that always means the same thing to a client, so the code belongs to the class and no raise site can get it wrong.
+- Not defaulting `STATUS_CODE` is deliberate: a default means a new error type silently inherits whatever the last one used and is reported as something it is not.
+- The docstring says WHY that status (422 = well-formed but unprocessable content, the client shows it to the author; 409 = the request is fine, the STORED state forbids it), which is the part a reviewer cannot re-derive.
+- Test by WALKING the package (`pkgutil.iter_modules`), not by scanning one namespace — one class per file means a new error is a new module, and a module nothing imports yet would be invisible.
+
+Full recipe, the status-choice table and the test: [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md).
+
+### 4.3 A column name is NEVER a string literal — anywhere, in any container
+
+The entity owns the name. Every other mention reads it back with `Entity.column.key`, so a rename either propagates or fails at import. This is stated elsewhere for queries (§5) and for dict reads (§13) — but the rule is **not** scoped to those. It covers every form a name can take:
+
+```python
+# ⛔ every one of these is the same bug
+_NOT_IN_A_TEMPLATE = frozenset({'id', 'project_id', 'published_at'})   # a set
+_VERSION_FIELD = 'version'                                            # a constant
+SORT_COLUMNS = ('created_at', 'name')                                 # a tuple
+if key == 'assessment_id': ...                                        # a comparison
+payload.pop('deleted_at', None)                                       # an argument
+
+# ✅
+_NOT_IN_A_TEMPLATE = frozenset({
+    Assessment.id.key, Assessment.project_id.key, Assessment.published_at.key,
+})
+```
+
+**Why a set of names is the WORST place to write them as literals.** A stale literal in a query usually explodes — SQLAlchemy raises on an unknown attribute. A stale literal in a *filter set* does nothing at all: the name simply stops matching, so the column is no longer excluded. In the real case that prompted this rule, `_NOT_IN_A_TEMPLATE` listed the bookkeeping columns to strip out of a shared catalogue blob; renaming any of them would have silently started shipping a tenant's `project_id` inside every host's template. The rename compiles, the suite stays green, and the leak is invisible.
+
+Which entity to name when several share a column: the one whose row you are actually describing. `id`, `created_at`, `updated_at`, `deleted_at` and `deleted_at_token` come from the base and the mixins, so any entity in the set can stand for all of them — say so in a comment. A column only a CHILD has (`assessment_id`) must be named off that child, not off the parent.
+
+**The two exceptions, and only these two:**
+
+- **Entity declarations.** A column's own name in `Column(...)`, and the strings inside `__table_args__` (`Index('...', 'workspace_id')`) — at class-body time `.key` on a just-declared Column is not usable, and these DECLARE the name rather than reference it (§4).
+- **Migrations.** They pin historical DDL and must not drift with the entity (§11.3).
+
+**Test it by walking the library's own AST** — a grep cannot tell a column name from any other string, and the rule is unenforceable by review alone once names appear in sets and constants:
+
+```python
+columns = {c.key for entity in every_entity() for c in entity.__table__.columns}
+for path in library_sources():          # excluding entities/ and migrations/
+    for node in ast.walk(ast.parse(path.read_text())):
+        if isinstance(node, ast.Constant) and node.value in columns:
+            offenders.append(...)
+```
+
+Pair it with a "would this catch a planted literal?" test, or an empty offender list silently means the walk stopped working.
+
 ## 5. DataAccess (`data_layers/data_access/thing_data_access.py`)
 
 **MUST subclass a core-lib CRUD base. Hand-rolled `session.add()` / `session.flush()` / bespoke get/update/delete loops are rejected in review.** Pick by delete semantics — note the module FILENAMES are not guessable from the class names:
@@ -378,27 +963,60 @@ class WorkspaceDataAccess(CRUDSoftDeleteDataAccess):
 
     def __init__(self, db: SqlAlchemyConnectionFactory):
         CRUD.__init__(self, Workspace, db, rule_validator)
-
-    def create(self, project_id: int, name: str) -> Workspace:
-        if not (project_id and name):
-            raise ValueError('create requires project_id and name')
-        return super().create({
-            Workspace.project_id.key: project_id,
-            Workspace.name.key: name,
-        })
 ```
+
+That is the WHOLE class — domain queries aside, there is nothing else to write. **There is no `create`.** See §5.1.
 
 Rules:
 
-- The `rule_validator` (module-level, next to the class) is the UPDATE allow-list: one `ValueRuleValidator(Entity.col.key, type, custom_validator=...)` per updatable column. Anything not listed is rejected under strict mode with `PermissionError` (§12 for exact semantics).
-- `create` takes explicit positional/keyword args for the identity columns (they are immutable, so they never ride in an update payload), guards them with `ValueError`, and defers the insert to `super().create({...})` — never its own `session.add`.
+- The `rule_validator` (module-level, next to the class) is the allow-list: one `ValueRuleValidator(Entity.col.key, type, custom_validator=...)` per column. Anything not listed is rejected under strict mode with `PermissionError` (§12 for exact semantics).
+- **Do not override `create`** — §5.1. `CRUD.create(data: dict)` plus the `rule_validator` above already IS the write API.
 - `update` overrides guard immutable columns (strip `project_id`/FKs from the payload) before `super().update(id, data)`.
 - Domain queries (`get_by_project`, `full_text_search`, `list_trash`, `search_by_name`, …) live on the DataAccess, written in the query-builder style the other DAs use (`session.query(Entity).filter(...).all()` chains). Do NOT refactor an existing DA's access pattern to a different style — that exact change was rejected in review.
 - Normal update paths validate STRICT (the base's plain `validate_dict(data)` — unknown key raises `PermissionError`; tests rely on that). For a PARTIAL metadata-style bulk update where callers may pass a superset dict, use `self._rule_validator.validate_dict(data, strict_mode=False, strict_output=True)` (unknown keys silently DROPPED) and `session.query(...).update(validated, synchronize_session=False)` — `synchronize_session=False` avoids `InvalidRequestError: Invalid expression type` on bulk updates. Library uses the strict form on 2 of 3 update paths and the lenient form only on `DocumentDataAccess.update_metadata` — default to strict.
-- Column references in queries/payloads are `Entity.col.key` / `Entity.col` — never string literals.
+- Column references in queries/payloads are `Entity.col.key` / `Entity.col` — never string literals. Same for a name in ANY other position: a set, tuple, constant, comparison or argument (§4.3).
 - Cross-entity guards live in module-level helpers inside the DA file (the current convention’s `_assert_collection_in_workspace(session, workspace_id, collection_id)` raising `StatusCodeException(404)`), called inside `create`/`update` before writing.
 - Errors: DA-level argument guards raise `ValueError`; base-CRUD arg guards are bare `assert` (so `AssertionError`); "not found" on `get` is `StatusCodeException(404)` raised by the base's `@NotFoundErrorHandler()`; uniqueness violations bubble up as `sqlalchemy.exc.IntegrityError` for the service's `@DuplicateErrorHandler` to map.
 - **A DB DataAccess is only ever called BY a Service.** Never from a host app, never from a test, never from another lib. (The backend adapter DA — storage — additionally gets its own mocked-client unit file; §13.3.)
+
+### 5.1 Never override `create`. The base plus its RuleValidator IS the write API.
+
+`CRUD.create(data: dict)` already validates through `self._rule_validator` and inserts. A subclass `create` can only do one of three things, and all three are wrong:
+
+```python
+# ⛔ ALL THREE ARE REJECTED
+def create(self, project_id: int, name: str):
+    if not (project_id and name):                    # (1) business logic in a DataAccess
+        raise ValueError('create requires ...')
+    return super().create(create_rule_validator.validate_dict({   # (2) a SECOND validator
+        Workspace.project_id.key: project_id,        # (3) repacking args into the dict
+        Workspace.name.key: name,                    #     the base already accepts
+    }))
+```
+
+1. **Guarding arguments is business logic**, and business logic is the service's. A DataAccess does not check what it is handed — the RuleValidator does.
+2. **A second `RuleValidator` beside the first has nowhere to be used.** `CRUD` takes exactly one, in `__init__`, and runs it on both write paths. A `create_rule_validator` can only run from inside an override — so it exists solely to justify the override.
+3. **Repacking positional args into a dict** buys nothing: `create(data: dict)` took a dict already. It only means every call site has to be rewritten when a column is added.
+
+The call site passes the whole payload, keyed by `Entity.col.key`:
+
+```python
+workspace = self._workspace_da.create({
+    Workspace.project_id.key: project_id,
+    Workspace.name.key: name,
+})
+```
+
+**And do not write a create allow-list that restates the schema.** `ValueRuleValidator(Workspace.project_id.key, int, nullable=False)` beside `Column(INTEGER, nullable=False)` is the same fact in two files that drift apart. The database enforces presence, nullability and length itself — a null identity column raises `IntegrityError` at flush, in sqlite as well as Postgres. Declare in the RuleValidator only what the schema **cannot** express: a Python type a permissive DB would coerce, or a `custom_validator` encoding a rule no column type carries.
+
+**Know what create does NOT check.** The two paths differ, and the difference decides what belongs in the list:
+
+```
+update(id, data)  -> validate_dict(data)                     strict:     unknown key raises
+create(data)      -> validate_dict(data, strict_mode=False)  NOT strict: unknown key passes through
+```
+
+So on an append-only table, an allow-list left empty to mean "nothing may ever be updated" also means **create validates nothing at all** — every value reaches its column unchecked on the one path that table actually uses. One list serves both paths; write the columns into it and let immutability be a property of the service surface (no service method issues that update) rather than of an empty list. Assert that with a test over the public API, not by overriding `update` to raise — that is business logic in a DataAccess again.
 
 ## 6. Services (`data_layers/service/thing_service.py`)
 
@@ -435,9 +1053,49 @@ Rules:
 - A write that must also evict a key templated on DIFFERENT params uses the empty-body eviction-hook pattern: a private method decorated `@Cache(OTHER_KEY, handler_name=..., invalidate=True)` whose body is `pass`; the real write calls it with the params that fill the template (the current convention’s `_invalidate_project_mapping(project_id)` called by `delete`).
 - **Tenant-boundary discipline:** the external tenant key (`project_id`) is translated to the internal row key (`workspace_id`) in exactly one place — a `resolve_<x>_id(project_id)` (cached read that raises a domain `LookupError` subclass when absent) and/or an idempotent `ensure_<x>(project_id, ...)` get-or-create that recovers from a concurrent-create 409 by re-reading. Every other service method takes `project_id`, resolves it internally, and scopes ALL queries by the internal id — a cross-tenant call is a 0-rowcount/`None`/404, never a leak.
 - Missing required args raise `ValueError` at the top of the method. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
+- **A row's PARENT can be soft-deleted too, and that is still an absence.** Swallowing the 404 on the row you asked for is only half of it: a read that walks stored children and resolves each one's parent hits rows whose parent went away after they were written, and it must skip rather than raise. Get this wrong on ONE method and the surface becomes incoherent — in the case that prompted this rule, `history`, `scores`, `latest_per_scale` and `compare_pair` all returned empty on a soft-deleted parent while `result_for` raised a `ValueError` from a PURE ENGINE's argument guard, so the caller got an error naming a parameter rather than the record. Swallow only 404 (a helper like `row_or_none(get, row_id)` at the library root, since a DataAccess needs it too) — catching the base `StatusCodeException` turns a 409 into a silent "not found".
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
 - Batch loops that delete/purge use a module-level batch constant (`EMPTY_TRASH_BATCH = 10_000`) so tests can patch the MODULE GLOBAL (allowed) instead of internals (forbidden).
+
+### 6.1 Every file in `service/` ends `_service.py` or `_helper.py`. Nothing else.
+
+Open `data_layers/service/` and you should be able to tell, from the filenames alone, what each module is. Two suffixes, and only two:
+
+| suffix | what it is |
+|---|---|
+| `thing_service.py` | a `Service` subclass — holds DataAccesses, decorated, part of the public surface |
+| `thing_helper.py` | a pure engine or helper — module-level functions, no DataAccess, no I/O, called BY a service |
+
+A bare noun — `comparer.py`, `validator.py`, `definition_loader.py` — tells a reader nothing about which of the two it is, and they had to open each file to find out. Rename to `comparer_helper.py`, `validator_helper.py`, `definition_loader_helper.py`. Keep the whole original name and append the suffix: `definition_loader_helper.py`, not `definition_helper.py` — a convention applied to two of three files is not a convention, and dropping a word to make it read better loses what the module actually is.
+
+**The check: `ls data_layers/service/*.py` shows only `*_service.py` and `*_helper.py`** (plus `__init__.py`).
+
+Corollaries, each of which sends a file OUT of this folder rather than renaming it:
+
+- A `@dataclass` is neither — it is a data type (§4.1) or, if error-shaped, an error (§4.2).
+- A helper several LIBS would want is not lib-local at all — check `core_lib` first (`skills/core-lib-reuse`).
+- A cross-layer helper a DataAccess also needs goes at the LIBRARY ROOT (`foo_core_lib/helpers.py`), not here: importing it from `service/` would invert the layer dependency.
+- Small pure derivations used by exactly one service (key builders, slugs) stay as module-level `_private` functions at the bottom of that service file — a `_helper.py` module is for a body of logic with its own name, not for two three-line functions.
+
+Imports of a helper module are qualified — `import definition_loader_helper` then `definition_loader_helper.scale(...)` — not `from ... import scale`, because the bare names collide with the local variables these functions are usually assigned to.
+
+### 6.2 A function that REPORTS problems may never raise on the input it judges
+
+`validate()` returns a list of `ValidationError` (§4.2) and the caller turns a non-empty list into a 422. So anything it raises instead is a **500 naming no field** — and these functions are usually exposed precisely so an author can run them on a HALF-FINISHED object, which is the input most likely to break them.
+
+Two shapes cause it, and both are guarded ONCE at the top of the module rather than re-checked per rule:
+
+- **A value another rule already reported as missing.** A rule that reports `min` is absent and carries on leaves every later rule doing arithmetic against `None`. Guard the whole precondition (`_has_range()` checking BOTH bounds), not the one bound whose absence you happened to hit first.
+- **A JSON column.** It holds a HOST-authored blob and can be a list, a dict, a string or null; every rule that walks it with `option.get(...)` is an `AttributeError` on a bare string and a `TypeError` on `None`. Report the SHAPE once as its own error code (`malformed_options`) and have the per-item rules skip a blob they cannot read. Do not "fix" it by summing with `or 0` — `'x' or 0` is `'x'`, and the sum raises anyway.
+
+Do not paper over this by making callers catch. The check: feed `validate()` a half-declared object and every wrong-typed blob you can think of, and assert it RETURNS for each.
+
+### 6.3 An invariant guarded on one write path is guarded on none
+
+If two paths can set the same column, the bound belongs on both — a publish-time validator does not protect a submit-time path that writes the column directly. In the case that prompted this rule, the validator bounded a configured point value to the declared range, with its own message reading "nothing downstream bounds this"; a second path let a privileged caller supply the number directly, unbounded, and a typed `55` on a `1..5` range stored a normalized `1350`. The table was append-only, so nothing could correct it afterwards.
+
+Ask it as a question, per invariant: **which paths can write this column, and does each one enforce it?** Being the privileged/trusted path is not an answer — a trusted caller still typos.
 
 ## 7. Composition root (`foo_core_lib.py`)
 
@@ -675,6 +1333,17 @@ def downgrade():
 
 ## 13. Tests — the philosophy and the exact mechanics
 
+### 13.0 The bar: a suite that is HARD to pass
+
+A suite that only walks the happy path is a green light with nothing behind it. Four standing requirements — the full treatment, with checklists, is [`skills/core-lib-tests`](skills/core-lib-tests/SKILL.md):
+
+1. **Try to BREAK the code.** Hunt the input that makes it *silently wrong* — a plausible-but-incorrect number, not a raise; a raise is loud and someone notices. Ask of every method: what claim in the docstring has no assertion behind it, and which guard could I delete and still see green? (Actually try it.) Beware the **symmetric test** — encode/decode, write/read-back — which passes whatever the two halves agree on, including agreeing on the wrong thing; assert the intermediate form directly.
+2. **Edge cases are mandatory, not extras.** Empty / exactly one / many; both ends of every boundary and one past each; **ties** (equal timestamps or scores — which wins, deterministically?); nulls on every nullable column; at the length limit and one over; another tenant's id; a soft-deleted row; the same call twice. And remember **empty is often a legitimate answer** — a guard that rejects falsy rejects it.
+3. **Drive COMPLETE use cases end to end** through public services — the whole story a user performs, in order, asserting real values at each step. A flow catches what per-method tests structurally cannot: that step 4 still works after step 9 changed the definition, that ids from step 1 are valid at step 8, that two tenants running the same flow never see each other's rows.
+4. **Use the REAL thing.** See §13.2 — a mock is a claim about a collaborator, and that claim is what breaks in production.
+
+A test you were confident would pass before running it taught you nothing.
+
 ### 13.1 The formula (non-negotiable)
 
 **A test asserts the data you WANT the function to return — recomputed independently — never the data the function happens to return.** Expected values are hardcoded literals or derived from the test's own inputs by DIFFERENT means than the code under test. Never echo a function's output back into its own assertion. Never loosen an assertion so a test passes. **When a test fails, the CODE is wrong — you fix the code, not the test.** A test that adapts itself to broken output is worse than no test. Prove strictness with a mutation check: temporarily break the production code (drop a decorator, flip a filter) and confirm the suite goes RED; revert.
@@ -695,6 +1364,7 @@ Nothing else — never monkeypatch the composed lib's internals from a test.
 - Whatever is only observable by reaching into internals gets re-expressed through the service or DROPPED — deleted categories, for the record: exact blob-key sets in storage; raw `deleted_at` reads ("trashed" is: absent from `get`/`list`, present in `list_trash`); cache-hit proofs that mutate the row behind the cache (cache correctness is observable only as write→read freshness); DA-monkeypatched race simulations (duplicate behavior is exercised by calling the service twice and asserting what it REALLY does); exact intra-type orderings that depend on `created_at` you cannot set through any service (assert set-membership, window sizes, and type-boundary ordering instead — never a flaky exact sequence).
 - Storage-backed assertions through the service: markdown content via `get_markdown`; original presence via a presigned URL that contains the document's own `original_key` (taken from the upload's returned dict), a `Signature=` param, and `Expires=` ≈ `now + expiry` (absolute epoch, `assertAlmostEqual(..., delta=60)`).
 - Allowed OUTSIDE the service suites, in their own plain-`unittest` files (no CoreLib): entity-introspection tests (`Entity.__table__.indexes` carries the FK index — an older lib’s `test_target_custom_field_history_entity.py` is the reference); pure-helper tests (slug/key derivation functions); the backend client adapter test above; an env-guarded REAL-backend integration test (`@unittest.skipUnless(os.environ.get('FOO_STORAGE_ENDPOINT_URL'), ...)`) that round-trips every verb and cleans up after itself.
+- **A stateless pure ENGINE may be constructed directly — additively only.** `ScorerService()` with no arguments (no DataAccess, no DB, nothing faked) is not the bespoke harness this rule bans: nothing stands in for the composed lib, so no wiring bug can hide behind it, and asserting arithmetic against it is clearer than driving the same sum through publish-and-submit. The hard condition is that it never becomes the ONLY coverage: **every mode, branch and rule type tested directly on an engine must ALSO be reached through the public surface by at least one test** — a variant that appears only in engine tests leaves the wiring that selects it unproven while the suite stays green. Verify it per variant rather than assuming ("the engine is covered somewhere" is not the check): `for m in <every variant>; do grep -rl "$m" tests/*.py | xargs grep -l "<service>.<public_method>" || echo "$m is engine-only"; done`. Same for importing a private function into a test: allowed only for a defensive branch genuinely unreachable from the public API, and first ask whether that branch should exist at all (an unreachable arm is usually dead code — §13.0).
 
 ### 13.4 `tests/helpers/utils.py` — the one bootstrap
 
@@ -788,7 +1458,39 @@ def sync_create_start_core_lib() -> FooCoreLib:
 ## 14. Packaging / repo hygiene
 
 - `requirements.txt` — RUNTIME deps only: `core-lib` first, then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
-- If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`; `.gitignore` gains `.coverage` and `.coverage.*` (the newest libs have these; the older repos don't run coverage). Never commit the data files (rule at the top of this document).
+- If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`. Never commit the data files (rule at the top of this document) — `.coveragerc` IS tracked, only its output is ignored.
+- **`.gitignore` covers every generated artifact, not just the ones this lib happens to produce today.** Bytecode and caches are written by whichever tool someone runs once, and then get swept in by a wide `git add`. The canonical list — keep the repo's own file and `core_lib_generator/template_core_lib/.gitignore` **in step**, since the template is what every generated lib inherits:
+
+  ```gitignore
+  # PYTHON
+  /venv
+  .venv
+  **/*.py[cod]          # .pyc AND .pyo AND .pyd in one pattern
+  **/__pycache__/
+  __pycache__/
+  *$py.class
+
+  # CACHES — every tool that writes one, whether or not this lib uses it today
+  .pytest_cache/
+  .mypy_cache/
+  .ruff_cache/
+  .hypothesis/
+  .tox/
+
+  # COVERAGE — local run artifacts; `.coveragerc` itself stays tracked
+  .coverage
+  .coverage.*
+  coverage.xml
+  htmlcov/
+
+  # BUILD
+  *.egg-info
+  *.eggs
+  build/
+  dist/
+  ```
+
+  Two things the older files got wrong and a new one must not repeat: `/venv` alone misses `.venv` (the leading slash anchors it to the repo root and the dot-form is a different name), and `**/__pycache__/*` ignores a cache directory's CONTENTS but not the directory — pair it with, or replace it by, a trailing-slash `__pycache__/`. Prefer `*.py[cod]` to listing `*.pyc` and `*.pyo` separately; it also covers `.pyd`.
 - No `npm run build`-style heavy steps in any Dockerfile — install dependencies only.
 - Constants that multiple modules need live in `constants.py` (or a dedicated constants module) — never in a heavyweight module whose import drags in half the lib; that is how circular imports are born.
 
@@ -809,6 +1511,12 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 1. Inventing any pattern the sibling libs don't use (§0) — including "improvements".
 2. Hand-rolled CRUD in a DataAccess (`session.add`/`session.flush` loops) instead of the CRUD bases.
+2a. A `create` override on a DataAccess, a second `create_rule_validator`, or an allow-list entry restating a column's type or `nullable=False` (§5.1).
+2b. A `@dataclass` declared under `data_layers/service/` — data types belong in `data_layers/data/data_types/` (§4.1). (First check it shouldn't just be the entity — §4; and anything error-shaped goes to `error_handling/` instead — §4.2.)
+2c. An `errors.py` / `exceptions.py` holding several classes, or an error type filed outside `error_handling/` because "it is a dataclass, not an exception" (§4.2).
+2d. A file under `data_layers/service/` whose name ends in neither `_service.py` nor `_helper.py` (§6.1).
+2e. A column name written as a string literal anywhere outside an entity declaration or a migration — including inside a set, tuple or module constant, where a stale name fails SILENTLY (§4.3).
+2f. A helper whose only callers are its own tests. Coverage proves it RUNS, not that anything needs it — check for a caller in library source (excluding docstring text that merely contains the name), and if the property it guarded is real, re-test it through the path the library actually takes (`skills/core-lib-tests`).
 3. Calling or testing a DB DataAccess from outside the lib. Standalone DB-DA test files (the backend client-adapter unit is the one exception — §13.3).
 4. A bespoke test harness that wires DAs+services directly instead of `sync_create_start_core_lib()`.
 5. Fake DAs / fake storage inside service tests (they hid three real bugs — §13.2).
