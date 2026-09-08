@@ -109,7 +109,7 @@ class TestResultToDict(unittest.TestCase):
         self.assertEqual(set(result.keys()), set(expected.keys()))
 
         for expected_key, expected_value in expected.items():
-            self.assertEquals(result[expected_key], expected_value)
+            self.assertEqual(result[expected_key], expected_value)
             self.assertIsInstance(expected_value, type(result[expected_key]))
 
     def test_complex_object(self):
