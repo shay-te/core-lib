@@ -226,7 +226,7 @@ class TestResultToDict(unittest.TestCase):
             self.assertIsInstance(row, Row)
 
             converted = self.get_from_params(row)
-            self.assertTrue(isinstance(converted, dict))
+            self.assertIsInstance(converted, dict)
             self.assertEqual(
                 set(converted.keys()), {'id', 'data_name', 'data_float', 'data_datetime', 'data_enum'}
             )
@@ -244,7 +244,7 @@ class TestResultToDict(unittest.TestCase):
         with self.__class__.db_data_session.get() as session:
             rows = session.query(Data.id, Data.data_name).filter(Data.data_name.in_(('row_a', 'row_b'))).all()
             converted = self.get_from_params(rows)
-            self.assertTrue(isinstance(converted, list))
+            self.assertIsInstance(converted, list)
             self.assertEqual(len(converted), 2)
             self.assertEqual([entry['data_name'] for entry in converted], ['row_a', 'row_b'])
 
