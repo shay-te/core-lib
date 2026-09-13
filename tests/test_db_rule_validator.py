@@ -124,6 +124,11 @@ class TestUpdateValidate(unittest.TestCase):
         self.assertIsInstance(context.exception.__cause__, PermissionError)
         self.assertIn('name', str(context.exception.__cause__))
 
+    def test_5_nested_rule_validator_does_not_apply_inner_conversions(self):
+        # The inner result is only checked, never returned, so `'2'` is not converted to `2` in the output.
+        payload = {'items': [{'name': 'widget', 'size': '2'}]}
+        self.assertDictEqual(self._nested_rule_validator().validate_dict(payload), payload)
+
     def test_6_rule_validators_nest_four_levels_deep(self):
         leaf = RuleValidator([ValueRuleValidator('name', str, nullable=False)], mandatory_keys=['name'])
         level_3 = RuleValidator([ValueRuleValidator(
@@ -161,8 +166,3 @@ class TestUpdateValidate(unittest.TestCase):
         # One chained cause per nested level; the deepest names the rejected key.
         self.assertEqual(len(causes), 4)
         self.assertIn('unknown', str(causes[-1]))
-
-    def test_5_nested_rule_validator_does_not_apply_inner_conversions(self):
-        # The inner result is only checked, never returned, so `'2'` is not converted to `2` in the output.
-        payload = {'items': [{'name': 'widget', 'size': '2'}]}
-        self.assertDictEqual(self._nested_rule_validator().validate_dict(payload), payload)
