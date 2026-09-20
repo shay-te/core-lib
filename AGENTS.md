@@ -1018,6 +1018,24 @@ create(data)      -> validate_dict(data, strict_mode=False)  NOT strict: unknown
 
 So on an append-only table, an allow-list left empty to mean "nothing may ever be updated" also means **create validates nothing at all** — every value reaches its column unchecked on the one path that table actually uses. One list serves both paths; write the columns into it and let immutability be a property of the service surface (no service method issues that update) rather than of an empty list. Assert that with a test over the public API, not by overriding `update` to raise — that is business logic in a DataAccess again.
 
+### 5.2 A JSON column with constant keys gets a CONTENT rule — shared with the Service, never copied
+
+`ValueRuleValidator(Thing.options.key, list)` checks the container and nothing inside it. And core-lib's type check is written `elif value and not isinstance(...)`, so a **falsy** value (`{}`, `[]`, `0`, `''`) skips even that. If the column's contents have keys the entity declares (`KEY_*` / `PARAM_*` constants, or the entity's own column names in a stored template), a typo'd key is silently dropped and nothing ever notices.
+
+Give it a `custom_validator` — core-lib runs that on **every** value, falsy included, and requires it to return exactly `True`:
+
+```python
+ValueRuleValidator(Thing.options.key, list,
+                   custom_validator=lambda options: not thing_option_errors(options))
+```
+
+**The rule must be the SAME function the Service's validation calls, not a copy of it.** core-lib re-raises a custom validator's refusal as an opaque `PermissionError`. If the Service's `validate()` and the DataAccess ever disagree, an author's typo surfaces as a 500 from inside the write instead of a 422 naming the field. Write the rule once, returning a list of the library's `ValidationError`s; the Service reports the list, the DataAccess refuses a non-empty one.
+
+- **It lives at the library root** (`foo_core_lib/helpers.py`) — a DataAccess may not import from `service/`.
+- **It checks only what needs no context.** A custom validator sees the column's value, never the row. Anything that depends on another column (a rule's *type* deciding which param it needs) stays in the Service.
+- **Keep one table** mapping each constant-keyed JSON column to its rule, and a test that enumerates every JSON column in the entities and fails on one nobody classified. A column that is genuinely free-form (a host's raw answer) is listed as such, deliberately — the test forces the decision rather than leaving it to memory.
+- Assert the invariant end to end: a bad value through the **public** write path returns the validation error, never `PermissionError`.
+
 ## 6. Services (`data_layers/service/thing_service.py`)
 
 Every service SUBCLASSES the core-lib base: `from core_lib.data_layers.service.service import Service` → `class ThingService(Service):` — all reference services do. Stateless. `__init__(self, thing_da: ThingDataAccess, ...)` stores `self._thing_da` plus any sibling services it depends on (services may depend on services; they never reach into a sibling's DA).
