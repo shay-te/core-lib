@@ -15,7 +15,11 @@ Where they differ, the recipe wins.
 This skill orchestrates the others to stand up a complete, agnostic core-lib.
 Use the per-part skills for each layer: `core-lib-entity`,
 `core-lib-data-access`, `core-lib-service`, `core-lib-connection`,
-`core-lib-migration`, `core-lib-tests`.
+`core-lib-migration`, `core-lib-tests` — plus **`core-lib-reuse` before you
+write any helper, utility, converter or guard** (since `core_lib` already ships
+most of them and a hand-rolled copy is reliably thinner than the original), and
+**`core-lib-error-handling` before you add any exception, error code or
+validation-failure type**.
 
 ## Package layout
 
@@ -50,6 +54,17 @@ Use the per-part skills for each layer: `core-lib-entity`,
 5. **Hydra config + plugin** so parent apps can override sections.
 6. **Migration** for the first entity (`core-lib-migration`).
 7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures.
+8. **`.gitignore`** — copy `core_lib_generator/template_core_lib/.gitignore`
+   verbatim; it is what the generator installs. It must cover bytecode
+   (`**/*.py[cod]`, `__pycache__/`, `*$py.class`), **every** tool cache
+   (`.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.hypothesis/`, `.tox/`)
+   whether or not this lib uses that tool today, the coverage outputs
+   (`.coverage`, `.coverage.*`, `coverage.xml`, `htmlcov/` — but NOT
+   `.coveragerc`, which is tracked), both env dirs (`/venv` **and** `.venv` —
+   the first does not match the second), and the build artifacts. A cache
+   directory appears the first time someone runs a tool and then rides in on a
+   wide `git add`. If you change this file, change the template too — that is
+   the copy every future lib inherits (§14).
 
 ## Composition root template (copy §7 exactly)
 
