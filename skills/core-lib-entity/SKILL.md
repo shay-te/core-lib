@@ -216,6 +216,12 @@ The mixin choice decides the DataAccess base (§5).
   column type; the Python type must not extend `int`.
 - **Derive enum-based strings from `.name`, not `.value`** — e.g.
   `f'.{kind.name.lower()}'` (§4).
+- **No database schema of its own** — never `{'schema': ...}` in `__table_args__`. The
+  tables sit in the host's default schema: all core-lib entities share `Base.metadata`, so a
+  host's `create_all` would fail on a schema that does not exist yet. Prefix the table name with
+  the library's name when the bare name could clash with a host's table
+  (`__tablename__ = 'audit_access_event'`, module `audit_access_event.py`, indexes
+  `ix_audit_access_event_*`), and grant per table in the migration.
 - **Every index / unique constraint gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals
