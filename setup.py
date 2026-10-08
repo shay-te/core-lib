@@ -21,7 +21,7 @@ with open('README.md', 'r') as fh:
         version=core_lib.__version__,
         author='Shay Tessler',
         author_email='shay.te@gmail.com',
-        description='basic onion architecture library utils',
+        description='Structure Python backends: wire services, data access and API clients once in a CoreLib object shared by web routes, jobs and tests.',
         long_description=long_description,
         long_description_content_type='text/markdown',
         url='https://github.com/shay-te/core-lib',
@@ -37,6 +37,6 @@ with open('README.md', 'r') as fh:
         ],
         install_requires=[str(ir.requirement) for ir in install_reqs],
         include_package_data=True,
-        python_requires='>=3.7',
+        python_requires='>=3.10',
         scripts=['bin/core_lib'],
     )

@@ -7,24 +7,28 @@ folder: core_lib_doc
 toc: false
 ---
 
-These functions provide a unified way to retrieve or format a function's parameters.
+Helpers that read a function call's arguments by parameter name and fill a string template with them. Core-Lib's decorators use them to build cache keys, log lines and error messages from the decorated function's arguments.
+
+> **Optional utility.** You rarely call these yourself. The one you are likely to use directly is `Keyable`, to control how your own objects appear in cache keys and log lines. The others are here for writing your own decorators.
+>
+> **Where it fits:** Decorator plumbing. `@Cache`, `@Logging`, `@NotFoundErrorHandler` and `@DuplicateErrorHandler` build their keys and messages with `build_function_key()`; `@Observe` and `@ParameterRuleValidator` find arguments by name with `get_func_parameter_index_by_name()`, and `@Observe` also uses `get_func_parameters_as_dict()`.
 
 ## Functions
 
 ### build_function_key()
 
-*core_lib.helpers.func_utils.build_function_key()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L65){:target="_blank"}
+*core_lib.helpers.func_utils.build_function_key()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L64){:target="_blank"}
 
-Will format a new string by merging a unique message with the function parameters and custom parameters.
+Builds a string key from a template and the arguments passed to a function.
 
 ```python
 def build_function_key(key: str, func, *args, **kwargs) -> str:
-    ....
+    ...
 ```
 
 **Arguments**
 
-- **`key`** *`(str)`*: Base string for formatting the parameter, when not set the func.__qualname__ is used.
+- **`key`** *`(str)`*: Template with parameter names in braces, e.g. `'user_{user_id}'`. When empty, the function's `__qualname__` is returned.
 - **`func`**: Function from which we wish to extract the parameters.
 - __`*args, **kwargs`__: The function's args/kwargs for building the result string.
 
@@ -40,7 +44,7 @@ from core_lib.helpers.func_utils import build_function_key
 
 
 def function_to_format(param_1, param_2, param_3="hello"):
-    pass
+    return None
 
 
 formatted_parameters = build_function_key('key_{param_1}_{param_2}_{param_3}', function_to_format, 1, 2, "hello world")
@@ -49,17 +53,17 @@ print(formatted_parameters)  # key_1_2_hello world
 formatted_parameters = build_function_key('key_{param_1}_{param_2}_{param_3}', function_to_format, 1)
 print(formatted_parameters)  # key_1_!Eparam_2E!_hello
 ```
-> **Note:** Will return `None` if the parameter's value is missing.
+> **Note:** If a parameter's value is falsy (`0`, `''`, `None`), which includes a parameter that was not passed and has no default, it appears in the key as `!E<param_name>E!`. A name in the template that is not a parameter of the function appears as `!M<name>M!`. Newlines are removed from the result.
 
 ### get_func_parameters_as_dict()
 
-*core_lib.helpers.func_utils.get_func_parameters_as_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L48){:target="_blank"}
+*core_lib.helpers.func_utils.get_func_parameters_as_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L47){:target="_blank"}
 
-Extracts a function's parameters to `dict`, where key of the dictionary will be the parameter's name and value will be the value of the parameter.
+Extracts a function call into a dict where each key is a parameter name and each value is the argument value, default value, or `None`.
 
 ```python
 def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
-    ....
+    ...
 ```
 
 **Arguments**
@@ -77,28 +81,27 @@ def get_func_parameters_as_dict(func, *args, **kwargs) -> dict:
 ```python
 from core_lib.helpers.func_utils import get_func_parameters_as_dict
 
-# A function that will take in 2 parameters one is type integer and other is string
 def function_to_extract(param_1: int, param_2: str, param_3 = "hello"):
-    pass
+    return None
 
 extracted_dict = get_func_parameters_as_dict(function_to_extract) 
-print(extracted_dict)# {'param_1':None,'param_2':None, 'param_3':'hello'}
+print(extracted_dict)  # {'param_1': None, 'param_2': None, 'param_3': 'hello'}
 
 extracted_dict = get_func_parameters_as_dict(function_to_extract, 1, "hello", "world") 
-print(extracted_dict)# {'param_1':'1', 'param_2':'hello', 'param_3':'world'}
+print(extracted_dict)  # {'param_1': 1, 'param_2': 'hello', 'param_3': 'world'}
 ```
 > **Note:** Will return the value as `None` if the parameter's value is missing.
 
 
 ### get_func_parameter_index_by_name()
 
-*core_lib.helpers.func_utils.get_func_parameter_index_by_name()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L10){:target="_blank"}
+*core_lib.helpers.func_utils.get_func_parameter_index_by_name()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L9){:target="_blank"}
 
-Takes in a single parameter and function name and will return the parameter's index
+Returns the zero-based position of a named parameter in a function signature.
 
 ```python
 def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
-    ....
+    ...
 ```
 
 **Arguments**
@@ -117,23 +120,22 @@ def get_func_parameter_index_by_name(func, parameter_name: str) -> int:
 from core_lib.helpers.func_utils import get_func_parameter_index_by_name
 
 def function_to_get_param_index(param_1, param_2):
-    pass
+    return None
 
 parameter_index = get_func_parameter_index_by_name(function_to_get_param_index, "param_1") 
-print(function_to_get_param_index) # 0
+print(parameter_index) # 0
 
 parameter_index = get_func_parameter_index_by_name(function_to_get_param_index, "param_2")
-print(function_to_get_param_index) # 1
+print(parameter_index) # 1
 ```
-> **Note:** Will raise an exception if the parameter passed is not valid
+> **Note:** Raises `ValueError` if the function has no parameter with that name.
 
 
 ### Keyable Class
 
-*core_lib.helpers.func_utils.Keyable* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L20){:target="_blank"}
+*core_lib.helpers.func_utils.Keyable* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/func_utils.py#L19){:target="_blank"}
 
-The `Keyable` class allows users to create a custom representation of their data, which is generated by `build function key`.
-The user should implement the abstract function `key()` to return the custom string of formatted data.
+`Keyable` lets an object control how it appears inside `build_function_key()`. Implement `key()` and return the safe, stable string you want in cache keys or log messages.
 
 **Example**
 ```python
@@ -150,14 +152,14 @@ class User(Keyable):
         return f'User(id:{self.id}, name:{self.name})'
 
 def function_to_format(custom_key):
-    pass
+    return None
 
         
-formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe'))
+formatted_parameters = build_function_key('{custom_key}', function_to_format, User(4, 'Rosa Doe', None))
 print(formatted_parameters)  # User(id:4, name:Rosa Doe)
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/files.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/generate_data.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="files.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="generate_data.html">Next</a></button>
 </div>

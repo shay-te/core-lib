@@ -7,39 +7,158 @@ folder: core_lib_doc
 toc: false
 ---
 
+A `Job` is a class with a `run()` method that Core-Lib calls on a background thread, once or at a fixed interval. You declare jobs in YAML. `CoreLib.load_jobs()` builds each job, gives it your `CoreLib` object and schedules it. The job then calls the same services your web routes call, so it does not open its own database session or build its own API clients.
+
+**What it adds** over a plain `threading.Timer`: jobs are declared in config, each job receives your `CoreLib`, and by default a run is skipped while an earlier run of the same job class is still going.
+
+**What it is not:** a cron daemon or a task queue. Intervals are durations (`30m`, `24h`), not clock times. Nothing is stored, so a restart starts every timer from zero. Every process that calls `load_jobs()` runs its own copy of each job: if each of four web workers builds your `CoreLib`, the job runs four times. If you need "every day at 04:00", retries, or exactly one runner across many processes, start the work from cron, Celery or APScheduler instead and have it call your `CoreLib` object the same way.
+
+> **Where it fits:** One of the [six layers](index.html#the-layers). A `Job` calls into Services the same way a web route or test would.
+
+---
+
+## Example: suspend unpaid subscriptions every night
+
+The admin page already calls `shop_core_lib.subscription.suspend_unpaid()`. A nightly job should do the same thing, without database code of its own. `SubscriptionService` is an ordinary service over a `Subscription` entity with `email`, `is_paid` and `is_active` columns, with the methods `create(email, is_paid)`, `get(subscription_id)` and `suspend_unpaid()` (see [Data Layers](data_layers.html) for how to write one).
+
+### 1. Write the job
+
+```python
+# shop_core_lib/jobs/suspend_unpaid_job.py
+import logging
+
+from core_lib.jobs.job import Job
+
+logger = logging.getLogger(__name__)
 
 
-# Configuration 
+class SuspendUnpaidJob(Job):
+    def initialized(self, data_handler):
+        self.shop_core_lib = data_handler  # your CoreLib, passed in by load_jobs()
 
-Jobs can be configured to run from the `core_lib.yaml` file. for example: 
-
-`CoreLib` to run this job at startup by providing the `initial_deplay` parameter with one of the values `boot` or `startup` 
-
-```yaml
-core_lib:
-  ...
-  jobs:
-    - initial_delay: 2h32m
-      frequency: 16:00
-      handler:
-        class: some_package.MyJob
-        params:
-          some_param: some value
-
-    - initial_delay: startup
-      frequency: None
-      handler:
-        class: some_package.SomeJob
-        params:
+    def run(self):
+        suspended = self.shop_core_lib.subscription.suspend_unpaid()
+        logger.info(f'suspended {suspended} unpaid subscriptions')
 ```
 
+`initialized()` and `run()` are both abstract, so every job defines them.
+
+### 2. Declare it in YAML
+
+```yaml
+# shop_core_lib/config/shop_core_lib.yaml
+core_lib:
+  shop_core_lib:
+    data:
+      db:
+        create_db: true
+        url:
+          protocol: sqlite
+          file: shop.db              # a file, not in-memory SQLite: see step 3
+    jobs:
+      suspend_unpaid:                # the job's name: the key you map in load_jobs()
+        initial_delay: 1h            # first run 1 hour after load_jobs()
+        frequency: 24h               # then 24 hours after each run ends
+        handler:
+          _target_: shop_core_lib.jobs.suspend_unpaid_job.SuspendUnpaidJob
+```
+
+`jobs` is a mapping from job name to settings, not a list. Each job takes these keys:
+
+| Key | Required | Meaning |
+|---|---|---|
+| `initial_delay` | yes | Time from `load_jobs()` to the first run, as a duration: `0s`, `30s`, `5m`, `2h30m`, `1d`. `startup` and `boot` mean `0s`. |
+| `frequency` | no | Time from the end of one run to the start of the next. Leave it out to run the job once. |
+| `is_run_in_parallel` | no | Default `false`: if a job of the same class is still running when this one is due, this run is skipped. See [JobScheduler](#jobscheduler-class). |
+| `handler` | yes | `_target_` is the job class. Every other key is passed to its constructor: `recipient: ops@acme.com` next to `_target_` builds `YourJob(recipient='ops@acme.com')`. |
+
+Durations are parsed by [pytimeparse](https://github.com/wroberts/pytimeparse){:target="_blank"}. Clock times do not work. YAML reads an unquoted `16:00` as the number 960, and `load_jobs()` fails on it. Quoted, `'16:00'` means 16 minutes. `frequency: None` fails too, because YAML reads it as the string `'None'`. To run a job once, leave `frequency` out.
+
+### 3. Load it in your `CoreLib`
+
+```python
+# shop_core_lib/shop_core_lib.py
+from omegaconf import DictConfig
+
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
+from core_lib.core_lib import CoreLib
+
+from shop_core_lib.data_layers.data_access.subscription_data_access import SubscriptionDataAccess
+from shop_core_lib.data_layers.service.subscription_service import SubscriptionService
 
 
-### load_jobs()
+class ShopCoreLib(CoreLib):
+    def __init__(self, config: DictConfig):
+        super().__init__()
+        self.config = config
+        db = SqlAlchemyConnectionFactory(config.core_lib.shop_core_lib.data.db)
+        self.subscription = SubscriptionService(SubscriptionDataAccess(db))
 
-*core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L26){:target="_blank"}
+        # Last: a job with a 0s delay can start before __init__ returns.
+        self.load_jobs(config.core_lib.shop_core_lib.jobs, {'suspend_unpaid': self})
+```
 
-Used to load instantiate all the jobs present in the config file using `instantiate_config_group_generator_dict` and start to schedule them based on the frequency.
+The second argument of `load_jobs()` maps each job name to the object that job receives in `initialized()`. A job whose name is missing from this map is still scheduled, but its `initialized()` is never called. Its `run()` then fails on `self.shop_core_lib`, and the scheduler only logs the `AttributeError`. Projects made by `core_lib generate` start with an empty map (`jobs_data_handlers = {}`), so add an entry for each job.
+
+Jobs run on their own threads. An in-memory SQLite database exists only in the thread that created it, so a scheduled job finds no tables (`no such table: subscription`). Use an SQLite file, as above, or a database server.
+
+### 4. Test it without waiting for the scheduler
+
+In a test, run the job yourself:
+
+```python
+# tests/test_suspend_unpaid_job.py
+import unittest
+
+from core_lib.helpers.test import load_core_lib_config
+
+from shop_core_lib.data_layers.data.db.entities.subscription import Subscription
+from shop_core_lib.jobs.suspend_unpaid_job import SuspendUnpaidJob
+from shop_core_lib.shop_core_lib import ShopCoreLib
+
+
+class TestSuspendUnpaidJob(unittest.TestCase):
+
+    def setUp(self):
+        self.shop_core_lib = ShopCoreLib(load_core_lib_config('./config', 'test_config.yaml'))
+
+    def test_suspends_only_unpaid(self):
+        paid = self.shop_core_lib.subscription.create('cfo@acme.com', is_paid=True)
+        unpaid = self.shop_core_lib.subscription.create('ops@globex.com', is_paid=False)
+
+        job = SuspendUnpaidJob()
+        job.set_data_handler(self.shop_core_lib)  # what load_jobs() does
+        job.run()                                 # run it now, in this thread
+
+        self.assertTrue(self.shop_core_lib.subscription.get(paid[Subscription.id.key])[Subscription.is_active.key])
+        self.assertFalse(self.shop_core_lib.subscription.get(unpaid[Subscription.id.key])[Subscription.is_active.key])
+```
+
+```yaml
+# tests/config/test_config.yaml
+defaults:
+  - shop_core_lib                  # the production YAML
+  - _self_                         # then the changes below
+
+hydra:
+  searchpath:
+    - pkg://shop_core_lib.config   # where Hydra finds shop_core_lib.yaml
+
+core_lib:
+  shop_core_lib:
+    data:
+      db:
+        url:
+          file: null               # no file: in-memory SQLite
+```
+
+Building `ShopCoreLib` in `setUp()` also schedules the job, but its first run is an hour away, so it never fires during the test. The test calls `run()` in its own thread, which is why in-memory SQLite works here. `pkg://shop_core_lib.config` needs a `shop_core_lib/config/__init__.py` file. [Testing Core-Lib](test_core_lib.html) explains the test config in more detail.
+
+---
+
+## load_jobs()
+
+*core_lib.core_lib.CoreLib.load_jobs()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/core_lib.py#L30){:target="_blank"}
 
 ```python
 def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
@@ -47,106 +166,118 @@ def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
 
 **Arguments**
 
-- **`config`** *`(DictConfig)`*: `jobs` sections from the `Core-Lib` config.
-- **`job_to_data_handler`** *`(dict)`*: Data handlers for the jobs listed in the config, the `key` should be the `job name` and the `value` should be the `handler name`.
+- **`config`** *`(DictConfig)`*: The `jobs` mapping (job name to settings), for example `config.core_lib.shop_core_lib.jobs`. It must contain at least one job.
+- **`job_to_data_handler`** *`(dict)`*: Job name to the object passed to that job's `initialized()`. Usually your `CoreLib` (`self`).
 
-**Example**
+**What it does, for each job**
 
-```python
-from core_lib.core_lib import CoreLib
+1. Builds the class named in `handler._target_`, passing the other `handler` keys to its constructor. Raises `ValueError` if the class is not a `Job`.
+2. Reads `initial_delay`, which is required, and turns `startup` or `boot` into `0s`.
+3. If the job's name is a key in `job_to_data_handler`, calls `job.set_data_handler(...)`, which calls `initialized()`.
+4. Schedules it on `CoreLib.scheduler`: as a repeating job if it has a `frequency`, otherwise to run once. `is_run_in_parallel` defaults to `false` in both cases.
+5. If the job is also a [`CoreLibListener`](core_lib_listener.html), attaches it to your `CoreLib`, so it gets `on_core_lib_ready()` when you call `start_core_lib()`.
 
-class YourCoreLib(CoreLib):
-   def __init__(self, config: DictConfig):
-        ...
-        self.load_jobs(self.config.core_lib.your_core_lib.jobs, {'job_name': self,...})
-```
+The countdown starts when `load_jobs()` runs, not when you call `start_core_lib()`. A bad duration (`initial_delay: tomorrow`) or a missing `initial_delay` raises an error here, while your `CoreLib` is being built. `load_jobs()` does not return the jobs; they run until the process exits.
 
+---
 
-
-
-
-Core-Lib provides `core_lib.jobs.JobScheduler` class that can schedule `core_lib.jobs.Job` instances to run in a separate thread.
-
-# Job class
+## Job class
 
 *core_lib.jobs.job.Job* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job.py#L4){:target="_blank"}
 
-`Job` class provide an abstract method called `run`. to create a custom Job simply do.
+Extend `Job` and implement two methods:
+
+- **`initialized(self, data_handler)`**: receives the object mapped to this job's name in `load_jobs()`, usually your `CoreLib`. Save it.
+- **`run(self)`**: does the work, by calling your services through the saved object.
+
+`set_data_handler(data_handler)` calls `initialized()`. `load_jobs()` calls it for you. Call it yourself when you create a job in code, as in a test or with `JobScheduler`:
 
 ```python
-class MyJob(Job):
-    def run(self):
-        self.core_lib.user.do_somthing()
+job.set_data_handler(your_core_lib)
 ```
 
-The local variable `self.core_lib` will be automatically populated by `CoreLib` when running using configuration (see below).    
-In case you want to create the job manually. pass the `CoreLib` instance using the job function `set_data_handler`, Or using the constructor.
+The constructor only receives the extra `handler` keys from the YAML. Pass config values that way, and get services through `initialized()`.
 
-**Example**
-`my_job.set_data_handler(my_core_lib)` 
+---
 
-
-# JobScheduler class
+## JobScheduler class
 
 *core_lib.jobs.job_scheduler.JobScheduler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L10){:target="_blank"}
 
-`JobScheduler` provides 2 main functions 
+Runs `Job` objects on `threading.Timer` threads. `load_jobs()` uses `CoreLib.scheduler`, one scheduler shared by every `CoreLib` in the process. You can also call a scheduler yourself, for example to run a one-off job when something happens.
 
-1. `schedule()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L22){:target="_blank"}
+```python
+def schedule(self, initial_delay: str, frequency: str, job: Job, is_run_in_parallel: bool = False):
 
-2. `schedule_once()` 
-*core_lib.jobs.job_scheduler.JobScheduler.schedule_once() * [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/jobs/job_scheduler.py#L27){:target="_blank"}
+def schedule_once(self, initial_delay: str, job: Job, is_run_in_parallel: bool = True, params: dict = {}):
 
-````python
-# Run the job, and repeat by frequency
-def schedule(self, initial_delay: str, frequency: str, job: Job):
-    ...
-# Run the job a single time
-def schedule_once(self, initial_delay: str, job: Job):
-    ... 
-````
+def stop(self, job: Job):
+```
 
 **Arguments**
 
-- **`initial_delay`** *`(str)`*: The initial time after which the `run()` function will be called for the first time.
-- **`frequency`** *`(str)`*: The time interval after which `run()` function will be called.
-- **`job`** *`(Job)`*: Is the instance of `Job` class created by user that implements `run()` and `initialized()`
+- **`initial_delay`** *`(str)`*: Time until the first run, as a pytimeparse duration: `'0s'`, `'1s'`, `'2h30m'`. `startup` and `boot` only work in the YAML read by `load_jobs()`. Here, pass `'0s'`.
+- **`frequency`** *`(str)`*: Time from the end of one run to the start of the next.
+- **`job`** *`(Job)`*: The job. If `run()` uses the handler, call `set_data_handler()` first.
+- **`is_run_in_parallel`** *`(bool)`*: Default `False` for `schedule()` and `True` for `schedule_once()`. See below.
+- **`params`** *`(dict)`*: Keyword arguments for `run()`. `params={'user_id': 7}` calls `job.run(user_id=7)`.
 
-The parameters `initial_delay` and `frequency` are string parsed by the library [pytimeparse](https://github.com/wroberts/pytimeparse){:target="_blank"}.
+**Behaviour**
+
+- With `is_run_in_parallel=False`, a run that is due while another job of the same class is still running is skipped and logged (`job ... is already running, ignoring this run`). The check is by class name, so it covers every instance of that class on the same scheduler. A repeating job tries again after `frequency`; a one-time job is dropped. With `True`, runs can overlap.
+- An exception in `run()` is caught and logged. A repeating job keeps its schedule.
+- `stop(job)` cancels the next run. A run that has already started finishes.
+- The timers are daemon threads, so they do not keep the process alive. A script that only schedules jobs must keep its main thread running.
 
 **Example**
+
 ```python
+import time
+
 from core_lib.jobs.job import Job
 from core_lib.jobs.job_scheduler import JobScheduler
 
-class UpdateCache(Job):
 
+class Heartbeat(Job):
     def initialized(self, data_handler):
-        pass
+        self.core_lib = data_handler
 
     def run(self):
-        # code to update your cache
+        print('tick')
+
+
+class SendWelcomeEmail(Job):
+    def initialized(self, data_handler):
+        self.core_lib = data_handler
+
+    def run(self, user_id: int):  # schedule_once(params=...) passes keyword arguments
+        print(f'welcome email for user {user_id}')
+
 
 scheduler = JobScheduler()
-job = UpdateCache()
-# updates the cache 1 second after the schedule_once() is called
-scheduler.schedule_once('1s', job)
 
-# updates the cache 1 second after the job is scheduled and keeps updating every 30 minutes until stop() is called.
-scheduler.schedule('1s', '30m', job) 
+heartbeat = Heartbeat()
+heartbeat.set_data_handler(your_core_lib)  # load_jobs() does this for you
+scheduler.schedule('0s', '1s', heartbeat)  # now, then 1 second after each run ends
+time.sleep(2.5)
+scheduler.stop(heartbeat)                  # no more runs
 
-scheduler.stop()# stops the ongoing job schedule 
+welcome = SendWelcomeEmail()
+welcome.set_data_handler(your_core_lib)
+scheduler.schedule_once('0s', welcome, params={'user_id': 7})
+time.sleep(0.5)
 ```
->If a job fails while running the `Exception` and the message will be logged by the `JobScheduler` for the same.
 
+`your_core_lib` is your `CoreLib` object. The `time.sleep()` calls keep the script alive long enough for the jobs to run. It prints:
 
-
-# Core-Lib Instance
-
-When a `Job` is run by the configuration file, it will automatically populate the local `core_lib` variable of a job 
+```text
+tick
+tick
+tick
+welcome email for user 7
+```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/cache.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/connection.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="cache.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="middleware.html">Next</a></button>
 </div>

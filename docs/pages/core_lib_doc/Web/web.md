@@ -7,21 +7,25 @@ folder: core_lib_doc
 toc: false
 ---
 
-Web Helpers provides various response functions that help the users return data over a `Django` or `Flask` API.
+Web Helpers are small functions that build HTTP responses (`response_json`, `response_ok`, `response_status`, ...) and read request bodies. Flask and Django use different response classes; you tell Core-Lib once at startup which framework you run, and the same helper calls then return the right response object. [`@HandleException`](handle_exceptions.html) and [`@RequireLogin`](user_security.html) use these helpers too.
 
-# WebHelpersUtils
+Use them in your route handlers. Keep business logic in `Service` classes; a view reads the request, calls your `CoreLib` object, and returns a response built with these helpers.
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L4){:target="_blank"}
+**Supported frameworks: Flask and Django only.** Both are installed as dependencies of Core-Lib, whichever one you use. On FastAPI or any other framework, call your `CoreLib` object from your routes and build responses with that framework's own tools; there is no Core-Lib helper for it.
 
-This class is used to set the type of web framework that will be utilized in the application i.e. `Django` or `Flask`.
+> **Where it fits:** Web edge only. Route handlers call these to build framework-specific responses; Services and DataAccess never touch them.
 
-## Functions
+## WebHelpersUtils
 
-### init()
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py){:target="_blank"}
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L13){:target="_blank"}
+Stores which web framework, Flask or Django, the helpers should build responses for. The setting is a class attribute: one value for the whole process. Call `init()` once at startup, before any `response_*` helper, `@HandleException` or `@RequireLogin` builds a response.
 
-Used to set the server type used in the application, users must select the server type from the `ServerType` class provided by the `WebHelpersUtils` class.
+### `init()`
+
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.init()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py){:target="_blank"}
+
+Sets the server type. Pass a member of `WebHelpersUtils.ServerType`.
 
 **ServerType Class**
 
@@ -37,7 +41,7 @@ def init(server_type: ServerType):
 
 **Arguments**
 
-- **`server_type`** *`(ServerType)`*: Sets the server type.
+- **`server_type`** *`(ServerType)`*: `WebHelpersUtils.ServerType.FLASK` or `WebHelpersUtils.ServerType.DJANGO`.
 
 **Example**
 
@@ -47,11 +51,11 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 ```
 
-### get_server_type()
+### `get_server_type()`
 
-*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py#L17){:target="_blank"}
+*core_lib.web_helpers.web_helprs_utils.WebHelpersUtils.get_server_type()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/web_helprs_utils.py){:target="_blank"}
 
-Returns the server type set by the `init()`.
+Returns the server type set by `init()`. Raises `ValueError('WebHelpersUtils never initialized')` if `init()` was not called. Every helper on this page calls it, so they all raise that error until `init()` runs.
 
 ```python
 def get_server_type() -> ServerType:
@@ -59,27 +63,28 @@ def get_server_type() -> ServerType:
 
 **Returns**
 
-*`(ServerType)`*: Server type `Django` or `Flask`.
+*`(ServerType)`*: `WebHelpersUtils.ServerType.FLASK` or `WebHelpersUtils.ServerType.DJANGO`.
 
 **Example**
 
 ```python
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
-WebHelpersUtils.get_server_type() # returns flask
+WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+WebHelpersUtils.get_server_type()  # WebHelpersUtils.ServerType.FLASK
 ```
 
-# Request Response Helpers
+## Request / response helpers
 
-Depending on the server type set in `WebHelpersUtils` class, request and response functions return data.
+Each `response_*` function returns a Flask `Response` or a Django `HttpResponse`, depending on the server type set with `WebHelpersUtils.init()`. Return it from your view.
 
-## Functions 
+All examples below assume `WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)` has run. The comments show the status and the response body.
 
-### response_status()
+### `response_status()`
 
-*core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L14){:target="_blank"}
+*core_lib.web_helpers.request_response_helpers.response_status()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
-Returns empty data with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
+Returns a response with the given [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} and an empty body.
 
 ```python
 def response_status(status: int = HTTPStatus.OK.value):
@@ -87,32 +92,24 @@ def response_status(status: int = HTTPStatus.OK.value):
 
 **Arguments**
 
-- **`status`** *`(int)`*: Default `HTTPStatus.OK.value`, `HTTPStatus` value to be set.
-
-**Returns**
-
-Returns response object with the set `status`.
+- **`status`** *`(int)`*: Default `200`. An `HTTPStatus` member or a plain int.
 
 **Example**
 
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.web_helpers.request_response_helpers import response_status
 
-WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-
-response_status(HTTPStatus.OK) # returns status 200 with empty data
-response_status(HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with empty data
+response_status(HTTPStatus.OK)                     # 200, empty body
+response_status(HTTPStatus.INTERNAL_SERVER_ERROR)  # 500, empty body
 ```
 
+### `response_ok()`
 
-### response_ok()
+*core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
-*core_lib.web_helpers.request_response_helpers.response_ok()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L18){:target="_blank"}
-
-Returns message `ok` with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
+Returns the message `ok` as JSON, with the given status.
 
 ```python
 def response_ok(status: int = HTTPStatus.OK.value):
@@ -120,30 +117,24 @@ def response_ok(status: int = HTTPStatus.OK.value):
 
 **Arguments**
 
-- **`status`** *`(int)`*: Default `HTTPStatus.OK.value`, `HTTPStatus` value to be set.
-
-**Returns**
-
-Returns response object with the set `status` and message `ok`.
+- **`status`** *`(int)`*: Default `200`.
 
 **Example**
 
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.web_helpers.request_response_helpers import response_ok
 
-WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-
-response_ok(HTTPStatus.OK) # returns status 200 with data {'message': 'ok'}
+response_ok()                    # 200, {"message": "ok"}
+response_ok(HTTPStatus.CREATED)  # 201, {"message": "ok"}
 ```
 
-### response_message()
+### `response_message()`
 
-*core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
+*core_lib.web_helpers.request_response_helpers.response_message()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
-Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, as a response object.
+Returns a message as JSON, with the given status. For a status of 500 or above the message is under the key `error`; otherwise it is under `message`. If `message` is empty, the standard reason phrase for the status is used.
 
 ```python
 def response_message(message='', status: int = HTTPStatus.OK.value):
@@ -151,63 +142,150 @@ def response_message(message='', status: int = HTTPStatus.OK.value):
 
 **Arguments**
 
-- **`message`**: Default `''`, message to be sent in the response.
-- **`status`** *`(int)`*: Default `HTTPStatus.OK.value`, `HTTPStatus` value to be set.
-
-> If `HTTPStatus` is set to `500` the data will be returned in `error` key.
-
-**Returns**
-
-Returns response object with the set `status` and message.
+- **`message`** *`(str)`*: Default `''`. The message to send.
+- **`status`** *`(int)`*: Default `200`.
 
 **Example**
 
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.web_helpers.request_response_helpers import response_message
 
-WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-
-response_message('success', HTTPStatus.OK) # returns status 200 with data {'message': 'success'}
-response_message('some error occurred', HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with data {'error': 'some error occurred'}
+response_message('success', HTTPStatus.OK)                                 # 200, {"message": "success"}
+response_message('some error occurred', HTTPStatus.INTERNAL_SERVER_ERROR)  # 500, {"error": "some error occurred"}
+response_message(status=HTTPStatus.NOT_FOUND)                              # 404, {"message": "Not Found"}
 ```
 
-### response_json()
+### `response_json()`
 
-*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py#L22){:target="_blank"}
+*core_lib.web_helpers.request_response_helpers.response_json()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
 
-Returns message with [`HTTPStatus`](https://docs.python.org/3/library/http.html#http.HTTPStatus){:target="_blank"} value provided, and data transformed to JSON.
+Returns `data` serialized as JSON (with `json.dumps`), with the given status and the `application/json` content type.
 
 ```python
-def response_json(data: dict, status: int = HTTPStatus.OK.value):
+def response_json(data: Union[dict, list], status: int = HTTPStatus.OK.value):
 ```
 
 **Arguments**
 
-- **`data`** *`(dict)`*: Dictionary data to be sent in the response.
-- **`status`** *`(int)`*: Default `HTTPStatus.OK.value`, `HTTPStatus` value to be set.
-
-**Returns**
-
-Returns response object with the set `status` and data transformed to JSON.
+- **`data`** *`(dict, list)`*: The data to send. It must be JSON-serializable; the dicts your services return through `@ResultToDict` are.
+- **`status`** *`(int)`*: Default `200`.
 
 **Example**
 
 ```python
 from http import HTTPStatus
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from core_lib.web_helpers.request_response_helpers import response_json
 
-WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+response_json({'username': 'Jon Doe'})                         # 200, {"username": "Jon Doe"}
+response_json([1, 2, 3])                                       # 200, [1, 2, 3]
+response_json({'error': 'file not found'}, HTTPStatus.NOT_FOUND)  # 404, {"error": "file not found"}
+```
 
-response_json({'username': 'Jon Doe'}, HTTPStatus.OK) # returns status 200 with data {'username': 'Jon Doe'}
-response_json({'error': 'Server Error'}, HTTPStatus.INTERNAL_SERVER_ERROR) # returns status 500 with data {'error': 'Server Error'}
-response_json({'error': 'file not found'}, HTTPStatus.NOT_FOUND) # returns status 404 with data {'error': 'file not found'}
+### `response_error()`
+
+*core_lib.web_helpers.request_response_helpers.response_error()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
+
+Returns `{"error": message}` as JSON, with status 500 by default. If `message` is empty, the standard reason phrase for the status is used. Unlike `response_message()`, the key is always `error`, whatever the status.
+
+```python
+def response_error(message='', status: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
+```
+
+**Arguments**
+
+- **`message`** *`(str)`*: Default `''`. The error message.
+- **`status`** *`(int)`*: Default `500`.
+
+**Example**
+
+```python
+from http import HTTPStatus
+
+from core_lib.web_helpers.request_response_helpers import response_error
+
+response_error('something went wrong')         # 500, {"error": "something went wrong"}
+response_error(status=HTTPStatus.BAD_REQUEST)  # 400, {"error": "Bad Request"}
+```
+
+### `response_download_content()`
+
+*core_lib.web_helpers.request_response_helpers.response_download_content()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
+
+Returns `content` as a file download: status 200, the given content type, and a `Content-Disposition: attachment; filename="..."` header.
+
+```python
+def response_download_content(content, media_type: MediaType, file_name: str):
+```
+
+**Arguments**
+
+- **`content`** *`(bytes or str)`*: The file content.
+- **`media_type`** *`(MediaType)`*: The content type, from [`core_lib.helpers.constants.MediaType`](constants.html).
+- **`file_name`** *`(str)`*: The file name the browser saves it as.
+
+**Example**
+
+```python
+from core_lib.helpers.constants import MediaType
+from core_lib.web_helpers.request_response_helpers import response_download_content
+
+response_download_content(b'id,email\n1,ada@example.com\n', MediaType.TEXT_PLAIN, 'users.csv')
+# 200, Content-Type: text/plain; charset=utf-8, Content-Disposition: attachment; filename="users.csv"
+```
+
+### `request_body_dict()`
+
+*core_lib.web_helpers.request_response_helpers.request_body_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/request_response_helpers.py){:target="_blank"}
+
+Returns the request's JSON body as a dict (or list), for either framework.
+
+```python
+def request_body_dict(request):
+```
+
+**Arguments**
+
+- **`request`**: The framework's request object: Flask's `flask.request`, or the Django `HttpRequest` your view receives.
+
+**Returns**
+
+*`(dict)`*: The parsed JSON body.
+
+- **Flask:** returns `request.json`. If the body is not sent as `application/json`, or is not valid JSON, Flask raises its own 415 or 400 error.
+- **Django:** parses `request.body` with `json.loads`. An empty or invalid body raises `json.JSONDecodeError`.
+
+Under `@HandleException`, both of these become a 500 response (see [What the client gets](handle_exceptions.html#what-the-client-gets)).
+
+**Example**
+
+`app` is your Flask app, `core_lib` is your `CoreLib` instance, and `core_lib.user.create()` is your user service's method.
+
+```python
+# Flask: the view takes no request argument; import flask.request
+from flask import request
+
+from core_lib.web_helpers.request_response_helpers import request_body_dict, response_json
+
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    data = request_body_dict(request)
+    return response_json(core_lib.user.create(data))
+```
+
+```python
+# Django: the view receives the request
+from core_lib.web_helpers.request_response_helpers import request_body_dict, response_json
+
+
+def create_user(request):
+    data = request_body_dict(request)
+    return response_json(core_lib.user.create(data))
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/handle_exceptions.html"><< Previous</a></button>
+    <button class="pagePrevious-btn"><a href="handle_exceptions.html">Previous</a></button>
 </div>
