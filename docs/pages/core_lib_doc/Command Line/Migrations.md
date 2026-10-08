@@ -60,7 +60,7 @@ core_lib migrate --rev head
 - `-1` ... `-10`: downgrade by N migrations
 - `1` ... `10`: also upgrade by N migrations. `--rev 2` means "two steps up", not "to revision 2".
 
-Any other value does nothing. To go to a specific revision number, call `Alembic(...).upgrade('2')` from Python (see [Alembic Migrations](alembic.html)).
+The CLI does not enforce the -10..10 range: any integer is passed to Alembic as a relative step, and `0`, or a step larger than the number of revisions available, raises `CommandError`. Any other value (not an integer, `head`, `base` or `new`) does nothing. To go to a specific revision number, call `Alembic(...).upgrade('2')` from Python (see [Alembic Migrations](alembic.html)).
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="rules_validator.html">Previous</a></button>

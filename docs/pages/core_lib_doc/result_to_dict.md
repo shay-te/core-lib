@@ -6,7 +6,7 @@ permalink: result_to_dict.html
 folder: core_lib_doc
 toc: false
 ---
-`json.dumps` can't serialize SQLAlchemy entities, query `Row`s, datetimes, enums or `Decimal`s. `@ResultToDict()` converts what a Service method returns: entities and rows become dicts, and the datetimes, enums and `Decimal`s inside them become numbers. Anything it doesn't know is returned unchanged.
+`json.dumps` can't serialize SQLAlchemy entities, query `Row`s, datetimes, enums or `Decimal`s. `@ResultToDict()` converts what a Service method returns: entities and rows become dicts, and the datetimes, enums and `Decimal`s inside them become plain values (datetime/date to a timestamp float, enum to its `.value`, `Decimal` to float). Anything it doesn't know is returned unchanged.
 
 > **Where it fits:** Service-layer helper. Put `@ResultToDict()` on Service methods so callers (routes, jobs, tests) get plain dicts and lists, never ORM objects tied to a closed session.
 
@@ -43,7 +43,7 @@ If `UserDataAccess` is a [`CRUDDataAccess`](crud.html) over a `User` entity with
 
 | Returned value | Becomes |
 |---|---|
-| SQLAlchemy entity | A dict of its columns, plus relationships that are already loaded and any other attributes set on the instance. Each relationship is followed once per call, to avoid cycles. |
+| SQLAlchemy entity | A dict of its columns, plus its relationships and any other attributes set on the instance. Inside an open session each relationship is lazy-loaded (one query each). On a detached entity, such as what a CRUD `get()` returns, only relationships that were already loaded are included. Each relationship is followed once per call to avoid cycles, so in a list only the first item that reaches it includes it. |
 | `Row` from a column query, such as `session.query(User.id, User.email)` or a [JoinConfig](join_config.html) query | A dict keyed by column name or label. |
 | Named tuple | A dict. |
 | Dict | A dict with its values converted. |

@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-`@Cache` stores a method's return value under a key built from the method's arguments. Put `@Cache(..., invalidate=True)` with the same key on the method that changes the data, and that method deletes the stored value after it runs. The storage (process memory, Memcached or Redis) is a cache handler you register once in your `CoreLib`. Switching storage does not change the decorated service code, as long as that code follows the [Memcached and Redis limits](#cachehandler): cached methods return a `dict`, `list`, `int` or `str`, and set `expire` when the storage is Redis. The in-memory handler accepts any value and no `expire`, so code that works on it can fail on Memcached or Redis.
+`@Cache` stores a method's return value under a key built from the method's arguments. Put `@Cache(..., invalidate=True)` with the same key on the method that changes the data, and that method deletes the stored value after it runs. The storage (process memory, Memcached or Redis) is a cache handler you register once in your `CoreLib`. Switching storage does not change the decorated service code, as long as that code follows the [Memcached and Redis limits](#cachehandler): cached methods return a `dict`, `list`, `int` or `str` that JSON can encode (no `datetime`, `Decimal` or entity inside; `@ResultToDict()` output is safe), do not rely on non-string dict keys, and set `expire` when the storage is Redis. The in-memory handler accepts any value and no `expire`, so code that works on it can fail on Memcached or Redis.
 
 **What it adds** over `functools.lru_cache`: keys you can delete from another method, expiry, and shared storage (Memcached, Redis) that several processes can read. **What it is not:** there is no lock, so two processes that miss the same key both run the method.
 
@@ -154,7 +154,7 @@ Core-Lib provides four implementations:
 
 4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L6){:target="_blank"}: stores nothing, so every call runs the method. Use it to turn caching off from config.
 
-`CacheHandlerMemcached` and `CacheHandlerRedis` store values as JSON and accept only a `dict`, `list`, `int` or `str`; anything else, such as a `float` or an entity, raises `ValueError`. A value comes back the way JSON decodes it, so dict keys become strings: `{1: 'a'}` comes back as `{'1': 'a'}`. To cache an SQLAlchemy entity, convert it with `@ResultToDict()` and put `@Cache` above it:
+`CacheHandlerMemcached` and `CacheHandlerRedis` store values as JSON and accept only a `dict`, `list`, `int` or `str`; anything else, such as a `float` or an entity, raises `ValueError`. The contents must also be JSON-encodable: a dict holding a `datetime` passes the type check and then raises `TypeError` from `json.dumps`. A value comes back the way JSON decodes it, so dict keys become strings: `{1: 'a'}` comes back as `{'1': 'a'}`. To cache an SQLAlchemy entity, convert it with `@ResultToDict()` and put `@Cache` above it:
 
 ```python
 @Cache(CACHE_KEY_USER)
