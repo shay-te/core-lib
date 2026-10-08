@@ -11,7 +11,7 @@ A short reference for terms used throughout these docs. Familiarity with most of
 
 ## Core-Lib terms
 
-**`CoreLib`** — The base class your application inherits from. Constructed once at startup; wires every other layer together. See [The CoreLib Class](core_lib_main_class.html).
+**`CoreLib`** — The base class your application inherits from. Your subclass builds connections, data access and services in its `__init__`. Create it once per process, at startup; web routes, jobs, scripts and tests all call that one object. See [The CoreLib Class](core_lib_main_class.html).
 
 **`Service`** — A class that owns business logic for one area of the app (users, orders, subscriptions). Calls `DataAccess` and `Client`; never opens a database session or HTTP client directly. See [Data Layers](data_layers.html).
 
@@ -19,17 +19,21 @@ A short reference for terms used throughout these docs. Familiarity with most of
 
 **`Client`** — A class that wraps one external HTTP API. Subclasses `ClientBase`. See [Client Base](client_base.html).
 
-**`Job`** — A background or scheduled task. Receives its dependencies at construction; the job scheduler triggers `run()`. See [Job](job.html).
+**`Job`** — A background or scheduled task, declared in YAML. `CoreLib.load_jobs()` builds each job from its config and schedules it. If you map the job's name to a handler (usually your `CoreLib`), the job receives it in `initialized(data_handler)` and calls its services from `run()`, which the scheduler triggers. See [Job](job.html).
 
 **`Connection`** — A context manager (`with conn.get() as session:`) that handles the open / commit / close lifecycle for a data source. Each backend has its own factory class. See [Connection](connection.html).
 
-**Entity** — A Python class that maps to one database table (an SQLAlchemy ORM model). Lives in `data_layers/data/db/`. The `DataAccess` for an entity wraps queries against it.
+**Entity** — A Python class that maps to one database table (an SQLAlchemy ORM model). Lives in `data_layers/data/db/entities/` (see [Project Structure](project_structure.html)). The `DataAccess` for an entity wraps queries against it.
+
+**Edge** — The code that touches the outside world: route handlers, job entry points, your `CoreLib.__init__` (where connections and clients are built), and the `DataAccess` and `Client` classes that use them. Services sit behind the edge and only call those classes, so replacing a framework or a database changes edge code, not services.
 
 ## Python / web terms used in the docs
 
 **ORM** — Object-Relational Mapper. A library that maps database rows to Python objects so you write Python instead of SQL. SQLAlchemy is the one Core-Lib uses by default.
 
-**Session** — The SQLAlchemy object you use to run queries inside a transaction. `with db.get() as session: session.query(User).get(1)`. Each `with` block opens, commits, and closes one session automatically.
+**Session** — The SQLAlchemy object you use to run queries inside a transaction. `with db.get() as session: session.get(User, 1)`. Each `with` block opens, commits, and closes one session automatically.
+
+**Session (login)** — On the [User Security](user_security.html) page, "session" means the logged-in user's data, decoded from the auth token (for example, from a cookie). It is not a database session.
 
 **Context manager** — A Python object you use in a `with` block. Its `__enter__` runs at the start, its `__exit__` at the end (even on exception). All Core-Lib `Connection` classes are context managers — that's what `with conn.get() as session:` is.
 
@@ -37,7 +41,7 @@ A short reference for terms used throughout these docs. Familiarity with most of
 
 **WSGI** — Python's standard interface between a web server (Gunicorn, uWSGI) and a web framework (Flask, Django). `UserAuthMiddleware` for Flask plugs into the WSGI layer; for Django it plugs into the framework's middleware list.
 
-**Hydra / OmegaConf** — The config libraries Core-Lib uses. `OmegaConf` is the dict-like config object (`DictConfig`). `Hydra` adds composition (load one YAML, layer another on top) and `_target_` instantiation (a YAML key that says "build an instance of this class"). See [Instantiate Config](instantiate_config.html).
+**Hydra / OmegaConf** — The config libraries Core-Lib uses. `OmegaConf` is the dict-like config object (`DictConfig`). `Hydra` loads YAML files (`@hydra.main` or `compose()`), adds composition (load one YAML, layer another on top) and `_target_` instantiation (a YAML key that says "build an instance of this class"). See [The CoreLib Class](core_lib_main_class.html#2-move-the-config-into-yaml) for loading config and [Instantiate Config](instantiate_config.html) for `_target_`.
 
 **Mixin** — A small class designed to be combined with other classes via multiple inheritance. `SoftDeleteMixin` is a mixin: you inherit from both `Base` and `SoftDeleteMixin` and the entity gets the mixin's columns. See [Soft Delete Handler](soft_delete.html).
 
