@@ -38,7 +38,12 @@ def __init__(self, core_lib_path: str, core_lib_config: DictConfig):
 
 `Alembic` always migrates the database at **`core_lib.data.sqlalchemy.config.url`**, and logs SQL when `core_lib.data.sqlalchemy.config.log_queries` is true. It overwrites the `sqlalchemy.url` key of the `alembic` section with that URL.
 
-If your library keeps its connection config somewhere else, point that path at it. A library made with `core_lib generate` keeps its connections under `core_lib.<your_core_lib>.data.<connection key>`. Without a line like the one below, `core_lib.data.sqlalchemy.config.url` keeps Core-Lib's default, an in-memory SQLite database, and the migration runs there without any error.
+If your library keeps its connection config somewhere else, point that path at it. A library made with `core_lib generate` keeps each SQL connection under `core_lib.<your_core_lib>.data.<connection key>`. Where the `url` block sits under that depends on the connection's `config_instantiate` setting in the generator YAML:
+
+- `config_instantiate: true` (what the generator's `ExampleCoreLib.yaml` uses): `core_lib.<your_core_lib>.data.<connection key>.config.url`
+- `config_instantiate: false`: `core_lib.<your_core_lib>.data.<connection key>.url`
+
+Without a line like the one below, `core_lib.data.sqlalchemy.config.url` keeps Core-Lib's default, an in-memory SQLite database, and the migration runs there without any error. A wrong path fails loudly with an `InterpolationKeyError`.
 
 ```yaml
 # @package _global_
@@ -46,7 +51,8 @@ core_lib:
   data:
     sqlalchemy:
       config:
-        url: ${core_lib.your_core_lib.data.userdb.url}   # the path of your connection's url block
+        url: ${core_lib.your_core_lib.data.userdb.config.url}   # config_instantiate: true
+        # url: ${core_lib.your_core_lib.data.userdb.url}        # config_instantiate: false
 ```
 
 ### The `alembic` section

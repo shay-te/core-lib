@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-`RuleValidator` checks a `dict` of column values against a list of rules, one `ValueRuleValidator` per key, before the dict is written to the database. It converts what it safely can (the string `'180'` to the int `180`, `'1990-04-01'` to a `datetime`), and raises `PermissionError` for anything that breaks a rule. Every rule failure raises `PermissionError`, so callers have one exception type to handle.
+`RuleValidator` checks a `dict` of column values against a list of rules, one `ValueRuleValidator` per key, before the dict is written to the database. It converts what it safely can (the string `'180'` to the int `180`, `'1990-04-01'` to a `datetime`), and raises `PermissionError` for anything that breaks a rule. The one exception is an error raised inside your own `custom_converter`: it propagates unchanged (see `custom_converter` below).
 
 > **Where it fits:** DataAccess layer. Pass a `RuleValidator` to a [CRUD base class](crud.html) and its `create()` and `update()` validate every dict. For your own DataAccess methods, use `@ParameterRuleValidator`.
 
@@ -82,7 +82,7 @@ The `height` validator starts with `height is None or`: a custom validator is al
 
 `core_lib.rule_validator.helpers` has ready-made functions for `custom_converter` and `custom_validator`:
 
-- `convert_location(location)`: turns `{'lat': ..., 'lng': ...}` or `{'latitude': ..., 'longitude': ...}` into a WKT string `'POINT(lng lat)'`. `None` stays `None`.
+- `convert_location(location)`: turns `{'lat': ..., 'lng': ...}` or `{'latitude': ..., 'longitude': ...}` into a WKT string `'POINT(lng lat)'`. `None` stays `None`. Two catches. It needs a dict: a string or a list raises `AttributeError` (see `custom_converter` below). And with the short keys, a coordinate of exactly `0` counts as missing, because the helper uses `or` to fall back from `lat` to `latitude`: `{'lat': 0, 'lng': 34.7818}` becomes `'POINT(34.7818 None)'` and fails `validate_location`. Send points on the equator or the prime meridian with the long keys: `{'latitude': 0, 'longitude': 34.7818}` becomes `'POINT(34.7818 0)'`.
 - `validate_location(point)`: takes that WKT string and returns `True` when latitude is within -90..90 and longitude within -180..180. `None` is valid.
 - `convert_datetime(value)`: turns an `int`/`float` Unix timestamp or a `date` into a `datetime`. A falsy value (`None`, `0`) becomes `None`; anything else is returned as is.
 
@@ -141,12 +141,12 @@ class ValueRuleValidator(object):
 - **`value_type`**: The expected Python type, such as `str`, `int`, `bool`, `datetime.date`.
 - **`nullable`** *`(bool)`*: Default `True`. When `False`, `None` fails validation.
 - **`custom_validator`**: Optional function called with the converted value. It must return exactly `True`; any other return value, or an exception, raises `PermissionError`. When the value is `None` and the rule is nullable, a non-`True` return is ignored, but an exception still raises.
-- **`custom_converter`**: Optional function that converts the value. When it is set, `value_type` is not checked.
+- **`custom_converter`**: Optional function that converts the value. When it is set, `value_type` is not checked, and an exception the converter raises is not wrapped in `PermissionError`. So the converter must handle wrong-typed input itself: with `convert_location`, a client that sends `'32.08,34.78'` instead of a dict gets `AttributeError: 'str' object has no attribute 'get'`, not a `PermissionError`.
 
 **How one value is checked, in order**
 
 1. `None` with `nullable=False` raises.
-2. If `custom_converter` is set, the value is converted and the type check is skipped.
+2. If `custom_converter` is set, the value is converted and the type check is skipped. An exception from the converter propagates as-is.
 3. Otherwise, for a truthy value: a `str` rule converts an `int` or `float` to a string; an `int` rule converts a string of digits such as `'180'` (any other string, `'-5'` included, raises); a `datetime.datetime` or `datetime.date` rule parses a string with `dateutil` (and returns a `datetime` even for a `date` rule). Any other value must be an instance of `value_type`.
 4. `custom_validator`, if set, runs on the result.
 
@@ -217,7 +217,7 @@ def remove(self, rule_validator_key: str):
 
 *core_lib.rule_validator.rule_validator.RuleValidator.validate_dict()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/rule_validator/rule_validator.py#L44){:target="_blank"}
 
-Validates the input dict, applies conversions, and returns a new dict. Raises `PermissionError` on the first problem.
+Validates the input dict, applies conversions, and returns a new dict. Raises `PermissionError` on the first problem (an exception from a `custom_converter` propagates unchanged).
 
 ```python
 def validate_dict(
