@@ -61,7 +61,7 @@ app = Flask(__name__)
 @HandleException()
 def get_user(user_id: int):
     assert user_id > 0, 'user_id must be positive'  # AssertionError -> 500
-    user = core_lib.user.get(user_id)               # any exception -> 500
+    user = core_lib.user.get(user_id)               # raises -> 500 (a StatusCodeException keeps its own status)
     if user is None:
         raise StatusCodeException(HTTPStatus.NOT_FOUND, f'no user {user_id}')  # -> 404
     return response_json(user)
@@ -72,7 +72,8 @@ def get_user(user_id: int):
 | `GET /users/1` (user exists) | `200 {"id": 1, "email": "ada@example.com"}` |
 | `GET /users/2` (no such user) | `404 {"message": "Not Found"}`. `no user 2` appears only in the log. |
 | `GET /users/0` | `500 {"error": "Internal Server Error"}` |
-| `GET /users/3`, and `core_lib.user.get()` raises | `500 {"error": "Internal Server Error"}` |
+| `GET /users/3`, and `core_lib.user.get()` raises `RuntimeError` (say, the database is down) | `500 {"error": "Internal Server Error"}` |
+| `GET /users/4`, and `core_lib.user.get()` raises `StatusCodeException(HTTPStatus.SERVICE_UNAVAILABLE)` | `503 {"error": "Service Unavailable"}` |
 
 The same decorator works on Django views, which take `request` as their first argument. In Flask, `@app.route` goes above `@HandleException()`. On views protected by [`@RequireLogin`](user_security.html#requirelogin-decorator), put `@HandleException()` directly under `@RequireLogin`.
 

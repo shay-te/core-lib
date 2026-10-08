@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-Functions that return the start or end of the current hour, day, week, month or year, and a few related helpers. They all work in **UTC** and return **naive** `datetime`s (no `tzinfo`), built from `datetime.utcnow()`.
+Functions that return the start or end of the current hour, day, week, month or year, and a few related helpers. The period functions (everything in the table below except `age()` and `timestamp_to_ms()`) work in **UTC** and return **naive** `datetime`s (no `tzinfo`), built from `datetime.utcnow()`.
 
 > **Optional utility.** You can use Core-Lib without them; each is a line or two over `datetime` and `dateutil.relativedelta`. What they give you is one convention for date ranges across your code: UTC, and an end value that is the first moment of the **next** period.
 >

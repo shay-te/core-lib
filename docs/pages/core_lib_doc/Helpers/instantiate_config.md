@@ -19,7 +19,7 @@ toc: false
 2. `params`, runtime values merged over the YAML.
 3. `class_config_base_path`, to find `_target_` under a sub-key such as `handler` or `cleanup.handler`.
 4. A single `ValueError` that includes the config that failed.
-5. `None` for an empty config, where Hydra would return an empty dict.
+5. `None` for an empty config, where Hydra would return an empty `DictConfig`.
 6. Group generators that yield `(name, instance, settings)` for each entry of a config group.
 
 If you need none of these, `hydra.utils.instantiate` is fine.
@@ -43,15 +43,15 @@ def instantiate_config(
 
 - **`instance_base_class`** *`(class)`*: Optional. The created object must be an instance of this class; otherwise a `ValueError` is raised. The check runs after the object is built.
 
-- **`class_config_base_path`** *`(str)`*: Optional. A dotted path to the sub-key that holds `_target_`, such as `'handler'` or `'cleanup.handler'`. Each part is looked up in turn. If a part is missing or empty, the function returns `None`.
+- **`class_config_base_path`** *`(str)`*: Optional. A dotted path to the sub-key that holds `_target_`, such as `'handler'` or `'cleanup.handler'`. Each part is looked up in turn. If a part is missing or empty, the function returns `None` (unless you pass `params`, see below).
 
 - **`raise_class_config_base_path_error`** *`(bool)`*: Default `False`. When `True`, a missing `class_config_base_path` raises `ValueError` instead of returning `None`.
 
-- **`params`** *`(dict)`*: Optional. Extra constructor arguments merged over the config's top-level keys; a key in `params` wins over the same key in the YAML.
+- **`params`** *`(dict)`*: Optional. Extra constructor arguments, merged one level deep over the block that holds `_target_` (the block at `class_config_base_path`, if given). A key in `params` wins over the same key in the YAML; a nested dict in `params` replaces the YAML value, it is not merged into it. If that block is empty or missing, `params` alone is passed to Hydra, so you get them back as a `DictConfig` instead of `None`.
 
 **Returns**
 
-The created object, or `None` when the config (at `class_config_base_path`, if given) is empty or missing.
+The created object, or `None` when the config (at `class_config_base_path`, if given) is empty or missing and no `params` are passed.
 
 **Raises**
 

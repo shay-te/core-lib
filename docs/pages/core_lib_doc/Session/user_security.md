@@ -153,7 +153,7 @@ class JWTTokenHandler(TokenHandler):
 
 - **`secret`**: The signing key. Load it from configuration or an environment variable, never from source code. For `HS256`, use at least 32 bytes; PyJWT warns about shorter keys.
 - **`expiration_time`** *`(timedelta)`*: How long a token stays valid. Required.
-- **`verify`** *`(bool)`*: Ignored. PyJWT 2, the version Core-Lib installs, always checks the signature and expiry, whatever this is set to, and emits a `DeprecationWarning` for the argument on each decode.
+- **`verify`** *`(bool)`*: Ignored. PyJWT 2, the version Core-Lib installs, always checks the signature and expiry, whatever this is set to. With the default `False`, every decode emits a `DeprecationWarning` about the argument.
 - **`algorithm`** *`(str)`*: Default `'HS256'`.
 
 `encode(payload)` adds an `exp` (expiry) key to the dict you pass in and returns the token as a `str`. `decode(token)` returns the payload dict. It raises `jwt.ExpiredSignatureError` for an expired token and another `jwt` exception for any other invalid token.
@@ -387,7 +387,7 @@ The Django middleware reads the cookie name from `settings.COOKIE_NAME`. If that
 COOKIE_NAME = 'app_cookie'   # the same name you give your UserSecurity
 
 MIDDLEWARE = [
-    # ... Django's own middleware ...
+    # ... Django's own middleware, including CsrfViewMiddleware (see CSRF below) ...
     'django.contrib.auth.middleware.AuthenticationMiddleware',  # if you use django.contrib.auth
     'core_lib.web_helpers.django.user_auth_middleware.UserAuthMiddleware',
 ]
@@ -452,6 +452,13 @@ def login(request):
     response.set_cookie(settings.COOKIE_NAME, token, httponly=True)
     return response
 ```
+
+**CSRF.** Django's default `MIDDLEWARE` includes `django.middleware.csrf.CsrfViewMiddleware`. It answers a `POST` that carries no CSRF token with a 403 page, before your view runs. So `POST /login` above fails unless the client sends the token. Choose one of these:
+
+- **Send the token.** Decorate some page or endpoint with `@ensure_csrf_cookie` (from `django.views.decorators.csrf`) so the browser receives a `csrftoken` cookie. Then send that cookie's value in an `X-CSRFToken` header with `POST /login`. See [Django's CSRF guide](https://docs.djangoproject.com/en/stable/howto/csrf/){:target="_blank"}.
+- **Exempt the view.** Put `@csrf_exempt` (from `django.views.decorators.csrf`) above `@HandleException()` on `login`. This switches off Django's CSRF check for that view, so another site can make a visitor's browser log in to an account the attacker chose. Do it only if you have decided that is acceptable.
+
+Django's test `Client` skips CSRF checks unless you create it with `Client(enforce_csrf_checks=True)`. A test that logs in without a token therefore does not prove that a browser can.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="core_lib_listener.html">Previous</a></button>

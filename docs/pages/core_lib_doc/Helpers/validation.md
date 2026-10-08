@@ -9,7 +9,7 @@ toc: false
 
 Small checks for values that often arrive as text, such as query-string parameters, form fields and config values. Most of them answer "**can this value be converted?**", not "is this already a Python `int`?" So `is_int('123')` is `True`, and so is `is_int(3.7)`. Each function below says exactly what it accepts.
 
-> **Optional utility.** You can use Core-Lib without them. Each one is a few lines over `int()`, `float()`, a regular expression or an `Enum` lookup, wrapped so it returns `True`/`False` instead of raising. To check a whole dict of fields (allowed keys, types, custom rules) before it reaches a DataAccess, use the [Rule Validator](rules_validator.html) instead.
+> **Optional utility.** You can use Core-Lib without them. The `is_*` checks are a few lines over `int()`, `float()`, a string comparison, a regular expression or an `Enum` lookup, and return `False` instead of raising for a value that cannot be converted (`is_float()` notes an exception). The `is_email`/`is_url` checks expect a string or `None`. The `parse_*` helpers return lists and let conversion errors through. To check a whole dict of fields (allowed keys, types, custom rules) before it reaches a DataAccess, use the [Rule Validator](rules_validator.html) instead.
 >
 > **Where it fits:** Where you first read untrusted input: a web route or the Service method it calls.
 
@@ -50,7 +50,7 @@ print(is_bool(1))         # False
 
 *core_lib.helpers.validation.is_float()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L18){:target="_blank"}
 
-Returns `True` if `float(val)` succeeds. That includes ints, booleans, numeric strings such as `'1.5'` or `'1e3'`, and the strings `'nan'` and `'inf'`. Returns `False` for `None` and for strings that are not numbers.
+Returns `True` if `float(val)` succeeds. That includes ints, booleans, numeric strings such as `'1.5'` or `'1e3'`, and the strings `'nan'` and `'inf'`. Returns `False` for `None` and for strings that are not numbers. It can still raise for an `int` too large for a float: `is_float(10**400)` raises `OverflowError`, because only `ValueError` and `TypeError` are caught.
 
 ```python
 def is_float(val) -> bool:
@@ -110,7 +110,7 @@ print(is_int('string'))  # False
 
 *core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L66){:target="_blank"}
 
-Returns `True` if `email` matches a lightweight regular expression: something before `@`, then a domain that ends in a dot and at least two letters. It is a quick sanity check, not a full RFC 5322 validator: it accepts some invalid addresses (`'a b@x.com'`, with a space) and rejects some valid ones (`'user@localhost'`, no dot in the domain). Returns `False` for `None` or an empty string.
+Returns `True` if `email` matches a lightweight regular expression: something before `@`, then a domain that ends in a dot and at least two letters. It is a quick sanity check, not a full RFC 5322 validator: it accepts some invalid addresses (`'a b@x.com'`, with a space) and rejects some valid ones (`'user@localhost'`, no dot in the domain). Returns `False` for `None` or an empty string. Pass a string or `None`: a non-string such as `123` raises `TypeError`.
 
 ```python
 def is_email(email: Optional[str]) -> bool:
@@ -172,7 +172,7 @@ print(is_int_enum('1', Status))  # False
 
 *core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L102){:target="_blank"}
 
-Returns `True` for an `http://` or `https://` URL whose host is a domain name, `localhost` or an IPv4 address, with an optional port and path. Other schemes (`ftp://`, `mailto:`) and URLs without a scheme (`example.com`) return `False`, as do `None` and an empty string.
+Returns `True` for an `http://` or `https://` URL whose host is a domain name, `localhost` or an IPv4 address, with an optional port and path. Other schemes (`ftp://`, `mailto:`) and URLs without a scheme (`example.com`) return `False`, as do `None` and an empty string. Pass a string or `None`: a non-string such as `123` raises `TypeError`.
 
 ```python
 def is_url(url: Optional[str]) -> bool:
