@@ -525,6 +525,16 @@ should return nothing but comments. A domain rule that is ALSO enforced in
 
 - Import only **stdlib + third-party** packages. Do not import sibling libraries
   peer-to-peer; depend only on a declared shared base, if one exists.
+- **That includes a shared vocabulary.** A core-lib never imports a type, enum,
+  constant or helper from another `*-core-lib` — not even an enum both libraries
+  mean the same thing by, and listing the sibling in `requirements.txt` does not
+  make it allowed. The only shared base is `core_lib`. A lib that branches on a
+  vocabulary declares its own enum; the **host** that composes both libs maps one
+  onto the other (by member name, e.g. `TheirStatus[ours.name]`) and pins in its
+  own tests that the two enums keep the same members. Guard the lib with an AST
+  test: no import whose top-level module ends in `core_lib` other than `core_lib`
+  and the lib itself, plus a planted-import test so an empty result can't mean
+  the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
   the real module. `__init__.py` files stay empty package markers; §2.1 owns the
   full rule.
@@ -872,18 +882,20 @@ data_layers/
 
 The scope is "error-shaped", not "is an exception". A `ValidationError(code, message)` that `validate()` RETURNS in a list and never raises still lives here, because it is the library's error vocabulary and is exactly what the matching exception carries (`AssessmentValidationError.errors` is a `List[ValidationError]`). Filing it under `data_types/` splits one concept across two packages and hides that the pair belongs together.
 
-Every exception subclasses a lib base which subclasses core-lib's `StatusCodeException`, with the status as a **class attribute, never a constructor argument** and **never defaulted**:
+Every exception lives in `<name>_core_lib/error_handling/` and subclasses a lib base which subclasses core-lib's `StatusCodeException`, with the status as a **class attribute, never a constructor argument**, and **always an `HTTPStatus` member** (`HTTPStatus.BAD_GATEWAY` — never `502`, never `None`):
 
 ```python
+from http import HTTPStatus
+
 class FooError(StatusCodeException):
-    STATUS_CODE = None                       # a default is a trap — see below
+    STATUS_CODE = HTTPStatus.INTERNAL_SERVER_ERROR   # never None; every subclass declares its own
     def __init__(self, *args):
         super().__init__(self.STATUS_CODE, *args)
 ```
 
 - A host maps any of them by reading `error.status_code`, without importing your classes. A bare `Exception` forces every consumer to keep its own mapping table in step with your package.
 - Each subclass names ONE situation that always means the same thing to a client, so the code belongs to the class and no raise site can get it wrong.
-- Not defaulting `STATUS_CODE` is deliberate: a default means a new error type silently inherits whatever the last one used and is reported as something it is not.
+- Every subclass declares its own `STATUS_CODE` in its class body: inheriting the base's 500 or a sibling's code reports an error as something it is not. The package-walking test asserts `'STATUS_CODE' in vars(error_class)`.
 - The docstring says WHY that status (422 = well-formed but unprocessable content, the client shows it to the author; 409 = the request is fine, the STORED state forbids it), which is the part a reviewer cannot re-derive.
 - Test by WALKING the package (`pkgutil.iter_modules`), not by scanning one namespace — one class per file means a new error is a new module, and a module nothing imports yet would be invisible.
 
