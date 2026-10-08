@@ -10,7 +10,7 @@ toc: false
 These are the exception types and decorators Core-Lib uses to report errors with an HTTP status:
 
 - `StatusCodeException`: an exception that carries an HTTP status code.
-- `@NotFoundErrorHandler`: raises a 404 `StatusCodeException` when a function returns nothing.
+- `@NotFoundErrorHandler`: raises a 404 `StatusCodeException` when a function returns `None` or another falsy value.
 - `@DuplicateErrorHandler`: turns a database integrity error into a 409 `StatusCodeException`.
 - `StatusCodeAssert`: turns a failed `assert` into a `StatusCodeException`.
 - `CoreLibInitException`: raised when a `CoreLib` is started twice.

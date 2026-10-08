@@ -233,7 +233,7 @@ from core_lib.helpers.constants import MediaType
 from core_lib.web_helpers.request_response_helpers import response_download_content
 
 response_download_content(b'id,email\n1,ada@example.com\n', MediaType.TEXT_PLAIN, 'users.csv')
-# 200, Content-Type: text/plain, Content-Disposition: attachment; filename="users.csv"
+# 200, Content-Type: text/plain; charset=utf-8, Content-Disposition: attachment; filename="users.csv"
 ```
 
 ### `request_body_dict()`
@@ -261,7 +261,7 @@ Under `@HandleException`, both of these become a 500 response (see [What the cli
 
 **Example**
 
-`core_lib` is your `CoreLib` instance, and `core_lib.user.create()` is your user service's method.
+`app` is your Flask app, `core_lib` is your `CoreLib` instance, and `core_lib.user.create()` is your user service's method.
 
 ```python
 # Flask: the view takes no request argument; import flask.request

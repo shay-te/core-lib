@@ -24,6 +24,7 @@ Listeners run synchronously, in the same call. They are not a queue or a backgro
 Subclass `ObserverListener` and implement `update(key, value)` to react to events. `key` says which event fired; `value` carries the event data. Define your event keys as constants on the listener so emitters can reference them by name.
 
 ```python
+# your_core_lib/user_observer_listener.py
 from core_lib.observer.observer_listener import ObserverListener
 
 
@@ -110,7 +111,7 @@ class Observe(object):
 **Arguments**
 
 - **`event_key`** *`(str)`*: The key listeners receive in `update()`.
-- **`value_param_name`** *`(str)`*: Default `None`. The name of one parameter of the decorated method; listeners receive that argument as `value`. The caller must pass that argument **positionally**: with `value_param_name='user_id'`, `update(1, data)` works, but `update(user_id=1, data=data)` raises `IndexError`. When `None`, `value` is a dict of all the call's arguments by parameter name, including `self` for methods and any default values. For the example below that is a dict with the keys `self`, `user_id` and `data`.
+- **`value_param_name`** *`(str)`*: Default `None`. The name of one parameter of the decorated method; listeners receive that argument as `value`. The caller must pass that argument **positionally**: with `value_param_name='user_id'`, `update(1, data)` works, but `update(user_id=1, data=data)` raises `IndexError`. When `None`, `value` is a dict of all the call's arguments by parameter name, including `self` for methods and any default values. For the `update()` method in the example below, it would be a dict with the keys `self`, `user_id` and `data`.
 - **`observer_name`** *`(str)`*: Default `None`. The name the observer was registered under. When `None`, the observer registered with `is_default=True` is used, or else the first one registered. If no observer is found (nothing registered, or a misspelled name), the method runs and nobody is notified, with no error.
 - **`notify_before`** *`(bool)`*: Default `False`. `True` notifies before the method runs; `False` notifies after it returns. If the method raises, listeners set to run after it are not notified.
 
@@ -135,7 +136,7 @@ class UserService(Service):
         self._user_da.update(user_id, data)
 ```
 
-`your_core_lib.user.update(1, {User.name.key: 'Ada'})` updates the row, then the listener prints `user 1 changed`.
+`UserDataAccess` and the `User` entity are the ones from [The CoreLib Class](core_lib_main_class.html). `your_core_lib.user.update(1, {User.name.key: 'Ada'})` updates the row, then the listener prints `user 1 changed`.
 
 ## When a listener fails
 
