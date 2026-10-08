@@ -188,7 +188,7 @@ You can, and for a script or a small app you should. Core-Lib does not replace t
 
 The problem shows up as the code grows. Services start reading Flask's `request`. Business logic opens its own sessions. Tests need a real database and the real payment API to start. Nothing breaks when you write that code; it breaks when you try to change it, because the framework and the database are now in every file.
 
-Core-Lib gives that code a fixed place: sessions are opened in `DataAccess` classes, `request` is read in route handlers, and both are created once, in your `CoreLib` class, from config.
+Core-Lib gives that code a fixed place: sessions are opened only in `DataAccess` classes, `request` is read only in route handlers, and the connection factories and API clients are built once, in your `CoreLib` class, from config.
 
 ---
 
@@ -196,7 +196,7 @@ Core-Lib gives that code a fixed place: sessions are opened in `DataAccess` clas
 
 You can do that too. The pattern itself is plain constructor injection, and Core-Lib does not check it for you: `Service` and `DataAccess` are empty base classes, and nothing stops a service from importing `flask.request`. Your code review does that (or a linter, see [Advantages](advantages.html)).
 
-What the package adds is the plumbing around the pattern. Here is the same app with and without Core-Lib. Both versions use the same `SubscriptionService`: it receives a data-access object and a billing client in `__init__`, and its `create(email, plan)` calls `billing_client.start_subscription(email, plan)` and saves the new row. Only the code around it differs:
+What the package adds is the plumbing around the pattern. Here is the same app with and without Core-Lib. Both versions use the same service logic: [`SubscriptionService`](advantages.html#adding-an-enterprise-tier) receives a data-access object and a billing client in `__init__`, and its `create(email, plan)` calls `billing_client.start_subscription(email, plan)` and saves the new row. (In the hand-written version the service would also drop the `Service` base class and `@ResultToDict()`, and turn the row into a dict itself: the "rows into dicts" line in the table below.) Only the code around it differs:
 
 ```python
 # Without Core-Lib: the same layering, written by hand
@@ -300,7 +300,7 @@ Enterprise customers want to pay by invoice and want a database of their own. Wi
 - **A large install.** `pip install core-lib` installs everything in its `requirements.txt`: Hydra and OmegaConf, SQLAlchemy and Alembic, drivers for PostgreSQL, MySQL, MongoDB, Solr, Neo4j, Redis and Memcached, boto3, GeoAlchemy2 and Shapely, **both Flask and Django**, and some test libraries (moto, freezegun, mongomock, python-dotenv). The Elasticsearch client is not included; install `elasticsearch` yourself if you use that connection.
 - **Pinned versions.** SQLAlchemy (2.0.52) and Hydra (1.3.6) are pinned to exact versions, so you upgrade them when Core-Lib does.
 - **Pre-1.0.** Core-Lib is at version 0.2.x.
-- **One `CoreLib` per process.** The cache, observer and connection registries, the job scheduler and `SecurityHandler` are class-level, shared by every `CoreLib` in the process. Different tiers or tenants with different wiring are different deployments, not two instances side by side.
+- **One wiring per process.** The cache, observer and connection registries, the job scheduler and `SecurityHandler` are class-level, shared by every `CoreLib` in the process. Different tiers or tenants with different wiring are different deployments, not two instances side by side. Tests can still build a fresh instance per test, as the [Testing](#testing) example does: guard your registrations (`if not CoreLib.cache_registry.get(KEY): ...`) so a rebuild does not raise, and `load_core_lib_config` clears the cache and observer registries each time it loads a config.
 
 Weigh that against the plumbing in the table above. If your app is a script or a prototype, you should not pay this cost.
 

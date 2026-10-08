@@ -132,7 +132,7 @@ Moving from Flask to FastAPI means rewriting the route functions, and nothing be
 
 ## Why not just use SQLAlchemy and Flask directly?
 
-You can, and for a script or a small app you should. Core-Lib does not replace them: inside a `DataAccess` you write normal SQLAlchemy, and your routes are normal Flask, Django or FastAPI routes. The problem shows up as the code grows: services read Flask's `request`, business logic opens its own sessions, and tests need a real database and real APIs. Core-Lib gives that code a fixed place, created once, from config.
+You can, and for a script or a small app you should. Core-Lib does not replace them: inside a `DataAccess` you write normal SQLAlchemy, and your routes are normal Flask, Django or FastAPI routes. The problem shows up as the code grows: services read Flask's `request`, business logic opens its own sessions, and tests need a real database and real APIs. Core-Lib gives that code a fixed place, and builds the connections and clients once, in your `CoreLib` class, from config.
 
 ## Why not just do this with discipline?
 
@@ -142,7 +142,7 @@ You can do that too: the pattern is plain constructor injection, and Core-Lib do
 
 - `pip install core-lib` installs everything in `requirements.txt`: Hydra, SQLAlchemy and Alembic, drivers for PostgreSQL, MySQL, MongoDB, Solr, Neo4j, Redis and Memcached, boto3, GeoAlchemy2 and Shapely, **both Flask and Django**, and some test libraries (moto, freezegun, mongomock, python-dotenv). The Elasticsearch client is not included.
 - SQLAlchemy (2.0.52) and Hydra (1.3.6) are pinned to exact versions, so you upgrade them when Core-Lib does.
-- Core-Lib is pre-1.0 (0.2.x), and runs one `CoreLib` per process: its cache, observer and connection registries are class-level.
+- Core-Lib is pre-1.0 (0.2.x), and is designed for one `CoreLib` wiring per process: its cache, observer and connection registries are class-level.
 
 ---
 
