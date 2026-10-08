@@ -95,6 +95,6 @@ print(pascal_case) # "ThisIsPascal"
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/logger.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/validation.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="logger.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="validation.html">Next</a></button>
 </div>

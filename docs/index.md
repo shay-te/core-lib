@@ -93,11 +93,11 @@ print(app.user.greet(jane.id))   # Hello, Jane!
 
 `pip install core-lib`, save the file, run it. SQLite runs in-memory — no database server, no Docker, no config files. Each class maps onto one row of the table above.
 
-**Next steps for a real app:** move config into a YAML file ([The CoreLib Class](/core_lib_main_class.html)), split the file across folders ([Project Structure](/project_structure.html)), plug a web framework on top ([Web Helpers](/web.html)), and write tests against SQLite ([Testing Core-Lib](/test_core_lib.html)).
+**Next steps for a real app:** move config into a YAML file ([The CoreLib Class](core_lib_main_class.html)), split the file across folders ([Project Structure](project_structure.html)), plug a web framework on top ([Web Helpers](web.html)), and write tests against SQLite ([Testing Core-Lib](test_core_lib.html)).
 
 The rest of this page explains *why* you would structure code this way.
 
-> **Prerequisites.** These docs assume working familiarity with a Python web framework (Flask or Django) and SQLAlchemy. If a term is unfamiliar, check the [Glossary](/glossary.html). If you're new to Python web development, start with the [Flask quickstart](https://flask.palletsprojects.com/en/latest/quickstart/){:target="_blank"} and [SQLAlchemy intro](https://docs.sqlalchemy.org/en/latest/orm/quickstart.html){:target="_blank"} first.
+> **Prerequisites.** These docs assume working familiarity with a Python web framework (Flask or Django) and SQLAlchemy. If a term is unfamiliar, check the [Glossary](glossary.html). If you're new to Python web development, start with the [Flask quickstart](https://flask.palletsprojects.com/en/latest/quickstart/){:target="_blank"} and [SQLAlchemy intro](https://docs.sqlalchemy.org/en/latest/orm/quickstart.html){:target="_blank"} first.
 
 ---
 
@@ -246,7 +246,7 @@ class TestUserService(unittest.TestCase):
         self.assertEqual(self.app.user.get(user['id'])['name'], 'Jane')
 ```
 
-See [Testing Core-Lib](/test_core_lib.html) for the full pattern, including how to share an instance across test files.
+See [Testing Core-Lib](test_core_lib.html) for the full pattern, including how to share an instance across test files.
 
 ---
 
@@ -297,5 +297,5 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 MIT — see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE){:target="_blank"} file for details.
 
 <div style="margin-top:2em">
-  <button class="pageNext-btn"><a href="/advantages.html">Next</a></button>
+  <button class="pageNext-btn"><a href="advantages.html">Next</a></button>
 </div>

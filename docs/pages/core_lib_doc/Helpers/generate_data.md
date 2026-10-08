@@ -103,6 +103,6 @@ generate_datetime(datetime.today(), datetime.today() + timedelta(days=10))  # be
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/function_utils.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/instantiate_config.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="function_utils.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="instantiate_config.html">Next</a></button>
 </div>

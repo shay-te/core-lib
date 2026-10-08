@@ -247,6 +247,6 @@ parse_int_list(None)          # []
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/strings.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/thread.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="strings.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="thread.html">Next</a></button>
 </div>

@@ -40,7 +40,7 @@ class UserClient(ClientBase):
         self._delete(f'/user/{user_id}')
 ```
 
-A `Service` then receives this client through `CoreLib.__init__` (see [Project Structure](/project_structure.html)).
+A `Service` then receives this client through `CoreLib.__init__` (see [Project Structure](project_structure.html)).
 
 ---
 
@@ -107,6 +107,6 @@ Makes a `DELETE` request. Returns a `requests.Response`.
 `*args` and `**kwargs` are forwarded to the underlying `requests` function — use them for query params, JSON bodies, etc.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/sqlalchemy_types.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/error_handler.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="join_config.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="error_handler.html">Next</a></button>
 </div>

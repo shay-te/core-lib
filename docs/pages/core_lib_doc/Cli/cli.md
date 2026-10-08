@@ -12,5 +12,5 @@ published: false
 
 Use the current command-line docs instead:
 
-- [Migrations](/migrations.html)
-- [Generation](/generation.html)
+- [Migrations](migrations.html)
+- [Generation](generation.html)

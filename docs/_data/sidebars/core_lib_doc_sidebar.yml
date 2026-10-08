@@ -129,6 +129,10 @@ entries:
                 - title: SQLAlchemy Custom Types
                   url: /sqlalchemy_types.html
                   output: web
+
+                - title: JoinConfig
+                  url: /join_config.html
+                  output: web
         
           - title: Client
             output: web

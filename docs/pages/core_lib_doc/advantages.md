@@ -9,7 +9,7 @@ toc: false
 
 Core-Lib is useful when a backend needs to survive framework changes, infrastructure swaps, and multiple engineers touching the same code. The advantages below all come from the same rule: business logic lives in `Service` classes, while frameworks and infrastructure stay at the edge.
 
-> **Where it fits:** Overview. Read this after [Getting Started](/index.html) if you want the practical reasons behind the six-layer structure.
+> **Where it fits:** Overview. Read this after [Getting Started](index.html) if you want the practical reasons behind the six-layer structure.
 
 ## Decoupled business logic
 
@@ -85,6 +85,6 @@ Most systems become tightly coupled over time — not by design, but through sho
 Core-Lib prevents this by keeping all dependencies at the edge of your application from day one, wired in via config instead of leaking into your codebase.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/index.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/project_structure.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="index.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="project_structure.html">Next</a></button>
 </div>

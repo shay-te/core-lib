@@ -115,6 +115,6 @@ CoreLib.handle_exception_middleware.add(SentryMiddleware())
 If a middleware itself raises an exception, it is logged as a warning and the chain continues — it does not suppress the original HTTP error response.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/user_security.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/web.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="user_security.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="web.html">Next</a></button>
 </div>

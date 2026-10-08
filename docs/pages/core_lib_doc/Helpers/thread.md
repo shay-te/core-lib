@@ -88,6 +88,6 @@ user_locks.clear()
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/validation.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/constants.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="validation.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="constants.html">Next</a></button>
 </div>

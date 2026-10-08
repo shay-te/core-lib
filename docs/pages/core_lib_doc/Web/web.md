@@ -264,5 +264,5 @@ def create_user(request):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/handle_exceptions.html">Previous</a></button>
+    <button class="pagePrevious-btn"><a href="handle_exceptions.html">Previous</a></button>
 </div>

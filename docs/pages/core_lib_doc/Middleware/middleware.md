@@ -159,6 +159,6 @@ def execute(self, context: Any):
 - **`context`** *`(Any)`*: The context object passed to every middleware in the chain.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/job.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/connection.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="job.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="connection.html">Next</a></button>
 </div>

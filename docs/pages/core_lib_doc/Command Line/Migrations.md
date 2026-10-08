@@ -39,6 +39,6 @@ core_lib migrate --rev head
 - `-1`, `-2` ..., `-10` — downgrade by N versions
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/rules_validator.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/generation.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="rules_validator.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="generation.html">Next</a></button>
 </div>

@@ -369,6 +369,6 @@ class TestCustomerService(unittest.TestCase):
 More examples are available in the [Core-Lib repository](https://github.com/shay-te/core-lib){:target="_blank"}.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/constants.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/observer.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="constants.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="observer.html">Next</a></button>
 </div>

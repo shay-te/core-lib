@@ -112,6 +112,6 @@ class UserDataAccess(DataAccess):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/client_base.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/data_transform_helpers.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="client_base.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="data_transform_helpers.html">Next</a></button>
 </div>

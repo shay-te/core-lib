@@ -141,6 +141,6 @@ print(formatted_data)  # {'name': 'Jon', 'email': 'jon@mail.com', 'additional_da
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/registry.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/rules_validator.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="registry.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="rules_validator.html">Next</a></button>
 </div>

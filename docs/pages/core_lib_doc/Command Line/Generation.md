@@ -21,7 +21,7 @@ core_lib generate --yaml ExampleCoreLib.yaml
 
 Run this from the directory where the YAML file lives. If you omit `--yaml`, an interactive prompt walks you through creating the YAML first.
 
-The command creates a folder named after your `CoreLib` containing a full project skeleton: entities, data access classes, services, config, and the wiring class. See [Project Structure](/project_structure.html) for what each folder is for.
+The command creates a folder named after your `CoreLib` containing a full project skeleton: entities, data access classes, services, config, and the wiring class. See [Project Structure](project_structure.html) for what each folder is for.
 
 Example output shape:
 
@@ -38,6 +38,6 @@ example_core_lib/
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/migrations.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/cache.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="migrations.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="cache.html">Next</a></button>
 </div>

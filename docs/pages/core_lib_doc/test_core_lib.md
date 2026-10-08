@@ -10,4 +10,4 @@ published: false
 
 > **Archived.** This page is kept only for history and is not published.
 
-Use the current [Testing Core-Lib](/test_core_lib.html) page instead.
+Use the current [Testing Core-Lib](test_core_lib.html) page instead.

@@ -145,6 +145,6 @@ def create_migration(self, migration_name):
 - **`migration_name`**: Name of the migration to create.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/data_layers.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/crud.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="data_layers.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="crud.html">Next</a></button>
 </div>

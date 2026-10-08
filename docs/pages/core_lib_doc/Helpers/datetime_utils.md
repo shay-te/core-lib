@@ -74,6 +74,6 @@ print(formatted_datetime) #2022-02-07 00:00:00
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/data_transform_helpers.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/files.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="data_transform_helpers.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="files.html">Next</a></button>
 </div>

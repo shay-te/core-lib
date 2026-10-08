@@ -61,6 +61,6 @@ customer.login_data(CustomerCreds('jon_doe')) # logs ['ERROR:Customer.login_data
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/instantiate_config.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/strings.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="instantiate_config.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="strings.html">Next</a></button>
 </div>

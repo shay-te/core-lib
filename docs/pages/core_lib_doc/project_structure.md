@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-Every `CoreLib` project follows the same folder structure. The folders map directly onto the six layers from the [home page](/index.html#the-layers) — new team member, same folders, no surprises.
+Every `CoreLib` project follows the same folder structure. The folders map directly onto the six layers from the [home page](index.html#the-layers) — new team member, same folders, no surprises.
 
 > **Where it fits:** Project map. Use this page when deciding where a new class or config file belongs.
 
@@ -84,6 +84,6 @@ Most projects become inconsistent over time — business logic leaks into data l
 This structure prevents that by enforcing clear boundaries from the start. If you don't know where a file belongs, that's usually a sign the responsibility needs to be clarified.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/advantages.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/glossary.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="advantages.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="glossary.html">Next</a></button>
 </div>

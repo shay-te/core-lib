@@ -115,6 +115,6 @@ class YourCoreLib(CoreLib):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/generation.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/job.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="generation.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="job.html">Next</a></button>
 </div>

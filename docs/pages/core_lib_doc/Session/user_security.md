@@ -11,7 +11,7 @@ Auth requirements differ per app — JWT tokens, session cookies, role-based acc
 
 > **Where it fits:** Web edge + Service. `UserSecurity` subclasses implement auth logic; `@RequireLogin` guards route handlers; `UserAuthMiddleware` plugs into the framework's request lifecycle.
 
-> Unfamiliar with terms like "decorator", "session", or "WSGI"? See the [Glossary](/glossary.html).
+> Unfamiliar with terms like "decorator", "session", or "WSGI"? See the [Glossary](glossary.html).
 
 ## UserSecurity
 
@@ -306,6 +306,6 @@ app.wsgi_app = UserAuthMiddleware(app.wsgi_app, cookie_name='app_cookie')
 The Django version is registered in `MIDDLEWARE` in `settings.py`.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/core_lib_listener.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/handle_exceptions.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="core_lib_listener.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="handle_exceptions.html">Next</a></button>
 </div>

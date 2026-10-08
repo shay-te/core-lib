@@ -143,6 +143,6 @@ ttl_unit = TimeUnit.HOUR
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/thread.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/test_core_lib.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="thread.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="test_core_lib.html">Next</a></button>
 </div>

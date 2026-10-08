@@ -9,7 +9,7 @@ toc: false
 
 Background tasks often need to call the same services as your web routes, but they should not create their own database sessions or clients. A `Job` receives the handler it needs at startup, then `CoreLib` schedules it.
 
-> **Where it fits:** One of the [six layers](/index.html#the-layers). A `Job` calls into Services the same way a web route or test would.
+> **Where it fits:** One of the [six layers](index.html#the-layers). A `Job` calls into Services the same way a web route or test would.
 
 ---
 
@@ -134,6 +134,6 @@ scheduler.stop(job)  # stops the scheduled job
 > If a job raises an exception during `run()`, it is caught, logged by `JobScheduler`, and the schedule continues.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/cache.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/middleware.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="cache.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="middleware.html">Next</a></button>
 </div>

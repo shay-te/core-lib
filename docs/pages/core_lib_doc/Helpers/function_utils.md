@@ -158,6 +158,6 @@ print(formatted_parameters)  # User(id:4, name:Rosa Doe)
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/files.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/generate_data.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="files.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="generate_data.html">Next</a></button>
 </div>

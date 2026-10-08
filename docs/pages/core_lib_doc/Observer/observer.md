@@ -9,7 +9,7 @@ toc: false
 
 Services often need to react to events in other services — a user update triggers a cache clear, a payment triggers an email — but you don't want services importing each other. The Observer pattern solves this: one service emits a named event, listeners react to it, and neither knows the other exists.
 
-> **Where it fits:** Cross-cutting glue. Observer sits *alongside* the six layers from the [home page](/index.html#the-layers), not as a layer of its own.
+> **Where it fits:** Cross-cutting glue. Observer sits *alongside* the six layers from the [home page](index.html#the-layers), not as a layer of its own.
 
 ---
 
@@ -90,6 +90,6 @@ class UserDataAccess(DataAccess):
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/test_core_lib.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/core_lib_listener.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="test_core_lib.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="core_lib_listener.html">Next</a></button>
 </div>

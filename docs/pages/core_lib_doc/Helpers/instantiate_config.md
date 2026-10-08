@@ -165,6 +165,6 @@ def instantiate_config_group_generator_list(
 ```
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/generate_data.html">Previous</a></button>
-    <button class="pageNext-btn"><a href="/logger.html">Next</a></button>
+    <button class="pagePrevious-btn"><a href="generate_data.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="logger.html">Next</a></button>
 </div>
