@@ -128,9 +128,9 @@ class TestParseUtils(unittest.TestCase):
         for val in [None, 123, 45.6, True, [], {}, "test"]:
             try:
                 result = normalize(val)
-                self.assertIsInstance(result, str)
-            except:
-                pass  # Some may raise, that's ok
+            except Exception:
+                continue  # Some inputs may raise, that's ok
+            self.assertIsInstance(result, str)
 
     def test_normalize_idempotent(self):
         """Normalizing twice should give same result as normalizing once"""
@@ -377,11 +377,12 @@ class TestParseUtils(unittest.TestCase):
     # =====================================================
     def test_parse_range(self):
         self.assertEqual(parse_range("10 to 20"), (10, 20))
+        self.assertEqual(parse_range("10-20"), (10, 20))  # hyphen ranges now accepted
         self.assertEqual(parse_range("any to 50", 0, 100), (0, 50))
         self.assertEqual(parse_range("5 to any", 0, 100), (5, 100))
 
     def test_parse_range_invalid(self):
-        for v in ["hello", "10-20", "to", "", None]:
+        for v in ["hello", "to", "", None]:
             self.assertIsNone(parse_range(v), v)
 
     def test_parse_range_case_insensitive(self):
@@ -901,9 +902,9 @@ class TestParseUtils(unittest.TestCase):
         for val in ["test", 123, None, [], {}]:
             try:
                 result = normalize(val)
-                self.assertIsInstance(result, str)
-            except:
-                pass
+            except Exception:
+                continue
+            self.assertIsInstance(result, str)
 
     def test_similarity_always_returns_float(self):
         """similarity always returns float [0,1]"""

@@ -2,13 +2,13 @@ import os
 import unittest
 
 import boto3
-from moto import mock_s3
+from moto import mock_aws
 
 from core_lib.helpers.test import load_core_lib_config
 from examples.objects_core_lib.core_lib.objects_core_lib import ObjectsCoreLib
 
 
-@mock_s3
+@mock_aws
 class TestExamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

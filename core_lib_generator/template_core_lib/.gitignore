@@ -1,16 +1,33 @@
 # IDEA
 .idea/
+.vscode/
 **/.DS_Store
 **/*.db
 **/*.db-journal
 
 # PYTHON
 /venv
-**/*.pyc
-**/*.pyo
-**/__pycache__/*
+.venv
+**/*.py[cod]
+**/__pycache__/
 __pycache__/
+*$py.class
 
+# CACHES — every tool that writes one, whether or not this lib uses the tool
+# today. A cache directory that appears after someone runs a tool once is the
+# kind of thing that gets committed by a wide `git add`.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+
+# COVERAGE — the data file is a local run artifact and must never be tracked.
+# `.coveragerc` IS tracked; only its output is ignored.
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 
 # TESTS
 /examples/**/outputs/
@@ -25,4 +42,3 @@ dist/
 .hydra/
 .env
 *.log
-
