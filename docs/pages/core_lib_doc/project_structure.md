@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-This is the layout `core_lib generate` creates (see [Generation](generation.html)). Following it in a hand-written project keeps it familiar to anyone who has seen another Core-Lib project. The folders map onto the six layers from the [home page](index.html#the-layers).
+This is the layout `core_lib generate` creates (see [Generation](generation.html)); you add the `client/` and `migrations/` folders when you need them. Following it in a hand-written project keeps it familiar to anyone who has seen another Core-Lib project. The folders map onto the six layers from the [home page](index.html#the-layers).
 
 > **Where it fits:** Project map. Use this page when deciding where a new class or config file belongs.
 
@@ -21,7 +21,7 @@ your_core_lib/                         # the project (repository) folder
 │   │   │   └── db/                    # one folder per connection, named after its key
 │   │   │       ├── entities/          # ORM models
 │   │   │       │   └── user.py
-│   │   │       └── migrations/        # Alembic scripts (see Migrations)
+│   │   │       └── migrations/        # Alembic scripts (add when needed, see Migrations)
 │   │   ├── data_access/               # database query APIs
 │   │   │   ├── user_data_access.py
 │   │   │   └── user_list_data_access.py

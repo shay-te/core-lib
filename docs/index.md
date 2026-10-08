@@ -32,7 +32,7 @@ Web / Jobs / Tests  →  CoreLib  →  Service  →  DataAccess  →  Database
 | `DataAccess` | Queries against one model, collection, index, or data source. | Run business rules. |
 | `Client` | HTTP / third-party API wrapper. | Hold business logic. |
 | `Job` | Background or scheduled task, declared in YAML and scheduled by `load_jobs()`. Gets your `CoreLib` in `initialized(data_handler)` and calls its services from `run()`. | Hold business logic itself; get called from a web route. |
-| `Connection` | Manages the session lifecycle (open / commit / close) for SQLAlchemy, MongoDB, Solr, Neo4j, Elasticsearch, and more. | Contain business rules or request logic. |
+| `Connection` | Hands out a connection or session for each `with` block (for SQLAlchemy it also opens, commits or rolls back, and closes the session). Factories exist for SQLAlchemy, MongoDB, Solr, Neo4j, Elasticsearch and any object you wrap. | Contain business rules or request logic. |
 
 These are conventions, not rules the library checks: `Service` and `DataAccess` are empty base classes. The next section shows the core path, `CoreLib → Service → DataAccess → Connection → Database`, in one runnable file.
 
@@ -137,7 +137,7 @@ def fastapi_greet(user_id: int):
     return {'message': hello_app.user.greet(user_id)}
 ```
 
-Moving from Flask to FastAPI means rewriting the route functions, and nothing behind `hello_app`. Core-Lib's optional web helpers (`response_json`, `@RequireLogin`, `@HandleException`, the auth middleware) support **Flask and Django only**; on FastAPI you return values and handle auth and errors with FastAPI's own tools. Django: create the object once in a module your views import. See [Web Helpers](web.html) and [The CoreLib Class](core_lib_main_class.html).
+Moving from Flask to FastAPI means rewriting the route functions, and nothing behind `hello_app`. Core-Lib's optional web helpers (`response_json`, `@RequireLogin`, `@HandleException`, the auth middleware) support **Flask and Django only**; on FastAPI you return values and handle auth and errors with FastAPI's own tools. Django: create the object once at startup, in `AppConfig.ready()` or in a module your views import. [The CoreLib Class](core_lib_main_class.html) shows the YAML-based setup for Flask and Django; [Web Helpers](web.html) covers the optional helpers.
 
 ---
 
@@ -196,31 +196,7 @@ Core-Lib gives that code a fixed place: sessions are opened in `DataAccess` clas
 
 You can do that too. The pattern itself is plain constructor injection, and Core-Lib does not check it for you: `Service` and `DataAccess` are empty base classes, and nothing stops a service from importing `flask.request`. Your code review does that (or a linter, see [Advantages](advantages.html)).
 
-What the package adds is the plumbing around the pattern. Here is the same service with and without Core-Lib:
-
-```python
-# shop/subscription_service.py — the same in both versions. (Without Core-Lib, drop
-# `(Service)` and `@ResultToDict()`, and convert the returned row yourself.)
-from core_lib.data_layers.service.service import Service
-from core_lib.data_transform.result_to_dict import ResultToDict
-
-from shop.entities import Subscription      # a SQLAlchemy model: email, plan, billing_ref
-
-
-class SubscriptionService(Service):
-    def __init__(self, subscription_data_access, billing_client):
-        self._subscription_data_access = subscription_data_access
-        self._billing_client = billing_client
-
-    @ResultToDict()
-    def create(self, email: str, plan: str) -> dict:
-        billing_ref = self._billing_client.start_subscription(email, plan)
-        return self._subscription_data_access.create({
-            Subscription.email.key: email,
-            Subscription.plan.key: plan,
-            Subscription.billing_ref.key: billing_ref,
-        })
-```
+What the package adds is the plumbing around the pattern. Here is the same app with and without Core-Lib. Both versions use the same `SubscriptionService`: it receives a data-access object and a billing client in `__init__`, and its `create(email, plan)` calls `billing_client.start_subscription(email, plan)` and saves the new row. Only the code around it differs:
 
 ```python
 # Without Core-Lib: the same layering, written by hand
@@ -280,7 +256,7 @@ class ShopCoreLib(CoreLib):
         self.subscription = SubscriptionService(SubscriptionDataAccess(db), billing_client)
 ```
 
-The service code does not change between the two. What changes is how much of the code around it you write and maintain yourself:
+The difference is how much of the code around the service you write and maintain yourself:
 
 | Without Core-Lib, you write | Core-Lib ships |
 |---|---|
@@ -315,56 +291,7 @@ What it gives you is one place for that code: the `DataAccess` class your servic
 
 ## A real scenario: adding an enterprise tier
 
-Your app sells subscriptions to consumers: card payments, one shared Postgres. Now enterprise customers want to pay by invoice and want their data in a database of their own.
-
-`ShopCoreLib` above already reads both choices from config. So the enterprise tier is the same code, deployed a second time with a different YAML file:
-
-```yaml
-# config/consumer.yaml
-core_lib:
-  shop:
-    data:
-      db:
-        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
-        config:
-          url: {protocol: postgresql, host: shared-db.internal, username: shop, password: '${oc.env:DB_PASSWORD}', file: shop}
-    client:
-      billing:
-        _target_: shop.clients.CardBillingClient
-        base_url: https://api.card-payments.example
-```
-
-```yaml
-# config/enterprise.yaml: only what differs from consumer.yaml
-defaults:
-  - consumer
-  - _self_
-
-core_lib:
-  shop:
-    data:
-      db:
-        config:
-          url: {host: acme-db.internal}
-    client:
-      billing:
-        _target_: shop.clients.InvoiceBillingClient
-        base_url: https://api.invoicing.example
-```
-
-Each deployment boots one `ShopCoreLib` from a `@hydra.main` entry point (see [The CoreLib Class](core_lib_main_class.html)), and you pick the file when you deploy:
-
-```bash
-python main.py                            # consumer deployment
-python main.py --config-name=enterprise   # enterprise deployment
-```
-
-- **You write:** `InvoiceBillingClient`, with the two methods `CardBillingClient` already has (`start_subscription(email, plan)` and `is_paid(billing_ref)`), and `enterprise.yaml`.
-- **Unchanged:** `SubscriptionService`, `SubscriptionDataAccess`, `ShopCoreLib`, your routes and your existing tests.
-- **Not done for you:** SSO, organizations, seats and roles. Core-Lib has none of these. If enterprise accounts need them, that is domain work you would write either way.
-- **One tier per process.** The cache, observer and connection registries, the job scheduler and `SecurityHandler` are class-level: one per process, shared by every `CoreLib` in it. Run each tier as its own deployment, not as two differently wired instances side by side.
-
-If your hand-written app already injects the billing client, you get the same isolation without Core-Lib. What Core-Lib adds is that the choice is a `_target_` line in YAML instead of an `if` in your startup code.
+Enterprise customers want to pay by invoice and want a database of their own. With the `ShopCoreLib` above, that is the same code deployed a second time with a different YAML file (`python main.py --config-name=enterprise`). You write an `InvoiceBillingClient` and the YAML; `SubscriptionService`, `SubscriptionDataAccess` and your routes stay as they are. Core-Lib does not give you SSO, organizations or seats. [The full story, with the config files](advantages.html#adding-an-enterprise-tier).
 
 ---
 
@@ -373,7 +300,7 @@ If your hand-written app already injects the billing client, you get the same is
 - **A large install.** `pip install core-lib` installs everything in its `requirements.txt`: Hydra and OmegaConf, SQLAlchemy and Alembic, drivers for PostgreSQL, MySQL, MongoDB, Solr, Neo4j, Redis and Memcached, boto3, GeoAlchemy2 and Shapely, **both Flask and Django**, and some test libraries (moto, freezegun, mongomock, python-dotenv). The Elasticsearch client is not included; install `elasticsearch` yourself if you use that connection.
 - **Pinned versions.** SQLAlchemy (2.0.52) and Hydra (1.3.6) are pinned to exact versions, so you upgrade them when Core-Lib does.
 - **Pre-1.0.** Core-Lib is at version 0.2.x.
-- **One `CoreLib` per process**, because its registries are class-level (see above).
+- **One `CoreLib` per process.** The cache, observer and connection registries, the job scheduler and `SecurityHandler` are class-level, shared by every `CoreLib` in the process. Different tiers or tenants with different wiring are different deployments, not two instances side by side.
 
 Weigh that against the plumbing in the table above. If your app is a script or a prototype, you should not pay this cost.
 

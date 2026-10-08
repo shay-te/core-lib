@@ -7,9 +7,11 @@ folder: core_lib_doc
 toc: false
 ---
 
-Tests and seed scripts need realistic fake data — UUIDs, emails, datetimes, random strings. These generators produce common types with sensible defaults so you skip the boilerplate.
+Three generators for throwaway test data: a random string, a random email address, and a random date in a range.
 
-> **Where it fits:** Tests and seed scripts. Not used by production code paths.
+> **Optional utility.** You can use Core-Lib without them. They use Python's `random` module, so they are **not** for passwords, tokens or anything secret (use the `secrets` module for that). If you already use a library such as Faker, keep using it.
+>
+> **Where it fits:** Tests and seed scripts. Nothing in Core-Lib's own code calls them.
 
 ## Functions
 
@@ -17,7 +19,7 @@ Tests and seed scripts need realistic fake data — UUIDs, emails, datetimes, ra
 
 *core_lib.helpers.generate_data.generate_random_string()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L6){:target="_blank"}
 
-Generates a random string of length `10` by default. Has options to add uppercase, numeric and special characters to the generated string too.
+Generates a random string, 10 characters long by default, picked from lowercase letters. The flags add uppercase letters, digits or punctuation to the characters it picks from, so a given result may still contain none of them.
 
 ```python
 def generate_random_string(length: int = 10, upper: bool = False, digits: bool = False, special: bool = False) -> str:
@@ -25,31 +27,31 @@ def generate_random_string(length: int = 10, upper: bool = False, digits: bool =
 
 **Arguments**
 
-- **`length`** *`(int)`*: Default `10`, Length of the generated string.
-- **`upper`** *`(bool)`*: Default `False`, When `True` the string will include uppercase characters.
-- **`digits`** *`(bool)`*: Default `False`, When `True` the string will include numeric digits characters.
-- **`special`** *`(bool)`*: Default `False`, When `True` the string will include special characters or symbols.
+- **`length`** *`(int)`*: Default `10`. Length of the generated string.
+- **`upper`** *`(bool)`*: Default `False`. When `True`, uppercase letters can appear.
+- **`digits`** *`(bool)`*: Default `False`. When `True`, digits can appear.
+- **`special`** *`(bool)`*: Default `False`. When `True`, punctuation (`string.punctuation`) can appear.
 
 **Returns**
 
-*`(str)`*: A randomly generated string as configured in the function.
+*`(str)`*: The random string.
 
 **Example**
 
 ```python
 from core_lib.helpers.generate_data import generate_random_string
 
-generate_random_string() # returns a string with length 10 and no uppercase, no digits and no special characters.
-generate_random_string(10, True) # returns a string with length 10, includes uppercase and no digits and no special characters.
-generate_random_string(10, True, True) # returns a string with length 10, includes uppercase and digits and no special characters.
-generate_random_string(10, True, True, True) # returns a string with length 10, includes uppercase, digits and special characters.
+print(generate_random_string())                      # e.g. staugxgjxd (lowercase only)
+print(generate_random_string(10, upper=True))        # e.g. OZiqjsvwfV
+print(generate_random_string(5, digits=True))        # e.g. n5mz9
+print(generate_random_string(10, True, True, True))  # e.g. P$a@T#3Z,a
 ```
 
 ### generate_email()
 
 *core_lib.helpers.generate_data.generate_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L17){:target="_blank"}
 
-Generates an Email with the provided domain name. The length of the Email ID name will be 10 characters.
+Generates an email address at `domain`. The part before `@` is 10 random lowercase letters.
 
 ```python
 def generate_email(domain: str = 'domain.com') -> str:
@@ -58,26 +60,28 @@ def generate_email(domain: str = 'domain.com') -> str:
 
 **Arguments**
 
-- **`domain`** *`(str)`*: Default `domain.com`, Domain name to be attached to the Email ID.
+- **`domain`** *`(str)`*: Default `domain.com`. The domain after `@`.
 
 **Returns**
 
-*`(str)`*: A random email address with the given domain — local part is 10 random characters.
+*`(str)`*: A random email address.
 
 **Example**
 
 ```python
 from core_lib.helpers.generate_data import generate_email
 
-generate_email()                # qsrhbaykhg@domain.com
-generate_email('core-lib.com')  # qsrhbaykhg@core-lib.com
+print(generate_email())               # e.g. qsrhbaykhg@domain.com
+print(generate_email('example.com'))  # e.g. kdlndqlmso@example.com
 ```
 
 ### generate_datetime()
 
 *core_lib.helpers.generate_data.generate_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L21){:target="_blank"}
 
-Generates a `datetime` within a specified range, if no range is provided the function will generate a `datetime` between `today - 10 days` and `today + 10 days` period.
+Picks a random moment between `from_date` and `to_date`, then returns **that day at 00:00**: the time is always dropped. Without arguments the range is from 10 days ago to 10 days from now. It uses local time (`datetime.today()`, `datetime.fromtimestamp()`), not UTC.
+
+Because the time is dropped, the result can be earlier than `from_date` on the same day: with `from_date` at 15:00 today, a result of today 00:00 is possible.
 
 ```python
 def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> datetime:
@@ -85,12 +89,12 @@ def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> d
 
 **Arguments**
 
-- **`from_date`** *`(datetime)`*: Default `None`, The `datetime` range to start from.
-- **`to_date`** *`(datetime)`*: Default `None`, The `datetime` range to end with.
+- **`from_date`** *`(datetime)`*: Default `None` (10 days ago). Start of the range.
+- **`to_date`** *`(datetime)`*: Default `None` (10 days from now). End of the range.
 
 **Returns**
 
-*`(datetime)`*: A random `datetime` within the given range.
+*`(datetime)`*: A random day in the range, at 00:00 local time.
 
 **Example**
 
@@ -98,8 +102,10 @@ def generate_datetime(from_date: datetime = None, to_date: datetime = None) -> d
 from datetime import datetime, timedelta
 from core_lib.helpers.generate_data import generate_datetime
 
-generate_datetime()                                                  # between today-10d and today+10d
-generate_datetime(datetime.today(), datetime.today() + timedelta(days=10))  # between today and today+10d
+print(generate_datetime())  # e.g. 2026-09-30 00:00:00 (10 days ago to 10 days from now)
+
+now = datetime.now()
+print(generate_datetime(now, now + timedelta(days=10)))  # e.g. 2026-10-12 00:00:00 (today to 10 days from now)
 ```
 
 <div style="margin-top:2em">

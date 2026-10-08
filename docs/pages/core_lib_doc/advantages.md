@@ -26,7 +26,88 @@ A database, HTTP client or payment provider sits behind one adapter: a `DataAcce
 - Same library, different backend (Postgres → MySQL, Memcached → Redis): a config change, when the class or URL comes from YAML.
 - Different library or API (SQLAlchemy → MongoDB, one payment provider → another): you rewrite that adapter. Your `Service` code does not change as long as the adapter keeps the same methods and returns the same shapes.
 
-For a worked example, see [adding an enterprise tier](index.html#a-real-scenario-adding-an-enterprise-tier): the same code deployed twice, each process booted with its own YAML file.
+The next section is a worked example.
+
+---
+
+## Adding an enterprise tier
+
+Your app sells subscriptions to consumers: card payments, one shared Postgres. Now enterprise customers want to pay by invoice and want their data in a database of their own.
+
+The service does not know which payment provider or database it talks to:
+
+```python
+# shop/subscription_service.py
+from core_lib.data_layers.service.service import Service
+from core_lib.data_transform.result_to_dict import ResultToDict
+
+from shop.entities import Subscription      # a SQLAlchemy model: email, plan, billing_ref
+
+
+class SubscriptionService(Service):
+    def __init__(self, subscription_data_access, billing_client):
+        self._subscription_data_access = subscription_data_access
+        self._billing_client = billing_client
+
+    @ResultToDict()
+    def create(self, email: str, plan: str) -> dict:
+        billing_ref = self._billing_client.start_subscription(email, plan)
+        return self._subscription_data_access.create({
+            Subscription.email.key: email,
+            Subscription.plan.key: plan,
+            Subscription.billing_ref.key: billing_ref,
+        })
+```
+
+The `ShopCoreLib` on the home page ([with and without Core-Lib](index.html#why-not-just-do-this-with-discipline-without-the-library)) builds the database connection and the billing client from config with `instantiate_config`. So the enterprise tier is the same code, deployed a second time with a different YAML file:
+
+```yaml
+# config/consumer.yaml
+core_lib:
+  shop:
+    data:
+      db:
+        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
+        config:
+          url: {protocol: postgresql, host: shared-db.internal, username: shop, password: '${oc.env:DB_PASSWORD}', file: shop}
+    client:
+      billing:
+        _target_: shop.clients.CardBillingClient
+        base_url: https://api.card-payments.example
+```
+
+```yaml
+# config/enterprise.yaml: only what differs from consumer.yaml
+defaults:
+  - consumer
+  - _self_
+
+core_lib:
+  shop:
+    data:
+      db:
+        config:
+          url: {host: acme-db.internal}
+    client:
+      billing:
+        _target_: shop.clients.InvoiceBillingClient
+        base_url: https://api.invoicing.example
+```
+
+Each deployment boots one `ShopCoreLib` from a `@hydra.main` entry point (see [The CoreLib Class](core_lib_main_class.html)), and you pick the file when you deploy:
+
+```bash
+python main.py                            # consumer deployment
+python main.py --config-name=enterprise   # enterprise deployment
+```
+
+- **You write:** `InvoiceBillingClient`, with the two methods `CardBillingClient` already has (`start_subscription(email, plan)` and `is_paid(billing_ref)`), and `enterprise.yaml`.
+- **Unchanged:** `SubscriptionService`, `SubscriptionDataAccess`, `ShopCoreLib`, your routes and your existing tests.
+- **Not done for you:** SSO, organizations, seats and roles. Core-Lib has none of these. If enterprise accounts need them, that is domain work you would write either way.
+- **One tier per process.** The cache, observer and connection registries, the job scheduler and `SecurityHandler` are class-level: one per process, shared by every `CoreLib` in it. Run each tier as its own deployment, not as two differently wired instances side by side.
+- **Many tenants in one process** is a different design: one `CoreLib`, a tenant id column on your entities that every `DataAccess` query filters on, and the tenant id in cache keys (`@Cache('user_{tenant_id}_{user_id}')`). Core-Lib does not do that filtering for you.
+
+If your hand-written app already injects the billing client, you get the same isolation without Core-Lib. What Core-Lib adds is that the choice is a `_target_` line in YAML instead of an `if` in your startup code.
 
 ---
 
@@ -63,14 +144,14 @@ from hello_core_lib import HelloApp, User
 class TestUserService(unittest.TestCase):
     def setUp(self):
         config = load_core_lib_config('./config', 'test_config.yaml')  # tests/config/, relative to this file
-        self.hello_app = HelloApp(config)   # full app, test database, fake clients
+        self.hello_app = HelloApp(config)   # the class production uses, built from the test YAML
 
     def test_greet(self):
         jane = self.hello_app.user.create('Jane')
         self.assertEqual(self.hello_app.user.greet(jane[User.id.key]), 'Hello, Jane!')
 ```
 
-`HelloApp` and `User` come from the [one-file example](index.html#a-complete-core-lib-app-in-one-file). See [Testing Core-Lib](test_core_lib.html) for the config files and for sharing one instance across test files.
+`HelloApp` and `User` come from the [one-file example](index.html#a-complete-core-lib-app-in-one-file), and `tests/config/test_config.yaml` holds the same keys as its config: `db: {create_db: true, url: {protocol: sqlite}}`. See [Testing Core-Lib](test_core_lib.html) for larger configs, fake clients, and sharing one instance across test files.
 
 ---
 

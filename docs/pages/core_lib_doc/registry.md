@@ -8,7 +8,7 @@ toc: false
 ---
 Core-Lib needs to look up named instances at runtime — the right cache backend, the right observer, the right connection — without hard-coding them in business logic. `Registry` is the base class for all of these lookups: a typed key-value store where you register instances by name and retrieve them by key. Called with no key, `get()` returns the default entry, or the first registered one if no default was set.
 
-> **Where it fits:** Infrastructure. `CacheRegistry`, `ObserverRegistry` and `ConnectionFactoryRegistry` all build on `DefaultRegistry`. You'll mostly use them through the class attributes `CoreLib.cache_registry`, `CoreLib.observer_registry` and `CoreLib.connection_factory_registry` when wiring backends in `CoreLib.__init__`. Class attributes means one of each per process, shared by every `CoreLib` in it, so guard each registration (see [The CoreLib Class](core_lib_main_class.html#why-only-one-per-process)).
+> **Where it fits:** Infrastructure. `CacheRegistry`, `ObserverRegistry` and `ConnectionFactoryRegistry` all build on `DefaultRegistry`. You'll mostly use them through the class attributes `CoreLib.cache_registry`, `CoreLib.observer_registry` and `CoreLib.connection_factory_registry` when wiring backends in `CoreLib.__init__`. Because they are class attributes, there is one of each per process, shared by every `CoreLib` in it, so guard each registration (see [The CoreLib Class](core_lib_main_class.html#why-only-one-per-process)).
 
 ## Registry types
 
@@ -209,7 +209,7 @@ print(first is second)                                   # True
 print(CoreLib.connection_factory_registry.registered())  # ['main_db']
 ```
 
-In a `CoreLib` subclass this is one line: `db = CoreLib.connection_factory_registry.get_or_reg(config.core_lib.your_core_lib.data.db)`, with the same keys in your YAML.
+In a `CoreLib` subclass this is one line, `db = CoreLib.connection_factory_registry.get_or_reg(config.core_lib.your_core_lib.data.db)`, where that YAML block holds the same `_instance_key_`, `_target_` and `config` keys.
 
 <div style="margin-top:2em">
     <button class="pagePrevious-btn"><a href="core_lib_main_class.html">Previous</a></button>

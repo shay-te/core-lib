@@ -19,7 +19,7 @@ A short reference for terms used throughout these docs. Familiarity with most of
 
 **`Client`** — A class that wraps one external HTTP API. Subclasses `ClientBase`. See [Client Base](client_base.html).
 
-**`Job`** — A background or scheduled task, declared in YAML. `CoreLib.load_jobs()` builds each job from its config and schedules it. If you map the job's name to a handler (usually your `CoreLib`), the job receives it in `initialized(data_handler)` and calls its services from `run()`, which the scheduler triggers. See [Job](job.html).
+**`Job`** — A background or scheduled task, declared in YAML. `CoreLib.load_jobs()` builds each job from its config (constructor arguments come from the YAML) and schedules it. Map the job's name to a handler, usually your `CoreLib`, and the job receives it in `initialized(data_handler)`. The scheduler then calls `run()`, which calls the handler's services. See [Job](job.html).
 
 **`Connection`** — A context manager (`with conn.get() as session:`) that handles the open / commit / close lifecycle for a data source. Each backend has its own factory class. See [Connection](connection.html).
 

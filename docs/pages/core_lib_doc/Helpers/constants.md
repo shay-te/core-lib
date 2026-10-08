@@ -7,9 +7,13 @@ folder: core_lib_doc
 toc: false
 ---
 
-Hardcoded strings like `"application/json"` or `"Content-Type"` scattered through service code are error-prone and hard to refactor. These enums centralize the common HTTP and time constants so your code stays readable and typo-free.
+Enums for strings that HTTP code repeats: MIME types (`MediaType`), HTTP methods (`HttpMethod`) and header names (`HttpHeaders`), plus a `TimeUnit` enum. Writing `HttpHeaders.CONTENT_TYPE.value` instead of `'Content-Type'` turns a typo into an `AttributeError` instead of a header nobody reads.
 
-> **Where it fits:** Cross-cutting. Use anywhere HTTP/MIME/time strings appear — most often in the web layer and in `Client` subclasses.
+> **Optional utility.** You can use Core-Lib without these. The one place Core-Lib itself expects them is the [web helpers](web.html), which take a `MediaType` member for the response content type.
+>
+> **Where it fits:** Anywhere HTTP strings appear, most often in web routes and in `Client` subclasses.
+
+These are plain `enum.Enum` classes, not string enums. A member is not equal to its string (`MediaType.APPLICATION_JSON == 'application/json'` is `False`), so use `.value` wherever a string is expected.
 
 *core_lib.helpers.constants* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/constants.py){:target="_blank"}
 
@@ -45,9 +49,33 @@ from core_lib.helpers.constants import MediaType
 **Example**
 
 ```python
-from core_lib.helpers.constants import MediaType
+from core_lib.helpers.constants import HttpHeaders, MediaType
 
-response.headers['Content-Type'] = MediaType.APPLICATION_JSON.value
+headers = {HttpHeaders.CONTENT_TYPE.value: MediaType.APPLICATION_JSON.value}
+print(headers)  # {'Content-Type': 'application/json'}
+```
+
+Core-Lib's web helpers take the member itself, not `.value`:
+
+```python
+from flask import Flask
+
+from core_lib.helpers.constants import HttpHeaders, MediaType
+from core_lib.web_helpers.request_response_helpers import response_download_content
+from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+
+WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/report')
+def report():
+    return response_download_content(b'report bytes', MediaType.APPLICATION_PDF, 'report.pdf')
+
+
+response = flask_app.test_client().get('/report')
+print(response.headers[HttpHeaders.CONTENT_TYPE.value])         # application/pdf
+print(response.headers[HttpHeaders.CONTENT_DISPOSITION.value])  # attachment; filename="report.pdf"
 ```
 
 ## HttpMethod
@@ -70,12 +98,13 @@ from core_lib.helpers.constants import HttpMethod
 ```python
 from core_lib.helpers.constants import HttpMethod
 
-method = HttpMethod.GET.value  # 'GET'
+method = HttpMethod.GET.value
+print(method)  # GET
 ```
 
 ## HttpHeaders
 
-Common HTTP header name strings for use with `request.headers` or response builders.
+Common HTTP header names, for reading request headers or building response headers.
 
 ```python
 from core_lib.helpers.constants import HttpHeaders
@@ -108,17 +137,20 @@ from core_lib.helpers.constants import HttpHeaders
 | `CONTENT_RANGE` | `Content-Range` |
 | `CONTENT_TYPE` | `Content-Type` |
 
+`HttpHeaders.ACCEPT_RANGERS` (an old misspelling) still works. It is an alias of `ACCEPT_RANGES`: the same member, so `HttpHeaders.ACCEPT_RANGERS is HttpHeaders.ACCEPT_RANGES` is `True` and its `.name` is `'ACCEPT_RANGES'`. Use `ACCEPT_RANGES` in new code.
+
 **Example**
 
 ```python
-from core_lib.helpers.constants import HttpHeaders
+from core_lib.helpers.constants import HttpHeaders, MediaType
 
-content_type = request.headers.get(HttpHeaders.CONTENT_TYPE.value)
+request_headers = {HttpHeaders.ACCEPT.value: MediaType.APPLICATION_JSON.value}
+print(request_headers)  # {'Accept': 'application/json'}
 ```
 
 ## TimeUnit
 
-Named time-unit constants used by cache TTL and scheduling configuration.
+An integer-coded time-unit enum, provided for your own code. **Nothing in Core-Lib reads it.** Do not pass it where Core-Lib expects a duration: `@Cache(expire=...)` takes a `timedelta` or a string such as `'1 hour'` (see [Cache](cache.html)), and job `initial_delay` / `frequency` are strings such as `'5m'` (see [Jobs](job.html)). `@Cache(expire=TimeUnit.HOUR)` does not work: with the RAM cache handler, the second call to the method raises `TypeError`.
 
 ```python
 from core_lib.helpers.constants import TimeUnit
@@ -139,7 +171,8 @@ from core_lib.helpers.constants import TimeUnit
 ```python
 from core_lib.helpers.constants import TimeUnit
 
-ttl_unit = TimeUnit.HOUR
+print(TimeUnit.HOUR.value)  # 103
+print(TimeUnit(103))        # TimeUnit.HOUR
 ```
 
 <div style="margin-top:2em">

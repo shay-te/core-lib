@@ -3,12 +3,11 @@
 entries:
     - title: sidebar
       product: Core-Lib Documentation
-      version: 0.1.0
       folders:
-          - title: Overview
+          - title: Start here
             output: web
             folderitems:
-                - title: Getting started
+                - title: What is Core-Lib?
                   url: /index.html
                   output: web
                   type: homepage
@@ -44,7 +43,7 @@ entries:
                   url: /rules_validator.html
                   output: web
 
-          - title: Command Line
+          - title: Command Line (optional)
             output: web
             folderitems:
                 - title: Migrations
@@ -55,21 +54,21 @@ entries:
                   url: /generation.html
                   output: web
 
-          - title: Cache
+          - title: Cache (optional)
             output: web
             folderitems:
                 - title: Cache
                   url: /cache.html
                   output: web
 
-          - title: Job
+          - title: Jobs
             output: web
             folderitems:
                 - title: Job
                   url: /job.html
                   output: web
 
-          - title: Middleware
+          - title: Middleware (optional)
             output: web
             folderitems:
                 - title: Middleware
@@ -148,7 +147,7 @@ entries:
                   url: /error_handler.html
                   output: web
 
-          - title: Helpers
+          - title: Utilities (optional)
             output: web
             folderitems:
                 - title: Data Transform Helpers
@@ -202,7 +201,7 @@ entries:
                   url: /test_core_lib.html
                   output: web
 
-          - title: Observer
+          - title: Events (optional)
             output: web
             folderitems:
                 - title: Observer
@@ -213,14 +212,14 @@ entries:
                   url: /core_lib_listener.html
                   output: web
 
-          - title: Session
+          - title: Login Sessions (Flask/Django)
             output: web
             folderitems:
                 - title: User Security
                   url: /user_security.html
                   output: web
 
-          - title: Web Helpers
+          - title: Web Helpers (Flask/Django)
             output: web
             folderitems:
                 - title: HandleException Decorator

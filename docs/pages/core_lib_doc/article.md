@@ -10,4 +10,4 @@ published: false
 
 > **Archived.** This unpublished draft is kept only for history.
 
-Use [Getting Started](index.html) for the current introduction to Core-Lib.
+Use [What is Core-Lib?](index.html) for the current introduction to Core-Lib.

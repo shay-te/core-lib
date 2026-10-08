@@ -64,7 +64,7 @@ class YourCoreLib(CoreLib):
 
 A route, job, script or test then calls `your_core_lib.user.get(user_id)`. It never sees the database session.
 
-These are the three classes it wires, one file each. They do the same job as the classes in the home page example:
+These are the three classes it wires, one file per class:
 
 ```python
 # your_core_lib/data_layers/data/db/entities/user.py
@@ -143,7 +143,7 @@ The YAML is loaded with [Hydra](https://hydra.cc/){:target="_blank"}, which `pip
 
 ## 3. Create it once per process
 
-Build the object once, when the process starts, and have every route and job use that same object. Do not build it per request. The holder below does that. `core_lib generate` writes this file for you as `your_core_lib_instance.py` (see [Generation](generation.html)). The `start_core_lib()` line is the one addition here; the generated file leaves it out.
+Build the object once, when the process starts, and have every route and job use that same object. Do not build it per request. The holder below does that. `core_lib generate` writes this file for you as `your_core_lib_instance.py` (see [Generation](generation.html)); this page adds one line to it, the `start_core_lib()` call.
 
 ```python
 # your_core_lib_instance.py
@@ -226,7 +226,15 @@ if __name__ == '__main__':
     main()
 ```
 
-`python main.py` prints `{'id': 1, 'name': 'Jane'}` on the first run. The id grows on each run, because the SQLite file keeps its rows.
+The first run prints:
+
+```text
+$ python main.py
+[2026-10-08 09:45:34,014][core_lib.core_lib][INFO] - Starting CoreLib `YourCoreLib`
+{'id': 1, 'name': 'Jane'}
+```
+
+The first line is the log line `start_core_lib()` writes (Hydra turns on INFO logging). The id grows on each run, because the SQLite file keeps its rows.
 
 `@hydra.main` reads the YAML, applies command-line overrides and passes the result to `main()`. For example, `python main.py core_lib.your_core_lib.data.db.url.file=other.db` uses a different database file. Hydra also writes a log and a copy of the config for each run under `outputs/<date>/<time>/`. That is Hydra's default behaviour, not something Core-Lib adds.
 
@@ -278,7 +286,7 @@ The routes only read the request, call the service and return the result. `confi
 
 ### Django
 
-Django's place for startup code is `AppConfig.ready()`:
+Django's place for startup code is `AppConfig.ready()`. Creating the object in a module that your views import also works, since Python imports a module once per process. Here is the `ready()` version:
 
 ```python
 # users/apps.py

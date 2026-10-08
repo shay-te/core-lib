@@ -77,7 +77,7 @@ if __name__ == '__main__':
     print(hello_app.user.greet(jane[User.id.key]))   # Hello, Jane!
 ```
 
-Run `python hello_core_lib.py`. It prints `Hello, Jane!`, using an in-memory SQLite database: no server, no Docker, no config files.
+Run `python hello_core_lib.py`. It prints `Hello, Jane!`, using an in-memory SQLite database: no server, no Docker, no config files. The `if __name__ == '__main__':` guard lets a web app or a test import `HelloApp` without running the demo.
 
 What Core-Lib did for you here: `CRUDDataAccess` gave `UserDataAccess` its `create`, `get`, `update` and `delete`; `SqlAlchemyConnectionFactory` created the tables and opened, committed and closed a session for every call; `@ResultToDict()` turned the new row into a plain dict.
 
@@ -122,8 +122,8 @@ Moving from Flask to FastAPI means rewriting the route functions, and nothing be
 `Service` and `DataAccess` are empty base classes; the structure is a convention, not something the library checks. The code you get is the plumbing around it:
 
 - **Connections:** factories for SQLAlchemy, MongoDB, Solr, Neo4j and Elasticsearch that manage the session lifecycle (`with db.get() as session:`).
-- **Data access:** `CRUDDataAccess`, plus soft-delete variants.
-- **Services:** `@Cache` (RAM, Memcached and Redis handlers), `@ResultToDict()`, `@NotFoundErrorHandler()`, `@DuplicateErrorHandler()`, `StatusCodeException`, `RuleValidator`, observer events.
+- **Data access:** `CRUDDataAccess`, plus soft-delete variants, and `RuleValidator` for the fields a caller may write.
+- **Services:** `@Cache` (RAM, Memcached and Redis handlers), `@ResultToDict()`, `@NotFoundErrorHandler()`, `@DuplicateErrorHandler()`, `StatusCodeException`, observer events.
 - **Wiring:** `instantiate_config`, which builds the class named by `_target_` in YAML (Hydra).
 - **Jobs:** background and scheduled jobs declared in YAML.
 - **Web:** Flask and Django helpers for JSON responses, login checks, error handling and JWT sessions.
@@ -136,7 +136,7 @@ You can, and for a script or a small app you should. Core-Lib does not replace t
 
 ## Why not just do this with discipline?
 
-You can do that too: the pattern is plain constructor injection, and Core-Lib does not stop a service from importing `flask.request`. What it saves you is writing and maintaining the plumbing listed above. If you need none of it, plain constructor injection is enough. The docs show [the same service with and without Core-Lib](https://shay-te.github.io/core-lib/index.html#why-not-just-do-this-with-discipline-without-the-library).
+You can do that too: the pattern is plain constructor injection, and Core-Lib does not stop a service from importing `flask.request`. What it saves you is writing and maintaining the plumbing listed above. If you need none of it, plain constructor injection is enough. The docs show [the same app with and without Core-Lib](https://shay-te.github.io/core-lib/index.html#why-not-just-do-this-with-discipline-without-the-library), and a worked example of [adding an enterprise tier](https://shay-te.github.io/core-lib/advantages.html#adding-an-enterprise-tier) by deploying the same code with a different YAML file.
 
 ## The cost
 

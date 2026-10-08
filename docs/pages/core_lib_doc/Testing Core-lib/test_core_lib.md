@@ -7,7 +7,9 @@ folder: core_lib_doc
 toc: false
 ---
 
-Tests should boot the same `CoreLib` class your app uses in production, but with test wiring: SQLite instead of Postgres, mocks instead of real HTTP clients, and clean global registries between runs.
+Tests should build the same `CoreLib` class your app uses in production, with test wiring: in-memory SQLite instead of Postgres, and a mock instead of a real HTTP client. The services, data access classes and decorators under test stay the real ones.
+
+What Core-Lib adds here is small. `load_core_lib_config()` is a short helper that clears the process-wide cache and observer registries and Hydra's global state, then loads your test config. The rest of this page is a pattern: one override file that swaps the database and the clients, shown on a small project you can copy and run.
 
 > **Where it fits:** Testing harness. Tests construct your `CoreLib` from a test config and call its Services directly — the same way a web route or job would in production.
 
@@ -15,7 +17,7 @@ Tests should boot the same `CoreLib` class your app uses in production, but with
 
 *core_lib.helpers.test.load_core_lib_config()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/test.py){:target="_blank"}
 
-Every test that creates a `CoreLib` instance needs a clean slate — no stale cache or observer registrations from a previous test, and a freshly initialized Hydra config. `load_core_lib_config()` does all of this in one call.
+Every test that creates a `CoreLib` instance needs a clean slate: no cache handlers or observers left registered by an earlier test, and a freshly initialized Hydra. `load_core_lib_config()` does both in one call.
 
 ```python
 def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_stack_depth: int = 2):
@@ -23,9 +25,9 @@ def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_sta
 
 **Arguments**
 
-- **`path`** *`(str)`*: Path to the config directory, relative to the calling file.
+- **`path`** *`(str)`*: Path to the config directory, **relative to the file that calls `load_core_lib_config()`**, not to the working directory. From `tests/test_user.py`, `'./config'` means `tests/config/`.
 - **`config_file`** *`(str)`*: Default `'config.yaml'`. Name of the config file to load.
-- **`caller_stack_depth`** *`(int)`*: Default `2`. Passed to `hydra.initialize` to resolve the config path relative to the caller's location.
+- **`caller_stack_depth`** *`(int)`*: Default `2`. Passed to `hydra.initialize` to find the calling file. Leave it as is.
 
 **Returns**
 
@@ -34,113 +36,172 @@ def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_sta
 **Example**
 
 ```python
+# tests/test_user.py
 from core_lib.helpers.test import load_core_lib_config
 
-config = load_core_lib_config('./tests/config', 'test_config.yaml')
-core_lib = YourCoreLib(config)
+config = load_core_lib_config('./config', 'test_config.yaml')  # loads tests/config/test_config.yaml
+user_core_lib = UserCoreLib(config)
 ```
 
-What it does internally:
-1. Unregisters all keys from `CoreLib.cache_registry` and `CoreLib.observer_registry`
-2. Clears the global Hydra state
+What it does:
+1. Unregisters every key from `CoreLib.cache_registry` and `CoreLib.observer_registry`
+2. Clears Hydra's global state
 3. Initializes Hydra with the given config path
 4. Returns the composed config
 
+It does not reset `CoreLib.connection_factory_registry` or `CoreLib.scheduler`. Hydra prints a `version_base` warning when it loads the config; it is harmless.
+
 ---
 
-## DataAccess
+## The example project
 
-`DataAccess` wraps database queries. In tests, you usually keep the real `DataAccess` and swap only the database connection to SQLite.
+The rest of the page builds this project. Every folder except `tests/config/` holds an empty `__init__.py`, so `user_core_lib` and `tests` import as packages. Run the tests from `user_project/`.
 
-### `user_data_access.py`
+```text
+user_project/
+├── user_core_lib/
+│   ├── user_core_lib.py               # UserCoreLib: the wiring
+│   ├── client/
+│   │   └── user_client.py             # UserClient: HTTP calls to a remote user directory
+│   ├── config/
+│   │   └── user_core_lib.yaml         # production config
+│   └── data_layers/
+│       ├── data/db/entities/user.py   # User
+│       ├── data_access/user_data_access.py
+│       └── service/user_service.py
+└── tests/
+    ├── config/
+    │   ├── test_config.yaml           # what the tests load
+    │   └── test_config_override.yaml  # what the tests change
+    ├── user_client_mock.py            # UserClientMock: replaces UserClient
+    └── test_user.py
+```
+
+## The app
+
+### Entity and DataAccess
+
+`DataAccess` wraps database queries. Tests keep the real one; only the database behind it changes.
 
 ```python
-from http import HTTPStatus
+# user_core_lib/data_layers/data/db/entities/user.py
+from sqlalchemy import Column, INTEGER, VARCHAR
 
-from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
+from core_lib.data_layers.data.db.sqlalchemy.base import Base
+
+
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(INTEGER, primary_key=True, autoincrement=True)
+    name = Column(VARCHAR(length=255), nullable=False)
+    contact = Column(VARCHAR(length=255), nullable=False)
+```
+
+```python
+# user_core_lib/data_layers/data_access/user_data_access.py
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
-from core_lib.error_handling.status_code_exception import StatusCodeException
-from user_core_lib.data_layers.data.db.user import User
-from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
+from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
+
+from user_core_lib.data_layers.data.db.entities.user import User
 
 
 class UserDataAccess(CRUDDataAccess):
     def __init__(self, db: SqlAlchemyConnectionFactory):
-        CRUDDataAccess.__init__(self, User, db)
+        super().__init__(User, db)
 ```
 
-## Service
+### Client
 
-`Service` is the business API your tests call. It receives `DataAccess` and `Client` dependencies from `CoreLib.__init__`, just like it does in production.
-
-### `user_service.py`
+The client calls a remote user directory over HTTP. In tests it is replaced by a mock.
 
 ```python
-from core_lib.data_transform.result_to_dict import ResultToDict
+# user_core_lib/client/user_client.py
+from core_lib.client.client_base import ClientBase
+
+
+class UserClient(ClientBase):
+    """Talks to a remote user directory over HTTP. Returns plain dicts, not Response objects."""
+
+    def get(self, user_id: int) -> dict:
+        return self._get(f'/user/{user_id}').json()
+
+    def create(self, data: dict) -> dict:
+        return self._post('/user', json=data).json()
+```
+
+### Service
+
+`UserService` is the business API your tests call. It receives the DataAccess and the client from `UserCoreLib.__init__`, the same way in production and in tests. `import_user()` uses both.
+
+```python
+# user_core_lib/data_layers/service/user_service.py
 from core_lib.data_layers.service.service import Service
+from core_lib.data_transform.result_to_dict import ResultToDict
+
+from user_core_lib.client.user_client import UserClient
+from user_core_lib.data_layers.data.db.entities.user import User
 from user_core_lib.data_layers.data_access.user_data_access import UserDataAccess
 
 
 class UserService(Service):
-    def __init__(self, data_access: UserDataAccess):
-        self.data_access = data_access
+    def __init__(self, user_da: UserDataAccess, user_client: UserClient):
+        self._user_da = user_da
+        self._user_client = user_client
 
     @ResultToDict()
-    def create(self, user_data: dict):
-        return self.data_access.create(user_data)
+    def create(self, name: str, contact: str):
+        return self._user_da.create({User.name.key: name, User.contact.key: contact})
 
     @ResultToDict()
     def get(self, user_id: int):
-        return self.data_access.get(user_id)
+        return self._user_da.get(user_id)  # raises a 404 StatusCodeException if there is no such user
 
-    def update(self, user_id: int, update: dict):
-        return self.data_access.update(user_id, update)
+    def update(self, user_id: int, data: dict):
+        self._user_da.update(user_id, data)
 
     def delete(self, user_id: int):
-        return self.data_access.delete(user_id)
-```
-## Config
+        self._user_da.delete(user_id)
 
-### `user_core_lib.yaml`
+    @ResultToDict()
+    def import_user(self, remote_user_id: int):
+        """Copy a user from the remote user directory into our database."""
+        remote_user = self._user_client.get(remote_user_id)
+        return self._user_da.create({User.name.key: remote_user['name'], User.contact.key: remote_user['contact']})
+```
+
+### Config and the `CoreLib` class
+
+This is the production config. The database is Postgres, with its connection details read from environment variables, and the client is the real `UserClient`.
 
 ```yaml
-# @package _global_
+# user_core_lib/config/user_core_lib.yaml
 core_lib:
   user_core_lib:
     data:
-      userdb:
-        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
-        config:
-            log_queries: false
-            create_db: true
-            session:
-                pool_recycle: 3200
-                pool_pre_ping: false
-            url:
-                file: ${oc.env:USERDB_DB}
-                protocol: postgresql
-                username: ${oc.env:USERDB_USER}
-                password: ${oc.env:USERDB_PASSWORD}
-                port: ${oc.env:USERDB_PORT}
-                host: ${oc.env:USERDB_HOST}
-    cache:
-        memory_cache:
-            _target_: core_lib.cache.cache_handler_ram.CacheHandlerRam
+      db:
+        log_queries: false
+        create_db: false              # production tables come from migrations
+        url:
+          protocol: postgresql
+          username: ${oc.env:USERDB_USER}
+          password: ${oc.env:USERDB_PASSWORD}
+          host: ${oc.env:USERDB_HOST}
+          port: ${oc.env:USERDB_PORT}
+          file: ${oc.env:USERDB_DB}   # the database name
     client:
       user_client:
-        _target_: user_core_lib.UserClient
-        base_url: https://example.com/
+        _target_: user_core_lib.client.user_client.UserClient
+        base_url: https://users.example.com/
 ```
 
-## Main Class
-This is where the app is wired: cache, database connection, data access, services, and external clients are all created once and exposed through the `CoreLib` instance.
-
-### `user_core_lib.py`
+`UserCoreLib` builds the connection, the client and the service once, and exposes the service as `user`:
 
 ```python
+# user_core_lib/user_core_lib.py
 from omegaconf import DictConfig
 
-from core_lib.client.client_base import ClientBase
+from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.config_instances import instantiate_config
 
@@ -148,222 +209,207 @@ from user_core_lib.data_layers.data_access.user_data_access import UserDataAcces
 from user_core_lib.data_layers.service.user_service import UserService
 
 
-class UserClient(ClientBase):
-    """Returns app-level dicts so callers don't unwrap Response objects."""
-    def get(self, user_id: int) -> dict:
-        return self._get(f'/user/{user_id}').json()
-
-    def create(self, data: dict) -> dict:
-        return self._post('/user', data).json()
-
-    def update(self, user_id: int, data: dict) -> dict:
-        return self._put(f'/user/{user_id}', data).json()
-
-    def delete(self, user_id: int) -> None:
-        self._delete(f'/user/{user_id}')
-
-
 class UserCoreLib(CoreLib):
-    def __init__(self, conf: DictConfig):
+    def __init__(self, config: DictConfig):
         super().__init__()
-        self.config = conf
-        CoreLib.cache_registry.register(
-            "memory_cache",
-            instantiate_config(conf.core_lib.user_core_lib.cache.memory_cache),
-        )
-        db_session = instantiate_config(conf.core_lib.user_core_lib.data.userdb)
-        self.user = UserService(UserDataAccess(db_session))
-        self.user_client = instantiate_config(conf.core_lib.user_core_lib.client.user_client)
+        self.config = config
+        db = SqlAlchemyConnectionFactory(config.core_lib.user_core_lib.data.db)
+        user_client = instantiate_config(config.core_lib.user_core_lib.client.user_client)  # the class named in _target_
+        self.user = UserService(UserDataAccess(db), user_client)
 ```
 
-## Initializing
-To test the same `CoreLib` with different infrastructure, create a test config that overrides only the parts that should change.
+`instantiate_config()` builds whatever class `_target_` names, passing it the other keys (`base_url`). That is what lets the test config swap in a different class. See [Instantiate Config](instantiate_config.html).
 
+## The test config
 
-The override drops in two replacements: SQLite for the database, and a Python mock for the HTTP client. The key paths under `core_lib:` **must match the main config exactly** — Hydra merges by path, so a typo here means the override silently doesn't apply.
-
-### `test_config_override.yaml`
+The test config loads the production config, then merges one override file on top. The override makes two changes: in-memory SQLite instead of Postgres, and `UserClientMock` instead of `UserClient`.
 
 ```yaml
-# @package _global_
+# tests/config/test_config_override.yaml
 core_lib:
   user_core_lib:
     data:
-      userdb:
-        _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
-        config:
-          log_queries: false
-          create_db: true
-          url:
-            protocol: sqlite     # in-memory SQLite instead of Postgres
+      db:
+        create_db: true          # create the tables at startup
+        url:
+          protocol: sqlite       # in-memory SQLite instead of Postgres
+          username: null         # clear the rest of the production URL (see below)
+          password: null
+          host: null
+          port: null
+          file: null
     client:
       user_client:
-        _target_: tests.test_user.UserClientMock   # mock instead of real HTTP client
-        base_url: https://example.com/
+        _target_: tests.user_client_mock.UserClientMock   # no network
 ```
 
-### `test_config.yaml`
+Hydra merges dictionaries key by key. Setting `protocol: sqlite` alone would keep `username`, `host` and the rest from the production URL: the test would fail with `Environment variable 'USERDB_DB' not found`, or, with the variables set, with `Invalid SQLite URL: sqlite://<user>:***@<host>:<port>/<database>`. So the override sets every other URL key to `null`. `base_url` is not overridden, so the mock receives the production value.
+
+The key paths under `core_lib:` must match the production config exactly. A typo does not raise an error; it adds a new key, and the override silently does not apply.
 
 ```yaml
+# tests/config/test_config.yaml
 defaults:
-  - user_core_lib
-  - test_config_override
+  - user_core_lib                  # the production config
+  - test_config_override           # the test changes, merged on top
+  - _self_
+
 hydra:
-  run:
-    dir: .
+  searchpath:
+    - pkg://user_core_lib.config   # where Hydra finds user_core_lib.yaml
 ```
 
-The test file uses an in-memory mock that returns the same shape of dict the real `UserClient` would return. Otherwise the test would fail at `user_data['id']` because `pass` returns `None`.
+`hydra.searchpath` adds the `user_core_lib/config/` package folder to the places Hydra looks for configs, so the production YAML is used as it is, not copied. Projects made by `core_lib generate` get a Hydra search path plugin in `hydra_plugins/` that does the same.
 
-### `tests/test_user.py`
+## The test
+
+The mock has the same methods as `UserClient`, backed by a dictionary instead of HTTP:
 
 ```python
-import unittest
+# tests/user_client_mock.py
 from core_lib.client.client_base import ClientBase
-from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.test import load_core_lib_config
-from user_core_lib.user_core_lib import UserCoreLib
 
 
 class UserClientMock(ClientBase):
-    """In-memory mock. Same method shapes as UserClient — but no network."""
-    _store: dict = {}
-    _next_id: int = 1
+    """Replaces UserClient in tests: the same methods, backed by a dict instead of HTTP."""
 
-    def __init__(self, base_url):
-        super().__init__(base_url)
-
-    def create(self, data: dict) -> dict:
-        record = {'id': UserClientMock._next_id, **data}
-        UserClientMock._store[record['id']] = record
-        UserClientMock._next_id += 1
-        return record
+    users = {}  # remote users by id; a test adds the ones it needs
 
     def get(self, user_id: int) -> dict:
-        return UserClientMock._store.get(user_id)
+        return UserClientMock.users[user_id]
 
-    def update(self, user_id: int, data: dict) -> dict:
-        UserClientMock._store[user_id].update(data)
-        return UserClientMock._store[user_id]
+    def create(self, data: dict) -> dict:
+        user = {'id': len(UserClientMock.users) + 1, **data}
+        UserClientMock.users[user['id']] = user
+        return user
+```
 
-    def delete(self, user_id: int) -> None:
-        UserClientMock._store.pop(user_id, None)
+```python
+# tests/test_user.py
+import unittest
+
+from core_lib.error_handling.status_code_exception import StatusCodeException
+from core_lib.helpers.test import load_core_lib_config
+
+from tests.user_client_mock import UserClientMock
+from user_core_lib.data_layers.data.db.entities.user import User
+from user_core_lib.user_core_lib import UserCoreLib
 
 
 class TestUserCoreLib(unittest.TestCase):
 
     def setUp(self):
-        config = load_core_lib_config('./tests/config', 'test_config.yaml')
-        self.core_lib = UserCoreLib(config)
+        config = load_core_lib_config('./config', 'test_config.yaml')  # tests/config, relative to this file
+        self.user_core_lib = UserCoreLib(config)  # a fresh in-memory database for every test
 
-    def test_user_service_round_trip(self):
-        # Goes through the real UserService + UserDataAccess against SQLite.
-        created = self.core_lib.user.create({'name': 'John', 'contact': '123456'})
-        user_id = created['id']
+    def test_user_round_trip(self):
+        # The real UserService and UserDataAccess, on SQLite.
+        john = self.user_core_lib.user.create('John', '123456')
+        user_id = john[User.id.key]
 
-        self.core_lib.user.update(user_id, {'name': 'John Doe'})
+        self.user_core_lib.user.update(user_id, {User.name.key: 'John Doe'})
 
-        fetched = self.core_lib.user.get(user_id)
-        self.assertEqual(fetched['name'], 'John Doe')
-        self.assertEqual(fetched['contact'], '123456')
+        fetched = self.user_core_lib.user.get(user_id)
+        self.assertEqual('John Doe', fetched[User.name.key])
+        self.assertEqual('123456', fetched[User.contact.key])
 
-        self.core_lib.user.delete(user_id)
+        self.user_core_lib.user.delete(user_id)
         with self.assertRaises(StatusCodeException):
-            self.core_lib.user.get(user_id)
+            self.user_core_lib.user.get(user_id)
 
-    def test_external_client_is_mocked(self):
-        # Uses UserClientMock — no network call.
-        created = self.core_lib.user_client.create({'name': 'Jane', 'contact': '999'})
-        self.assertEqual(self.core_lib.user_client.get(created['id'])['name'], 'Jane')
+    def test_import_user(self):
+        # UserService calls its client. The test config swapped in UserClientMock, so no HTTP request is made.
+        UserClientMock.users[7] = {'id': 7, 'name': 'Jane', 'contact': '999'}
+
+        jane = self.user_core_lib.user.import_user(7)
+
+        self.assertEqual('Jane', self.user_core_lib.user.get(jane[User.id.key])[User.name.key])
 ```
 
-`load_core_lib_config('./tests/config', 'test_config.yaml')` reads `test_config.yaml`, which composes `user_core_lib.yaml` first then layers `test_config_override.yaml` on top. The SQLite URL and the mock target win. `create_db: true` means SQLAlchemy creates the tables on first connection — no migrations, no fixtures, no Docker.
+Run it from `user_project/` with `python -m unittest discover` or `pytest`. No environment variables, database server or network are needed: `test_config.yaml` loads `user_core_lib.yaml` and then `test_config_override.yaml`, so the SQLite URL and the mock win. `create_db: true` creates the tables when the connection is built, and because every test builds a new `UserCoreLib`, every test starts with an empty in-memory database.
+
+`test_import_user` goes through the real `UserService.import_user()`: the service calls its client, gets the mock's dict, and writes a real row to SQLite.
 
 ## Testing Multiple Services with a Shared Instance
 
-When you have multiple test files covering different services, recreating `Core-Lib` in every `setUp()` is slow and resets shared state. Instead, create a singleton instance once and reuse it across all test files.
-
-### `utils.py`
+Building the `CoreLib` in every `setUp()` is simple, but it repeats the startup work (connections, table creation) for every test. To build it once per test run instead, keep one shared instance in a small helper and have every test file use it. The trade-off: every test in the run shares one database, so a test should not assume an empty table or a particular id.
 
 ```python
+# tests/helpers/utils.py
 import os
 import threading
-import traceback
 
-import hydra
 from dotenv import load_dotenv
-from hydra.core.global_hydra import GlobalHydra
 
 from core_lib.core_lib import CoreLib
+from core_lib.helpers.test import load_core_lib_config
+
 from user_core_lib.user_core_lib import UserCoreLib
 
-threadLock = threading.Lock()
 
-class _Instance(object):
+class UserCoreLibInstance(object):
     instance = None
-    config = None
 
 
-def load_config():
-    if not _Instance.config:
-        path = os.path.join(os.path.dirname(__file__), '..', 'data')
-        load_dotenv(dotenv_path=os.path.join(path, '.env'))
-        GlobalHydra.instance().clear()
-        hydra.initialize(config_path=os.path.join('..', 'config'), caller_stack_depth=1)
-        _Instance.config = hydra.compose('config.yaml')
-    return _Instance.config
+_lock = threading.Lock()
 
 
 def get_core_lib() -> UserCoreLib:
-    threadLock.acquire()
-    try:
-        if not _Instance.instance:
-            [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
-            [CoreLib.observer_registry.unregister(key) for key in CoreLib.observer_registry.registered()]
-            _Instance.instance = UserCoreLib(load_config())
-            _Instance.instance.start_core_lib()
+    with _lock:  # build it only once, even if two tests start at the same time
+        if not UserCoreLibInstance.instance:
+            # Optional: environment variables your config reads with ${oc.env:...}.
+            load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+            config = load_core_lib_config('../config', 'test_config.yaml')  # tests/config, relative to this file
+            UserCoreLibInstance.instance = UserCoreLib(config)
+            UserCoreLibInstance.instance.start_core_lib()
+
+        # Empty every registered cache, so a value cached by one test is not seen by the next.
         for key in CoreLib.cache_registry.registered():
             CoreLib.cache_registry.get(key).flush_all()
-    except BaseException as e:
-        print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
-        raise e
-    finally:
-        threadLock.release()
-    return _Instance.instance
+    return UserCoreLibInstance.instance
 ```
 
-Each test file calls `get_core_lib()` in `setUp()` — the instance is created once and the cache is flushed between tests.
+`tests/helpers/` needs an empty `__init__.py` too. The config path is relative to `utils.py`, so `'../config'` is the same `tests/config/` folder as before.
 
-### `test_user.py`
+Each test file calls `get_core_lib()` in `setUp()`. The first call builds the instance; later calls reuse it and empty the caches.
 
 ```python
+# tests/test_user_service.py
 import unittest
-from tests.data.helpers.utils import get_core_lib
+
+from tests.helpers.utils import get_core_lib
+from user_core_lib.data_layers.data.db.entities.user import User
+
 
 class TestUserService(unittest.TestCase):
 
     def setUp(self):
-        self.core_lib = get_core_lib()
+        self.user_core_lib = get_core_lib()
 
-    def test_user_service(self):
-        user = self.core_lib.user.create({'name': 'Jane'})
-        self.assertEqual(self.core_lib.user.get(user['id'])['name'], 'Jane')
+    def test_create_and_get(self):
+        jane = self.user_core_lib.user.create('Jane', '555')
+        self.assertEqual('Jane', self.user_core_lib.user.get(jane[User.id.key])[User.name.key])
 ```
 
-### `test_customer.py`
-
 ```python
+# tests/test_user_import.py
 import unittest
-from tests.data.helpers.utils import get_core_lib
 
-class TestCustomerService(unittest.TestCase):
+from tests.helpers.utils import get_core_lib
+from tests.user_client_mock import UserClientMock
+from user_core_lib.data_layers.data.db.entities.user import User
+
+
+class TestUserImport(unittest.TestCase):
 
     def setUp(self):
-        self.core_lib = get_core_lib()
+        self.user_core_lib = get_core_lib()
 
-    def test_customer_service(self):
-        customer = self.core_lib.customer.create({'name': 'Acme'})
-        self.assertEqual(self.core_lib.customer.get(customer['id'])['name'], 'Acme')
+    def test_import_user(self):
+        UserClientMock.users[8] = {'id': 8, 'name': 'Bob', 'contact': '777'}
+        bob = self.user_core_lib.user.import_user(8)
+        self.assertEqual('Bob', bob[User.name.key])
+        self.assertEqual('777', bob[User.contact.key])
 ```
 
 More examples are available in the [Core-Lib repository](https://github.com/shay-te/core-lib){:target="_blank"}.

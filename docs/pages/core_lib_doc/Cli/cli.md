@@ -1,16 +1,14 @@
 ---
 id: cli
-title: Command Line (archived)
+title: Command Line
 sidebar: core_lib_doc_sidebar
 permalink: cli.html
 folder: core_lib_doc
 toc: false
-published: false
+search: exclude
 ---
 
-> **Archived.** This page is kept only for history and is not published.
+This page has moved. The `core_lib` command line tool is documented on two pages:
 
-Use the current command-line docs instead:
-
-- [Migrations](migrations.html)
-- [Generation](generation.html)
+- [Migrations](migrations.html): `core_lib migrate`, which runs and creates Alembic migrations.
+- [Generation](generation.html): `core_lib generate`, which creates a new Core-Lib project from a YAML file.

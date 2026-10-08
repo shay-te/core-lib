@@ -7,15 +7,17 @@ folder: core_lib_doc
 toc: false
 ---
 
-Validating input types is trickier than it looks — a string `"true"` isn't a Python `bool`, a string `"123"` isn't an `int`, and checking enum membership requires iterating values. These helpers handle the common edge cases and return a clean `bool`, so your validation logic stays simple.
+Small checks for values that often arrive as text, such as query-string parameters, form fields and config values. Most of them answer "**can this value be converted?**", not "is this already a Python `int`?" So `is_int('123')` is `True`, and so is `is_int(3.7)`. Each function below says exactly what it accepts.
 
-> **Where it fits:** Service or DataAccess helper. Use at the layer where you first turn untrusted input (request body, query string, config) into typed values.
+> **Optional utility.** You can use Core-Lib without them. Each one is a few lines over `int()`, `float()`, a regular expression or an `Enum` lookup, wrapped so it returns `True`/`False` instead of raising. To check a whole dict of fields (allowed keys, types, custom rules) before it reaches a DataAccess, use the [Rule Validator](rules_validator.html) instead.
+>
+> **Where it fits:** Where you first read untrusted input: a web route or the Service method it calls.
 
 ## Functions
 
 ### is_bool()
 
-*core_lib.helpers.validation.is_bool()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L10){:target="_blank"}
+*core_lib.helpers.validation.is_bool()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L12){:target="_blank"}
 
 Returns `True` if the value is a Python `bool`, or the string `"true"` / `"false"` (case-insensitive). Returns `False` for anything else.
 
@@ -48,7 +50,7 @@ print(is_bool(1))         # False
 
 *core_lib.helpers.validation.is_float()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L18){:target="_blank"}
 
-Returns `True` if `val` is a `float`.
+Returns `True` if `float(val)` succeeds. That includes ints, booleans, numeric strings such as `'1.5'` or `'1e3'`, and the strings `'nan'` and `'inf'`. Returns `False` for `None` and for strings that are not numbers.
 
 ```python
 def is_float(val) -> bool:
@@ -60,22 +62,25 @@ def is_float(val) -> bool:
 
 **Returns**
 
-*`(bool)`*: Return True or False based upon the validation.
+*`(bool)`*: `True` if `val` can be converted with `float()`.
 
 **Example**
 
 ```python
 from core_lib.helpers.validation import is_float
 
-print(is_float(14.456)) # True
-print(is_float("string")) # False
+print(is_float(14.456))    # True
+print(is_float('1.5'))     # True
+print(is_float(14))        # True
+print(is_float('string'))  # False
+print(is_float(None))      # False
 ```
 
 ### is_int()
 
 *core_lib.helpers.validation.is_int()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L28){:target="_blank"}
 
-Returns `True` if `val` is an `int`.
+Returns `True` if `int(val)` succeeds. That includes ints, booleans, strings of digits such as `'123'`, and floats, which `int()` truncates (`is_int(3.7)` is `True`). Returns `False` for `None`, for strings that are not whole numbers (`'3.7'`, `'abc'`) and for infinity. If you need "is already an `int`", use `isinstance(val, int)`.
 
 ```python
 def is_int(val) -> bool:
@@ -87,63 +92,66 @@ def is_int(val) -> bool:
 
 **Returns**
 
-*`(bool)`*: Return True or False based upon the validation.
+*`(bool)`*: `True` if `val` can be converted with `int()`.
 
 **Example**
 
 ```python
 from core_lib.helpers.validation import is_int
 
-print(is_int(14)) # True
-print(is_int("string")) # False
+print(is_int(14))        # True
+print(is_int('123'))     # True
+print(is_int(3.7))       # True, int(3.7) is 3
+print(is_int('3.7'))     # False
+print(is_int('string'))  # False
 ```
 
 ### is_email()
 
-*core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L41){:target="_blank"}
+*core_lib.helpers.validation.is_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L66){:target="_blank"}
 
-Returns `True` if `email` is a syntactically valid email address.
+Returns `True` if `email` matches a lightweight regular expression: something before `@`, then a domain that ends in a dot and at least two letters. It is a quick sanity check, not a full RFC 5322 validator: it accepts some invalid addresses (`'a b@x.com'`, with a space) and rejects some valid ones (`'user@localhost'`, no dot in the domain). Returns `False` for `None` or an empty string.
 
 ```python
-def is_email(email: str) -> bool:
+def is_email(email: Optional[str]) -> bool:
 ```
 
 **Arguments**
 
-- **`email`** *`(str)`*: Value to validate.
+- **`email`** *`(str or None)`*: Value to validate.
 
 **Returns**
 
-*`(bool)`*: Return True or False based upon the validation.
+*`(bool)`*: `True` if `email` matches the pattern.
 
 **Example**
 
 ```python
 from core_lib.helpers.validation import is_email
 
-print(is_email('example.firstname-lastname@email.com')) # True
-print(is_email("<asd>>@strange.com")) # False
+print(is_email('example.firstname-lastname@email.com'))  # True
+print(is_email('<asd>>@strange.com'))                    # False
+print(is_email(None))                                    # False
 ```
 
 ### is_int_enum()
 
-*core_lib.helpers.validation.is_int_enum()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L48){:target="_blank"}
+*core_lib.helpers.validation.is_int_enum()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L72){:target="_blank"}
 
-Returns `True` if `int_value` is a value of one of the `enum` members.
-
+Returns `True` if `enum(int_value)` succeeds, that is, if `int_value` is the value of one of the members. Despite the name, it works for any `Enum`, including one with string values (`is_int_enum('red', Color)` is `True`). The value must match exactly: `'1'` is not `1`.
 
 ```python
-def is_int_enum(int_value: int, enum: IntEnum) -> bool:
+def is_int_enum(int_value: Optional[int], enum: object) -> bool:
 ```
 
 **Arguments**
 
-- **`int_value`** *`(int)`*: Value to validate.
-- **`enum`** *`(IntEnum)`*: Enum class to validate from.
+- **`int_value`**: Value to look up.
+- **`enum`** *`(Enum class)`*: The enum class to look it up in.
 
 **Returns**
 
-*`(bool)`*: Return True or False based upon the validation.
+*`(bool)`*: `True` if `int_value` is a member's value.
 
 **Example**
 
@@ -151,48 +159,49 @@ def is_int_enum(int_value: int, enum: IntEnum) -> bool:
 from core_lib.helpers.validation import is_int_enum
 import enum
 
-class MyEnum(enum.Enum):
-    one = 1
-    two = 2
-    three = 3
+class Status(enum.Enum):
+    ACTIVE = 1
+    BANNED = 2
 
-print(is_int_enum(MyEnum.one.value, MyEnum)) # True
-print(is_int_enum(11, MyEnum)) # False
+print(is_int_enum(1, Status))    # True
+print(is_int_enum(11, Status))   # False
+print(is_int_enum('1', Status))  # False
 ```
 
 ### is_url()
 
-*core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L55){:target="_blank"}
+*core_lib.helpers.validation.is_url()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L102){:target="_blank"}
 
-Returns `True` if `url` is a syntactically valid URL.
-
+Returns `True` for an `http://` or `https://` URL whose host is a domain name, `localhost` or an IPv4 address, with an optional port and path. Other schemes (`ftp://`, `mailto:`) and URLs without a scheme (`example.com`) return `False`, as do `None` and an empty string.
 
 ```python
-def is_url(url: str) -> bool:
+def is_url(url: Optional[str]) -> bool:
 ```
 
 **Arguments**
 
-- **`url`** *`(str)`*: Value to validate.
+- **`url`** *`(str or None)`*: Value to validate.
 
 **Returns**
 
-*`(bool)`*: Return True or False based upon the validation.
+*`(bool)`*: `True` if `url` matches the pattern.
 
 **Example**
 
 ```python
 from core_lib.helpers.validation import is_url
 
-print(is_url('https://google.com')) # True
-print(is_url('not a.url')) # False
+print(is_url('https://google.com'))          # True
+print(is_url('http://localhost:8000/users'))  # True
+print(is_url('ftp://example.com/file'))      # False
+print(is_url('not a.url'))                   # False
 ```
 
 ### parse_comma_separated_list()
 
 *core_lib.helpers.validation.parse_comma_separated_list()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L79){:target="_blank"}
 
-Splits a comma-separated string into a list, strips whitespace around each item, and optionally applies a parser to each value. Returns an empty list for `None` or an empty string. If `value` is already a list it is passed through the same cleaning and parsing logic.
+Splits a comma-separated string into a list, strips whitespace around each item, drops empty items, and optionally applies a parser to each value. Returns an empty list for `None` or an empty string. If `value` is already a list it is passed through the same cleaning and parsing logic. An exception raised by `value_parser` is not caught.
 
 ```python
 def parse_comma_separated_list(value, value_parser: Optional[Callable[[str], ParsedValue]] = None) -> list:
@@ -212,17 +221,18 @@ def parse_comma_separated_list(value, value_parser: Optional[Callable[[str], Par
 ```python
 from core_lib.helpers.validation import parse_comma_separated_list
 
-parse_comma_separated_list("a, b, c")           # ['a', 'b', 'c']
-parse_comma_separated_list("1, 2, 3", int)      # [1, 2, 3]
-parse_comma_separated_list(None)                 # []
-parse_comma_separated_list("")                   # []
+print(parse_comma_separated_list('a, b, c'))       # ['a', 'b', 'c']
+print(parse_comma_separated_list('1, 2, 3', int))  # [1, 2, 3]
+print(parse_comma_separated_list('a,,b'))          # ['a', 'b']
+print(parse_comma_separated_list(None))            # []
+print(parse_comma_separated_list(''))              # []
 ```
 
 ### parse_int_list()
 
 *core_lib.helpers.validation.parse_int_list()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L98){:target="_blank"}
 
-Convenience wrapper around `parse_comma_separated_list` that converts each item to `int`. Use this when a query parameter or config value contains a comma-separated list of integers.
+Convenience wrapper around `parse_comma_separated_list` that converts each item to `int`. Use this when a query parameter or config value contains a comma-separated list of integers. If any item is not an integer, `int()` raises `ValueError`; in a web route, catch it and return a 400.
 
 ```python
 def parse_int_list(value) -> list:
@@ -241,9 +251,14 @@ def parse_int_list(value) -> list:
 ```python
 from core_lib.helpers.validation import parse_int_list
 
-parse_int_list("1, 2, 3")   # [1, 2, 3]
-parse_int_list("42")         # [42]
-parse_int_list(None)          # []
+print(parse_int_list('1, 2, 3'))  # [1, 2, 3]
+print(parse_int_list('42'))       # [42]
+print(parse_int_list(None))       # []
+
+try:
+    parse_int_list('1, x')
+except ValueError as error:
+    print(error)  # invalid literal for int() with base 10: 'x'
 ```
 
 <div style="margin-top:2em">
