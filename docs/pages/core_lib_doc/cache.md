@@ -108,6 +108,8 @@ core_lib:
 
 For Memcached, use `_target_: core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` with `url: cache.internal:11211` (host and port, no scheme). The second argument of `instantiate_config`, `CacheHandler`, makes it raise a `ValueError` if the YAML names a class that is not a cache handler.
 
+`PriceService` runs unchanged on all three handlers because `get` returns an `int` and sets `expire`. A method that returns an entity works on the in-memory handler but fails on Memcached and Redis, and a method without `expire` also fails on Redis (see [CacheHandler](#cachehandler)).
+
 ---
 
 *core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L35){:target="_blank"}

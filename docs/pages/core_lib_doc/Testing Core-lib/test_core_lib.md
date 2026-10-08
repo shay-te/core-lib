@@ -38,6 +38,7 @@ def load_core_lib_config(path: str, config_file: str = 'config.yaml', caller_sta
 ```python
 # tests/test_user.py
 from core_lib.helpers.test import load_core_lib_config
+from user_core_lib.user_core_lib import UserCoreLib
 
 config = load_core_lib_config('./config', 'test_config.yaml')  # loads tests/config/test_config.yaml
 user_core_lib = UserCoreLib(config)
@@ -243,7 +244,7 @@ core_lib:
         _target_: tests.user_client_mock.UserClientMock   # no network
 ```
 
-Hydra merges dictionaries key by key. Setting `protocol: sqlite` alone would keep `username`, `host` and the rest from the production URL: the test would fail with `Environment variable 'USERDB_DB' not found`, or, with the variables set, with `Invalid SQLite URL: sqlite://<user>:***@<host>:<port>/<database>`. So the override sets every other URL key to `null`. `base_url` is not overridden, so the mock receives the production value.
+Hydra merges dictionaries key by key. Setting `protocol: sqlite` alone would keep `username`, `host` and the rest from the production URL: with no `USERDB_*` variables set, the test would fail with `Environment variable 'USERDB_USER' not found`, and with them set, with `Invalid SQLite URL: sqlite://<user>:***@<host>:<port>/<database>`. So the override sets every other URL key to `null`. `base_url` is not overridden, so the mock receives the production value.
 
 The key paths under `core_lib:` must match the production config exactly. A typo does not raise an error; it adds a new key, and the override silently does not apply.
 
