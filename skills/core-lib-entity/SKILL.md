@@ -130,34 +130,33 @@ instrument on this without editing a line of library source?**
 1. Pick the table name and columns. Decide soft-delete strategy (see mixins).
 2. Create `data_layers/data/db/entities/<entity>.py` with one entity class.
 3. Use `INTEGER` (not `Integer`), `VARCHAR(length=...)`, and `IntEnum(...)` for
-   enum columns. Declare nested enums as plain `enum.Enum`.
-4. If the entity has a `UniqueConstraint` that must survive soft-delete +
-   re-insert, add `SoftDeleteTokenMixin` and scope the constraint to active
-   rows.
+   enum columns. Nest each enum inside the entity class, as a plain `enum.Enum`.
+4. Declare a unique key as `Index(NAME, ..., unique=True)`, never a
+   `UniqueConstraint`. If it must survive soft-delete + re-insert, add
+   `SoftDeleteTokenMixin` and include `deleted_at_token` in the index.
 
 ## Canonical template
 
 ```python
 import enum
 
-from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index, UniqueConstraint
+from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 
 
-class ThingKind(enum.Enum):      # SAME file, directly ABOVE the entity — not nested
-    ALPHA = 1                    # IntEnum-column values MUST start at 1, never 0 (§12)
-    BETA = 2
-
-
 class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
 
     __tablename__ = 'thing'                # singular
 
-    INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'      # every index/constraint name
+    INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'      # every index name
     INDEX_WORKSPACE_NAME = 'ix_thing_workspace_name'  # is a class constant
+
+    class ThingKind(enum.Enum):            # NESTED in its entity, read as Thing.ThingKind
+        ALPHA = 1                          # IntEnum-column values MUST start at 1, never 0 (§12)
+        BETA = 2
 
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     workspace_id = Column(INTEGER, ForeignKey('workspace.id'), nullable=False)
@@ -175,8 +174,8 @@ class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
 
 - `SoftDeleteMixin` → `created_at` / `updated_at` / `deleted_at`.
 - `+ SoftDeleteTokenMixin` → adds `deleted_at_token` (`0` = live). **Use it
-  whenever the table carries a UNIQUE constraint over business columns** — the
-  constraint is then declared over `(business_cols…, deleted_at_token)` so a
+  whenever the table carries a UNIQUE index over business columns** — the
+  index is then declared over `(business_cols…, deleted_at_token)` so a
   soft-deleted row stops colliding with a fresh insert.
 - Neither → hard-delete table.
 
@@ -210,13 +209,15 @@ The mixin choice decides the DataAccess base (§5).
 - **`INTEGER`, not `Integer`**; VARCHAR lengths always explicit
   (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
   dict payloads are `JSON` columns named `meta_data` (§4).
-- **The enum class is plain `enum.Enum`, in the same file directly ABOVE the
-  entity — not nested inside it.** Values for an `IntEnum(...)` column **must
-  start at 1, never 0** (§4, §12). Storage goes through the `IntEnum(...)`
-  column type; the Python type must not extend `int`.
+- **The enum class is plain `enum.Enum`, NESTED inside its entity class and
+  read as `Thing.ThingKind`** — never at module level beside it. Name it for
+  what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.
+  Values for an `IntEnum(...)` column **must start at 1, never 0** (§4, §12).
+  Storage goes through the `IntEnum(...)` column type; the Python type must
+  not extend `int`.
 - **Derive enum-based strings from `.name`, not `.value`** — e.g.
   `f'.{kind.name.lower()}'` (§4).
-- **Every index / unique constraint gets a class-constant name** referenced
+- **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals
   (`'workspace_id'`) (§4) — this file and the migrations are the **only** two

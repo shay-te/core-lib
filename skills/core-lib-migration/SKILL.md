@@ -69,8 +69,10 @@ def downgrade():
 ## Rules to enforce (§11)
 
 - **Reference the entity, not literals** — `Thing.__tablename__`,
-  `Thing.id.key`, and the entity's `INDEX_*` / `UQ_*` class constants. The
+  `Thing.id.key`, and the entity's `INDEX_*` class constants. The
   index name then exists in exactly one place (entity + migration agree).
+- A unique key is `op.create_index(Thing.INDEX_X, Thing.__tablename__, [...],
+  unique=True)`, never `sa.UniqueConstraint` (see `core-lib-entity`).
 - **No `alembic.ini`; no `alembic -c` CLI invocation** — go through the lib's
   `install()` / `uninstall()`.
 - **One migration while unreleased** — fold changes into `_1_create_db.py`.

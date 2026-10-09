@@ -624,7 +624,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
 - The DataAccess instance is private: `self._thing_da` on the CoreLib (or a local variable in `__init__` if nothing else needs it — the older libs do that) and `self._thing_da` on the service that owns it. It is NEVER a public attribute.
 - Cache key templates (current convention): `'<lib>_<entity>_{param}'`, e.g. `'foo_thing_{project_id}_{thing_id}'`, defined as module-level constants next to the service: `CACHE_KEY_DOCUMENT = '...'`. **(divergence: the older libs keys predate this scheme and live as class attributes — `CACHE_WORKFLOW_GET_{workflow_id}`, `custom_field_{id}`. New libs use the current convention’s shape.)**
-- Index/constraint name constants on the entity: `INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'` — `ix_<table>_<column>` for indexes (composite: `ix_<table>_<col1>_<col2>` or a meaningful pair name), `uq_<table>_<meaning>` for UNIQUE constraints (the current convention’s `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`). **(divergence: the older libs's older indexes use free-form literal names like `index_workflow_project_id` — old style, do not copy.)**
+- Index name constants on the entity: `INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'` — `ix_<table>_<column>` for indexes (composite: `ix_<table>_<col1>_<col2>` or a meaningful pair name), `uq_<table>_<meaning>` for unique indexes (the current convention’s `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`). **(divergence: the older libs's older indexes use free-form literal names like `index_workflow_project_id` — old style, do not copy.)**
 - Searchpath plugin: file `hydra_plugins/foo_core_lib/foo_core_lib_searchpath.py`, class `FooCoreLibSearchPathPlugin` (use the `...Plugin` suffix). **(divergence: the newest libs named theirs without the `Plugin` suffix; an older lib’s FILE is misnamed `*_sourcepath.py`. New libs: `_searchpath.py` file + `...SearchPathPlugin` class.)**
 - Module-level tuning constants are SCREAMING_SNAKE at the top of the service module (`EMPTY_TRASH_BATCH = 10_000`, `VIEW_URL_EXPIRES_SECONDS = 900`); add a comment when the value isn't self-explanatory (the presigned-URL lifetimes carry one).
 
@@ -795,16 +795,11 @@ def main(cfg):
 ```python
 import enum
 
-from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index, UniqueConstraint
+from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-
-
-class ThingKind(enum.Enum):
-    ALPHA = 1        # IntEnum-column enum values MUST start at 1 — never 0 (see §12)
-    BETA = 2
 
 
 class Thing(Base, SoftDeleteMixin):
@@ -813,6 +808,10 @@ class Thing(Base, SoftDeleteMixin):
 
     INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'
     INDEX_WORKSPACE_NAME = 'ix_thing_workspace_name'
+
+    class ThingKind(enum.Enum):
+        ALPHA = 1        # IntEnum-column enum values MUST start at 1 — never 0 (see §12)
+        BETA = 2
 
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     workspace_id = Column(INTEGER, ForeignKey('workspace.id'), nullable=False)
@@ -828,14 +827,15 @@ class Thing(Base, SoftDeleteMixin):
 
 Rules, each load-bearing:
 
-- **Inside the entity class body, `Index`/`UniqueConstraint` columns are STRING literals** (`'workspace_id'`), exactly as above and in every real entity — at class-body time `.key` on a just-declared Column is not usable. The `Entity.col.key` referencing style belongs to MIGRATIONS and query/service code (§11.3), not to `__table_args__`. A unique constraint on a token-mixin entity looks like: `UniqueConstraint('document_id', 'user_id', 'deleted_at_token', name=INDEX_DOCUMENT_USER)` with `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`.
+- **Inside the entity class body, `Index` columns are STRING literals** (`'workspace_id'`), exactly as above and in every real entity — at class-body time `.key` on a just-declared Column is not usable. The `Entity.col.key` referencing style belongs to MIGRATIONS and query/service code (§11.3), not to `__table_args__`. A unique key on a token-mixin entity looks like: `Index(INDEX_DOCUMENT_USER, 'document_id', 'user_id', 'deleted_at_token', unique=True)` with `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`.
+- **A unique key is `Index(NAME, 'col_a', 'col_b', unique=True)`, never `UniqueConstraint`** (`op.create_index(..., unique=True)` in the migration), as every entity in the older libs declares it. The database enforces both the same way, but an index changes with a plain drop and create on every database, while SQLite cannot alter a constraint without batch mode.
 - **Mixin choice decides the DataAccess base** (§5). `SoftDeleteMixin` gives `created_at`/`updated_at`/`deleted_at` (all Python-side `default=`, no `server_default`, forced to the end of the table via `_creation_order`). `SoftDeleteTokenMixin` adds ONLY `deleted_at_token` (Integer, default 0) — **an entity used with `CRUDSoftDeleteWithTokenDataAccess` needs BOTH mixins** (`class X(Base, SoftDeleteMixin, SoftDeleteTokenMixin)`), because the token delete stamps both `deleted_at` and `deleted_at_token`.
-- **Use the token mixin whenever the table carries a UNIQUE constraint over business columns.** The live-row marker is `deleted_at_token == 0`, so the unique constraint is declared over `(business_cols..., deleted_at_token)` — a soft-deleted row (token = deletion epoch) no longer collides with a re-created live row. **(divergence: the current convention’s `Workspace` has a unique `project_id` index with only `SoftDeleteMixin` — a delete-then-recreate on the same project collides with the dead row. Known latent gap; do not copy it into a new entity.)**
-- **Every index and unique constraint gets a class-constant name** referenced from `__table_args__` AND from the migration — the name exists in exactly one place.
+- **Use the token mixin whenever the table carries a UNIQUE index over business columns.** The live-row marker is `deleted_at_token == 0`, so the unique index is declared over `(business_cols..., deleted_at_token)` — a soft-deleted row (token = deletion epoch) no longer collides with a re-created live row. **(divergence: the current convention’s `Workspace` has a unique `project_id` index with only `SoftDeleteMixin` — a delete-then-recreate on the same project collides with the dead row. Known latent gap; do not copy it into a new entity.)**
+- **Every index, unique or not, gets a class-constant name** referenced from `__table_args__` AND from the migration — the name exists in exactly one place.
 - **Any column with a `server_default` MUST also carry the matching Python `default=`** (`default=0, server_default='0'`). With only `server_default`, a freshly inserted ORM row holds `None` for the column until re-fetched — which surfaces as `None` through `@ResultToDict` and as `DetachedInstanceError` under lazy refresh. This was a real bug that hand-written fake-DA tests hid and the real composed stack exposed.
 - VARCHAR lengths are always explicit (`VARCHAR(length=255)`, names get 512, keys/paths get 1024). Free text is `Text`. Dict payloads are `JSON` columns named `meta_data` (not `metadata` — that name collides with SQLAlchemy).
 - FKs whose child rows must die with the parent declare it in the schema: `ForeignKey('document.id', ondelete='CASCADE')` (collaborators/favorites die with their document — `empty_trash` relies on it).
-- The enum class lives in the SAME file as its entity, right above it.
+- **An enum a table uses is NESTED inside its entity class and read as `Thing.ThingKind`**, never declared at module level beside it; every entity in the older libs does this. Name it for what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`: a host that publishes enums by class name would get two `status` keys.
 - Derive enum-based strings from the member NAME, not the value: a file extension is `f'.{kind.name.lower()}'` — using `.value` after an IntEnum conversion produced the literal extension `.1` in production code. Real bug.
 
 ### 4.0 An entity is where agnosticism is usually lost
@@ -952,7 +952,7 @@ Pair it with a "would this catch a planted literal?" test, or an empty offender 
 |---|---|---|---|---|
 | `CRUDDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_data_access` | `id` (404 if missing) | HARD delete, returns rowcount | rows may really vanish |
 | `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
-| `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique constraints |
+| `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique indexes |
 
 Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exact imports:
 
@@ -1342,7 +1342,7 @@ def downgrade():
 - Table names: `Entity.__tablename__`. Column names: `Entity.col.key` (works here — the mapping is fully configured by import time, unlike inside the entity's own class body, §4). Index/constraint names: `Entity.INDEX_*` constants. **The ONLY string literal permitted is the ForeignKey target** (`ForeignKey('workspace.id')`, with `ondelete='CASCADE'` where the entity declares it). Writing `'thing'` or `'workspace_id'` as a literal is exactly the "not paying attention to the smallest details" review rejection.
 - Type mapping: `IntEnum(X)` column → `sa.Integer`. `VARCHAR` keeps its exact length. `JSON` → `sa.JSON`, `Text` → `sa.Text`.
 - Mixin columns are SPELLED OUT per table, in this order after the business columns: `created_at` (`default=datetime.utcnow`), `updated_at` (`default=datetime.utcnow, onupdate=datetime.utcnow`), `deleted_at` (`default=None`), and for token entities `deleted_at_token` (`sa.Integer, default=0`).
-- Unique constraints over soft-deletable rows include the token column and take their name from the entity constant: `sa.UniqueConstraint(A.document_id.key, A.user_id.key, A.deleted_at_token.key, name=A.INDEX_DOCUMENT_USER)`.
+- Unique indexes over soft-deletable rows include the token column and take their name from the entity constant: `sa.Index(A.INDEX_DOCUMENT_USER, A.document_id.key, A.user_id.key, A.deleted_at_token.key, unique=True)`.
 - `downgrade()` drops tables in REVERSE dependency order (children first).
 - Create parent tables before children within `upgrade()` (FK targets must exist).
 - **Before committing, verify the migration produces a schema IDENTICAL to `Base.metadata.create_all`** — run both against fresh sqlite databases and diff the reflected schema (tables, columns, types, nullability, defaults, indexes, uniques). Any drift means the migration (or the entity) is wrong.
@@ -1355,7 +1355,7 @@ def downgrade():
 - **`RuleValidator.validate_dict` gotcha:** the method's own defaults (`strict_mode=True, strict_output=False`) override the constructor's — constructor-level settings apply only when the caller passes `None` explicitly. `strict_mode=True` → unknown key raises `PermissionError`; `strict_mode=False, strict_output=True` → unknown key silently dropped. EVERY validation failure is `PermissionError` (wrong type, non-nullable None, failing `custom_validator`, unparseable datetime string).
 - **`get` on every CRUD base is wrapped in `@NotFoundErrorHandler()`, which raises `StatusCodeException(404)` on ANY falsy result** (None, `[]`, `0`, `''`). Services must try/except it when "absent → None" is the contract.
 - **`@DuplicateErrorHandler()`** catches only `sqlalchemy.exc.IntegrityError` and raises `StatusCodeException(HTTPStatus.CONFLICT)`. It is NOT applied by the CRUD base — put it on your create paths.
-- **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == ThingKind.ALPHA.value` (an int) and timestamps as floats.
+- **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == Thing.ThingKind.ALPHA.value` (an int) and timestamps as floats.
 - **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
 - **`IntEnum` TypeDecorator is truthiness-based.** READ side: a stored `0` comes back as `None` (`self._enumtype(value) if value else None`) — so **enum values MUST start at 1**. BIND side: a plain `enum.Enum` member (the convention, §4) is always truthy and binds its `.value` — but a python `enum.IntEnum` member with value 0 is falsy and binds NULL. Both directions are safe as long as values start at 1.
 - **Mixins carry Python-side `default=` only** (no `server_default`, no `nullable=False`) and `_creation_order = 9998` pins them to the end of the table.
@@ -1482,7 +1482,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - The DB (and bucket) are shared across the whole run: every test takes a fresh `new_project_id()`, never assumes an empty table, an absolute autoincrement id, or `id == 1`. "ids are monotonic" is asserted relatively (`second > first`).
 - Unknown-id branches probe with a constant far above any autoincrement: `ABSENT_THING_ID = 2_000_000_000` — never `99`/`999` (a long-lived shared DB WILL reach those).
 - Dict fields are read with entity keys — `row[Thing.name.key]`, `row[Thing.kind.key]` — never string literals.
-- Enum columns assert the INT value (and optionally round-trip: `ThingKind(row[Thing.kind.key]) is ThingKind.ALPHA`).
+- Enum columns assert the INT value (and optionally round-trip: `Thing.ThingKind(row[Thing.kind.key]) is Thing.ThingKind.ALPHA`).
 - Log-contract tests use `assertLogs` on the service's module logger (warning fallbacks, swallowed extraction errors) — asserting the documented side channel, not internals.
 - Patching a MODULE-LEVEL tuning constant (`document_service.EMPTY_TRASH_BATCH = 2`) to force loop boundaries is allowed — always restored in `try/finally`. Patching methods/attributes of the composed lib is NOT (the one exception is the utils-owned seam, §13.4).
 - Exercise error paths as the service defines them: 409 via a real duplicate through the real DB (`assertRaises(StatusCodeException)` + `status_code == HTTPStatus.CONFLICT`), 404/`None` via the service's own contract, `ValueError` for missing args, `PermissionError` for rule-validator rejections — with a follow-up assertion that the failed call left the data untouched (read it back through the service).
@@ -1532,7 +1532,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 1. Skeleton: package dirs + every `__init__.py` (§2), `constants.py`, `requirements.txt`, `.gitignore` (+ `.coveragerc` if using coverage).
 2. Config: `config/foo_core_lib.yaml` (+ empty `config/__init__.py`), searchpath plugin, repo-root `core_lib_config.yaml` (if the lib has install/CLI). Every future config key goes here FIRST.
-3. Entities (+ enums, INDEX_/UQ_ constants, mixins).
+3. Entities (+ nested enums, INDEX_ constants, mixins).
 4. DataAccess per entity (CRUD base + rule_validator + domain queries).
 5. Services per entity (`Service` base, decorators, tenant boundary, events fired via `@Observe` if any).
 6. Composition root (guarded registrations, `get_or_reg`, services in dependency order, install/uninstall) — plus observer/jobs wiring if used.
