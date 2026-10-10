@@ -14,7 +14,8 @@ Where they differ, the recipe wins.
 
 This skill orchestrates the others to stand up a complete, agnostic core-lib.
 Use the per-part skills for each layer: `core-lib-entity`,
-`core-lib-data-access`, `core-lib-service`, `core-lib-connection`,
+`core-lib-data-access`, `core-lib-service`, `core-lib-client` (HTTP APIs),
+`core-lib-connection` (SDK-backed backends),
 `core-lib-migration`, `core-lib-tests` — plus **`core-lib-reuse` before you
 write any helper, utility, converter or guard** (since `core_lib` already ships
 most of them and a hand-rolled copy is reliably thinner than the original), and
@@ -32,7 +33,8 @@ validation-failure type**.
 │   │   ├── data/db/migrations/versions/ # Alembic (core-lib-migration)
 │   │   ├── data_access/                 # query classes (core-lib-data-access)
 │   │   └── service/                     # business logic (core-lib-service)
-│   ├── connections/                     # outbound clients (core-lib-connection, optional)
+│   ├── client/                          # HTTP API clients on ClientBase (core-lib-client, optional)
+│   ├── connections/                     # SDK-backed backends (core-lib-connection, optional)
 │   ├── error_handling/                  # typed errors
 │   └── <name>_core_lib.py               # main class (composition root)
 ├── hydra_plugins/<name>_core_lib/       # advertises this lib's config to parents

@@ -160,7 +160,8 @@ also needs a migration), load all that apply. For a brand-new library, load
 | add or change an entity / table / model / column / nested enum | [`skills/core-lib-entity/SKILL.md`](skills/core-lib-entity/SKILL.md) |
 | add or change a DataAccess / DAO / repository / query / get_by / list / filter | [`skills/core-lib-data-access/SKILL.md`](skills/core-lib-data-access/SKILL.md) |
 | add or change a Service / business logic / public method / caching / invalidation | [`skills/core-lib-service/SKILL.md`](skills/core-lib-service/SKILL.md) |
-| add or change an external client / provider / SDK / API integration / connection factory | [`skills/core-lib-connection/SKILL.md`](skills/core-lib-connection/SKILL.md) |
+| add or change a client for an external HTTP API (REST/JSON, OAuth, any provider reached over HTTP) — `client/` on `ClientBase` | [`skills/core-lib-client/SKILL.md`](skills/core-lib-client/SKILL.md) |
+| add or change an SDK-backed backend (object storage, a driver that owns its connection) / connection factory | [`skills/core-lib-connection/SKILL.md`](skills/core-lib-connection/SKILL.md) |
 | add a migration / alter / create / drop a table, column, index, or constraint | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
@@ -640,7 +641,10 @@ foo-core-lib/
       foo_error.py                    # the base: FooError(StatusCodeException)
       immutable_foo_error.py          # one class per file, named after the class
       validation_error.py             # error-shaped DATA lives here too, not in data_types/
-    connections/                      # ONLY if the lib owns a non-DB backend (S3 etc.)
+    client/                           # ONLY if the lib calls an HTTP API (§10a) — ClientBase subclasses
+      __init__.py
+      acme_calendar_client.py         # one class per file / per base URL, named <service>_client.py
+    connections/                      # ONLY if the lib owns an SDK-backed backend (S3 etc.)
       __init__.py
       storage_connection_factory.py   # named after the BACKEND, no lib prefix (reference shape)
       storage_connection.py
@@ -1261,7 +1265,11 @@ class ThingDueJob(Job):
 - `initial_delay` is MANDATORY (`load_jobs` raises `ValueError` when falsy). A job that is also a `CoreLibListener` is auto-attached.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
-## 10. Non-DB backends (object storage etc.) — the `connections/` pattern
+## 10. SDK-backed backends (object storage etc.) — the `connections/` pattern
+
+For a backend reached through an SDK that owns its own connection (boto3/S3, a database or
+workflow-engine driver). A backend the lib reaches over plain HTTP is NOT this pattern — it is
+a `client/` on `ClientBase` (§10a).
 
 Three pieces, mirroring the DB stack (the current convention’s storage is the reference; the files are named after the BACKEND, with no lib prefix — `storage_connection_factory.py`, `storage_connection.py`, `storage_data_access.py`):
 
@@ -1273,6 +1281,26 @@ Three pieces, mirroring the DB stack (the current convention’s storage is the 
 In the composition root the naming is literal: `storage_data_access = StorageDataAccess(StorageConnectionFactory(storage_cfg))` — the variable is named what it is (a bare `storage = ...` was rejected). Key-naming policy (prefixes like `originals/`/`markdown/`) is NOT a connection concern — it lives on the service that owns the keys, passed in as constructor args read from config.
 
 Provider quirks are absorbed in the factory (`provider: minio` + `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the real local backend (MinIO server + healthcheck + an `mc` one-shot that creates the bucket `--ignore-existing`) so `docker compose -f docker-compose-dev.yaml up -d` gives a working backend with documented stable credentials.
+
+## 10a. HTTP APIs — the `client/` pattern on `ClientBase`
+
+Full recipe: [`skills/core-lib-client/SKILL.md`](skills/core-lib-client/SKILL.md). Every HTTP API a
+lib calls is a subclass of `core_lib.client.client_base.ClientBase` in `<lib>/client/`:
+
+- **One class per file and per base URL**, named after the service (`AcmeCalendarClient` in
+  `acme_calendar_client.py`); a provider's second host (its OAuth endpoints) is a second
+  client composed in through the constructor.
+- **Several providers behind one API** share an abstract `XClient(ClientBase, ABC)` declaring the
+  method names; services depend on it, and the composition root keeps a `{ProviderEnum: client}`
+  map that a row's provider column picks from.
+- **Requests go through the base verbs** (`self._get/_post/_put/_delete(path, ...)`) — never raw
+  `requests` or a second session; `set_timeout` in `__init__` always (the base has none).
+- **Values come in as constructor params** read by the composition root, validated first with a
+  plain `ValueError` (a missing argument — naming the key, never the value). Network errors become the lib's provider
+  error raised `from None`; messages carry status and machine-readable error codes only.
+- **Tests fake only `client.session`** — a `requests.Session` subclass recording each request and
+  answering from a scripted queue; service suites swap the whole client through a utils seam for
+  a fake subclass of the abstract client (§13.2, §13.4).
 
 ## 11. Migrations — exact conventions (this section was rewritten three times in review; every detail matters)
 
@@ -1384,7 +1412,10 @@ A test you were confident would pass before running it taught you nothing.
 Suites run against the real `FooCoreLib` — real DataAccess, real `@Cache`/`@ResultToDict`/`@DuplicateErrorHandler`, real rule validators, real DB (in-memory sqlite), real backend (moto/MinIO for S3). Hand-written fake DAs/fake storage previously masked three shipped bugs in one lib: (1) a `server_default`-only column returning `None`/`DetachedInstanceError` on the real ORM, (2) a file extension computed from `enum.value` producing `.1`, (3) fake rows returning enum MEMBERS where the real stack returns int values. Permitted doubles, exhaustively:
 - a backend that cannot run on a test host (the ~50-binary a newer lib pipeline), injected through a sanctioned seam (§13.4) or through a REAL production constructor parameter (a newer lib’s `DocumentService(extractors=[...])`);
 - fake SDK MODULES for per-extractor/adapter units via `mock.patch.dict(sys.modules, {'fitz': fake})` (a newer lib’s `make_fitz_module.py` et al.) — import-level substitution of an uninstallable SDK, confined to those unit files;
-- a mocked SDK client in the backend adapter's own unit file (§13.3).
+- a mocked SDK client in the backend adapter's own unit file (§13.3);
+- an HTTP API client's `session` (§10a): a recording `requests.Session` subclass in the client's own
+  unit files and flow tests, and a fake subclass of the abstract client swapped in through the
+  utils seam for service suites.
 Nothing else — never monkeypatch the composed lib's internals from a test.
 
 ### 13.3 Service-only — we test what we expose, and we expose services

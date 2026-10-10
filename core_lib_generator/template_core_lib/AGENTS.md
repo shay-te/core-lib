@@ -33,7 +33,8 @@ whoever adds a skill must add the row in both places.
 | add or change an entity / table / model / column / nested enum | [`core-lib-entity`](../core-lib/skills/core-lib-entity/SKILL.md) |
 | add or change a DataAccess / DAO / repository / query / get_by / list / filter | [`core-lib-data-access`](../core-lib/skills/core-lib-data-access/SKILL.md) |
 | add or change a Service / business logic / public method / caching / invalidation | [`core-lib-service`](../core-lib/skills/core-lib-service/SKILL.md) |
-| add or change an external client / provider / SDK / API integration / connection factory | [`core-lib-connection`](../core-lib/skills/core-lib-connection/SKILL.md) |
+| add or change a client for an external HTTP API (REST/JSON, OAuth, any provider reached over HTTP) — `client/` on `ClientBase` | [`core-lib-client`](../core-lib/skills/core-lib-client/SKILL.md) |
+| add or change an SDK-backed backend (object storage, a driver that owns its connection) / connection factory | [`core-lib-connection`](../core-lib/skills/core-lib-connection/SKILL.md) |
 | add a migration / alter / create / drop a table, column, index, constraint | [`core-lib-migration`](../core-lib/skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`core-lib-tests`](../core-lib/skills/core-lib-tests/SKILL.md) |
 | write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`core-lib-reuse`](../core-lib/skills/core-lib-reuse/SKILL.md) |

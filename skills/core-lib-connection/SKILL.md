@@ -1,9 +1,13 @@
 ---
 name: core-lib-connection
-description: MANDATORY — load this skill BEFORE you add or change an external client, provider, API or SDK integration, HTTP client, connection factory, or any wrapper around a third-party service (LLM, object storage/S3, payment gateway) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors.
+description: MANDATORY — load this skill BEFORE you add or change an SDK-backed backend, connection factory, or any wrapper around a third-party SDK that owns its own connection (object storage/S3, an LLM SDK, a database or workflow-engine driver) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors. A service the lib calls over plain HTTP is core-lib-client instead (`client/` on ClientBase).
 ---
 
-# Create a non-DB backend (the `connections/` pattern)
+# Create an SDK-backed backend (the `connections/` pattern)
+
+> **Calling an HTTP API yourself?** That is not this pattern: build a `ClientBase` subclass in
+> `client/` — load `core-lib-client`. This skill is for a backend reached through an SDK that
+> owns its connection.
 
 An outbound backend (object storage, an external API) is **three pieces**,
 mirroring the DB stack. Files are named after the **backend**, with no lib
