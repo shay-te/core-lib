@@ -77,8 +77,10 @@ example_core_lib/                         # the project folder
 ├── setup.py
 ├── requirements.txt                      # core-lib[neo4j,postgres,solr]: the extras your connections need
 ├── README.md
-└── AGENTS.md
+└── AGENTS.md                             # points AI coding agents at Core-Lib's rulebook and skills
 ```
+
+`AGENTS.md` tells an AI coding agent to load the matching Core-Lib skill before it writes code, and says where to find the skills: in a `core-lib` checkout next to the project, or in the installed package's `agent_docs` folder (see [Built for AI coding agents](advantages.html#built-for-ai-coding-agents)).
 
 `requirements.txt` names the [Core-Lib extras](index.html#installing) for the connections and caches in your YAML: `postgres` or `mysql` from a SQLAlchemy URL's `protocol`, `mongodb`, `solr`, `neo4j` and `elasticsearch` from the connection's `type`, `redis` and `memcached` from a cache's `type`. An SQLite-only project gets plain `core-lib`. Add `flask` or `django` yourself if the project serves web requests with Core-Lib's web helpers.
 

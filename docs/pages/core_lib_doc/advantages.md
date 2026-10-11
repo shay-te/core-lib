@@ -170,11 +170,27 @@ In a project that follows them, every engineer knows where everything lives. Pro
 
 ---
 
+## Built for AI coding agents
+
+Core-Lib ships a rulebook for AI coding agents. `AGENTS.md` says where each kind of code goes, and a skill for each part (entity, DataAccess, Service, connection, migration, job, tests, web, and the rest) shows the exact shape to write. Every project `core_lib generate` creates gets its own `AGENTS.md`, which tells the agent to load the matching skill before it writes code. `pip install core-lib` includes them, in the `agent_docs` folder of the installed package.
+
+What that gives you:
+
+- **Every codebase looks the same.** An agent that follows the skills writes the same shapes your team does, in every project and every library. Whoever knows one knows them all.
+- **A new feature is a change you can predict.** Adding a capability is usually a new Service and DataAccess with a test, in the same shape as the ones next to them. You review that change, not a new design.
+- **Less to read when something breaks.** Each class does one job in its own file. Fixing a bug usually means reading one short method, not a 1,000-line module that mixes HTTP, SQL and business rules.
+
+Like the rest of the structure, the rules are a shared shape, not a runtime check (see [Keep architecture from drifting](#keep-architecture-from-drifting)). Review an agent's change as you would a colleague's.
+
+---
+
 ## Keep architecture from drifting
 
 Most systems become tightly coupled over time, not by design but through shortcuts: one imported session here, one `request` object there.
 
-Core-Lib makes the boundary the easy path: connections and clients are built once, in your `CoreLib` class, and handed to services, so importing a session into a service is the extra work. It does not police the boundary. If you want it checked, add an import rule to CI, for example an [import-linter](https://import-linter.readthedocs.io/){:target="_blank"} `forbidden` contract that fails when your `service` package imports `flask`, `django` or `sqlalchemy`.
+Core-Lib makes the boundary the easy path: connections and clients are built once, in your `CoreLib` class, and handed to services, so importing a session into a service is the extra work.
+
+No framework stops wrong code. Django does not stop a view from running raw SQL, and Flask does not stop any module from reading `request`. What keeps a codebase consistent is a shape everyone shares: written down once, the same in every project, so a change that breaks it stands out in review. That is what Core-Lib gives you, for people and [AI coding agents](#built-for-ai-coding-agents) alike. It does not police the boundary. If you want it checked, add an import rule to CI, for example an [import-linter](https://import-linter.readthedocs.io/){:target="_blank"} `forbidden` contract that fails when your `service` package imports `flask`, `django` or `sqlalchemy`.
 
 ---
 

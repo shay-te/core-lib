@@ -2,6 +2,7 @@ import os
 import re
 
 from setuptools import find_namespace_packages, setup, find_packages
+from setuptools.command.build_py import build_py
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -10,6 +11,26 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 def read_file(*path_parts) -> str:
     with open(os.path.join(dir_path, *path_parts), 'r') as file:
         return file.read()
+
+
+class BuildPyWithAgentDocs(build_py):
+    """Also ships the rulebook for AI coding agents: AGENTS.md and skills/ go into core_lib/agent_docs/.
+
+    They live at the repository root, where an agent working on core-lib finds them, and outside every
+    package, so a plain build would leave them out of the wheel. The skill links in AGENTS.md are
+    relative (`skills/...`), so they resolve in the copy too.
+    """
+
+    def run(self):
+        super().run()
+        target = os.path.join(self.build_lib, 'core_lib', 'agent_docs')
+        self.mkpath(target)
+        self.copy_file(os.path.join(dir_path, 'AGENTS.md'), target)
+        for skill in sorted(os.listdir(os.path.join(dir_path, 'skills'))):
+            skill_md = os.path.join(dir_path, 'skills', skill, 'SKILL.md')
+            if os.path.isfile(skill_md):
+                self.mkpath(os.path.join(target, 'skills', skill))
+                self.copy_file(skill_md, os.path.join(target, 'skills', skill))
 
 
 version = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", read_file('core_lib', '__init__.py'), re.M).group(1)
@@ -65,4 +86,5 @@ setup(
     include_package_data=True,
     python_requires='>=3.10',
     scripts=['bin/core_lib'],
+    cmdclass={'build_py': BuildPyWithAgentDocs},
 )

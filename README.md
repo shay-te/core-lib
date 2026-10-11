@@ -130,6 +130,7 @@ Moving from Flask to FastAPI means rewriting the route functions, and nothing be
 - **Web:** Flask and Django helpers for JSON responses, login checks, error handling and JWT sessions.
 - **Tests:** `load_core_lib_config`, which loads a test YAML that swaps Postgres for SQLite and real clients for fakes.
 - **Tooling:** the `core_lib` command for Alembic migrations (`core_lib migrate`) and project scaffolding (`core_lib generate`).
+- **AI coding agents:** `AGENTS.md` and one skill per part, telling an agent where each piece of code goes and what it looks like, so its changes have the same shape as yours. They ship in the package, under `core_lib/agent_docs/`.
 
 ## Why not just use SQLAlchemy and Flask directly?
 

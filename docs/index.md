@@ -272,6 +272,7 @@ The difference is how much of the code around the service you write and maintain
 | A test bootstrap that swaps Postgres for SQLite and real clients for fakes | `load_core_lib_config` and a test YAML |
 | JSON responses, login checks and JWT sessions for Flask or Django | Web helpers (`response_json`, `@RequireLogin`, `@HandleException`) and `JWTTokenHandler` |
 | Alembic wiring and project scaffolding | The `core_lib` command: `core_lib migrate`, `core_lib generate` |
+| Instructions that make an AI coding agent write code your way | `AGENTS.md` and a skill per part, in the package ([why](advantages.html#built-for-ai-coding-agents)) |
 
 If you need none of these, plain constructor injection is enough, and you should use that.
 

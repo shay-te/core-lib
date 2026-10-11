@@ -12,8 +12,16 @@ there is exactly one source of truth:
 | `core-lib/AGENTS.md` | **Read first.** The AGNOSTIC principles, then the canonical recipe (§0–§17): naming, folder tree, config, entities, data types, error handling, DataAccess, services, composition root, observers, jobs, migrations, tests, packaging/`.gitignore`, build order, things to avoid, final checklist. |
 | `core-lib/skills/` | Copy-paste scaffolding templates, one per core-lib part. |
 
-Find them in the `core-lib` checkout beside this repo (`../core-lib/`) or in the
-installed `core-lib` package.
+Find them in the `core-lib` checkout beside this repo (`../core-lib/`). After a
+`pip install core-lib`, the same files are in the folder this prints, as
+`AGENTS.md` and `skills/<name>/SKILL.md`:
+
+```bash
+python -c "import core_lib, os; print(os.path.join(os.path.dirname(core_lib.__file__), 'agent_docs'))"
+```
+
+The skill links below use the checkout path; with a pip install, read the same
+`skills/<name>/SKILL.md` from that folder.
 
 ## MANDATORY — load the matching skill before you write code
 
