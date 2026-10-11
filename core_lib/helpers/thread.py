@@ -21,9 +21,14 @@ class LockGroup(object):
             lock_item['time'] = current_time
             return lock_item['lock']
 
+    # Removes locks not requested for longer than max_age.
+    # A lock that is currently held is never removed, otherwise the next
+    # get_lock() for the same param would hand out a second, different lock.
     def clear(self):
-        current_time = int(round(time.time() * 1000))
-        for group in list(self.lock_dict.keys()):
-            value = self.lock_dict.get(group)
-            if timedelta(milliseconds=(current_time - value['time'])) > self.max_age:
-                del self.lock_dict[group]
+        with self.lock:
+            current_time = int(round(time.time() * 1000))
+            for group in list(self.lock_dict.keys()):
+                value = self.lock_dict[group]
+                is_expired = timedelta(milliseconds=(current_time - value['time'])) > self.max_age
+                if is_expired and not value['lock'].locked():
+                    del self.lock_dict[group]

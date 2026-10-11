@@ -1,9 +1,9 @@
 import os
 import unittest
-from datetime import date
+from datetime import date, timedelta
 from time import sleep
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from core_lib.client.client_base import ClientBase
 from core_lib.core_lib import CoreLib
@@ -92,3 +92,12 @@ class TestInstantiateConfig(unittest.TestCase):
 
         self.assertEqual(self.test_instantiate_core_lib.test.test_1.get_value(), 1)
         self.assertEqual(self.test_instantiate_core_lib.test.test_2.get_value(), 2)
+
+    def test_class_config_base_path_nested(self):
+        settings = OmegaConf.create({'outer': {'inner': {'_target_': 'datetime.timedelta', 'seconds': 5}}})
+        self.assertEqual(timedelta(seconds=5), instantiate_config(settings, class_config_base_path='outer.inner'))
+        self.assertIsNone(instantiate_config(settings, class_config_base_path='outer.missing'))
+        with self.assertRaises(ValueError):
+            instantiate_config(
+                settings, class_config_base_path='outer.missing', raise_class_config_base_path_error=True
+            )

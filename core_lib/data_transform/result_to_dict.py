@@ -6,15 +6,30 @@ from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
-import mongomock
-import pymongo
-from geoalchemy2 import WKBElement
 from sqlalchemy import inspect
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from sqlalchemy.engine.row import Row
 
-from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+# Values from optional backends are converted only when that backend is installed.
+try:
+    from geoalchemy2 import WKBElement  # the [geo] extra
+    from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+except ImportError:
+    WKBElement = None
+
+_cursor_types = []
+try:
+    import pymongo  # the [mongodb] extra
+    _cursor_types.append(pymongo.cursor.Cursor)
+except ImportError:
+    pass  # no MongoDB support installed
+try:
+    import mongomock  # the [test] extra: an in-memory MongoDB
+    _cursor_types.append(mongomock.collection.Cursor)
+except ImportError:
+    pass  # no in-memory MongoDB installed
+MONGO_CURSOR_TYPES = tuple(_cursor_types)
 
 
 def __convert_value(value):
@@ -24,7 +39,7 @@ def __convert_value(value):
         return value.timestamp()
     if isinstance(value, datetime.date):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
-    if isinstance(value, WKBElement):
+    if WKBElement is not None and isinstance(value, WKBElement):
         return Point.from_point_wkb(value)
     if isinstance(value, Decimal):
         return float(value)
@@ -112,7 +127,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
     else:
         results = return_val
 
-    if isinstance(return_val, (mongomock.collection.Cursor, pymongo.cursor.Cursor)):
+    if MONGO_CURSOR_TYPES and isinstance(return_val, MONGO_CURSOR_TYPES):
         results = __pymongo_to_dict(return_val)
 
     if isinstance(results, dict):

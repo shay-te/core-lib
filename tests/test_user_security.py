@@ -1,9 +1,9 @@
 import unittest
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
+from http import HTTPStatus
 from typing import Callable
 
 import jwt
-from django.conf import settings
 from django.http import HttpRequest
 from flask import request as flask_request, Flask
 from flask_wtf.csrf import CSRFProtect
@@ -15,9 +15,19 @@ from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.web_helpers.django.require_login import RequireLogin as RequireLoginDjango
 from core_lib.web_helpers.flask.require_login import RequireLogin as RequireLoginFlask
+from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.require_login_helper import require_login
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 from tests.test_data.test_user_security_utils import CustomerSecurity, user_data_access, User, has_access
+
+# The names of the views that actually ran, so a test can tell "the view ran"
+# from "the security check answered instead of the view".
+view_calls = []
+
+
+def ok_view(*args):
+    view_calls.append('ok_view')
+    return response_status(HTTPStatus.OK)
 
 # SECURITY HANDLER REGISTER
 secret_key = 'super-secret'
@@ -116,7 +126,7 @@ class TestUserSecurity(unittest.TestCase):
         self.assertTrue(has_access(security_handler.from_session_data(self.user_user), [User.Status.ACTIVE]))
 
     def test_session_data(self):
-        time_stamp = datetime.utcnow().timestamp()
+        time_stamp = datetime.now(timezone.utc).timestamp()
         user = result_to_dict(user_data_access.get(1))
         user_session = SecurityHandler.get().generate_session_data_token(user)
         decoded_dict = jwt.decode(user_session, options={"verify_signature": False})
@@ -129,12 +139,16 @@ class TestUserSecurity(unittest.TestCase):
 
     def test_secure_django(self):
         # DJANGO INIT
+        # Imported here: at module level the lazy `settings` object is touched by the test loader
+        # before anything configures Django, which fails when this module runs on its own.
+        from django.conf import settings
         if not settings.configured:
             settings.configure()
             settings.DEFAULT_CHARSET = 'utf-8'
         WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)
 
         self._test_secure_entry()
+        self._test_view_runs_only_when_allowed()
         self._test_expiry()
         self._test_decorator_django()
 
@@ -143,6 +157,7 @@ class TestUserSecurity(unittest.TestCase):
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
 
         self._test_secure_entry()
+        self._test_view_runs_only_when_allowed()
         self._test_expiry()
         self._test_decorator_flask()
 
@@ -154,14 +169,14 @@ class TestUserSecurity(unittest.TestCase):
                 self.assertEqual(flask_request.cookies[cookie_name], token)
                 if decorated_function:
                     return decorated_function()
-                return require_login(flask_request, policies, lambda: True)
+                return require_login(flask_request, policies, ok_view)
         else:
             django_request = HttpRequest
             django_request.COOKIES = {cookie_name: token}
             self.assertEqual(django_request.COOKIES[cookie_name], token)
             if decorated_function:
                 return decorated_function(django_request)
-            return require_login(django_request, policies, lambda: True)
+            return require_login(django_request, policies, ok_view)
 
     def _test_secure_entry(self):
 
@@ -288,42 +303,50 @@ class TestUserSecurity(unittest.TestCase):
             self.assertIn('ExpiredSignatureError', str(cm.output))
             self.assertIn('handle_exception got ExpiredSignatureError error for function', str(cm.output))
 
+    def _test_view_runs_only_when_allowed(self):
+        view_calls.clear()
+        rejected = self._require_login(self.user_user, [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+        self.assertEqual(401, rejected.status_code)
+        self.assertEqual([], view_calls)
+
+        allowed = self._require_login(self.user_admin, [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+        self.assertEqual(200, allowed.status_code)
+        self.assertEqual(['ok_view'], view_calls)
+
     def _test_decorator_flask(self):
+        view_calls.clear()
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_flask).status_code, 401)
+        self.assertEqual([], view_calls)
         self.assertEqual(self._require_login(self.user_delete, [], delete_entry_flask).status_code, 200)
+        self.assertEqual(['delete_entry_flask'], view_calls)
 
     def _test_decorator_django(self):
+        view_calls.clear()
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_django).status_code, 401)
+        self.assertEqual([], view_calls)
         self.assertEqual(self._require_login(self.user_delete, [], delete_entry_django).status_code, 200)
+        self.assertEqual(['delete_entry_django'], view_calls)
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_django(request):
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('admin_entry_django')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_django(request):
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('delete_entry_django')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_flask():
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('admin_entry_flask')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_flask():
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('delete_entry_flask')
+    return response_status(HTTPStatus.OK)

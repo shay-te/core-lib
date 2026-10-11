@@ -1,6 +1,5 @@
 import os
 import logging
-import pymysql
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
@@ -10,7 +9,11 @@ from sqlalchemy import create_engine
 from core_lib.data_layers.data.data_helpers import build_url
 
 
-pymysql.install_as_MySQLdb()
+try:
+    import pymysql  # the [mysql] extra: lets SQLAlchemy's plain `mysql://` URLs run on PyMySQL
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass  # no MySQL support installed; every other database migrates without it
 
 
 class Alembic(object):
@@ -32,7 +35,7 @@ class Alembic(object):
             self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
-            raise ValueError(f'config.alembic.script_location dose not exists `{self.script_location}`')
+            raise ValueError(f'config.alembic.script_location does not exist `{self.script_location}`')
 
         if not self.config.version_file_name:
             raise ValueError("config.alembic.version_file_name cannot be None")
@@ -83,7 +86,6 @@ class Alembic(object):
 
     def create_migration(self, migration_name):
         if not migration_name:
-            logging.ERROR("Value ERROR 'Migration name must be set'")
             raise ValueError("Migration name must be set")
 
         version = self._read_version()

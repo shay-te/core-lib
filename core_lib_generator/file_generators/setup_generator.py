@@ -4,9 +4,7 @@ from core_lib_generator.file_generators.template_generator import TemplateGenera
 
 class SetupGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
-        updated_file = template_content.replace('# template_core_lib_import', f'import {core_lib_name}')
-        updated_file = updated_file.replace('# template_core_lib_version', f'version={core_lib_name}.__version__,')
-        updated_file = updated_file.replace('template_core_lib', core_lib_name)
+        updated_file = template_content.replace('template_core_lib', core_lib_name)
         updated_file = updated_file.replace('template_full_name', get_dict_attr(yaml_data, 'author'))
         updated_file = updated_file.replace('template_email', get_dict_attr(yaml_data, 'author_email'))
         updated_file = updated_file.replace('template_description', get_dict_attr(yaml_data, 'description'))

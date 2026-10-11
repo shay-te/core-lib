@@ -166,6 +166,10 @@ also needs a migration), load all that apply. For a brand-new library, load
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
 | write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md) |
+| add or change the main `<Name>CoreLib` class: wiring, registries, `get_or_reg` / `instantiate_config`, `install()`, the instance holder, composing another CoreLib | [`skills/core-lib-main/SKILL.md`](skills/core-lib-main/SKILL.md) |
+| add or change a background / scheduled job, a `jobs:` YAML block or `load_jobs()` | [`skills/core-lib-job/SKILL.md`](skills/core-lib-job/SKILL.md) |
+| add or change events a host listens to (`@Observe`, listener ABC, `EVENT_*` keys) or a `CoreLibListener` hook | [`skills/core-lib-observer/SKILL.md`](skills/core-lib-observer/SKILL.md) |
+| write web routes that call a CoreLib, or use the web helpers, `@HandleException`, `@RequireLogin` / `UserSecurity` | [`skills/core-lib-web/SKILL.md`](skills/core-lib-web/SKILL.md) |
 
 **Adding a skill? This table is not the only place it must appear.** Add the row here AND in `core_lib_generator/template_core_lib/AGENTS.md`, which carries a convenience copy that every generated lib ships — a skill missing from that copy is one a generated lib is never told to load. (`core-lib-new` is the one deliberate omission: a generated lib already exists.)
 
@@ -537,7 +541,10 @@ should return nothing but comments. A domain rule that is ALSO enforced in
   the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
   the real module. `__init__.py` files stay empty package markers; §2.1 owns the
-  full rule.
+  full rule. The one owner-approved exception is core-lib's
+  `core_lib/web_helpers/web_helprs_utils.py`: the deprecated misspelled name of
+  `web_helpers_utils`, kept for existing importers until the next major
+  version. Nothing in core-lib imports it, and no new shim follows from it.
 
 ## Self-contained and fully tested
 
@@ -1067,7 +1074,9 @@ def create(self, project_id: int, name: str): ...
 def get(self, thing_id: int):
     try:
         return self._thing_da.get(thing_id)
-    except StatusCodeException:
+    except StatusCodeException as missing:
+        if missing.status_code != HTTPStatus.NOT_FOUND:
+            raise                    # only 404 becomes None; a 409 is a real answer
         return None                  # service swallows the DA's 404 into None
 
 @Cache(CACHE_KEY_THING, handler_name=FOO_CORE_LIB_CACHE, invalidate=True)   # writes evict
@@ -1211,13 +1220,15 @@ class FooObserverListener(ObserverListener):
 3. In the composition root: a private `Observer`, a GUARDED registry registration under `FOO_CORE_LIB_NAME`, and a typed attach method **named after the domain** (never shadow the base `CoreLib.attach_listener` — **divergence: an older lib shadows it; the older libs's `attach_task_listener`/`attach_workflow_listener` are the convention**):
 
 ```python
-self._foo_observer = Observer()
 if not CoreLib.observer_registry.get(FOO_CORE_LIB_NAME):
-    CoreLib.observer_registry.register(FOO_CORE_LIB_NAME, self._foo_observer)
+    CoreLib.observer_registry.register(FOO_CORE_LIB_NAME, Observer())
+self._foo_observer = CoreLib.observer_registry.get(FOO_CORE_LIB_NAME)   # read the REGISTERED one back
 
 def attach_foo_listener(self, foo_listener: FooListener):
     self._foo_observer.attach(FooObserverListener(foo_listener))
 ```
+
+Read the registered observer back rather than keeping a fresh `Observer()`: `@Observe` notifies whatever the registry holds, so on a second construction in the process a fresh, unregistered observer receives the host's listener and nobody ever notifies it. Full recipe: [`skills/core-lib-observer/SKILL.md`](skills/core-lib-observer/SKILL.md).
 
 4. Services FIRE events through empty `_fire_*` methods decorated with `@Observe` — the decorator does the dispatch, the body is `pass`:
 
@@ -1488,7 +1499,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 ## 14. Packaging / repo hygiene
 
-- `requirements.txt` — RUNTIME deps only: `core-lib` first, then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
+- `requirements.txt` — RUNTIME deps only: `core-lib` first, with the core-lib extras for the backends the lib uses (`core-lib[postgres]` for a Postgres-backed lib, `core-lib[redis]` for a Redis cache — since 0.3.0 plain `core-lib` brings only SQLite's driver), then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
 - If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`. Never commit the data files (rule at the top of this document) — `.coveragerc` IS tracked, only its output is ignored.
 - **`.gitignore` covers every generated artifact, not just the ones this lib happens to produce today.** Bytecode and caches are written by whichever tool someone runs once, and then get swept in by a wide `git add`. The canonical list — keep the repo's own file and `core_lib_generator/template_core_lib/.gitignore` **in step**, since the template is what every generated lib inherits:
 

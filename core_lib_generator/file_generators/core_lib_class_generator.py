@@ -2,6 +2,7 @@ from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake, snake_to_camel
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
+from core_lib_generator.generator_utils.naming_utils import data_access_attribute_name, service_attribute_name
 
 
 class CoreLibClassGenerateTemplate(TemplateGenerator):
@@ -89,7 +90,7 @@ def _add_data_access(template_content: str, yaml_data: dict, core_lib_name: str,
     for data_access in yaml_data_dataaccess:
         connection = get_dict_attr(data_access, 'connection')
         da_name = get_dict_attr(data_access, 'key')
-        inst_str = f'self.{camel_to_snake(da_name)} = {da_name}({connection})'
+        inst_str = f'self.{data_access_attribute_name(da_name)} = {da_name}({connection})'
         inst_list.append(add_tab_spaces(inst_str, 2))
     updated_file = updated_file.replace(
         '# template_da_imports', _create_data_access_imports(data_access_list, core_lib_name)
@@ -107,7 +108,8 @@ def _add_service(template_content: str, yaml_data: dict, core_lib_name: str) -> 
     for service in services_list:
         data_access = get_dict_attr(service, 'data_access')
         service_name = get_dict_attr(service, 'key')
-        inst_str = f'self.{camel_to_snake(service_name)} = {service_name}({data_access})'
+        data_access_instance = f'self.{data_access_attribute_name(data_access)}' if data_access else ''
+        inst_str = f'self.{service_attribute_name(service_name)} = {service_name}({data_access_instance})'
         inst_list.append(add_tab_spaces(inst_str, 2))
         import_list.append(
             f'from {core_lib_name}.data_layers.service.{camel_to_snake(service_name)} import {service_name}')
@@ -127,17 +129,17 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         if cache_type == 'memory':
             cache_imports.append(f'from core_lib.cache.cache_handler_ram import CacheHandlerRam')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRam())'
-            cache_inits.append(add_tab_spaces(cache_str, 2))
+            cache_inits.extend(_guarded_registration(name, cache_str))
         elif cache_type == 'memcached':
             cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
             cache_imports.append('from core_lib.cache.cache_handler_memcached import CacheHandlerMemcached')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerMemcached(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
-            cache_inits.append(add_tab_spaces(cache_str, 2))
+            cache_inits.extend(_guarded_registration(name, cache_str))
         elif cache_type == 'redis':
             cache_imports.append('from core_lib.data_layers.data.data_helpers import build_url')
             cache_imports.append('from core_lib.cache.cache_handler_redis import CacheHandlerRedis')
             cache_str = f'CoreLib.cache_registry.register(\'{name}\', CacheHandlerRedis(build_url(**self.config.core_lib.{core_lib_name}.{name}.cache.url)))'
-            cache_inits.append(add_tab_spaces(cache_str, 2))
+            cache_inits.extend(_guarded_registration(name, cache_str))
     updated_file = updated_file.replace(
         '# template_cache_handler_imports',
         '\n'.join(set(cache_imports)),
@@ -147,6 +149,14 @@ def _add_cache(template_content: str, yaml_data: dict, core_lib_name: str) -> st
         '\n'.join(cache_inits),
     )
     return updated_file
+
+
+def _guarded_registration(name: str, register_str: str) -> list:
+    # The cache registry is process-wide, so a second construction must not register the name again.
+    return [
+        add_tab_spaces(f'if not CoreLib.cache_registry.get(\'{name}\'):', 2),
+        add_tab_spaces(register_str, 3),
+    ]
 
 
 def _add_job(template_content: str, yaml_data: dict, core_lib_name: str) -> str:

@@ -122,6 +122,17 @@ See "A DataAccess holds NO business logic" in `AGENTS.md`.
 Constructor for all CRUD variants:
 `__init__(self, db_entity, db: SqlAlchemyConnectionFactory, rule_validator: RuleValidator = None)`.
 
+## Two tools for the cases the base does not cover (docs: *JoinConfig*, *Rules Validator*)
+
+- **Joins the caller chooses at run time** — take a `joins: list` of `JoinConfig` and apply it with
+  `apply_join_configs(query, joins)` (`core_lib.data_layers.data.db.join_config`). The Service decides
+  which joins a call needs; the DataAccess applies whatever it is given. Label every joined column
+  (`.label('custom_field_label')`): same-named columns overwrite each other in `result_to_dict`. Set
+  `model` and `join_condition` together — `model` alone is a silent cross join.
+- **A domain query that writes a dict** (not `create`/`update`, which already validate) — decorate it
+  with `@ParameterRuleValidator(rule_validator, 'data')`. The dict must be passed **positionally**: as
+  a keyword argument the decorator raises `IndexError` instead of validating.
+
 ## Canonical template (copy this shape — §5)
 
 ```python

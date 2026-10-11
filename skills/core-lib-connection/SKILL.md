@@ -3,6 +3,22 @@ name: core-lib-connection
 description: MANDATORY — load this skill BEFORE you add or change an external client, provider, API or SDK integration, HTTP client, connection factory, or any wrapper around a third-party service (LLM, object storage/S3, payment gateway) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors.
 ---
 
+# Pick the right piece first (docs: *Connection*, *Client*)
+
+| You need | Use | Where it lives |
+|---|---|---|
+| a data source Core-Lib already wraps | the built-in factory: `SqlAlchemyConnectionFactory`, `MongoDBConnectionFactory`, `SolrConnectionFactory`, `Neo4jConnectionFactory`, `ElasticSearchConnectionFactory` (install `elasticsearch` yourself; core-lib does not) | no new file — built from YAML in the main class (`core-lib-main`) and passed to a DataAccess |
+| a plain HTTP/JSON API | a `ClientBase` subclass (`core_lib.client.client_base`) with one domain method per call, returning dicts | `client/<provider>_client.py`, built with `instantiate_config` from a `_target_` block, so a test config swaps in a stand-in with the same methods |
+| an SDK with credentials and config to validate (object storage, an LLM, a payment gateway) | the three pieces below | `connections/` + a DataAccess |
+| an object you already have, behind the factory interface (a fake, an in-memory client) | `ObjectConnectionFactory` | wherever you build it |
+
+`ClientBase` facts that bite: send a JSON body with `json=data` — a dict passed positionally is
+sent form-encoded; `set_auth()` takes a `(user, password)` tuple or a `requests.auth.AuthBase`;
+there is **no default timeout** (`requests` then waits forever), so call `set_timeout()`; headers
+set with `set_headers()` win over per-call headers; `_get`/`_post`/`_put`/`_delete` are protected —
+callers use your domain methods. `SolrClient` is a `ClientBase` for Solr's HTTP admin API; querying
+goes through `SolrConnectionFactory`.
+
 # Create a non-DB backend (the `connections/` pattern)
 
 An outbound backend (object storage, an external API) is **three pieces**,

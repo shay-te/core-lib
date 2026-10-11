@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from core_lib.session.token_handler import TokenHandler
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 
 
 class UserSecurity(ABC):

@@ -5,7 +5,7 @@ from http import HTTPStatus
 
 from core_lib.core_lib import CoreLib
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 from jwt import ExpiredSignatureError
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
@@ -53,6 +53,26 @@ def _execute_error_middlewares(exc, func):
         logger.warning(f"Error while executing error middlewares: {mw_exc}", exc_info=True)
 
 
+def _framework_http_status(exc):
+    # The web framework's own HTTP errors (Flask's abort(404), Django's Http404) keep the status the
+    # framework would answer them with. Imported lazily: an app installs only its own framework.
+    server_type = WebHelpersUtils.get_server_type()
+    if server_type == WebHelpersUtils.ServerType.FLASK:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(exc, HTTPException) and exc.code:
+            return exc.code
+    elif server_type == WebHelpersUtils.ServerType.DJANGO:
+        from django.core.exceptions import BadRequest, PermissionDenied, SuspiciousOperation
+        from django.http import Http404
+        if isinstance(exc, Http404):
+            return HTTPStatus.NOT_FOUND
+        if isinstance(exc, PermissionDenied):
+            return HTTPStatus.FORBIDDEN
+        if isinstance(exc, (BadRequest, SuspiciousOperation)):
+            return HTTPStatus.BAD_REQUEST
+    return None
+
+
 def _get_exception_status_code(exc):
     if isinstance(exc, StatusCodeException):
         return response_message(status=exc.status_code)
@@ -61,7 +81,7 @@ def _get_exception_status_code(exc):
     elif isinstance(exc, AssertionError):
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
     else:
-        return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return response_message(status=_framework_http_status(exc) or HTTPStatus.INTERNAL_SERVER_ERROR)
 
 def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop("log_exception", True)

@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime, timedelta, date, timezone
 from dateutil.utils import today as dateutils_today
+from freezegun import freeze_time
 
 from core_lib.helpers.datetime_utils import (
     year_begin,
@@ -108,10 +109,20 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(day_end(), reset_datetime(tomorrow()))
 
     def test_hour(self):
-        self.assertNotEqual(hour_begin(), None)
-        self.assertEqual(hour_begin(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour))
-        self.assertNotEqual(hour_end(), None)
-        self.assertEqual(hour_end(), reset_datetime(datetime.utcnow()).replace(hour=datetime.utcnow().hour + 1))
+        # Fixed instants, so the result does not depend on when the suite runs. At 23:40 UTC on
+        # 31 December the next hour starts a new day, month and year.
+        cases = [
+            ('2024-06-14 09:40:12', datetime(2024, 6, 14, 9, 0), datetime(2024, 6, 14, 10, 0)),
+            ('2024-12-31 23:40:12', datetime(2024, 12, 31, 23, 0), datetime(2025, 1, 1, 0, 0)),
+        ]
+        for frozen, expected_begin, expected_end in cases:
+            with freeze_time(frozen):
+                self.assertEqual(expected_begin, hour_begin(), frozen)
+                self.assertEqual(expected_end, hour_end(), frozen)
+
+        with freeze_time('2024-12-31 23:40:12'):
+            self.assertEqual(datetime(2024, 12, 31, 23, 15), hour_begin(minutes=15))
+            self.assertEqual(datetime(2025, 1, 1, 0, 15), hour_end(minutes=15))
 
     def test_sunday(self):
         self.assertNotEqual(sunday(), None)
