@@ -40,20 +40,21 @@ def main():
     pass
 
 @click.command()
-@click.option('--yaml', help='name of new revision')
+@click.option('--yaml', help='path to the YAML that describes the library to generate')
 def generate(yaml):
     if yaml:
         if not os.path.exists(yaml):
-            click.echo(f"yaml file was not found\nmake sure you have the right path (including .yaml or other extenions)\npath:{yaml}\nexiting now...")
+            click.echo(f"yaml file was not found\nmake sure you have the right path (including .yaml or other extensions)\npath:{yaml}\nexiting now...")
             exit()
     else:
         yaml_file = generate_core_lib_yaml()
         yaml = f'{os.getcwd()}/{yaml_file}'
 
+    yaml = os.path.abspath(yaml)
     file_name = os.path.basename(yaml)
-    absolute_folter_path = os.path.dirname(yaml)
+    absolute_folder_path = os.path.dirname(yaml)
     hydra.core.global_hydra.GlobalHydra.instance().clear()
-    initialize_config_dir(config_dir=absolute_folter_path)
+    initialize_config_dir(config_dir=absolute_folder_path)
     config = hydra.compose(file_name)
     CoreLibGenerator(config).run_all()
 

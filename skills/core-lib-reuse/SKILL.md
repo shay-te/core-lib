@@ -49,22 +49,36 @@ what core-lib lacks — so the next reader does not re-run your search.
 | raise 404 when a getter finds nothing | `@NotFoundErrorHandler()` — `core_lib.error_handling.not_found_decorator` | raises `StatusCodeException(404)` when the result is **falsy**; already on the CRUD bases' `get` |
 | map a uniqueness violation to 409 | `@DuplicateErrorHandler()` — `core_lib.error_handling.duplicate_error_decorator` | never hand-write `except IntegrityError` |
 | cache a read | `@Cache(KEY, handler_name=...)` — `core_lib.cache.cache_decorator` | key templating via `build_function_key` |
-| fire a host event | `@Observe(event_key=..., observer_name=...)` — `core_lib.observer.observer_decorator` | |
+| fire a host event | `@Observe(event_key=..., observer_name=...)` — `core_lib.observer.observer_decorator` | see `core-lib-observer` |
 | turn a bare `assert` into a status code | `with StatusCodeAssert(code, msg):` — `core_lib.error_handling.status_code_assert` | context manager |
+| validate one dict argument of your own DataAccess method | `@ParameterRuleValidator(rule_validator, 'data')` — `core_lib.rule_validator.rule_validator_decorator` | the dict must be passed **positionally** |
+| log a line before each call | `@Logging('get_user_{user_id}')` — `core_lib.helpers.logging` | logs before the call only; no return value, no exception |
 
-**Functions**
+**Functions and classes** (each has a page in the docs; the ones under "Utilities (optional)" are
+not needed to use Core-Lib)
 
 | Module | Provides |
 |---|---|
-| `core_lib.helpers.datetime_utils` | `today/tomorrow/yesterday`, `day_begin/day_end`, `hour_begin/hour_end`, `week_begin/week_end`, `month_begin/month_end`, `year_begin/year_end`, every weekday (`monday`…`sunday`), `midnight`, `age(born)`, `timestamp_to_ms`, `reset_datetime` |
-| `core_lib.helpers.parse_utils` | `parse_bool`, `parse_date`, `parse_range`, `parse_comma_separated_list`†, `normalize`, `similarity`, `clean_list`, `float_to_str`, `find_key_by_value`, `fetch_closest_option` |
+| `core_lib.helpers.datetime_utils` | `today/tomorrow/yesterday`, `day_begin/day_end`, `hour_begin/hour_end`, `week_begin/week_end`, `month_begin/month_end`, `year_begin/year_end`, every weekday (`monday`…`sunday`), `midnight`, `age(born)`, `timestamp_to_ms`, `reset_datetime` — UTC, naive, each `*_end()` the first moment of the NEXT period |
 | `core_lib.helpers.validation` | `is_bool`, `is_int`, `is_float`, `is_email`, `is_url`, `is_int_enum`, `parse_comma_separated_list`, `parse_int_list` |
-| `core_lib.helpers.string` | `snake_to_camel`, `camel_to_snake`, `any_to_pascal` |
+| `core_lib.helpers.parse_utils` | `parse_bool`, `parse_date`, `parse_range`, `parse_any_nan`, `normalize`, `similarity`, `fetch_closest_option`, `clean_list`, `float_to_str`, `find_key_by_value`, `height_to_cm` — imports **pandas**, which core-lib does not install |
+| `core_lib.helpers.string` | `snake_to_camel` (gives PascalCase), `camel_to_snake`, `any_to_pascal` |
 | `core_lib.data_transform.helpers` | `get_dict_attr(obj, 'a.b.c', default)`, `set_dict_attr`, `enum_to_dict` |
-| `core_lib.helpers.func_utils` | `build_function_key`, `get_func_parameters_as_dict`, `get_func_parameter_index_by_name` |
+| `core_lib.helpers.func_utils` | `build_function_key`, `get_func_parameters_as_dict`, `get_func_parameter_index_by_name`, `Keyable` (how an object appears in keys), `UnseenFormatter` |
+| `core_lib.helpers.config_instances` | `instantiate_config` (build the `_target_` class from YAML, with a base-class check), `instantiate_config_group_generator_dict` / `_list` |
+| `core_lib.helpers.constants` | `MediaType`, `HttpMethod`, `HttpHeaders`, `TimeUnit`, `InstantiateConfigConstants` (`_target_`, `_instance_key_`, `_recursive_`) |
+| `core_lib.helpers.thread` | `LockGroup` — one `threading.Lock` per key, in-process only |
+| `core_lib.helpers.files` | `download_file`, `download_file_handle`, `get_file_md5` |
+| `core_lib.helpers.generate_data` | `generate_random_string`, `generate_email`, `generate_datetime` — test data only, not for secrets |
+| `core_lib.helpers.shell_utils` | `prompt_str`, `prompt_int`, `prompt_yes_no`, `prompt_options`, … — interactive CLI prompts |
+| `core_lib.helpers.test` | `load_core_lib_config(path, file)` — clears the cache/observer registries and Hydra, composes a test config (path relative to the CALLING file) |
+| `core_lib.data_layers.data.data_helpers` | `build_url(protocol, username, password, host, port, path, file)` — the connection-URL builder every factory uses |
 | `core_lib.rule_validator.rule_validator` | `RuleValidator` / `ValueRuleValidator` — write-path validation; **never hand-roll a field allow-list** |
-
-† in both `parse_utils` and `validation` — import from `validation`.
+| `core_lib.rule_validator.helpers` | `convert_location`, `validate_location`, `convert_datetime` — ready-made `custom_converter`/`custom_validator`s |
+| `core_lib.data_layers.data.db.join_config` | `JoinConfig`, `apply_join_configs` — joins a Service chooses at run time |
+| `core_lib.data_layers.data.db.sqlalchemy.types` | `IntEnum` (enum column; values start at 1), `Point` (use its static helpers with a geoalchemy2 `Geometry('POINT')` column) |
+| `core_lib.client.client_base` | `ClientBase` — HTTP API client with base URL, headers, timeout, auth (see `core-lib-connection`) |
+| `core_lib.middleware` | `Middleware`, `MiddlewareChain` — a check or side effect shared by several methods |
 
 ## What core-lib does NOT provide (writing these is correct)
 

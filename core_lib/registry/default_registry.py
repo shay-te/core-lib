@@ -15,7 +15,7 @@ class DefaultRegistry(Registry):
             raise ValueError("register object is not of type \"{}\"".format(self._object_type))
 
         if key in self.key_to_object:
-            raise ValueError("cache by key \"{}\" already registerd for type \"{}\"".format(key, object.__class__))
+            raise ValueError("cache by key \"{}\" already registered for type \"{}\"".format(key, object.__class__))
 
         if is_default:
             self.default_key = key

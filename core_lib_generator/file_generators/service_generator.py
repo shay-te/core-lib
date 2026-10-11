@@ -15,7 +15,7 @@ class ServiceGenerateTemplate(TemplateGenerator):
                 f'from {core_lib_name}.data_layers.data_access.{camel_to_snake(data_access)} import {data_access}',
             )
             init_str_list = [add_tab_spaces(f'def __init__(self, data_access: {data_access}):'),
-                             add_tab_spaces('self.data_access = data_access', 2)]
+                             add_tab_spaces('self._data_access = data_access', 2)]
             updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))
         else:
             updated_file = remove_line('# template_data_access_imports', updated_file)

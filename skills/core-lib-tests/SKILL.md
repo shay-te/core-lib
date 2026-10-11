@@ -229,6 +229,21 @@ absent binaries (through a sanctioned seam in `tests/helpers/utils.py`, never
 inline in the test), a fake SDK *module* via
 `mock.patch.dict(sys.modules, {...})`, an outbound network call, the clock.
 
+**The sanctioned seam for an outbound client is the test config, not a patch.**
+The main class builds clients with `instantiate_config(<block>)` (core-lib-main),
+so the test override names a stand-in class with the **same methods** in
+`_target_` (`_target_: tests.billing_client_mock.BillingClientMock`) and the
+real service code calls it. A typo in an override key adds a new key and the
+override silently does not apply, so mirror the production paths exactly — and
+set every sibling key you do not want inherited (Hydra merges key by key: a
+`url` override that sets only `protocol: sqlite` keeps the production host).
+
+**`load_core_lib_config(path, file)`** (`core_lib.helpers.test`) is the
+documented one-call bootstrap: it unregisters every cache handler and observer,
+clears Hydra and composes the test config. `path` is relative to the file that
+CALLS it, not the working directory. It does not reset
+`connection_factory_registry` or the job scheduler.
+
 Before writing `mock.patch`, answer: *what would this test catch that the real
 thing would not?* If the honest answer is "it would be faster", use the real
 thing. If it is "the real thing is awkward to set up", that awkwardness is a

@@ -5,7 +5,7 @@ from http import HTTPStatus
 from django.conf import settings
 
 from core_lib.web_helpers.request_response_helpers import response_status, response_ok, response_message, response_json
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 
 if not settings.configured:
     settings.configure()

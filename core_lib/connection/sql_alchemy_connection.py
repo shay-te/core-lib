@@ -25,6 +25,10 @@ class SqlAlchemyConnection(Connection):
             self.on_exit(self)
 
     def close(self):
-        self.session.commit()
-        self.session.flush()
-        self.session.close()
+        try:
+            self.session.commit()
+        except BaseException:
+            self.session.rollback()
+            raise
+        finally:
+            self.session.close()

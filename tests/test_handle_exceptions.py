@@ -6,7 +6,7 @@ from django.conf import settings
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.decorators import HandleException
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 
 if not settings.configured:
     settings.configure()

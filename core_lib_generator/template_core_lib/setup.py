@@ -1,41 +1,41 @@
 import os
+import re
 
-import setuptools
-
-# template_core_lib_import
-
-from setuptools import find_namespace_packages, setup
-from pip._internal.network.session import PipSession
-from pip._internal.req import parse_requirements
+from setuptools import find_namespace_packages, find_packages, setup
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-install_reqs = parse_requirements(os.path.join(dir_path, 'requirements.txt'), session=PipSession)
-requirements = []
-try:
-    requirements = [str(ir.req) for ir in install_reqs]
-except:
-    requirements = [str(ir.requirement) for ir in install_reqs]
 
-packages1 = setuptools.find_packages()
+
+# Everything is read as text: an isolated build has setuptools, but neither pip nor this library's dependencies.
+def read_file(*path_parts) -> str:
+    with open(os.path.join(dir_path, *path_parts), 'r') as file:
+        return file.read()
+
+
+version = re.search(
+    r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", read_file('template_core_lib', '__init__.py'), re.M
+).group(1)
+install_requires = [
+    line.split('#')[0].strip() for line in read_file('requirements.txt').splitlines() if line.split('#')[0].strip()
+]
+
+packages1 = find_packages(exclude=['tests', 'tests.*'])
 packages2 = find_namespace_packages(include=['hydra_plugins.*'])
 packages = list(set(packages1 + packages2))
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
-
-    setup(
-        name='template_core_lib',
-        # template_core_lib_version
-        author='template_full_name',
-        author_email='template_email',
-        description='template_description',
-        long_description=long_description,
-        long_description_content_type='text/markdown',
-        url='template_url',
-        packages=packages,
-        license='template_license',
-        # template_classifiers
-        install_requires=requirements,
-        include_package_data=True,
-        python_requires='>=3.7',
-    )
+setup(
+    name='template_core_lib',
+    version=version,
+    author='template_full_name',
+    author_email='template_email',
+    description='template_description',
+    long_description=read_file('README.md'),
+    long_description_content_type='text/markdown',
+    url='template_url',
+    packages=packages,
+    license='template_license',
+    # template_classifiers
+    install_requires=install_requires,
+    include_package_data=True,
+    python_requires='>=3.10',
+)

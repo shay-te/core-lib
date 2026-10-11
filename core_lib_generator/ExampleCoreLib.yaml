@@ -36,6 +36,7 @@ core_lib:
       config_instantiate: false
       type: core_lib.connection.solr_connection_factory.SolrConnectionFactory
       config:
+        always_commit: true
         url:
           protocol: http
           host: ${oc.env:SOLRCONN_HOST}
@@ -61,7 +62,7 @@ core_lib:
       initial_delay: 0s
       frequency: ""
       handler:
-        _target_: example_core_lib.example_core_lib.jobs.update_user.UpdateUser
+        _target_: example_core_lib.jobs.update_user.UpdateUser
   entities:
     - key: details
       connection: sqlconn

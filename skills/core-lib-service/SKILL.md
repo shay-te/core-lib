@@ -52,6 +52,8 @@ functions get assigned to.
 ## Canonical template
 
 ```python
+from http import HTTPStatus
+
 from core_lib.data_layers.service.service import Service
 from core_lib.data_transform.result_to_dict import ResultToDict
 from core_lib.cache.cache_decorator import Cache
@@ -75,7 +77,9 @@ class WidgetService(Service):
     def get(self, widget_id: int):
         try:
             return self._widget_da.get(widget_id)
-        except StatusCodeException:
+        except StatusCodeException as missing:
+            if missing.status_code != HTTPStatus.NOT_FOUND:
+                raise                 # only "not found" becomes None; a 409 is a real answer
             return None               # service swallows the DA's 404 into None
 
     @ResultToDict()                   # create: dict out; 409 mapping UNDER it
@@ -138,7 +142,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
-  history `create` (§A4).
+  history `create` (§A4). How to fire the event: `core-lib-observer`.
+- **A check or side effect several methods share** (audit, rate limit, a common
+  validation) is a `Middleware` in a `MiddlewareChain` built in the main class
+  and passed in; the method calls `chain.execute(context)` first. It runs only
+  when called, and an exception stops the chain and the method.
 - **Invalidate caches on every mutation**, before the observer fan-out (§6).
 - **This service is agnostic — it ships the mechanism, never one caller's
   instance of it.** No named instrument/template/preset, no domain vocabulary

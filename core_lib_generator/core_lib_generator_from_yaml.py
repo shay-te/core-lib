@@ -154,14 +154,18 @@ class CoreLibGenerator:
 
     def generate_readme(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/README.md', self.core_lib_data_accesses, ReadmeGenerateTemplate()
+            f'{self.snake_core_lib_name}/README.md', self.core_lib_services, ReadmeGenerateTemplate()
         )
 
     def generate_agents(self):
         self._generate_template(f'{self.snake_core_lib_name}/AGENTS.md', {}, AgentsGenerateTemplate())
 
     def generate_requirements(self):
-        self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
+        self._generate_template(
+            f'{self.snake_core_lib_name}/requirements.txt',
+            {'connections': self.core_lib_connections, 'cache': self.core_lib_caches},
+            RequirementsGenerateTemplate(),
+        )
 
     def generate_default_config(self):
         self._generate_template(f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate())

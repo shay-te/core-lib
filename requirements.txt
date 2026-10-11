@@ -1,40 +1,12 @@
-#Core lib
+# What every Core-Lib application needs. Each optional backend (a database driver, a cache client,
+# Flask or Django) is an extra, declared in setup.py: pip install "core-lib[postgres,redis,flask]".
 hydra-core==1.3.6
+omegaconf
 python-dateutil
-PyJWT
-argh
 pytimeparse
 parsedatetime
-omegaconf
-neo4j
-redis
 click
-
-# Connectors
+python-dotenv
+requests
 sqlalchemy==2.0.52
 alembic
-pymysql
-psycopg2-binary
-pysolr
-pymongo
-python-memcached
-cryptography
-boto3
-geoalchemy2
-shapely
-setuptools
-
-
-# web
-django
-flask
-flask_cors
-requests
-
-
-# Test
-python-dotenv
-moto==5.2.3
-freezegun
-mongomock
-flask_wtf
