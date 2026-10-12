@@ -53,13 +53,15 @@ One base per library, then one file per situation:
 
 ```python
 # error_handling/foo_error.py
+from http import HTTPStatus
+
 from core_lib.error_handling.status_code_exception import StatusCodeException
 
 
 class FooError(StatusCodeException):
     """Base for this library's errors: a status code fixed per subclass."""
 
-    STATUS_CODE = None          # NOT defaulted — see below
+    STATUS_CODE = HTTPStatus.INTERNAL_SERVER_ERROR   # never None; every subclass declares its own
 
     def __init__(self, *args):
         super().__init__(self.STATUS_CODE, *args)
@@ -92,9 +94,12 @@ Why it is shaped that way:
   not flavours of one error a caller picks a code for; each names one situation
   that always means the same thing to a client, so no raise site can get it
   wrong.
-- **Never default `STATUS_CODE`.** A default is a trap: a new error type
-  silently inherits whatever the last one used and is reported to clients as
-  something it is not. Leave it `None` and let the test below fail the build.
+- **`STATUS_CODE` is always an `HTTPStatus` member — `HTTPStatus.BAD_GATEWAY`,
+  never `502`, never `None`.** The base carries `HTTPStatus.INTERNAL_SERVER_ERROR`,
+  so `error.status_code` is a real number on every instance a host can catch.
+- **Every subclass declares its own `STATUS_CODE`, in its own class body.**
+  Inheriting the base's 500 (or a sibling's code) reports an error as something
+  it is not; the package-walking test below fails the build on it.
 - **Each subclass's docstring states WHY that status**, not just which. "409
   because the stored resource is what forbids this, not the request" is the
   part a reviewer cannot re-derive.
@@ -128,9 +133,11 @@ def error_classes():
     return found
 ```
 
-Then assert, for every class found: it subclasses `StatusCodeException`, its
-`STATUS_CODE` is not `None`, and an instance's `.status_code` is that value.
-Adding `error_handling/some_new_error.py` without a status now fails the build
+Then assert, for every class found: it subclasses `StatusCodeException`,
+`'STATUS_CODE' in vars(error_class)` (declared on the class itself, not
+inherited), it is an `HTTPStatus` member, and an instance's `.status_code` is
+that value. Assert the base's `STATUS_CODE` is an `HTTPStatus` too. Adding
+`error_handling/some_new_error.py` without its own status now fails the build
 whether or not a service raises it yet.
 
 ## Interaction with `row_or_none`
@@ -145,5 +152,5 @@ cannot be compared" into a silent "not found". See `core-lib-reuse`.
 1. Is it error-shaped (an exception, a code, a failure record)? → `error_handling/`.
 2. One class, one file, snake_case named after the class. No `errors.py`.
 3. Subclass the lib's base, which subclasses `StatusCodeException`.
-4. Set `STATUS_CODE` explicitly; docstring says why that code.
-5. Package-walking test asserts every subclass declares one.
+4. Set `STATUS_CODE = HTTPStatus.<MEMBER>` in the class body; docstring says why that code.
+5. Package-walking test asserts every subclass declares its own `HTTPStatus`.

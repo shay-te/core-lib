@@ -525,6 +525,16 @@ should return nothing but comments. A domain rule that is ALSO enforced in
 
 - Import only **stdlib + third-party** packages. Do not import sibling libraries
   peer-to-peer; depend only on a declared shared base, if one exists.
+- **That includes a shared vocabulary.** A core-lib never imports a type, enum,
+  constant or helper from another `*-core-lib` — not even an enum both libraries
+  mean the same thing by, and listing the sibling in `requirements.txt` does not
+  make it allowed. The only shared base is `core_lib`. A lib that branches on a
+  vocabulary declares its own enum; the **host** that composes both libs maps one
+  onto the other (by member name, e.g. `TheirStatus[ours.name]`) and pins in its
+  own tests that the two enums keep the same members. Guard the lib with an AST
+  test: no import whose top-level module ends in `core_lib` other than `core_lib`
+  and the lib itself, plus a planted-import test so an empty result can't mean
+  the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
   the real module. `__init__.py` files stay empty package markers; §2.1 owns the
   full rule.
@@ -818,6 +828,7 @@ Rules, each load-bearing:
 - **Mixin choice decides the DataAccess base** (§5). `SoftDeleteMixin` gives `created_at`/`updated_at`/`deleted_at` (all Python-side `default=`, no `server_default`, forced to the end of the table via `_creation_order`). `SoftDeleteTokenMixin` adds ONLY `deleted_at_token` (Integer, default 0) — **an entity used with `CRUDSoftDeleteWithTokenDataAccess` needs BOTH mixins** (`class X(Base, SoftDeleteMixin, SoftDeleteTokenMixin)`), because the token delete stamps both `deleted_at` and `deleted_at_token`.
 - **Use the token mixin whenever the table carries a UNIQUE constraint over business columns.** The live-row marker is `deleted_at_token == 0`, so the unique constraint is declared over `(business_cols..., deleted_at_token)` — a soft-deleted row (token = deletion epoch) no longer collides with a re-created live row. **(divergence: the current convention’s `Workspace` has a unique `project_id` index with only `SoftDeleteMixin` — a delete-then-recreate on the same project collides with the dead row. Known latent gap; do not copy it into a new entity.)**
 - **Every index and unique constraint gets a class-constant name** referenced from `__table_args__` AND from the migration — the name exists in exactly one place.
+- **No database schema of its own.** The tables sit in the host's default schema, beside the host's own — never `{'schema': ...}` in `__table_args__`. Every core-lib entity shares `Base.metadata`, so a host's `create_all` (`create_db: true`) would fail on a schema that does not exist yet, and the lib would need a `CREATE SCHEMA` hook, schema-wide grants and search-path caveats that no other lib has. Instead, prefix a table name with the library's name when the bare name could clash with a host's table (`audit_access_event`, never `access_event`; indexes `ix_audit_access_event_*`), name the module after the table (`audit_access_event.py`), and grant per table in the migration.
 - **Any column with a `server_default` MUST also carry the matching Python `default=`** (`default=0, server_default='0'`). With only `server_default`, a freshly inserted ORM row holds `None` for the column until re-fetched — which surfaces as `None` through `@ResultToDict` and as `DetachedInstanceError` under lazy refresh. This was a real bug that hand-written fake-DA tests hid and the real composed stack exposed.
 - VARCHAR lengths are always explicit (`VARCHAR(length=255)`, names get 512, keys/paths get 1024). Free text is `Text`. Dict payloads are `JSON` columns named `meta_data` (not `metadata` — that name collides with SQLAlchemy).
 - FKs whose child rows must die with the parent declare it in the schema: `ForeignKey('document.id', ondelete='CASCADE')` (collaborators/favorites die with their document — `empty_trash` relies on it).
@@ -872,18 +883,20 @@ data_layers/
 
 The scope is "error-shaped", not "is an exception". A `ValidationError(code, message)` that `validate()` RETURNS in a list and never raises still lives here, because it is the library's error vocabulary and is exactly what the matching exception carries (`AssessmentValidationError.errors` is a `List[ValidationError]`). Filing it under `data_types/` splits one concept across two packages and hides that the pair belongs together.
 
-Every exception subclasses a lib base which subclasses core-lib's `StatusCodeException`, with the status as a **class attribute, never a constructor argument** and **never defaulted**:
+Every exception lives in `<name>_core_lib/error_handling/` and subclasses a lib base which subclasses core-lib's `StatusCodeException`, with the status as a **class attribute, never a constructor argument**, and **always an `HTTPStatus` member** (`HTTPStatus.BAD_GATEWAY` — never `502`, never `None`):
 
 ```python
+from http import HTTPStatus
+
 class FooError(StatusCodeException):
-    STATUS_CODE = None                       # a default is a trap — see below
+    STATUS_CODE = HTTPStatus.INTERNAL_SERVER_ERROR   # never None; every subclass declares its own
     def __init__(self, *args):
         super().__init__(self.STATUS_CODE, *args)
 ```
 
 - A host maps any of them by reading `error.status_code`, without importing your classes. A bare `Exception` forces every consumer to keep its own mapping table in step with your package.
 - Each subclass names ONE situation that always means the same thing to a client, so the code belongs to the class and no raise site can get it wrong.
-- Not defaulting `STATUS_CODE` is deliberate: a default means a new error type silently inherits whatever the last one used and is reported as something it is not.
+- Every subclass declares its own `STATUS_CODE` in its class body: inheriting the base's 500 or a sibling's code reports an error as something it is not. The package-walking test asserts `'STATUS_CODE' in vars(error_class)`.
 - The docstring says WHY that status (422 = well-formed but unprocessable content, the client shows it to the author; 409 = the request is fine, the STORED state forbids it), which is the part a reviewer cannot re-derive.
 - Test by WALKING the package (`pkgutil.iter_modules`), not by scanning one namespace — one class per file means a new error is a new module, and a module nothing imports yet would be invisible.
 
