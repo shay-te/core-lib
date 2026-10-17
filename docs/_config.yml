@@ -9,7 +9,7 @@ topnav_title: Core-Lib Documentation
 site_title: Core-Lib Documentation
 # this appears in the html browser tab for the site title (seen mostly by search engines, not users)
 
-company_name: Copyright 2023 Shay Tessler
+company_name: Shay Tessler
 # this appears in the footer
 
 github_editme_path: shay-te/core-lib/docs
@@ -82,7 +82,7 @@ defaults:
 sidebars:
 - core_lib_doc_sidebar
 
-description: "Intended as a documentation theme based on Jekyll for technical writers documenting software and other technical products, this theme has all the elements you would need to handle multiple products with both multi-level sidebar navigation, tags, and other documentation features."
+description: "Core-Lib is a Python library for structuring backends: wire services, data access and API clients once in a CoreLib object shared by web routes, jobs and tests. Not a web framework, not an ORM."
 # the description is used in the feed.xml file
 
 # needed for sitemap.xml file only

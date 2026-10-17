@@ -6,44 +6,116 @@ permalink: cache.html
 folder: core_lib_doc
 toc: false
 ---
-The `Cache` decorator handles the `get`,` set`, and `delete` cache operations automatically in a single, easy-to-use decorator.
 
+`@Cache` stores a method's return value under a key built from the method's arguments. Put `@Cache(..., invalidate=True)` with the same key on the method that changes the data, and that method deletes the stored value after it runs. The storage (process memory, Memcached or Redis) is a cache handler you register once in your `CoreLib`. Switching storage does not change the decorated service code, as long as that code follows the [Memcached and Redis limits](#cachehandler): cached methods return a `dict`, `list`, `int` or `str` that JSON can encode (no `datetime`, `Decimal` or entity inside; `@ResultToDict()` output is safe), do not rely on non-string dict keys, and set `expire` when the storage is Redis. The in-memory handler accepts any value and no `expire`, so code that works on it can fail on Memcached or Redis.
 
-### Example:
+**What it adds** over `functools.lru_cache`: keys you can delete from another method, expiry, and shared storage (Memcached, Redis) that several processes can read. **What it is not:** there is no lock, so two processes that miss the same key both run the method.
 
-### `cache_example.py`
+> **Where it fits:** Service-layer helper. Apply `@Cache` to a Service method to store its return value; apply `@Cache(..., invalidate=True)` to the matching write method to delete it.
+
+## Example
 
 ```python
-CACHE_KEY_FOO = 'test_cache_param_{foo_id}'
+from datetime import timedelta
 
-# Cache the return value 
-@Cache(key=CACHE_KEY_FOO, expire=timedelta(houers=3, minutes=2, seconds=1))
-def get_foo(foo_id):
-    value = ... # Do some calculation
-    return value
+from core_lib.cache.cache_decorator import Cache
+from core_lib.cache.cache_handler_ram import CacheHandlerRam
+from core_lib.core_lib import CoreLib
+from core_lib.data_layers.service.service import Service
 
-# Clear the same cache key CACHE_KEY_FOO` acourding to the invalidate=True parameter
-@Cache(key=CACHE_KEY_FOO, invalidate=True)
-def set_foo(self, foo_id, foo_value):
-    ... # update the value
+SHOP_CORE_LIB_CACHE = 'shop_core_lib'
+CACHE_KEY_PRICE = 'shop_price_{product_id}'
+
+
+class PriceService(Service):
+    def __init__(self):
+        self._prices = {1: 10}  # stands in for a DataAccess
+
+    @Cache(CACHE_KEY_PRICE, expire=timedelta(minutes=10), handler_name=SHOP_CORE_LIB_CACHE)
+    def get(self, product_id: int) -> int:
+        print(f'loading price of product {product_id}')
+        return self._prices[product_id]
+
+    @Cache(CACHE_KEY_PRICE, handler_name=SHOP_CORE_LIB_CACHE, invalidate=True)
+    def update(self, product_id: int, price: int):
+        self._prices[product_id] = price
+
+
+class ShopCoreLib(CoreLib):
+    def __init__(self):
+        super().__init__()
+        if not CoreLib.cache_registry.get(SHOP_CORE_LIB_CACHE):  # the registry is shared by the whole process
+            CoreLib.cache_registry.register(SHOP_CORE_LIB_CACHE, CacheHandlerRam())
+        self.price = PriceService()
+
+
+shop_core_lib = ShopCoreLib()
+print(shop_core_lib.price.get(1))
+print(shop_core_lib.price.get(1))
+shop_core_lib.price.update(1, 12)  # deletes the key 'shop_price_1'
+print(shop_core_lib.price.get(1))
 ```
-#### Code Explained:
-- **`CACHE_KEY_FOO`**: This variable holds a string representing the cache key format. It contains a placeholder {foo_id} which will be replaced with the actual foo_id value.
 
-- **`@Cache`**: This is a decorator function used for caching. It takes parameters such as key, expire, and invalidate. The key parameter specifies the cache key format, expire specifies the expiration time for cached values, and invalidate is a flag indicating whether to invalidate the cache.
+It prints:
 
-- **`get_foo`**: This function is decorated with @Cache. It computes a value based on foo_id and returns it. The decorator caches the return value of this function using the specified cache key and expiration time.
+```text
+loading price of product 1
+10
+10
+loading price of product 1
+12
+```
 
-- **`set_foo`**: This function is also decorated with @Cache. It is responsible for updating the value associated with a given foo_id. When invalidate=True, it indicates that the cache for the specified key (CACHE_KEY_FOO) should be cleared, ensuring that the next call to get_foo retrieves the updated value.
-<br>
-<br>
-<br>
+The second `get(1)` came from the cache. `update(1, 12)` deleted `shop_price_1`, so the third call loaded the new price. Code that calls `shop_core_lib.price.get()` does not know a cache exists.
 
-*core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L34){:target="_blank"}
+## Choosing the storage in YAML
+
+Build the handler from config with [`instantiate_config`](instantiate_config.html), and the storage becomes a config change. This `ShopCoreLib` replaces the one above; `PriceService` and the two constants stay the same:
+
+```python
+from omegaconf import DictConfig
+
+from core_lib.cache.cache_handler import CacheHandler
+from core_lib.core_lib import CoreLib
+from core_lib.helpers.config_instances import instantiate_config
+
+
+class ShopCoreLib(CoreLib):
+    def __init__(self, config: DictConfig):
+        super().__init__()
+        if not CoreLib.cache_registry.get(SHOP_CORE_LIB_CACHE):
+            cache_handler = instantiate_config(config.core_lib.shop_core_lib.cache, CacheHandler)
+            CoreLib.cache_registry.register(SHOP_CORE_LIB_CACHE, cache_handler)
+        self.price = PriceService()
+```
+
+```yaml
+# production
+core_lib:
+  shop_core_lib:
+    cache:
+      _target_: core_lib.cache.cache_handler_redis.CacheHandlerRedis
+      url: redis://cache.internal:6379/0
+```
+
+```yaml
+# tests and local development
+core_lib:
+  shop_core_lib:
+    cache:
+      _target_: core_lib.cache.cache_handler_ram.CacheHandlerRam
+```
+
+For Memcached, use `_target_: core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` with `url: cache.internal:11211` (host and port, no scheme). The second argument of `instantiate_config`, `CacheHandler`, makes it raise a `ValueError` if the YAML names a class that is not a cache handler.
+
+`PriceService` runs unchanged on all three handlers because `get` returns an `int` and sets `expire`. A method that returns an entity works on the in-memory handler but fails on Memcached and Redis, and a method without `expire` also fails on Redis (see [CacheHandler](#cachehandler)).
+
+---
+
+*core_lib.cache.cache_decorator.Cache* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_decorator.py#L35){:target="_blank"}
 
 ```python
 class Cache(object):
-    ...
     def __init__(
         self,
         key: str = None,
@@ -57,124 +129,73 @@ class Cache(object):
 
 **Arguments**
 
-- **`key`** *`(str)`*:  Default `None`, The key used to store the value. possible values are:
-  `None`: the decorated  `function.__qualname__` is used.     
+- **`key`** *`(str)`*: Default `None`. A template whose `{placeholders}` are filled from the method's arguments by parameter name: `'user_{user_id}'` gives one entry per user. **Without a key, every call shares one entry** (the key is the function's `__qualname__`), so `get_user(2)` returns whatever `get_user(1)` stored. Always pass a key that contains the parameters. An argument that is `None`, `0` or `''` is written as `!E<name>E!`, and a placeholder that names no parameter as `!M<name>M!`, so `get_user(0)` and `get_user(None)` share an entry.
+- **`max_key_length`** *`(int)`*: Default `250`. Longer keys are cut to this length, not rejected, so two keys that only differ after that point share an entry.
+- **`expire`** *`(timedelta/str)`*: Default `None`, which means no expiry. Either a `timedelta`, or a phrase that [parsedatetime](https://github.com/bear/parsedatetime){:target="_blank"} understands, such as `'10 minutes'`, `'3 hours'` or `'30m'`. A string is turned into a duration once, when the decorator is created. This is not the format jobs use: `'2h30m'` raises `ValueError` when your module is imported.
+- **`invalidate`** *`(bool)`*: Default `False`. When `True`, the decorator runs the method first and then deletes the key. If the method raises, the key is kept.
+- **`handler_name`** *`(str)`*: Default `None`. The name the handler was registered under in `CoreLib.cache_registry`. With `None`, the default handler is used, or the first one registered if none was marked as default. An unknown name raises `ValueError` when the method is called.
+- **`cache_empty_result`** *`(bool)`*: Default `True`, which stores every result except `None`. `False` also skips empty and falsy results (`{}`, `[]`, `''`, `0`). A method that returns `None` is never cached, so it runs on every call.
 
-  `some_key{param_1}{param_2}`: Build a key with the `param_1` and `param_2` values. When a parameter is optional or empty _ will be used. 
-  
-- **`max_key_length`** *`(int)`*: Default `250`, the maximum length of key string to be accepted by decorator.
-
-- **`expire`** *`(timedelta/string)`*: Default `None`, Period of time when the value is expired.
-
-- **`invalidate`** *`(bool)`*: Default `False`, Remove the value from the cache using the key.
-
-- **`handler_name`** *`(str)`*: Default `None`, The key of `CacheHandler` that registered into the `CoreLib.cache_registry`.
-
-- **`cache_empty_result`** *`(bool)`*: Default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
-
-
+---
 
 ### CacheHandler
 
 *core_lib.cache.cache_handler.CacheHandler* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler.py#L5){:target="_blank"}
 
-`CacheHandler` is an empty base abstract class with `get`, `set`, `delete`, and `flush_all` operations. You can implement it to support any caching service  
+`CacheHandler` is an abstract base class with `get`, `set`, `delete`, and `flush_all` operations. Implement it to support any other storage.
 
-By default, `Core-Lib` provides four built-in `CacheHandler` implementations.
+Core-Lib provides four implementations:
 
-1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6){:target="_blank"}
+1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6){:target="_blank"}: a dictionary in the process's memory, emptied when the process stops. Each process has its own.
 
-​		Cache data inside the memory will get invalidated upon the termination of the running process.
+2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py#L8){:target="_blank"}: [Memcached](https://memcached.org){:target="_blank"}.
 
-2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py#L8){:target="_blank"}
+3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py#L9){:target="_blank"}: [Redis](https://redis.io){:target="_blank"}. Always set `expire` on methods cached in Redis: without it, the handler's Redis `SET` call fails with `invalid expire time in 'set' command`.
 
-   Cache data inside [memcached](https://memcached.org){:target="_blank"} server
+4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L6){:target="_blank"}: stores nothing, so every call runs the method. Use it to turn caching off from config.
 
-3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py#L9){:target="_blank"}
-
-   Cache data inside [redis](https://redis.io){:target="_blank"} server
-
-4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L9){:target="_blank"}
-
-​		A dummy class, without implementation, used for testing purposes
-
-**Note:** `CacheHandlerMemcached` and `CacheHandlerRedis` will support only `dict` and  `list` data types. To cache any other data type, use the `@ResultToDict` decorator before the `@Cache` decorator. Example:
+`CacheHandlerMemcached` and `CacheHandlerRedis` store values as JSON and accept only a `dict`, `list`, `int` or `str`; anything else, such as a `float` or an entity, raises `ValueError`. The contents must also be JSON-encodable: a dict holding a `datetime` passes the type check and then raises `TypeError` from `json.dumps`. A value comes back the way JSON decodes it, so dict keys become strings: `{1: 'a'}` comes back as `{'1': 'a'}`. To cache an SQLAlchemy entity, convert it with `@ResultToDict()` and put `@Cache` above it:
 
 ```python
-@Cache(CACHE_SOME_KEY)
+@Cache(CACHE_KEY_USER)
 @ResultToDict()
-def action(self):
-  ...
+def get(self, user_id: int):
+    ...
 ```
 
+Decorators apply from the bottom up, so `@ResultToDict()` turns the entity into a dict first and `@Cache` stores the dict. In the opposite order, `@Cache` would try to store the entity itself.
 
-
+---
 
 ### CacheRegistry
 
 *core_lib.cache.cache_registry.CacheRegistry* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_registry.py#L5){:target="_blank"}
 
-The `Cache` decorator uses `CoreLib's` `CacheRegistry` to fetch the correct `CacheHandler`. So before using the `Cache` decorator, we must register our `CacheHandler` of choice inside the CoreLib `CacheRegistry.`
-By default `CoreLib` class already comes with a predefined static instance of the `CacheRegistry`
+`@Cache` looks up its handler in `CoreLib.cache_registry` each time the method is called, so register the handler before the first call. `CoreLib.cache_registry` belongs to the `CoreLib` class, so there is one per process, shared by every `CoreLib` object. Registering a name twice raises `ValueError`, which is why the examples above check with `get()` first. See [Registry](registry.html).
 
-The `Cache` decorator knows what `CacheHandler` to get by the `handler_name` parameter. If `handler_hanler` is neglected, the CacheRegistry will return the default `CacheHandler`
-
-##### example.py
+How `get()` picks a handler:
 
 ```python
-from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
+from core_lib.cache.cache_registry import CacheRegistry
 
 cache_registry = CacheRegistry()
-cache_registry.register("mem", CacheHandlerRam())
-...
-cache_registry.get("mem") # returns `CacheHandlerRam`
-cache_registry.get() # returns single/default `CacheHandlerRam`. //See DefaultRegistry documentation
+cache_registry.register('mem', CacheHandlerRam())
 
-cache_registry.register("mem2", CacheHandlerRam())
-cache_registry.get() # returns None. Multiple client registered with no default
+cache_registry.get('mem')    # the 'mem' handler
+cache_registry.get()         # also 'mem': it is the only one
+
+cache_registry.register('mem2', CacheHandlerRam())
+cache_registry.get()         # still 'mem': with no default set, the first registered handler wins
+
+cache_registry.register('mem3', CacheHandlerRam(), is_default=True)
+cache_registry.get()         # 'mem3', the default
+cache_registry.get('other')  # None: no handler by that name
 ```
 
-- **`Cache Registry Initialization`**: An instance of CacheRegistry is created (`cache_registry`). This registry is intended to hold references to different cache handlers.
-
-- **`Cache Handler Registration`**: A cache handler is registered with a specific key ("mem") using `cache_registry`.`register("mem", CacheHandlerRam()`). This associates the key "mem" with a `CacheHandlerRam` instance.
-
-- **`Retrieving Cache Handlers`**:
-
-    - **`cache_registry.get("mem")`**: Returns the cache handler associated with the key "mem", which is an instance of CacheHandlerRam.
-    - **`cache_registry.get()`**: Returns the default cache handler. However, in the code snippet, there is no default specified, so it might return None or a predefined default if set elsewhere.
-    - **`cache_registry.get("mem2")`**: Returns the cache handler associated with the key "mem2" if it were registered.
-    - **`Multiple Registrations`**: Another cache handler is registered with the key "mem2" using `cache_registry.register`(`"mem2", CacheHandlerRam()`). This allows for multiple cache handlers to be registered within the same `CacheRegistry` instance.
-
-### `demo_core_lib.py`
-
-```python
-from memcache import Client
-...
-
-class DemoCoreLib(CoreLib):
-
-    def __init__(self, conf: DictConfig):
-        self.config = conf
-
-        cache_client_memcached = CacheHandlerMemcached(build_url(**self.config.memcached))
-        cache_registry = CacheRegistry()
-        cache_registry.register("memcached", cache_client_memcached)
-        ...
-```
-
-- **`Class Definition`**: DemoCoreLib is defined, and it seems to inherit from CoreLib (assuming CoreLib is a pre-existing class).
-
- - **`Constructor`**: The `__init__` method is defined to initialize instances of DemoCoreLib. It takes a configuration dictionary (conf) as input.
-
-- **`Configuration Handling`**: The configuration dictionary is stored as an attribute `(self.config)` of the DemoCoreLib instance.
-
-- **`Cache Initialization`**:
-    - A `CacheHandlerMemcached` instance (`cache_client_memcached`) is created using the configuration provided in `self.config.memcached`. This suggests that DemoCoreLib utilizes `Memcached `for caching.
-    - A CacheRegistry instance (`cache_registry`) is created.
-    - The `cache_client_memcached` is registered with the key "memcached" within the `cache_registry`.
+When you register more than one handler, pass `is_default=True` to one of them, or name the handler in every `@Cache(handler_name=...)`. Otherwise a `@Cache` without `handler_name` silently uses whichever handler was registered first.
 
 <div style="margin-top:2em">
-    <button class="pagePrevious-btn"><a href="/generation.html"><< Previous</a></button>
-    <button class="pageNext-btn"><a href="/job.html">Next >></a></button>
+    <button class="pagePrevious-btn"><a href="generation.html">Previous</a></button>
+    <button class="pageNext-btn"><a href="job.html">Next</a></button>
 </div>

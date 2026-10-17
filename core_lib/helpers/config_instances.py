@@ -41,6 +41,7 @@ def _instantiate_config(
     raise_class_config_base_path_error: bool = False,
     params: dict = {},
 ):
+    class_settings = None
     try:
         class_settings = (
             _get_config_under_path(settings, class_config_base_path, raise_class_config_base_path_error) or {}
@@ -77,7 +78,7 @@ def _get_config_under_path(data: dict, path: str, raise_class_config_base_path_e
     data_at_path = data
     path_list = path.split('.') if path else []
     for path_item in path_list:
-        data_at_path = data.get(path) if path_item in data else None
+        data_at_path = data_at_path.get(path_item) if path_item in data_at_path else None
         if not data_at_path:
             if raise_class_config_base_path_error:
                 raise ValueError('class config path dose no exists')
