@@ -1,6 +1,8 @@
 import unittest
 from datetime import datetime, timedelta, date, timezone
+
 from dateutil.utils import today as dateutils_today
+from freezegun import freeze_time
 
 from core_lib.helpers.datetime_utils import (
     year_begin,
@@ -28,6 +30,8 @@ from core_lib.helpers.datetime_utils import (
     timestamp_to_ms,
     reset_datetime,
 )
+
+FROZEN = '2024-06-15 10:30:45'
 
 
 def _next_weekday(date: datetime, weekday: int):
@@ -158,3 +162,261 @@ class TestDBRuleValidator(unittest.TestCase):
         self.assertEqual(timestamp_to_ms(datetime.utcnow().timestamp()), int(datetime.utcnow().timestamp() * 1000))
         dat = datetime(2020, 5, 1, 00, 12, 25)
         self.assertEqual(timestamp_to_ms(dat.timestamp()), int(dat.timestamp() * 1000))
+
+
+class TestHourParams(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_hour_begin_default_minutes(self):
+        result = hour_begin()
+        self.assertEqual(result.minute, 0)
+        self.assertEqual(result.second, 0)
+        self.assertEqual(result.microsecond, 0)
+
+    @freeze_time(FROZEN)
+    def test_hour_begin_custom_minutes(self):
+        result = hour_begin(minutes=30)
+        self.assertEqual(result.minute, 30)
+        self.assertEqual(result.second, 0)
+
+    @freeze_time(FROZEN)
+    def test_hour_end_is_one_hour_after_begin(self):
+        self.assertEqual(hour_end(), hour_begin() + timedelta(hours=1))
+
+    @freeze_time(FROZEN)
+    def test_hour_end_custom_minutes(self):
+        result = hour_end(minutes=15)
+        self.assertEqual(result.minute, 15)
+        self.assertEqual(result, hour_begin(minutes=15) + timedelta(hours=1))
+
+
+class TestDayParams(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_day_begin_default(self):
+        result = day_begin()
+        self.assertEqual(result.hour, 0)
+        self.assertEqual(result.minute, 0)
+        self.assertEqual(result.second, 0)
+
+    @freeze_time(FROZEN)
+    def test_day_begin_custom_hours(self):
+        result = day_begin(hours=9)
+        self.assertEqual(result.hour, 9)
+        self.assertEqual(result.minute, 0)
+
+    @freeze_time(FROZEN)
+    def test_day_begin_custom_hours_and_minutes(self):
+        result = day_begin(hours=8, minutes=30)
+        self.assertEqual(result.hour, 8)
+        self.assertEqual(result.minute, 30)
+
+    @freeze_time(FROZEN)
+    def test_day_end_default(self):
+        result = day_end()
+        self.assertEqual(result, day_begin() + timedelta(days=1))
+
+    @freeze_time(FROZEN)
+    def test_day_end_custom_hours_minutes(self):
+        result = day_end(hours=6, minutes=30)
+        self.assertEqual(result, day_begin(hours=6, minutes=30) + timedelta(days=1))
+
+    @freeze_time(FROZEN)
+    def test_day_begin_correct_date(self):
+        result = day_begin()
+        self.assertEqual(result.year, 2024)
+        self.assertEqual(result.month, 6)
+        self.assertEqual(result.day, 15)
+
+
+class TestTodayTomorrowYesterdayParams(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_today_custom_hours(self):
+        result = today(hours=14)
+        self.assertEqual(result.hour, 14)
+
+    @freeze_time(FROZEN)
+    def test_today_custom_hours_minutes(self):
+        result = today(hours=9, minutes=45)
+        self.assertEqual(result.hour, 9)
+        self.assertEqual(result.minute, 45)
+
+    @freeze_time(FROZEN)
+    def test_tomorrow_custom_hours_minutes(self):
+        result = tomorrow(hours=8, minutes=30)
+        self.assertEqual(result.day, 16)
+        self.assertEqual(result.hour, 8)
+        self.assertEqual(result.minute, 30)
+
+    @freeze_time(FROZEN)
+    def test_yesterday_custom_hours_minutes(self):
+        result = yesterday(hours=22, minutes=15)
+        self.assertEqual(result.day, 14)
+        self.assertEqual(result.hour, 22)
+        self.assertEqual(result.minute, 15)
+
+    @freeze_time(FROZEN)
+    def test_midnight_same_as_today(self):
+        self.assertEqual(midnight(), today())
+
+    @freeze_time(FROZEN)
+    def test_midnight_custom_params(self):
+        self.assertEqual(midnight(hours=8, minutes=30), today(hours=8, minutes=30))
+
+
+class TestWeekBoundaries(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_week_begin_is_monday(self):
+        result = week_begin()
+        self.assertEqual(result.weekday(), 0)
+
+    @freeze_time(FROZEN)
+    def test_week_begin_custom_hours(self):
+        result = week_begin(hours=9)
+        self.assertEqual(result.hour, 9)
+        self.assertEqual(result.weekday(), 0)
+
+    @freeze_time(FROZEN)
+    def test_week_end_seven_days_after_begin(self):
+        self.assertEqual(week_end(), week_begin() + timedelta(days=7))
+
+    @freeze_time(FROZEN)
+    def test_week_end_custom_hours(self):
+        result = week_end(hours=6, minutes=30)
+        self.assertEqual(result, week_begin(hours=6, minutes=30) + timedelta(days=7))
+
+
+class TestMonthBoundaries(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_month_begin_is_first(self):
+        result = month_begin()
+        self.assertEqual(result.day, 1)
+        self.assertEqual(result.month, 6)
+
+    @freeze_time(FROZEN)
+    def test_month_begin_custom_hours(self):
+        result = month_begin(hours=8, minutes=30)
+        self.assertEqual(result.day, 1)
+        self.assertEqual(result.hour, 8)
+        self.assertEqual(result.minute, 30)
+
+    @freeze_time(FROZEN)
+    def test_month_end_is_first_of_next_month(self):
+        result = month_end()
+        self.assertEqual(result.month, 7)
+        self.assertEqual(result.day, 1)
+
+    @freeze_time('2024-12-15 10:00:00')
+    def test_month_end_december_wraps_to_january(self):
+        result = month_end()
+        self.assertEqual(result.year, 2025)
+        self.assertEqual(result.month, 1)
+        self.assertEqual(result.day, 1)
+
+    @freeze_time('2024-02-15 10:00:00')
+    def test_month_end_february(self):
+        result = month_end()
+        self.assertEqual(result.month, 3)
+        self.assertEqual(result.day, 1)
+
+
+class TestYearBoundaries(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_year_begin_is_jan_1(self):
+        result = year_begin()
+        self.assertEqual(result.month, 1)
+        self.assertEqual(result.day, 1)
+        self.assertEqual(result.year, 2024)
+
+    @freeze_time(FROZEN)
+    def test_year_begin_custom_hours(self):
+        result = year_begin(hours=9, minutes=30)
+        self.assertEqual(result.hour, 9)
+        self.assertEqual(result.minute, 30)
+
+    @freeze_time(FROZEN)
+    def test_year_end_is_jan_1_next_year(self):
+        result = year_end()
+        self.assertEqual(result.year, 2025)
+        self.assertEqual(result.month, 1)
+        self.assertEqual(result.day, 1)
+
+    @freeze_time('2024-12-31 23:59:59')
+    def test_year_end_on_last_day(self):
+        result = year_end()
+        self.assertEqual(result.year, 2025)
+
+
+class TestWeekdayFunctions(unittest.TestCase):
+    @freeze_time(FROZEN)
+    def test_all_weekday_functions_return_future_dates(self):
+        now = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        for fn in [sunday, monday, tuesday, wednesday, thursday, friday, saturday]:
+            result = fn()
+            self.assertGreater(result, now)
+
+    @freeze_time(FROZEN)
+    def test_weekday_functions_return_correct_weekday(self):
+        self.assertEqual(monday().weekday(), 0)
+        self.assertEqual(tuesday().weekday(), 1)
+        self.assertEqual(wednesday().weekday(), 2)
+        self.assertEqual(thursday().weekday(), 3)
+        self.assertEqual(friday().weekday(), 4)
+        self.assertEqual(saturday().weekday(), 5)
+        self.assertEqual(sunday().weekday(), 6)
+
+    @freeze_time(FROZEN)
+    def test_weekday_custom_hours_minutes(self):
+        result = monday(hours=8, minutes=30)
+        self.assertEqual(result.weekday(), 0)
+        self.assertEqual(result.hour, 8)
+        self.assertEqual(result.minute, 30)
+
+    @freeze_time(FROZEN)
+    def test_weekday_results_are_within_7_days(self):
+        now = datetime.utcnow()
+        for fn in [sunday, monday, tuesday, wednesday, thursday, friday, saturday]:
+            result = fn()
+            delta = result - now.replace(hour=0, minute=0, second=0, microsecond=0)
+            self.assertLessEqual(delta.days, 7)
+            self.assertGreater(delta.days, 0)
+
+
+class TestUtilityFunctions(unittest.TestCase):
+    def test_timestamp_to_ms_integer(self):
+        self.assertEqual(timestamp_to_ms(1.0), 1000)
+        self.assertEqual(timestamp_to_ms(1.5), 1500)
+        self.assertEqual(timestamp_to_ms(0), 0)
+
+    def test_timestamp_to_ms_returns_int(self):
+        result = timestamp_to_ms(1234567890.123)
+        self.assertIsInstance(result, int)
+
+    def test_reset_datetime_clears_time(self):
+        dt = datetime(2024, 6, 15, 14, 30, 45, 123456)
+        result = reset_datetime(dt)
+        self.assertEqual(result.hour, 0)
+        self.assertEqual(result.minute, 0)
+        self.assertEqual(result.second, 0)
+        self.assertEqual(result.microsecond, 0)
+
+    def test_reset_datetime_preserves_date(self):
+        dt = datetime(2024, 6, 15, 14, 30, 45)
+        result = reset_datetime(dt)
+        self.assertEqual(result.year, 2024)
+        self.assertEqual(result.month, 6)
+        self.assertEqual(result.day, 15)
+
+    def test_age_birthday_passed_this_year(self):
+        born = date(2000, 1, 1)
+        expected = date.today().year - 2000
+        self.assertEqual(age(born), expected)
+
+    def test_age_birthday_not_yet_this_year(self):
+        born = date(2000, 12, 31)
+        expected = date.today().year - 2000 - (1 if date.today() < born.replace(year=date.today().year) else 0)
+        self.assertEqual(age(born), expected)
+
+    def test_age_born_today_is_zero(self):
+        self.assertEqual(age(date.today()), 0)
+
+    def test_age_returns_int(self):
+        self.assertIsInstance(age(date(1990, 1, 1)), int)
