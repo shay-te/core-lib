@@ -173,6 +173,12 @@ That is the whole class — no `create`, no guards, domain queries only.
   `nullable=False`. **`update` overrides strip immutable columns** before
   `super().update(id, data)` (§5).
 - **Never returns soft-deleted rows**; don't add `include_deleted` (§5).
+- **A write the service must commit together with another table's, or a
+  check-then-write behind a guard**, gets session-taking methods BESIDE the
+  base (never an override): `transaction()`, `create_in_transaction(session,
+  data)` / `update_in_transaction(session, row, data)` — same `rule_validator`,
+  `flush()`, never commit — and `get_for_update(session, id)` with
+  `SET LOCAL lock_timeout` then `with_for_update=True` (§6).
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale

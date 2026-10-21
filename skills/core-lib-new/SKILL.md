@@ -116,7 +116,13 @@ class FooCoreLib(CoreLib):
   `if not CoreLib.cache_registry.get(FOO_CORE_LIB_CACHE):` — registries are
   process-global and `register()` RAISES on a duplicate key (§7, §12).
 - **DB comes from `CoreLib.connection_factory_registry.get_or_reg(core_cfg.data.sqlalchemy)`**,
-  not a hand-built factory (§7).
+  not a hand-built factory (§7). A lib whose queries must run under a
+  different login than the host's registers its OWN node
+  (`core_lib.foo_core_lib.sqlalchemy`, own `_instance_key_`, `create_db: false`),
+  resolved with `OmegaConf.to_container(node, resolve=True)` first — the
+  registry stores an unresolved copy (§3.1, §12).
+- **Jobs only log their failures** — a job whose silent failure matters calls a
+  service method that alarms and re-raises (§9).
 - **Ship `install()` / `uninstall()` staticmethods** using
   `Alembic(os.path.dirname(inspect.getfile(FooCoreLib)), cfg)` — note the import
   is `from core_lib.alembic.alembic import Alembic` (§7, §11.1).

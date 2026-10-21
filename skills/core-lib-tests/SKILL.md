@@ -219,7 +219,8 @@ you the work of writing it AND the confidence you thought you bought.
 Always real, never mocked:
 
 - the composed `FooCoreLib` and every service and DataAccess in it
-- a real **sqlite** database, real migrations, real transactions
+- a real **sqlite** database (real **Postgres** when the lib relies on
+  Postgres-only behaviour), real migrations, real transactions
 - real `@Cache`, `@ResultToDict`, `@Observe`, `@DuplicateErrorHandler`,
   `@NotFoundErrorHandler`
 - real `RuleValidator`s, real enum coercion, real soft-delete filtering
@@ -257,7 +258,14 @@ database. See §3 above for what a complete flow looks like, and add a
 - One `unittest.TestCase` per file; filename mirrors the class (§13).
 - **Tests are adversarial**: written to break the code, not to demonstrate it
   works. Mutation-check the ones that matter — break the code on purpose and
-  confirm the test fails.
+  confirm the test fails. A scripted harness asserts each break's anchor
+  matches exactly once (a stale anchor skips its break silently) and, after an
+  interrupted run, that every anchor is restored (§13.1).
+- **Postgres-only behaviour (grants, RLS, arrays, `FOR UPDATE`) is tested on a
+  real Postgres container, never sqlite**; its env-guarded suites run through a
+  `run_tests.sh` that fails on `skipped=` (§13.2).
+- **No hardcoded `tests.`-prefixed module names** — the dotted name differs
+  with and without `-t`; build it from `__name__` (§13.6).
 - **Edge cases are mandatory, not optional extras** — empty/one/many, both ends
   of every boundary, ties, nulls, over-length, wrong tenant, soft-deleted,
   duplicate calls. Work the checklist in §2.
