@@ -78,7 +78,7 @@ not needed to use Core-Lib)
 | `core_lib.rule_validator.helpers` | `convert_location`, `validate_location`, `convert_datetime` — ready-made `custom_converter`/`custom_validator`s |
 | `core_lib.data_layers.data.db.join_config` | `JoinConfig`, `apply_join_configs` — joins a Service chooses at run time |
 | `core_lib.data_layers.data.db.sqlalchemy.types` | `IntEnum` (enum column; values start at 1), `Point` (use its static helpers with a geoalchemy2 `Geometry('POINT')` column) |
-| `core_lib.client.client_base` | `ClientBase` — HTTP API client with base URL, headers, timeout, auth (see `core-lib-connection`) |
+| `core_lib.client.client_base` | `ClientBase` — HTTP API client with base URL, headers, timeout, auth (see `core-lib-client`) |
 | `core_lib.middleware` | `Middleware`, `MiddlewareChain` — a check or side effect shared by several methods |
 
 ## What core-lib does NOT provide (writing these is correct)

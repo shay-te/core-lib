@@ -733,7 +733,6 @@ foo-core-lib/
 - **Delete what a library does not ship:** `template_core_lib_instance.py` (a singleton is the host's choice — a host that wants one writes it), `.dockerignore` (a library has no image), `example_data.yaml`, the root `.env`, the unused `LICENSE_*` variants (keep one `LICENSE`), and the example entities, DataAccesses, services and `jobs/` once the real ones exist.
 - **Move the test tree** from the template's `tests/test_data/{helpers/util.py, test_config/}` to `tests/helpers/utils.py` and `tests/data/config/` (§13.4–13.5).
 - **Re-read every prose line after the rename**: a blind replace turns the English word into nonsense in READMEs, docstrings and comments ("use this calendar to start").
-- **Fix `setup.py` and `MANIFEST.in`** — the template's copies break an isolated build and ship a wheel that cannot migrate (§14).
 
 ## 3. Config (Hydra) — the packaged yaml, the search path, the compose
 
@@ -1556,8 +1555,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 ## 14. Packaging / repo hygiene
 
 - `requirements.txt` — RUNTIME deps only: `core-lib` first, with the core-lib extras for the backends the lib uses (`core-lib[postgres]` for a Postgres-backed lib, `core-lib[redis]` for a Redis cache — since 0.3.0 plain `core-lib` brings only SQLite's driver), then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
-- **`setup.py` reads text, never imports.** `__version__` comes from `foo_core_lib/__init__.py` by regex and requirements from `requirements.txt` line by line — never `import foo_core_lib` (its deps are absent in an isolated build) or `pip._internal` (not an API). `packages = find_packages(exclude=['tests', 'tests.*']) + find_namespace_packages(include=['hydra_plugins.*'])`: without the exclude the wheel installs a top-level `tests` package that collides with every other lib's. The generator template's `setup.py` does all three since 0.3.0.
-- **`MANIFEST.in` ships the migration templates**: beside `recursive-include foo_core_lib *.yaml`, add `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver` — without them an installed lib cannot run `install()`. The generator template's `MANIFEST.in` still lacks this line. Prove packaging by building the wheel, installing it into a clean venv, and composing + `install()`ing from outside the repo (delete a stale `build/` first; it leaks old files into the wheel).
+- **`setup.py` reads text, never imports.** `__version__` comes from `foo_core_lib/__init__.py` by regex and requirements from `requirements.txt` line by line — never `import foo_core_lib` (its deps are absent in an isolated build) or `pip._internal` (not an API). `packages = find_packages(exclude=['tests', 'tests.*']) + find_namespace_packages(include=['hydra_plugins.*'])`: without the exclude the wheel installs a top-level `tests` package that collides with every other lib's. The generator template's `setup.py` does all three.
+- **`MANIFEST.in` ships the migration templates**: beside `recursive-include foo_core_lib *.yaml`, add `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver` — without them an installed lib cannot run `install()`. Prove packaging by building the wheel, installing it into a clean venv, and composing + `install()`ing from outside the repo (delete a stale `build/` first; it leaks old files into the wheel).
 - If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`. Never commit the data files (rule at the top of this document) — `.coveragerc` IS tracked, only its output is ignored.
 - **`.gitignore` covers every generated artifact, not just the ones this lib happens to produce today.** Bytecode and caches are written by whichever tool someone runs once, and then get swept in by a wide `git add`. The canonical list — keep the repo's own file and `core_lib_generator/template_core_lib/.gitignore` **in step**, since the template is what every generated lib inherits:
 
@@ -1639,7 +1638,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 22. Releasing the test-bootstrap lock only on the success path (deadlocks the whole run on a failed boot — §13.4).
 23. Committing `.coverage` files; letting a Dockerfile run build steps beyond dependency installation.
 24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
-25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
+25. Keeping the template's `_instance.py` or `.dockerignore` (§2); a committed test secret (§13.6).
 
 ## 17. Final checklist before handing the lib over
 

@@ -18,7 +18,7 @@ description: MANDATORY — load this skill BEFORE you add or change an SDK-backe
 > `client/` — load `core-lib-client`. This skill is for a backend reached through an SDK that
 > owns its connection.
 
-An outbound backend (object storage, an external API) is **three pieces**,
+An SDK-backed backend (object storage, an LLM SDK) is **three pieces**,
 mirroring the DB stack. Files are named after the **backend**, with no lib
 prefix (`storage_connection_factory.py`, not `foo_storage_...`). §10.
 

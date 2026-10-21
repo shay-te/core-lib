@@ -7,3 +7,4 @@ global-exclude *.pyc
 global-exclude __pycache__
 recursive-include hydra_plugins/* *.yaml
 recursive-include template_core_lib/* *.yaml
+recursive-include template_core_lib/data_layers/data/db/migrations *.mako .migration_ver

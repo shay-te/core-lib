@@ -65,9 +65,9 @@ marked `migrate: true`.
    Then clean it (§2): delete `template_core_lib_instance.py`, `.dockerignore`,
    `example_data.yaml`, the root `.env`, the unused `LICENSE_*` files and the
    example entities/DAs/services/jobs; move the tests to `tests/helpers/utils.py`
-   + `tests/data/config/`; re-read every prose line the rename touched; and add
-   the migration `*.mako` + `.migration_ver` to `MANIFEST.in` per §14 (the
-   template's `setup.py` already reads text and excludes `tests`). The package-root `foo_core_lib/__init__.py`
+   + `tests/data/config/`; and re-read every prose line the rename touched
+   (`setup.py` and `MANIFEST.in` already follow §14). The package-root
+   `foo_core_lib/__init__.py`
    carries `__version__` **and** re-exports the class
    (`from foo_core_lib.foo_core_lib import FooCoreLib` + `__all__`). **Every
    other `__init__.py` is an empty 0-byte file — but it must exist** (§1, §2).
