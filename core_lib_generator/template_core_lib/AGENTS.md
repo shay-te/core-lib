@@ -45,8 +45,8 @@ whoever adds a skill must add the row in both places.
 Like every core-lib, this package must know **nothing** about the host
 application that consumes it — no brand, no host env-var names, no
 host-specific text, in source, tests, comments, docstrings, field names, or
-fixtures. Anything host-specific is *injected* as a parameter with a safe
-neutral default. The full rule is the "this library is AGNOSTIC" block in
+fixtures. Anything host-specific is *injected* as a required parameter or
+config key, with no default. The full rule is the "this library is AGNOSTIC" block in
 `core-lib/AGENTS.md`.
 
 ## template_core_lib-specific notes

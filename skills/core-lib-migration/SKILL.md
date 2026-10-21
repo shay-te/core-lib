@@ -77,5 +77,11 @@ def downgrade():
 - `revision` / `down_revision` are stringified integers; update `.migration_ver`.
 - Every `upgrade()` has a matching `downgrade()`.
 - Never commit `.coverage` or build artifacts alongside the migration.
+- **Test it on a SQLite FILE, never `:memory:`** — Alembic opens its own engine.
+  `build_url` strips a leading `/`, so pass `os.path.relpath(path)`; compare the
+  migrated schema with `create_all` on a second file.
+- **`MANIFEST.in` ships the migration templates** —
+  `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver`,
+  or an installed wheel cannot run `install()` (§14).
 
 Create or change the entity first with the `core-lib-entity` skill.

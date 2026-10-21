@@ -75,8 +75,8 @@ rejected in review (§0).
   constructor param. The host owns its config and **bridges** it — passing the
   value in, or exporting it under the generic name this library reads. Same for
   any product-specific text (endpoints, bucket names, prompts, operator
-  messages): injected by the caller with a safe neutral default, never
-  hardcoded here. Litmus: could a stranger configure this package without ever
+  messages): injected by the caller as a required value with no default,
+  never hardcoded here. Litmus: could a stranger configure this package without ever
   learning what application it came from? See "this library is AGNOSTIC" in
   `AGENTS.md`.
 - **Provider quirks are absorbed in the factory** (e.g. `provider: minio` +

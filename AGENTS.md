@@ -192,7 +192,8 @@ tests, not in comments, not in docstrings, not in field names, not in fixtures.
   generic name this library reads.
 - Product-specific TEXT (prompts, operator messages, workflow wording, brand
   strings) is **injected by the caller** as a parameter — never hardcoded here.
-  Provide a safe, neutral default so the library works standalone.
+  It is a **required** config key or argument with no default — a default
+  would be one product's wording, and a fallback hides a host that forgot it.
 
 ## The library is the TOOL — never an instance of it
 
@@ -612,6 +613,8 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 - Defensive config reads (`storage_cfg.get('prefix_originals')`) in a composition root or service — rejected; direct attribute access, fail loud, and make sure the key ALWAYS exists in the yaml (§3). (The one sanctioned `.get(...)` site is a connection factory's validation layer — §10.)
 - Standalone DB-DataAccess test files — rejected: "no one is exposing the DA; we only test what we expose, which is the service" (§13.3 — the backend *client adapter* test is the one sanctioned exception).
 
+**The first version of a lib is the MINIMUM version.** Every public method, DataAccess query, column, config key, error class and branch traces to the ticket or to a caller in the same change — never to a scenario "that may happen" (retries, concurrency claims, account switching, a second tenant column, collaboration, tuning knobs). Later steps add them when a requirement names the need; a smaller lib is easier to review and deploy. Ask of every line: "which requirement or caller needs this today?"
+
 ## 1. Naming (exact — no variation)
 
 - Repo `foo-core-lib` → python package `foo_core_lib` → main class `FooCoreLib` in `foo_core_lib/foo_core_lib.py`.
@@ -710,12 +713,19 @@ foo-core-lib/
 
 **(divergence: an older lib’s test helper lives at `tests/utils/helpers.py` with holder class `FooCoreLibInstance` — directory/filename swapped. New libs use `tests/helpers/utils.py` + `CoreLibInstance`.)**
 
+**Starting from `core_lib_generator/template_core_lib`** (copy it, rename `template` → `foo` in every case form, in paths and contents), bring it to the tree above:
+
+- **Delete what a library does not ship:** `template_core_lib_instance.py` (a singleton is the host's choice — a host that wants one writes it), `.dockerignore` (a library has no image), `example_data.yaml`, the root `.env`, the unused `LICENSE_*` variants (keep one `LICENSE`), and the example entities, DataAccesses, services and `jobs/` once the real ones exist.
+- **Move the test tree** from the template's `tests/test_data/{helpers/util.py, test_config/}` to `tests/helpers/utils.py` and `tests/data/config/` (§13.4–13.5).
+- **Re-read every prose line after the rename**: a blind replace turns the English word into nonsense in READMEs, docstrings and comments ("use this calendar to start").
+- **Fix `setup.py` and `MANIFEST.in`** — the template's copies break an isolated build and ship a wheel that cannot migrate (§14).
+
 ## 3. Config (Hydra) — the packaged yaml, the search path, the compose
 
 ### 3.1 `foo_core_lib/config/foo_core_lib.yaml`
 
 - First line is exactly `# @package _global_`. Root key is `core_lib:`.
-- **New libs source every value from an environment variable** with an in-yaml default — `${oc.env:FOO_<KEY>,<default>}`, nullable values defaulting to `null` — the style of the newer libs, which is the owner's latest direction. **(divergence: the older libs — the older libs — hardcode plain yaml values (`log_queries: false`, `create_db: false`, `protocol: postgresql`) and use bare `${oc.env:POSTGRES_*}` interpolations with NO defaults. Do not copy that for a new lib, and do not "fix" theirs while building yours.)**
+- **New libs source every value from an environment variable** with an in-yaml default — `${oc.env:FOO_<KEY>,<default>}`, nullable values defaulting to `null` — the style of the newer libs, which is the owner's latest direction. Exceptions, with NO default (`${oc.env:FOO_<KEY>}`): secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text. **(divergence: the older libs — the older libs — hardcode plain yaml values (`log_queries: false`, `create_db: false`, `protocol: postgresql`) and use bare `${oc.env:POSTGRES_*}` interpolations with NO defaults. Do not copy that for a new lib, and do not "fix" theirs while building yours.)**
 - **Booleans and numbers sourced from env MUST be wrapped in `oc.decode`:** `${oc.decode:${oc.env:FOO_USE_SSL,true}}`. A bare `${oc.env:...}` resolves to a STRING — `'false'` is truthy — which silently breaks `create_engine(echo=…)`, makes `create_db` impossible to disable, and defeats `use_ssl is False` checks. This was a real shipped bug.
 - **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. Shape for a NEW lib (env-driven; the older libs carry the same path + `_target_` but hardcode the values):
 
@@ -903,6 +913,7 @@ class FooError(StatusCodeException):
 - Every subclass declares its own `STATUS_CODE` in its class body: inheriting the base's 500 or a sibling's code reports an error as something it is not. The package-walking test asserts `'STATUS_CODE' in vars(error_class)`.
 - The docstring says WHY that status (422 = well-formed but unprocessable content, the client shows it to the author; 409 = the request is fine, the STORED state forbids it), which is the part a reviewer cannot re-derive.
 - Test by WALKING the package (`pkgutil.iter_modules`), not by scanning one namespace — one class per file means a new error is a new module, and a module nothing imports yet would be invisible.
+- **Keep the set small.** A new class is justified only when a caller catches it BY TYPE or a host must answer it with a different status; otherwise raise the nearest existing class with a clear message. A bad argument or constructor/config value is a plain `ValueError`, not a class. Never wrap a third-party exception in a class of your own just to re-raise it — let it propagate (name it in the docstring) and translate it only where a caller decides what it means.
 
 Full recipe, the status-choice table and the test: [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md).
 
@@ -1087,7 +1098,9 @@ Rules:
 - `@Cache(...)` outermost on cached reads so a cache hit skips `@ResultToDict` and the DA entirely; `@ResultToDict()` outermost on `create` so the 409 from `@DuplicateErrorHandler` propagates before dict conversion. Write methods carry `@Cache(..., invalidate=True)` — the decorator runs the function FIRST, then deletes the key (and does not delete if the function raises).
 - A write that must also evict a key templated on DIFFERENT params uses the empty-body eviction-hook pattern: a private method decorated `@Cache(OTHER_KEY, handler_name=..., invalidate=True)` whose body is `pass`; the real write calls it with the params that fill the template (the current convention’s `_invalidate_project_mapping(project_id)` called by `delete`).
 - **Tenant-boundary discipline:** the external tenant key (`project_id`) is translated to the internal row key (`workspace_id`) in exactly one place — a `resolve_<x>_id(project_id)` (cached read that raises a domain `LookupError` subclass when absent) and/or an idempotent `ensure_<x>(project_id, ...)` get-or-create that recovers from a concurrent-create 409 by re-reading. Every other service method takes `project_id`, resolves it internally, and scopes ALL queries by the internal id — a cross-tenant call is a 0-rowcount/`None`/404, never a leak.
-- Missing required args raise `ValueError` at the top of the method. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
+- **A public method that takes a row id also takes the tenant key** (`cancel(appointment_id, project_id)`) and treats another tenant's row as absent — a primary key is not authority to read or write. The tell is a public method whose only argument is an id.
+- **Tuning values are module constants, not config** (`CONNECT_STATE_TTL_SECONDS = 600`) until a host asks to change one. Config holds what differs per deployment: credentials, endpoints, host wording (required, no default — see "this library is AGNOSTIC").
+- Missing required args raise `ValueError` at the top of the method. Argument guards that several services share live together in ONE `<topic>_helper.py` (`argument_helper.py`: `require_id`, `to_naive_utc`, …) — never one function per file, never a bare `helper.py`. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
 - **A row's PARENT can be soft-deleted too, and that is still an absence.** Swallowing the 404 on the row you asked for is only half of it: a read that walks stored children and resolves each one's parent hits rows whose parent went away after they were written, and it must skip rather than raise. Get this wrong on ONE method and the surface becomes incoherent — in the case that prompted this rule, `history`, `scores`, `latest_per_scale` and `compare_pair` all returned empty on a soft-deleted parent while `result_for` raised a `ValueError` from a PURE ENGINE's argument guard, so the caller got an error naming a parameter rather than the record. Swallow only 404 (a helper like `row_or_none(get, row_id)` at the library root, since a DataAccess needs it too) — catching the base `StatusCodeException` turns a 409 into a silent "not found".
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
@@ -1388,7 +1401,8 @@ def downgrade():
 - **`start_core_lib()` raises `CoreLibInitException` if called twice** on the same instance.
 - **`Observer.notify` re-raises listener exceptions** after logging them (§8) — a throwing host listener fails the service call that fired the event, post-commit.
 - **`SqlAlchemyConnectionFactory`:** reads `create_db` (code default TRUE → `Base.metadata.create_all` at construction; base yaml ships `false` — prod relies on `install()`), `log_queries` → `echo`, `session.pool_recycle` (code default 3200) / `pool_pre_ping` always passed; `pool_size`/`max_overflow` are OMITTED for sqlite (unsupported-pool protocols). Session contexts auto-commit on clean exit and rollback on exception.
-- **`build_url`:** `{protocol: sqlite, file: ':memory:'}` → `sqlite:///:memory:`.
+- **`build_url`:** `{protocol: sqlite, file: ':memory:'}` → `sqlite:///:memory:`. It strips a leading `/` from `file`, so an absolute SQLite path silently becomes relative — pass `os.path.relpath(path)`.
+- **`@ResultToDict` epochs a NAIVE datetime as LOCAL time** (`.timestamp()`), so a naive-UTC column is off by the machine's UTC offset outside a UTC container. Tests derive expected epochs through `result_to_dict` itself (or run under `TZ=UTC`), never `calendar.timegm`.
 
 ## 13. Tests — the philosophy and the exact mechanics
 
@@ -1515,11 +1529,16 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - Patching a MODULE-LEVEL tuning constant (`document_service.EMPTY_TRASH_BATCH = 2`) to force loop boundaries is allowed — always restored in `try/finally`. Patching methods/attributes of the composed lib is NOT (the one exception is the utils-owned seam, §13.4).
 - Exercise error paths as the service defines them: 409 via a real duplicate through the real DB (`assertRaises(StatusCodeException)` + `status_code == HTTPStatus.CONFLICT`), 404/`None` via the service's own contract, `ValueError` for missing args, `PermissionError` for rule-validator rejections — with a follow-up assertion that the failed call left the data untouched (read it back through the service).
 - The composed-lib smoke file (`test_foo_core_lib.py`) asserts the PUBLIC surface only: every service attribute exists and works end to end with one real call each; config threading is proven through BEHAVIOR (an env-value visible in an output), not by reading private fields.
-- Suite hygiene facts: the hydra `version_base` UserWarning at bootstrap is expected noise; run with `PYTHONPATH="../core-lib;." python -m unittest discover -s tests -p "test_*.py"` (`;` on native-Windows Python, `:` on POSIX — sibling repos on the path as needed, e.g. library adds `../a newer lib-core-lib`).
+- Suite hygiene facts: the hydra `version_base` UserWarning at bootstrap is expected noise; run with `PYTHONPATH="../core-lib;." python -P -m unittest discover -s tests -p "test_*.py"` (`;` on native-Windows Python, `:` on POSIX — sibling repos on the path as needed, e.g. library adds `../a newer lib-core-lib`). **`-P` is required**: without it the working directory's (or core-lib's) `tests` package shadows the lib's own and every module fails to import.
+- **No secret is committed, not even a test one.** A secret the lib needs (an encryption key) is `${oc.env:FOO_…}` with no default in the packaged yaml; `load_config` generates a fresh one into `os.environ` before `compose()`, and the test yaml carries no key.
+- **Prove the suites hit a real database**: one file reaches the shared engine (`CoreLib.connection_factory_registry.get_or_reg(config.core_lib.data.sqlalchemy).engine` — the one sanctioned look past the services) and asserts dialect `sqlite`, every table present, a service write visible as a row, and a NOT NULL violation raising `IntegrityError`.
+- **Migration test**: `install()` against a SQLite FILE in a temp dir (Alembic opens its own engine, so `:memory:` migrates a throwaway database; `relpath`, §12) and compare the inspected tables, columns, indexes and constraints with `Base.metadata.create_all` on a second file.
 
 ## 14. Packaging / repo hygiene
 
 - `requirements.txt` — RUNTIME deps only: `core-lib` first, then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
+- **`setup.py` reads text, never imports.** `__version__` comes from `foo_core_lib/__init__.py` by regex and requirements from `requirements.txt` line by line — never `import foo_core_lib` (its deps are absent in an isolated build) or `pip._internal` (not an API). `packages = find_packages(exclude=['tests', 'tests.*']) + find_namespace_packages(include=['hydra_plugins.*'])`: without the exclude the wheel installs a top-level `tests` package that collides with every other lib's. The generator template still does all three wrong.
+- **`MANIFEST.in` ships the migration templates**: beside `recursive-include foo_core_lib *.yaml`, add `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver` — without them an installed lib cannot run `install()`. Prove packaging by building the wheel, installing it into a clean venv, and composing + `install()`ing from outside the repo (delete a stale `build/` first; it leaks old files into the wheel).
 - If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`. Never commit the data files (rule at the top of this document) — `.coveragerc` IS tracked, only its output is ignored.
 - **`.gitignore` covers every generated artifact, not just the ones this lib happens to produce today.** Bytecode and caches are written by whichever tool someone runs once, and then get swept in by a wide `git add`. The canonical list — keep the repo's own file and `core_lib_generator/template_core_lib/.gitignore` **in step**, since the template is what every generated lib inherits:
 
@@ -1600,6 +1619,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 21. Deriving strings from `enum.value` when the NAME is meant (`.1` extension bug).
 22. Releasing the test-bootstrap lock only on the success path (deadlocks the whole run on a failed boot — §13.4).
 23. Committing `.coverage` files; letting a Dockerfile run build steps beyond dependency installation.
+24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
+25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
 
 ## 17. Final checklist before handing the lib over
 
@@ -1613,6 +1634,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - [ ] Every service suite: one class per file; `cls.foo_core_lib`; inline access; fresh `new_project_id()` per test; `ABSENT_* = 2_000_000_000`; `Entity.col.key` for every dict read; zero `_da`/`_db`/`_storage` greps.
 - [ ] Mutation check done (break code → red; revert → green). Full suite green from a clean checkout with only the documented env (moto/MinIO where applicable).
 - [ ] `requirements.txt` runtime-only; nothing under `.coverage*` tracked.
+- [ ] Wheel built and installed into a clean venv: no `tests` package inside, `script.py.mako` + `.migration_ver` present, composes and `install()`s from outside the repo.
 
 ---
 
