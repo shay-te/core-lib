@@ -69,13 +69,21 @@ def downgrade():
 ## Rules to enforce (§11)
 
 - **Reference the entity, not literals** — `Thing.__tablename__`,
-  `Thing.id.key`, and the entity's `INDEX_*` / `UQ_*` class constants. The
+  `Thing.id.key`, and the entity's `INDEX_*` class constants. The
   index name then exists in exactly one place (entity + migration agree).
+- A unique key is `op.create_index(Thing.INDEX_X, Thing.__tablename__, [...],
+  unique=True)`, never `sa.UniqueConstraint` (see `core-lib-entity`).
 - **No `alembic.ini`; no `alembic -c` CLI invocation** — go through the lib's
   `install()` / `uninstall()`.
 - **One migration while unreleased** — fold changes into `_1_create_db.py`.
 - `revision` / `down_revision` are stringified integers; update `.migration_ver`.
 - Every `upgrade()` has a matching `downgrade()`.
 - Never commit `.coverage` or build artifacts alongside the migration.
+- **Test it on a SQLite FILE, never `:memory:`** — Alembic opens its own engine.
+  `build_url` strips a leading `/`, so pass `os.path.relpath(path)`; compare the
+  migrated schema with `create_all` on a second file.
+- **`MANIFEST.in` ships the migration templates** —
+  `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver`,
+  or an installed wheel cannot run `install()` (§14).
 
 Create or change the entity first with the `core-lib-entity` skill.

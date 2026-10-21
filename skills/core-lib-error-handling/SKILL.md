@@ -149,6 +149,10 @@ cannot be compared" into a silent "not found". See `core-lib-reuse`.
 
 ## Checklist
 
+0. Does a caller catch it BY TYPE, or must a host answer it with a different
+   status? If not, raise an existing class — a lib needs few error classes. A
+   bad argument or config value is a plain `ValueError`; a third-party
+   exception is not wrapped just to be re-raised (AGENTS §4.2).
 1. Is it error-shaped (an exception, a code, a failure record)? → `error_handling/`.
 2. One class, one file, snake_case named after the class. No `errors.py`.
 3. Subclass the lib's base, which subclasses `StatusCodeException`.
