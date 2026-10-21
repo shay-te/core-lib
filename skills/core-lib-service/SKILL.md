@@ -136,6 +136,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+- **Minimum surface** — every public method has a caller or a ticket line;
+  no "may happen" branches (§0).
+- **A method taking a row id also takes the tenant key** (`project_id`) and
+  treats another tenant's row as absent (§6).
+- **Tuning values are module constants, not config**, until a host asks (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`.
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive

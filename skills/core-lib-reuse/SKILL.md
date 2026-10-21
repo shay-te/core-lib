@@ -53,6 +53,7 @@ what core-lib lacks — so the next reader does not re-run your search.
 | turn a bare `assert` into a status code | `with StatusCodeAssert(code, msg):` — `core_lib.error_handling.status_code_assert` | context manager |
 | validate one dict argument of your own DataAccess method | `@ParameterRuleValidator(rule_validator, 'data')` — `core_lib.rule_validator.rule_validator_decorator` | the dict must be passed **positionally** |
 | log a line before each call | `@Logging('get_user_{user_id}')` — `core_lib.helpers.logging` | logs before the call only; no return value, no exception |
+| call an HTTP API | subclass `ClientBase` — `core_lib.client.client_base` | `_get/_post/_put/_delete(path, **requests_kwargs)` on one `base_url`; `set_timeout` / `set_headers` / `set_auth`; the `session` is the test boundary — see `core-lib-client` |
 
 **Functions and classes** (each has a page in the docs; the ones under "Utilities (optional)" are
 not needed to use Core-Lib)
@@ -96,13 +97,16 @@ Verified by inventory, so you can stop looking:
           return None
   ```
 - **No argument-guard helper.** `core_lib.helpers.validation` is `is_*`/`parse_*` only; `StatusCodeAssert` maps `AssertionError`, it does not check arguments. A lib-local `require(**kwargs)` raising `ValueError` is right (§6 convention).
+- **No encryption helper.** A thin wrapper over `cryptography.fernet.Fernet` (encrypt/decrypt a JSON dict, `ttl=` on decrypt for short-lived tokens) is right — a few lines. Fernet validates the key itself, and its `InvalidToken` needs no wrapper class.
 - **No transient-default mixin**, and do not write one — a column `default=` fires at INSERT by design (§4).
 
 ## Where a lib-local helper goes
 
-`<name>_core_lib/helpers.py`, at the **library root** — not under `service/`. A
-DataAccess needs `require` too, and importing it from the layer above would
-invert the dependency.
+`<name>_core_lib/helpers.py`, at the **library root**, when a DataAccess needs
+it too — importing it from `service/` would invert the dependency. Used by
+services only, it is ONE `service/<topic>_helper.py` grouping the related
+functions (`argument_helper.py`) — never one function per file, never a bare
+`helper.py` (AGENTS §6.1).
 
 ## Traps when adopting `result_to_dict`
 
