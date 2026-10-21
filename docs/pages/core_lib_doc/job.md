@@ -177,7 +177,7 @@ def load_jobs(self, config: DictConfig, job_to_data_handler: dict = {}):
 4. Schedules it on `CoreLib.scheduler`: as a repeating job if it has a `frequency`, otherwise to run once. `is_run_in_parallel` defaults to `false` in both cases.
 5. If the job is also a [`CoreLibListener`](core_lib_listener.html), attaches it to your `CoreLib`, so it gets `on_core_lib_ready()` when you call `start_core_lib()`.
 
-The countdown starts when `load_jobs()` runs, not when you call `start_core_lib()`. A bad duration (`initial_delay: tomorrow`) or a missing `initial_delay` raises an error here, while your `CoreLib` is being built. `load_jobs()` does not return the jobs; they run until the process exits.
+The countdown starts when `load_jobs()` runs, not when you call `start_core_lib()`. A bad duration (`initial_delay: tomorrow`) raises an error here, and a missing or empty `initial_delay` raises `ValueError`, while your `CoreLib` is being built. `load_jobs()` does not return the jobs; they run until the process exits.
 
 ---
 

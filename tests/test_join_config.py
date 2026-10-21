@@ -202,6 +202,23 @@ class TestJoinConfig(unittest.TestCase):
         names = sorted(r['name'] for r in results)
         self.assertEqual(names, ['Matched'])
 
+    def test_join_without_columns_filters_rows_and_adds_nothing_to_select(self):
+        """A JOIN-mode JoinConfig with an empty `columns` list only filters: an
+        inner join keeps the rows that have a match, and each row carries the
+        base columns alone."""
+        with self.db.get() as session:
+            self._seed_cf_item(session, cf_label='Has Match', item_name='Matched')
+            session.add(_Item(name='Orphan', target_id=999_999, target_type=CUSTOM_FIELD_TYPE))
+            session.flush()
+
+            join = JoinConfig(columns=[], model=_CustomField, join_condition=_Item.target_id == _CustomField.id)
+            results = self._rows(_apply_joins(session, _Item, [join]).all())
+
+        self.assertEqual(['Matched'], [row[_Item.name.key] for row in results])
+        self.assertEqual(
+            {_Item.id.key, _Item.name.key, _Item.target_id.key, _Item.target_type.key}, set(results[0].keys())
+        )
+
     def test_outer_join_keeps_unmatched_rows_with_nulls(self):
         """Outer-join semantics: rows without a matching join target are kept,
         with NULL for the joined columns."""

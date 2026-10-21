@@ -336,7 +336,10 @@ Without its extra, using that backend fails with `ModuleNotFoundError`.
 ```bash
 pip install -e ".[all,test]"    # every backend, plus the test tools (moto, freezegun, mongomock, ...)
 python -m unittest discover -v
+coverage run -m unittest discover && coverage combine && coverage report    # must be 100%
 ```
+
+The tests use real SQLite, and in-memory servers for MongoDB, Redis and S3; nothing is mocked. `.coveragerc` sets the 100% target and lists what it leaves out: the generator's template text, and the Memcached, Solr, Neo4j and Elasticsearch adapters, which need a real server.
 
 ## Source
 

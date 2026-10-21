@@ -32,7 +32,7 @@ WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)    # or DJANGO; once per 
 
 Every `response_*` helper and `@HandleException` read this setting. Without it, an exception in a
 decorated view escapes as `ValueError('WebHelpersUtils never initialized')` instead of a 500. (The
-old module name `web_helprs_utils` still imports but is deprecated.)
+old module name `web_helprs_utils` still imports but is deprecated since 0.3.0 and removed in 1.0.0.)
 
 ## 2. Views: call the service, return its dict
 

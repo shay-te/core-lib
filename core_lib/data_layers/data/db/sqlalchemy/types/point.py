@@ -20,7 +20,7 @@ class Point(UserDefinedType):
 
     @staticmethod
     def from_point_str(point_str: str, latitude_first: bool = False):
-        location_arr = point_str.strip('POINT()').replace(' ', ',').split(',')
+        location_arr = point_str.strip('POINT() ').replace(',', ' ').split()
         if latitude_first:
             return {'latitude': float(location_arr[0]), 'longitude': float(location_arr[1])}
         else:

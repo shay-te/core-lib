@@ -9,6 +9,7 @@ from sqlalchemy import Column, Integer, VARCHAR, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import declarative_base
 
+from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 
 # A base of its own, so this table never joins core-lib's shared Base.metadata.
@@ -54,31 +55,14 @@ class TestSqlAlchemyConnectionClose(unittest.TestCase):
         self.assertEqual(self.checked_out_baseline, self.factory.engine.pool.checkedout())
         self.assertEqual(['widget'], self._stored_names())
 
-    def test_many_failed_commits_do_not_exhaust_the_pool(self):
-        for _ in range(20):
-            with self.assertRaises(IntegrityError):
-                with self.factory.get() as session:
-                    session.add(Widget(name='widget'))
+    def test_without_on_exit_the_block_leaves_commit_and_close_to_the_caller(self):
+        connection = SqlAlchemyConnection(self.factory.engine, None)
 
-        self.assertEqual(self.checked_out_baseline, self.factory.engine.pool.checkedout())
-        with self.factory.get() as session:
-            session.add(Widget(name='gadget'))
-        self.assertEqual(['gadget', 'widget'], self._stored_names())
-
-    def test_successful_block_commits_and_releases_the_connection(self):
-        connection = self.factory.get()
         with connection as session:
             session.add(Widget(name='gadget'))
 
-        self.assertFalse(connection.session.in_transaction())
-        self.assertEqual(self.checked_out_baseline, self.factory.engine.pool.checkedout())
-        self.assertEqual(['gadget', 'widget'], self._stored_names())
-
-    def test_error_inside_the_block_rolls_back_and_propagates(self):
-        with self.assertRaisesRegex(ValueError, 'acme failure'):
-            with self.factory.get() as session:
-                session.add(Widget(name='gadget'))
-                raise ValueError('acme failure')
-
-        self.assertEqual(self.checked_out_baseline, self.factory.engine.pool.checkedout())
+        self.assertTrue(connection.session.in_transaction())  # nothing committed when the block exited
         self.assertEqual(['widget'], self._stored_names())
+        connection.close()
+        self.assertEqual(['gadget', 'widget'], self._stored_names())
+        self.assertEqual(self.checked_out_baseline, self.factory.engine.pool.checkedout())

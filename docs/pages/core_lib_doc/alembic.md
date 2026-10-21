@@ -81,7 +81,7 @@ core_lib:
 ```
 
 - **`version_table`**: the table where Alembic records the current revision. Give each library its own when several share a database.
-- **`script_location`**: the migrations folder. It must be a relative path (relative to `core_lib_path`; an absolute path raises `ValueError`) and must exist. It holds Alembic's revision template, `script.py.mako`, and a `versions/` folder for the revision files. A project made with `core_lib generate` already has both.
+- **`script_location`**: the migrations folder. It must be a relative path (relative to `core_lib_path`; an absolute path raises `ValueError`) and must exist. It holds Alembic's revision template, `script.py.mako`, and a `versions/` folder for the revision files. `core_lib generate` does not create this folder yet, even with `migrate: true`: create it, with an empty `versions/` and a copy of the `script.py.mako` in core-lib's generator template (`core_lib_generator/template_core_lib/template_core_lib/data_layers/data/db/migrations/`).
 - **`version_file_name`**: a file in the migrations folder where `create_migration()` writes the latest revision number.
 
 ## Example

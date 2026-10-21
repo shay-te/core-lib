@@ -49,8 +49,6 @@ class CoreLibGenerator:
             self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
     ):
         file_dir_path = os.path.dirname(file_path)
-        if not file_dir_path:
-            file_dir_path = '.'
         os.makedirs(file_dir_path, exist_ok=True)
         excluded_init_dirs = template_generator.exclude_init_from_dirs()
         dir_names = file_dir_path.split('/')

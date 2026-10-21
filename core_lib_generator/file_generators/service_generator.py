@@ -29,7 +29,7 @@ class ServiceGenerateTemplate(TemplateGenerator):
                     cache_key = function['cache_key'].upper()
                     cache_consts.append(add_tab_spaces(f'{cache_key} = \'{cache_key}\'', 1))
             if cache_consts:
-                updated_file = updated_file.replace('# template_cache_constants', '\n'.join(set(cache_consts)))
+                updated_file = updated_file.replace('# template_cache_constants', '\n'.join(dict.fromkeys(cache_consts)))
             else:
                 updated_file = remove_line('# template_cache_constants', updated_file)
         else:
@@ -38,6 +38,7 @@ class ServiceGenerateTemplate(TemplateGenerator):
                 add_tab_spaces('pass', 1)
             )
             updated_file = remove_line('# template_function_imports', updated_file)
+            updated_file = remove_line('# template_cache_constants', updated_file)
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:

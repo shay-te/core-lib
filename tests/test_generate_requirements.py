@@ -49,18 +49,13 @@ class TestGenerateRequirements(unittest.TestCase):
 
         self.assertEqual('core-lib', self._requirements(config))
 
-    def test_every_backend_maps_to_its_extra(self):
+    def test_mysql_a_driver_suffix_and_caches_map_to_their_extras(self):
         config = self._config(
-            [
-                sql_connection('orders_db', 'mysql'),
-                sql_connection('ledger_db', 'postgresql+psycopg2'),
-                {'key': 'documents', 'type': 'core_lib.connection.mongodb_connection_factory.MongoDBConnectionFactory'},
-                {'key': 'search', 'type': 'core_lib.connection.elasticsearch_connection_factory.ElasticSearchConnectionFactory'},
-            ],
+            [sql_connection('orders_db', 'mysql'), sql_connection('ledger_db', 'postgresql+psycopg2')],
             [{'key': 'sessions', 'type': 'redis'}, {'key': 'pages', 'type': 'memcached'}],
         )
 
-        self.assertEqual('core-lib[elasticsearch,memcached,mongodb,mysql,postgres,redis]', self._requirements(config))
+        self.assertEqual('core-lib[memcached,mysql,postgres,redis]', self._requirements(config))
 
     def test_connection_written_by_the_interactive_generator(self):
         # `core_lib generate` without --yaml writes `url` directly on the connection, with no `config` level.

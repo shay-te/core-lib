@@ -84,8 +84,7 @@ def _generate_db_config(
     migrate: bool = False
 ) -> dict:
     config = _build_url(db_type, db_name, db_username, db_password, db_port, db_host)
-    if db_type:
-        db_type: str = 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory'
+    db_type: str = 'core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory'
     return {
         'env': config['env'],
         'connection': {
@@ -109,11 +108,9 @@ def _build_url(
     url = {}
     env = {}
     if db_type != DBTypes.SQLite.value:
-        if db_name:
-            url.setdefault('file', f'${{oc.env:{db_name.upper()}_DB}}')
-            env.setdefault(f'{db_name.upper()}_DB', db_name)
-    if db_type:
-        url.setdefault('protocol', DBTypes(db_type).name.lower())
+        url.setdefault('file', f'${{oc.env:{db_name.upper()}_DB}}')
+        env.setdefault(f'{db_name.upper()}_DB', db_name)
+    url.setdefault('protocol', DBTypes(db_type).name.lower())
     if db_username:
         url.setdefault('username', f'${{oc.env:{db_name.upper()}_USER}}')
         env.setdefault(f'{db_name.upper()}_USER', db_username)

@@ -27,11 +27,63 @@ class UserObserverListener(ObserverListener):
         UserObserverListener.last_value = value
 
 
+WIDGET_EVENT = 'WIDGET_EVENT'
+WIDGET_OBSERVER = 'acme_widget_observer'
+
+
+class RecordingObserverListener(ObserverListener):
+    def __init__(self, events: list):
+        self.events = events
+
+    def update(self, key: str, value):
+        self.events.append((key, value))
+
+
+class FailingObserverListener(ObserverListener):
+    def update(self, key: str, value):
+        raise ValueError('widget listener failed')
+
+
 class TestObserverWithDecorator(unittest.TestCase):
+    # What the widget listener received and what the decorated methods did, in order.
+    events = []
+
     @classmethod
     def setUpClass(cls):
         main_observer = Observer(UserObserverListener())
         CoreLib.observer_registry.register("main", main_observer)
+        CoreLib.observer_registry.register(WIDGET_OBSERVER, Observer(RecordingObserverListener(cls.events)))
+
+    @classmethod
+    def tearDownClass(cls):
+        CoreLib.observer_registry.unregister(WIDGET_OBSERVER)
+
+    def setUp(self):
+        TestObserverWithDecorator.events.clear()
+
+    def test_value_param_name_sends_only_that_argument_after_the_method_ran(self):
+        widget = {'name': 'widget'}
+
+        self.assertIs(widget, self.save_widget(widget, 'urgent'))
+
+        self.assertEqual([('saved', widget), (WIDGET_EVENT, widget)], TestObserverWithDecorator.events)
+
+    def test_notify_after_skips_the_listener_when_the_method_raises(self):
+        with self.assertRaisesRegex(ValueError, 'widget rejected'):
+            self.save_widget('widget', fail=True)
+
+        self.assertEqual([('saved', 'widget')], TestObserverWithDecorator.events)
+
+    def test_notify_before_reaches_the_listener_first_even_when_the_method_raises(self):
+        with self.assertRaisesRegex(ValueError, 'widget rejected'):
+            self.save_widget_notify_before('widget', fail=True)
+
+        self.assertEqual([(WIDGET_EVENT, 'widget'), ('saved', 'widget')], TestObserverWithDecorator.events)
+
+    def test_unknown_observer_name_runs_the_method_and_notifies_nobody(self):
+        self.assertEqual('widget', self.save_widget_to_unknown_observer('widget'))
+
+        self.assertEqual([('saved', 'widget')], TestObserverWithDecorator.events)
 
     def test_observer_string(self):
         string = "hello world"
@@ -115,6 +167,25 @@ class TestObserverWithDecorator(unittest.TestCase):
     @Observe(event_key=UserObserverListener.EVENT, notify_before=False, observer_name="main")
     def notify_observer(self, var, param="default_param"):
         return var
+
+    @Observe(event_key=WIDGET_EVENT, value_param_name='widget', observer_name=WIDGET_OBSERVER)
+    def save_widget(self, widget, note='', fail=False):
+        TestObserverWithDecorator.events.append(('saved', widget))
+        if fail:
+            raise ValueError('widget rejected')
+        return widget
+
+    @Observe(event_key=WIDGET_EVENT, value_param_name='widget', observer_name=WIDGET_OBSERVER, notify_before=True)
+    def save_widget_notify_before(self, widget, fail=False):
+        TestObserverWithDecorator.events.append(('saved', widget))
+        if fail:
+            raise ValueError('widget rejected')
+        return widget
+
+    @Observe(event_key=WIDGET_EVENT, value_param_name='widget', observer_name='acme_observer_never_registered')
+    def save_widget_to_unknown_observer(self, widget):
+        TestObserverWithDecorator.events.append(('saved', widget))
+        return widget
 
 
 class TestObserverWithRegistry(unittest.TestCase):
@@ -204,3 +275,29 @@ class TestObserverWithRegistry(unittest.TestCase):
         empty_dct = {}
         TestObserverWithRegistry.main_observer.notify(UserObserverListener.EVENT, empty_dct)
         self.assertDictEqual(empty_dct, UserObserverListener.last_value)
+
+    def test_detached_listener_is_no_longer_notified(self):
+        detached_events = []
+        attached_events = []
+        detached_listener = RecordingObserverListener(detached_events)
+        observer = Observer(detached_listener)
+        observer.attach(RecordingObserverListener(attached_events))
+
+        observer.detach(detached_listener)
+        observer.notify(WIDGET_EVENT, 'widget')
+
+        self.assertEqual([], detached_events)
+        self.assertEqual([(WIDGET_EVENT, 'widget')], attached_events)
+
+    def test_failing_listener_is_logged_raised_to_the_caller_and_stops_later_listeners(self):
+        later_events = []
+        observer = Observer(FailingObserverListener())
+        observer.attach(RecordingObserverListener(later_events))
+
+        with self.assertLogs('core_lib.observer.observer', level='ERROR') as logs:
+            with self.assertRaisesRegex(ValueError, 'widget listener failed'):
+                observer.notify(WIDGET_EVENT, 'widget')
+
+        self.assertEqual(1, len(logs.records))
+        self.assertEqual('error while Observer.notify on key: `WIDGET_EVENT`', logs.records[0].getMessage())
+        self.assertEqual([], later_events)

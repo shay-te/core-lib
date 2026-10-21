@@ -3,6 +3,12 @@ from datetime import datetime
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
+LICENSES = ('MIT', 'APACHE_LICENSE_2', 'MOZILLA_PUBLIC_LICENSE_2')
+
+
+def unsupported_license(license_name: str) -> ValueError:
+    return ValueError(f'unsupported license `{license_name}`; the generator supports {", ".join(LICENSES)}')
+
 
 class LicenseGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
@@ -17,3 +23,4 @@ class LicenseGenerateTemplate(TemplateGenerator):
             return 'template_core_lib/LICENSE_Apache-2'
         elif yaml_data['license'] == 'MOZILLA_PUBLIC_LICENSE_2':
             return 'template_core_lib/LICENSE_MPL-2'
+        raise unsupported_license(yaml_data['license'])

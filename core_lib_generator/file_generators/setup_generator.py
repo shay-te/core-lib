@@ -1,4 +1,5 @@
 from core_lib.data_transform.helpers import get_dict_attr
+from core_lib_generator.file_generators.license_generator import unsupported_license
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
 
@@ -18,6 +19,8 @@ class SetupGenerateTemplate(TemplateGenerator):
             updated_file = updated_file.replace('template_license', 'Apache-2.0')
         elif get_dict_attr(yaml_data, 'license') == 'MOZILLA_PUBLIC_LICENSE_2':
             updated_file = updated_file.replace('template_license', 'MPL-2.0')
+        else:
+            raise unsupported_license(get_dict_attr(yaml_data, 'license'))
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:

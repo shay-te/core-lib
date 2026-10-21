@@ -54,17 +54,10 @@ class TestCoreLibYamlJobsExample(unittest.TestCase):
         for job in ExampleJob.instances:
             CoreLib.scheduler.stop(job)
 
-    def test_example_is_a_mapping_of_job_name_to_settings(self):
-        jobs = commented_jobs_example()
-
-        self.assertIsInstance(jobs, dict)
-        for job_name, job_config in jobs.items():
-            self.assertIn('initial_delay', job_config, job_name)
-            self.assertIn('_target_', job_config['handler'], job_name)
-
     def test_load_jobs_accepts_the_example(self):
         jobs = commented_jobs_example()
         job_name = next(iter(jobs))
+        self.assertIn('_target_', jobs[job_name]['handler'])  # the example's own class, swapped for a test job
         jobs[job_name]['handler']['_target_'] = f'{__name__}.{ExampleJob.__qualname__}'
         example_core_lib = ExampleCoreLib()
 

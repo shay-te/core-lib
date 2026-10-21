@@ -38,7 +38,7 @@ class CoreLib(object):
             is_run_in_parallel = job_config.get('is_run_in_parallel', False)
 
             if not initial_delay:
-                raise ValueError(f'job invalid initial_delay config `{job_config.initial_delay}`')
+                raise ValueError(f'job invalid initial_delay config `{initial_delay}`')
 
             if initial_delay in ['boot', 'startup']:
                 initial_delay = '0s'

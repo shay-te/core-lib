@@ -1,31 +1,13 @@
-from datetime import datetime
+# Deprecated since 0.3.0, to be removed in 1.0.0: the old name of
+# `core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access`, renamed to match its class.
+# Kept until then so existing imports keep working; tests/test_deprecated_aliases.py fails at 1.0.0 if it is still here.
+import warnings
 
-from core_lib.data_layers.data_access.data_access import DataAccess
-from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
-from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.error_handling.not_found_decorator import NotFoundErrorHandler
-from core_lib.rule_validator.rule_validator import RuleValidator
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess  # noqa: F401
 
-
-class CRUDSoftDeleteDataAccess(DataAccess, CRUD):
-    def __init__(self, db_entity, db: SqlAlchemyConnectionFactory, rule_validator: RuleValidator = None):
-        CRUD.__init__(self, db_entity, db, rule_validator)
-
-    @NotFoundErrorHandler()
-    def get(self, id: int):
-        assert id
-        with self._db.get() as session:
-            return (
-                session.query(self._db_entity)
-                .filter(self._db_entity.id == id, self._db_entity.deleted_at == None)
-                .first()
-            )
-
-    def delete(self, id: int):
-        assert id
-        with self._db.get() as session:
-            return (
-                session.query(self._db_entity)
-                .filter(self._db_entity.id == id)
-                .update({self._db_entity.deleted_at: datetime.utcnow()})
-            )
+warnings.warn(
+    '`core_lib.data_layers.data_access.db.crud.crud_soft_data_access` is deprecated since 0.3.0 and will be removed '
+    'in 1.0.0, import `core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access` instead',
+    DeprecationWarning,
+    stacklevel=2,
+)

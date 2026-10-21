@@ -50,3 +50,14 @@ class TestMongoDBConnection(unittest.TestCase):
             self.assertEqual(current_data_in_db[1]['name'], new_data[1]['name'])
             self.assertEqual(current_data_in_db[2]['name'], new_data[2]['name'])
 
+    @mongomock.patch(servers=((config.core_lib.mongodb.config.url.host, config.core_lib.mongodb.config.url.port), ))
+    def test_client_is_the_one_client_every_connection_hands_out(self):
+        mongodb = instantiate_config(config.core_lib.mongodb)
+
+        with mongodb.get() as first_client:
+            first_client.acme.widget.insert_one({'name': 'widget'})
+        with mongodb.get() as second_client:
+            self.assertIs(first_client, second_client)
+
+        self.assertIs(first_client, mongodb.client)
+        self.assertEqual('widget', mongodb.client.acme.widget.find_one()['name'])

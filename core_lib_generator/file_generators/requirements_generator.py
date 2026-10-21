@@ -1,14 +1,9 @@
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 
-# The core-lib extra (see core-lib's setup.py) that each kind of connection or cache needs installed.
-CONNECTION_EXTRAS = {
-    'SolrConnectionFactory': 'solr',
-    'Neo4jConnectionFactory': 'neo4j',
-    'MongoDBConnectionFactory': 'mongodb',
-    'ElasticSearchConnectionFactory': 'elasticsearch',
-}
-PROTOCOL_EXTRAS = {'postgresql': 'postgres', 'mysql': 'mysql', 'mongodb': 'mongodb'}
+# The core-lib extra (see core-lib's setup.py) needed by each connection and cache the generator can write.
+CONNECTION_EXTRAS = {'SolrConnectionFactory': 'solr', 'Neo4jConnectionFactory': 'neo4j'}
+PROTOCOL_EXTRAS = {'postgresql': 'postgres', 'mysql': 'mysql'}
 CACHE_EXTRAS = {'redis': 'redis', 'memcached': 'memcached'}
 
 

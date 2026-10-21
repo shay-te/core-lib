@@ -5,15 +5,13 @@ import sys
 import textwrap
 import unittest
 
+from tests.test_setup_extras import OPTIONAL_MODULES
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Every package that is only installed by an extra. Setting sys.modules[name] = None makes
-# `import name` raise ImportError, as if the package were not installed.
-OPTIONAL_PACKAGES = [
-    'flask', 'flask_cors', 'flask_wtf', 'werkzeug', 'django', 'jwt', 'cryptography',
-    'psycopg2', 'pymysql', 'pymongo', 'mongomock', 'pysolr', 'neo4j', 'redis', 'memcache',
-    'elasticsearch', 'geoalchemy2', 'shapely', 'numpy', 'pandas', 'boto3', 'moto', 'freezegun',
-]
+# Every module only an extra installs: the backends, and the [test] extra's tools. Setting
+# sys.modules[name] = None makes `import name` raise ImportError, as if it were not installed.
+OPTIONAL_PACKAGES = OPTIONAL_MODULES + ['mongomock', 'fakeredis', 'moto', 'boto3', 'freezegun', 'flask_wtf', 'pandas']
 
 CORE_SCRIPT = textwrap.dedent('''
     import enum, sys
@@ -33,7 +31,7 @@ CORE_SCRIPT = textwrap.dedent('''
     from core_lib.core_lib import CoreLib
     from core_lib.data_layers.data.db.sqlalchemy.base import Base
     from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-    from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
+    from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess
     from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
     from core_lib.data_layers.service.service import Service
     from core_lib.data_transform.result_to_dict import ResultToDict

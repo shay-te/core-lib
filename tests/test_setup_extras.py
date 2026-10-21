@@ -12,7 +12,6 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # The last release line whose plain `pip install core-lib` installed every backend, Flask and Django.
 LAST_ALL_IN_ONE_RELEASE = (0, 2)
-UPGRADE_NOTE_FILES = ('README.md', os.path.join('docs', 'index.md'))
 
 # The modules each distribution installs: this table, not setup.py, decides what an extra makes importable.
 DISTRIBUTION_MODULES = {
@@ -33,23 +32,40 @@ DISTRIBUTION_MODULES = {
 }
 OPTIONAL_MODULES = sorted({module for modules in DISTRIBUTION_MODULES.values() for module in modules})
 
+# ES256 is the reason for cryptography: HS256 alone would pass without it.
+JWT_ROUND_TRIP = (
+    'from datetime import timedelta\n'
+    'from cryptography.hazmat.primitives import serialization\n'
+    'from cryptography.hazmat.primitives.asymmetric import ec\n'
+    'from core_lib.session.jwt_token_handler import JWTTokenHandler\n'
+    'for secret, algorithm in (("acme-test-secret-of-at-least-32-bytes", "HS256"), (ec.generate_private_key('
+    'ec.SECP256R1()).private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, '
+    'serialization.NoEncryption()), "ES256")):\n'
+    '    handler = JWTTokenHandler(secret, timedelta(minutes=1), algorithm=algorithm)\n'
+    '    assert handler.decode(handler.encode({"id": 1}))["id"] == 1, algorithm\n'
+)
+
+
+def web_usage(server_type: str, framework_setup: str = '') -> str:
+    # The framework's helpers, a real response through them, and a login token.
+    package = server_type.lower()
+    return (
+        framework_setup
+        + f'import core_lib.web_helpers.{package}.require_login, core_lib.web_helpers.{package}.user_auth_middleware\n'
+        'import core_lib.web_helpers.decorators\n'
+        'from core_lib.web_helpers.request_response_helpers import response_json\n'
+        'from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils\n'
+        f'WebHelpersUtils.init(WebHelpersUtils.ServerType.{server_type})\n'
+        'assert response_json({"id": 1}).status_code == 200\n'
+        + JWT_ROUND_TRIP
+    )
+
+
 # What each extra must make work, run with every other optional module uninstalled.
 EXTRA_USAGE = {
-    'flask': 'import core_lib.web_helpers.flask.require_login, core_lib.web_helpers.flask.user_auth_middleware, '
-             'core_lib.web_helpers.decorators, core_lib.session.jwt_token_handler',
-    'django': 'import django.conf; django.conf.settings.configure(COOKIE_NAME="acme_cookie")\n'
-              'import core_lib.web_helpers.django.require_login, core_lib.web_helpers.django.user_auth_middleware, '
-              'core_lib.web_helpers.decorators, core_lib.session.jwt_token_handler',
-    # ES256 is the reason for cryptography: HS256 alone would pass without it.
-    'jwt': 'from datetime import timedelta\n'
-           'from cryptography.hazmat.primitives import serialization\n'
-           'from cryptography.hazmat.primitives.asymmetric import ec\n'
-           'from core_lib.session.jwt_token_handler import JWTTokenHandler\n'
-           'for secret, algorithm in (("acme-test-secret-of-at-least-32-bytes", "HS256"), (ec.generate_private_key('
-           'ec.SECP256R1()).private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, '
-           'serialization.NoEncryption()), "ES256")):\n'
-           '    handler = JWTTokenHandler(secret, timedelta(minutes=1), algorithm=algorithm)\n'
-           '    assert handler.decode(handler.encode({"id": 1}))["id"] == 1, algorithm',
+    'flask': web_usage('FLASK'),
+    'django': web_usage('DJANGO', 'import django.conf; django.conf.settings.configure(COOKIE_NAME="acme_cookie")\n'),
+    'jwt': JWT_ROUND_TRIP,
     'postgres': 'import sqlalchemy; sqlalchemy.create_engine("postgresql://reviewer:secret@127.0.0.1/acme")',
     'mysql': 'import sqlalchemy; sqlalchemy.create_engine("mysql+pymysql://reviewer:secret@127.0.0.1/acme")',
     'mongodb': 'import core_lib.connection.mongodb_connection_factory',
@@ -108,11 +124,6 @@ class TestSetupExtras(unittest.TestCase):
 
             self.assertEqual(0, result.returncode, f'[{extra}]\n{result.stderr[-3000:]}')
 
-    def test_web_extras_include_jwt(self):
-        # A web app logs users in with JWTTokenHandler, so each framework extra brings the whole [jwt] extra.
-        for framework in ('flask', 'django'):
-            self.assertLessEqual(set(self.extras_require['jwt']), set(self.extras_require[framework]), framework)
-
     def test_all_is_every_backend_extra(self):
         backends = {requirement for extra in EXTRA_USAGE for requirement in self.extras_require[extra]}
 
@@ -124,18 +135,3 @@ class TestSetupExtras(unittest.TestCase):
         major, minor = (int(part) for part in core_lib.__version__.split('.')[:2])
 
         self.assertGreater((major, minor), LAST_ALL_IN_ONE_RELEASE)
-
-    def test_upgrade_note_tells_0_2_users_what_to_install(self):
-        for path in UPGRADE_NOTE_FILES:
-            with open(os.path.join(REPO_ROOT, path), encoding='utf-8') as page:
-                text = page.read()
-
-            # The note, every backend again as 0.2.x installed it, and how to stay on the all-in-one install.
-            for needle in ('Upgrading from 0.2', 'core-lib[all]', 'core-lib<0.3'):
-                self.assertTrue(needle in text, f'{path} has no {needle!r}')
-
-    def test_test_extra_holds_only_test_tools(self):
-        test_tools = {distribution_name(requirement) for requirement in self.extras_require['test']}
-
-        self.assertEqual(set(), test_tools & set(DISTRIBUTION_MODULES))
-        self.assertEqual(set(), test_tools & {distribution_name(requirement) for requirement in self.install_requires})

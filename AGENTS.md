@@ -541,10 +541,14 @@ should return nothing but comments. A domain rule that is ALSO enforced in
   the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
   the real module. `__init__.py` files stay empty package markers; §2.1 owns the
-  full rule. The one owner-approved exception is core-lib's
-  `core_lib/web_helpers/web_helprs_utils.py`: the deprecated misspelled name of
-  `web_helpers_utils`, kept for existing importers until the next major
-  version. Nothing in core-lib imports it, and no new shim follows from it.
+  full rule. The owner-approved exceptions are core-lib's own renames, each
+  deprecated since 0.3.0 and kept for existing importers until its removal in
+  1.0.0: `web_helprs_utils` (now `web_helpers_utils`), `crud_soft_data_access`
+  (now `crud_soft_delete_data_access`), and the
+  class names `ElasticSearchConnection` / `ElasticSearchConnectionFactory`
+  (now `Elasticsearch…`). Nothing in core-lib uses an old name
+  (`tests/test_deprecated_aliases.py` checks it, and fails at 1.0.0 if one is
+  still there), and no new shim follows from them.
 
 ## Self-contained and fully tested
 
@@ -955,7 +959,7 @@ Pair it with a "would this catch a planted literal?" test, or an empty offender 
 | Base class | import from | get filter | delete does | use when |
 |---|---|---|---|---|
 | `CRUDDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_data_access` | `id` (404 if missing) | HARD delete, returns rowcount | rows may really vanish |
-| `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
+| `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
 | `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique constraints |
 
 Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exact imports:
@@ -963,7 +967,7 @@ Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exac
 ```python
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess
 from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
 
 from foo_core_lib.data_layers.data.db.entities.workspace import Workspace

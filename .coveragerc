@@ -1,0 +1,31 @@
+[run]
+branch = True
+source =
+    core_lib
+    core_lib_generator
+# Code that tests run in a child process (the CLI, the generator, install checks) counts too.
+patch = subprocess
+parallel = True
+# Left out of the 100% target, matched from any working directory:
+# - core_lib_generator/template_core_lib: copied into a generated project as text; it runs there, not here.
+# - the Memcached, Solr, Neo4j and Elasticsearch adapters: they need a real server, which only Docker provides
+#   locally. (MongoDB, Redis and S3 have in-memory servers, so their adapters are tested and counted.)
+# (A comment line inside a multi-line value ends the value, so the explanations live up here.)
+omit =
+    */core_lib_generator/template_core_lib/*
+    */core_lib/cache/cache_handler_memcached.py
+    */core_lib/client/solr_client.py
+    */core_lib/connection/solr_connection.py
+    */core_lib/connection/solr_connection_factory.py
+    */core_lib/connection/neo4j_connection.py
+    */core_lib/connection/neo4j_connection_factory.py
+    */core_lib/connection/elasticsearch_connection.py
+    */core_lib/connection/elasticsearch_connection_factory.py
+
+[report]
+fail_under = 100
+show_missing = True
+skip_covered = True
+# The body of an abstract method never runs: a subclass replaces it.
+exclude_also =
+    @(abc\.)?abstractmethod

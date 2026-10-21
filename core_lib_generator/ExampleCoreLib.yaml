@@ -72,7 +72,7 @@ core_lib:
           default: null
         - key: contact
           type: INTEGER
-          default: ""
+          default: null
       is_soft_delete: true
       is_soft_delete_token: true
   data_accesses:

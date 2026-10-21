@@ -35,7 +35,7 @@ def generate_functions(template_content: str, functions: list) -> str:
     if not imports:
         updated_file = remove_line('# template_function_imports', updated_file)
     else:
-        updated_file = updated_file.replace('# template_function_imports', '\n'.join(set(imports)))
+        updated_file = updated_file.replace('# template_function_imports', '\n'.join(dict.fromkeys(imports)))
     return updated_file
 
 
@@ -57,3 +57,14 @@ def input_function(ask_cache: bool, validate_value_callback: Callable[[dict], Aw
                 'cache_invalidate': cache_invalidate,
             })
     return function_data
+
+
+# The connection factories the generator writes code and config for.
+CONNECTION_TYPES = ('SqlAlchemyConnectionFactory', 'SolrConnectionFactory', 'Neo4jConnectionFactory')
+
+
+def unsupported_connection_type(connection_key: str, connection_type: str) -> ValueError:
+    return ValueError(
+        f'connection `{connection_key}` has an unsupported type `{connection_type}`; '
+        f'the generator supports {", ".join(CONNECTION_TYPES)}'
+    )

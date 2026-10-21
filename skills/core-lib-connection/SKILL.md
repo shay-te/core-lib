@@ -7,7 +7,7 @@ description: MANDATORY — load this skill BEFORE you add or change an external 
 
 | You need | Use | Where it lives |
 |---|---|---|
-| a data source Core-Lib already wraps | the built-in factory: `SqlAlchemyConnectionFactory`, `MongoDBConnectionFactory`, `SolrConnectionFactory`, `Neo4jConnectionFactory`, `ElasticSearchConnectionFactory` (install `elasticsearch` yourself; core-lib does not) | no new file — built from YAML in the main class (`core-lib-main`) and passed to a DataAccess |
+| a data source Core-Lib already wraps | the built-in factory: `SqlAlchemyConnectionFactory`, `MongoDBConnectionFactory`, `SolrConnectionFactory`, `Neo4jConnectionFactory`, `ElasticsearchConnectionFactory` (install `elasticsearch` yourself; core-lib does not) | no new file — built from YAML in the main class (`core-lib-main`) and passed to a DataAccess |
 | a plain HTTP/JSON API | a `ClientBase` subclass (`core_lib.client.client_base`) with one domain method per call, returning dicts | `client/<provider>_client.py`, built with `instantiate_config` from a `_target_` block, so a test config swaps in a stand-in with the same methods |
 | an SDK with credentials and config to validate (object storage, an LLM, a payment gateway) | the three pieces below | `connections/` + a DataAccess |
 | an object you already have, behind the factory interface (a fake, an in-memory client) | `ObjectConnectionFactory` | wherever you build it |

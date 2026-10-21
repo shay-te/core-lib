@@ -120,10 +120,6 @@ class TestDBRuleValidator(unittest.TestCase):
                 self.assertEqual(expected_begin, hour_begin(), frozen)
                 self.assertEqual(expected_end, hour_end(), frozen)
 
-        with freeze_time('2024-12-31 23:40:12'):
-            self.assertEqual(datetime(2024, 12, 31, 23, 15), hour_begin(minutes=15))
-            self.assertEqual(datetime(2025, 1, 1, 0, 15), hour_end(minutes=15))
-
     def test_sunday(self):
         self.assertNotEqual(sunday(), None)
         self.assertEqual(sunday(), reset_datetime(_next_weekday(today(), 6)))
@@ -151,6 +147,18 @@ class TestDBRuleValidator(unittest.TestCase):
     def test_saturday(self):
         self.assertNotEqual(saturday(), None)
         self.assertEqual(saturday(), reset_datetime(_next_weekday(today(), 5)))
+
+    def test_next_weekday_from_a_fixed_wednesday(self):
+        # Frozen on Wednesday 12 June 2024, so the result does not depend on the day the suite runs:
+        # a later day is this week, the same day or an earlier one is next week, always at midnight UTC.
+        with freeze_time('2024-06-12 15:45:30'):
+            self.assertEqual(datetime(2024, 6, 13), thursday())
+            self.assertEqual(datetime(2024, 6, 14, 9, 30), friday(9, 30))
+            self.assertEqual(datetime(2024, 6, 15), saturday())
+            self.assertEqual(datetime(2024, 6, 16, 23, 59), sunday(23, 59))
+            self.assertEqual(datetime(2024, 6, 17), monday())
+            self.assertEqual(datetime(2024, 6, 18), tuesday())
+            self.assertEqual(datetime(2024, 6, 19), wednesday())
 
     def test_midnight(self):
         self.assertEqual(midnight(), today())

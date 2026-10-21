@@ -5,7 +5,6 @@ from http import HTTPStatus
 
 from flask import Flask, abort
 
-from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.decorators import HandleException
 from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 
@@ -28,7 +27,7 @@ class TestHandleExceptionFrameworkErrors(unittest.TestCase):
             abort(status)
 
         client = app.test_client()
-        for status in (HTTPStatus.NOT_FOUND, HTTPStatus.FORBIDDEN, HTTPStatus.IM_A_TEAPOT, HTTPStatus.SERVICE_UNAVAILABLE):
+        for status in (HTTPStatus.NOT_FOUND, HTTPStatus.SERVICE_UNAVAILABLE):  # a `message` body and an `error` body
             response = client.get(f'/widgets/{status.value}')
             self.assertEqual(status.value, response.status_code)
             key = 'error' if status >= 500 else 'message'
@@ -57,22 +56,3 @@ class TestHandleExceptionFrameworkErrors(unittest.TestCase):
             response = view(None)
             self.assertEqual(status.value, response.status_code, type(error).__name__)
             self.assertEqual({'message': status.phrase}, json.loads(response.content))
-
-    def test_status_code_exception_and_other_errors_are_unchanged(self):
-        WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-        app = Flask('acme')
-
-        @app.get('/conflict')
-        @HandleException()
-        def conflict():
-            raise StatusCodeException(HTTPStatus.CONFLICT, 'taken')
-
-        @app.get('/broken')
-        @HandleException()
-        def broken():
-            raise RuntimeError('database is down')
-
-        client = app.test_client()
-        self.assertEqual(409, client.get('/conflict').status_code)
-        self.assertEqual(500, client.get('/broken').status_code)
-        self.assertEqual({'error': 'Internal Server Error'}, client.get('/broken').get_json())

@@ -35,7 +35,10 @@ class Alembic(object):
             self.script_location = os.path.normpath(os.path.join(core_lib_path, self.config.script_location))
 
         if not self.script_location or not os.path.isdir(self.script_location):
-            raise ValueError(f'config.alembic.script_location does not exist `{self.script_location}`')
+            raise ValueError(
+                f'config.alembic.script_location does not exist `{self.config.script_location}` '
+                f'(it must be a folder relative to `{core_lib_path}`)'
+            )
 
         if not self.config.version_file_name:
             raise ValueError("config.alembic.version_file_name cannot be None")

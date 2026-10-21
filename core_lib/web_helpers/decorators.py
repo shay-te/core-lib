@@ -14,28 +14,17 @@ from core_lib.web_helpers.request_response_helpers import response_message
 logger = logging.getLogger(__name__)
 
 def _get_request():
+    # The request the error middlewares see. Flask keeps the current one in a global; Django hands it only to
+    # the view, so there is none to give.
     try:
         server_type = WebHelpersUtils.get_server_type()
-        if server_type == WebHelpersUtils.ServerType.FLASK:
-            try:
-                from flask import request as flask_request
-                return flask_request
-            except Exception as e:
-                logger.debug(f"Failed to fetch Flask request: {e}")
-        elif server_type == WebHelpersUtils.ServerType.DJANGO:
-            try:
-                # Django makes the request available per-thread only in views,
-                # but here we rely on func arguments or global context if available
-                # So we just leave it None unless explicitly added to context elsewhere
-                from django.core.handlers.wsgi import WSGIRequest
-                # You could extend this later to pull from threadlocals if needed
-                return None
-            except Exception as e:
-                logger.debug(f"Failed to resolve Django request: {e}")
-        else:
-            return None
-    except Exception as e:
+    except ValueError as e:
         logger.debug(f"Unable to determine server type: {e}")
+        return None
+    if server_type == WebHelpersUtils.ServerType.FLASK:
+        from flask import request as flask_request
+        return flask_request
+    return None
 
 def _execute_error_middlewares(exc, func):
     request = _get_request()
@@ -61,7 +50,7 @@ def _framework_http_status(exc):
         from werkzeug.exceptions import HTTPException
         if isinstance(exc, HTTPException) and exc.code:
             return exc.code
-    elif server_type == WebHelpersUtils.ServerType.DJANGO:
+    else:  # Django: init() accepts only the two server types
         from django.core.exceptions import BadRequest, PermissionDenied, SuspiciousOperation
         from django.http import Http404
         if isinstance(exc, Http404):

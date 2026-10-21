@@ -17,9 +17,7 @@ class JWTTokenHandler(TokenHandler):
 
     def encode(self, message: dict) -> str:
         payload = dict(message)
-        if self._expiration_time:
-            payload['exp'] = datetime.now(timezone.utc) + self._expiration_time
-
+        payload['exp'] = datetime.now(timezone.utc) + self._expiration_time  # set: the constructor asserts it
         return jwt.encode(payload, self._secret, algorithm=self._algorithm)
 
     def decode(self, encoded):

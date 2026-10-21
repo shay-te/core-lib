@@ -22,8 +22,11 @@ def _add_function_calls(file_content: str, yaml_data: dict, core_lib_name: str):
     if yaml_data:
         for service in yaml_data:
             functions = get_dict_attr(service, 'functions')
-            function_name = get_dict_attr(functions[0], 'key') if functions else 'your_function'
-            func_call_list.append(f'{core_lib_name}.{service_attribute_name(service["key"])}.{function_name}()')
+            service_call = f'{core_lib_name}.{service_attribute_name(service["key"])}'
+            if functions:
+                func_call_list.append(f'{service_call}.{get_dict_attr(functions[0], "key")}()')
+            else:  # nothing to call yet: a live call would raise AttributeError when the example runs
+                func_call_list.append(f'# {service_call}.your_function()')
         updated_file = updated_file.replace('# function_call', '\n'.join(func_call_list))
     else:
         updated_file = remove_line('# function_call', updated_file)

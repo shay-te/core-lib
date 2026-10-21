@@ -1,6 +1,6 @@
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess
 from core_lib.rule_validator.rule_validator import RuleValidator
 # template_function_imports
 # template_entity_imports

@@ -60,7 +60,7 @@ Values inside a dict, entity, `Row` or tuple:
 | `datetime` | A float from `datetime.timestamp()`. A naive datetime is read in the server's local timezone. |
 | `date` | The timestamp of midnight on that date, also a float. |
 | `Decimal` | A float. |
-| geoalchemy2 `WKBElement` (a `Geometry('POINT')` column) | `{'latitude': ..., 'longitude': ...}`, through [`Point.from_point_wkb()`](sqlalchemy_types.html#from_point_wkb). |
+| A geoalchemy2 geometry: a `WKBElement` read from a `Geometry` column, or a `WKTElement` assigned in code and not yet read back | A point: `{'latitude': ..., 'longitude': ...}`. Any other shape (`LINESTRING`, `POLYGON`, ...): GeoJSON, e.g. `{'type': 'LineString', 'coordinates': [[34.78, 32.08], [35.21, 31.77]]}`. |
 | A nested dict, list or entity, such as a JSON column | Converted by the same rules (unless `properties_as_dict=False`). |
 | `int`, `float`, `str`, `bool`, `None`, `bytes` | Unchanged. |
 

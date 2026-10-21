@@ -9,7 +9,11 @@ from core_lib.client.client_base import ClientBase
 from core_lib.core_lib import CoreLib
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.error_handling.status_code_exception import StatusCodeException
-from core_lib.helpers.config_instances import instantiate_config
+from core_lib.helpers.config_instances import (
+    instantiate_config,
+    instantiate_config_group_generator_dict,
+    instantiate_config_group_generator_list,
+)
 from core_lib.helpers.test import load_core_lib_config
 from examples.test_core_lib.core_lib.data_layers.data.db.user import User
 
@@ -96,8 +100,51 @@ class TestInstantiateConfig(unittest.TestCase):
     def test_class_config_base_path_nested(self):
         settings = OmegaConf.create({'outer': {'inner': {'_target_': 'datetime.timedelta', 'seconds': 5}}})
         self.assertEqual(timedelta(seconds=5), instantiate_config(settings, class_config_base_path='outer.inner'))
-        self.assertIsNone(instantiate_config(settings, class_config_base_path='outer.missing'))
-        with self.assertRaises(ValueError):
-            instantiate_config(
-                settings, class_config_base_path='outer.missing', raise_class_config_base_path_error=True
-            )
+
+    def test_class_config_base_path_missing_gives_none(self):
+        settings = OmegaConf.create({'cleanup': {'frequency': '1d', 'handler': {'_target_': 'datetime.timedelta', 'hours': 2}}})
+
+        self.assertEqual(timedelta(hours=2), instantiate_config(settings, class_config_base_path='cleanup.handler'))
+        self.assertIsNone(instantiate_config(settings, class_config_base_path='cleanup.missing'))
+        self.assertIsNone(instantiate_config(settings, class_config_base_path='other.handler'))
+        self.assertIsNone(instantiate_config(OmegaConf.create({})))
+
+    def test_group_generators_build_one_object_per_entry(self):
+        timeouts = OmegaConf.create({
+            'short': {'note': 'health checks', 'handler': {'_target_': 'datetime.timedelta', 'minutes': 5}},
+            'long': {'note': 'reports', 'handler': {'_target_': 'datetime.timedelta', 'hours': 1}},
+        })
+        built = [
+            (name, timeout, settings.note)
+            for name, timeout, settings in instantiate_config_group_generator_dict(timeouts, class_config_base_path='handler')
+        ]
+        self.assertEqual([('short', timedelta(minutes=5), 'health checks'), ('long', timedelta(hours=1), 'reports')], built)
+
+        items = OmegaConf.create([
+            {'_target_': 'datetime.timedelta', 'days': 1},
+            {'_target_': 'datetime.timedelta', 'days': 2},
+        ])
+        built = [(timeout, settings.days) for timeout, settings in instantiate_config_group_generator_list(items)]
+        self.assertEqual([(timedelta(days=1), 1), (timedelta(days=2), 2)], built)
+
+        with_params = [timeout for timeout, _ in instantiate_config_group_generator_list(items, params={'hours': 3})]
+        self.assertEqual([timedelta(days=1, hours=3), timedelta(days=2, hours=3)], with_params)
+
+    def test_group_generator_list_builds_lazily_and_checks_each_entry(self):
+        items = OmegaConf.create([
+            {'_target_': 'datetime.timedelta', 'days': 1},
+            {'_target_': 'datetime.date', 'year': 2024, 'month': 6, 'day': 14},
+        ])
+        generator = instantiate_config_group_generator_list(items, instance_base_class=timedelta)   # nothing built yet
+
+        first, _ = next(generator)
+        self.assertEqual(timedelta(days=1), first)
+        with self.assertRaises(ValueError) as wrong_type:
+            next(generator)
+        self.assertEqual(
+            'object from config must be a baseclass of : `timedelta`. got `date` ',
+            str(wrong_type.exception.__cause__),
+        )
+
+        with self.assertRaises(AssertionError):
+            next(instantiate_config_group_generator_list(OmegaConf.create([])))

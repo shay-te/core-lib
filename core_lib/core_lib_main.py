@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
+import sys
 from core_lib.alembic.alembic import Alembic
 import hydra
 from hydra import compose, initialize, initialize_config_dir
@@ -9,13 +10,6 @@ from dotenv import load_dotenv
 from core_lib.helpers.validation import is_int
 from core_lib_generator.core_lib_config_generate_yaml import generate_core_lib_yaml
 from core_lib_generator.core_lib_generator_from_yaml import CoreLibGenerator
-
-
-def list_to_string(lst: list):
-    name = ''
-    for n in lst:
-        name = name + n + ' '
-    return name
 
 
 def get_rev_options():
@@ -45,7 +39,7 @@ def generate(yaml):
     if yaml:
         if not os.path.exists(yaml):
             click.echo(f"yaml file was not found\nmake sure you have the right path (including .yaml or other extensions)\npath:{yaml}\nexiting now...")
-            exit()
+            sys.exit(1)
     else:
         yaml_file = generate_core_lib_yaml()
         yaml = f'{os.getcwd()}/{yaml_file}'
@@ -88,16 +82,6 @@ def migrate(rev, name, env_file):
         else:
             click.echo(f'--name parameter is mandatory when creating a new revision')
 
-# @click.command()
-# @click.option('--value', help=' '.join(get_rev_options()))
-# def create(value):
-#     CoreLibGenerate().new(list_to_string(value))
-#
-# @click.command()
-# @click.option('--value', help=' '.join(get_rev_options()))
-# def generate(value):
-#     CoreLibGenerate().generate(list_to_string(value))
-#
-# main.add_command(create)
+
 main.add_command(generate)
 main.add_command(migrate)

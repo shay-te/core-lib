@@ -40,7 +40,8 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
         max_overflow = session.get('max_overflow', 10)
 
         extra_params = {}
-        if config.url.get('protocol') not in UNSUPPORTED_DB_POOL:
+        dialect = (config.url.get('protocol') or '').split('+')[0]  # 'sqlite+pysqlite' is the sqlite dialect
+        if dialect not in UNSUPPORTED_DB_POOL:
             extra_params = {
                 'pool_size': pool_size,
                 'max_overflow': max_overflow

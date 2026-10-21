@@ -233,6 +233,24 @@ class TestCache(unittest.TestCase):
         self._test_empty_cache_helper(TestCache.test_string, "", False)
         self._test_empty_cache_helper(TestCache.test_set, set(), False)
 
+    def test_value_cached_without_expire_never_expires(self):
+        TestCache.test_value = 100
+        self.assertEqual(self.get_cache_without_expire(), 100)
+        TestCache.test_value = 200
+        with freeze_time(datetime.utcnow() + timedelta(days=3650)):
+            self.assertEqual(self.get_cache_without_expire(), 100)
+        self.clear_cache_without_expire()
+        self.assertEqual(self.get_cache_without_expire(), 200)
+        TestCache.test_value = 300
+        CoreLib.cache_registry.get(cache_client_name).flush_all()
+        self.assertEqual(self.get_cache_without_expire(), 300)
+        self.clear_cache_without_expire()
+
+    def test_unparseable_expire_is_refused_when_the_decorator_is_built(self):
+        # The jobs format is not a parsedatetime phrase: the error comes at import time, not at the first call.
+        with self.assertRaisesRegex(ValueError, 'Unable to parse time expression `2h30m`'):
+            Cache(key=TestCache.CACHE_TEST, expire='2h30m')
+
     CACHE_TEST = 'test_cache_1'
 
     @Cache(key=CACHE_TEST, expire=timedelta(seconds=2))
@@ -359,4 +377,14 @@ class TestCache(unittest.TestCase):
 
     @Cache(key=CACHE_EMPTY_RESULTS_FALSE, invalidate=True)
     def clear_cache_empty_false(self):
+        pass
+
+    CACHE_NO_EXPIRE = 'test_cache_no_expire'
+
+    @Cache(key=CACHE_NO_EXPIRE, handler_name=cache_client_name)
+    def get_cache_without_expire(self):
+        return TestCache.test_value
+
+    @Cache(key=CACHE_NO_EXPIRE, invalidate=True, handler_name=cache_client_name)
+    def clear_cache_without_expire(self):
         pass

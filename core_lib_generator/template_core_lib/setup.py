@@ -15,9 +15,8 @@ def read_file(*path_parts) -> str:
 version = re.search(
     r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", read_file('template_core_lib', '__init__.py'), re.M
 ).group(1)
-install_requires = [
-    line.split('#')[0].strip() for line in read_file('requirements.txt').splitlines() if line.split('#')[0].strip()
-]
+requirement_lines = (line.split('#')[0].strip() for line in read_file('requirements.txt').splitlines())
+install_requires = [requirement for requirement in requirement_lines if requirement]
 
 packages1 = find_packages(exclude=['tests', 'tests.*'])
 packages2 = find_namespace_packages(include=['hydra_plugins.*'])

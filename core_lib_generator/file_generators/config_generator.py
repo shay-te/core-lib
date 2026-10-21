@@ -2,6 +2,7 @@ from omegaconf import OmegaConf
 
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
+from core_lib_generator.generator_utils.helpers import unsupported_connection_type
 
 
 class ConfigGenerateTemplate(TemplateGenerator):
@@ -36,6 +37,8 @@ class ConfigGenerateTemplate(TemplateGenerator):
                             solr.setdefault(conn_name, conn_data)
                         elif 'Neo4jConnectionFactory' in conn_type:
                             neo4j.setdefault(conn_name, conn_data)
+                        else:
+                            raise unsupported_connection_type(conn_name, conn_type)
                     if data:
                         core_lib_config.setdefault('data', data)
                     if solr:

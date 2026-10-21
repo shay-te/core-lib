@@ -34,9 +34,8 @@ class BuildPyWithAgentDocs(build_py):
 
 
 version = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", read_file('core_lib', '__init__.py'), re.M).group(1)
-install_requires = [
-    line.split('#')[0].strip() for line in read_file('requirements.txt').splitlines() if line.split('#')[0].strip()
-]
+requirement_lines = (line.split('#')[0].strip() for line in read_file('requirements.txt').splitlines())
+install_requires = [requirement for requirement in requirement_lines if requirement]
 
 # Optional backends: install only the ones you use, e.g. pip install "core-lib[postgres,redis,flask]".
 jwt_requires = ['PyJWT', 'cryptography']  # cryptography: JWTTokenHandler's ES* algorithms
@@ -55,10 +54,11 @@ extras_require = {
     'geo': ['geoalchemy2', 'shapely'],
 }
 extras_require['all'] = sorted({requirement for requirements in extras_require.values() for requirement in requirements})
-# Core-Lib's own test suite: [all] plus these.
-extras_require['test'] = ['moto==5.2.3', 'boto3', 'freezegun', 'mongomock', 'flask_wtf', 'pandas']
+# Core-Lib's own test suite: [all] plus these. In-memory servers (mongomock, fakeredis, moto) stand in for
+# MongoDB, Redis and S3; coverage checks the 100% target in .coveragerc.
+extras_require['test'] = ['moto==5.2.3', 'boto3', 'freezegun', 'mongomock', 'fakeredis', 'flask_wtf', 'pandas', 'coverage']
 
-packages1 = find_packages(exclude=['tests', 'tests.*', 'examples', 'examples.*'])
+packages1 = find_packages(exclude=['tests', 'tests.*', 'examples', 'examples.*', 'bin'])  # bin/core_lib is a script
 packages2 = find_namespace_packages(include=['hydra_plugins.*'])
 packages = list(set(packages1 + packages2))
 

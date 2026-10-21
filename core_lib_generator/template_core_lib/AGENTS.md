@@ -21,7 +21,8 @@ python -c "import core_lib, os; print(os.path.join(os.path.dirname(core_lib.__fi
 ```
 
 The skill links below use the checkout path; with a pip install, read the same
-`skills/<name>/SKILL.md` from that folder.
+`skills/<name>/SKILL.md` from that folder. An editable install (`pip install -e`)
+has no such folder: use the root of the checkout it points to.
 
 ## MANDATORY — load the matching skill before you write code
 

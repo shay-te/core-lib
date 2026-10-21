@@ -1,0 +1,105 @@
+core_lib:
+  name: AcmeInventory
+  env: {}
+  connections:
+    - key: inventory_db
+      migrate: true
+      config_instantiate: false
+      type: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
+      config:
+        create_db: true
+        log_queries: false
+        url:
+          protocol: sqlite
+  caches:
+    - key: inventory_cache
+      type: memory
+  jobs: []
+  entities:
+    - key: gadget
+      connection: inventory_db
+      columns:
+        - key: name
+          type: VARCHAR
+          default: null
+          nullable: false
+        - key: stock
+          type: INTEGER
+          default: 0
+          nullable: true
+        - key: active
+          type: BOOLEAN
+          default: false
+          nullable: false
+        - key: label
+          type: VARCHAR
+          default: ""
+          nullable: false
+        - key: colour
+          type: VARCHAR
+          default: grey
+          nullable: false
+      is_soft_delete: false
+      is_soft_delete_token: false
+    - key: widget
+      connection: inventory_db
+      columns:
+        - key: name
+          type: VARCHAR
+          default: null
+          nullable: false
+      is_soft_delete: true
+      is_soft_delete_token: false
+  data_accesses:
+    - key: GadgetDataAccess
+      functions: []
+      is_crud: true
+      is_crud_soft_delete: false
+      is_crud_soft_delete_token: false
+      connection: inventory_db
+      entity: gadget
+    - key: WidgetDataAccess
+      functions:
+        - key: get_by_name
+      is_crud: true
+      is_crud_soft_delete: true
+      is_crud_soft_delete_token: false
+      connection: inventory_db
+      entity: widget
+    - key: GadgetReportDataAccess
+      functions:
+        - key: count_gadgets
+      is_crud: false
+      is_crud_soft_delete: false
+      is_crud_soft_delete_token: false
+      connection: inventory_db
+      entity: gadget
+  services:
+    - key: GadgetService
+      data_access: GadgetDataAccess
+      functions:
+        - key: list_gadgets
+          result_to_dict: true
+    - key: WidgetCatalog
+      data_access: WidgetDataAccess
+      functions:
+        - key: get_by_name
+          result_to_dict: true
+          cache_key: CACHE_WIDGET
+          cache_invalidate: false
+        - key: rename_widget
+          cache_key: cache_widget
+          cache_invalidate: true
+        - key: count_widgets
+        - key: list_widgets
+          cache_key: CACHE_WIDGET_LIST
+    - key: StatusService
+  setup:
+    author: acme
+    author_email: dev@acme.example
+    description: Inventory for acme
+    url: https://acme.example/inventory
+    license: APACHE_LICENSE_2
+    classifiers:
+      - "Development Status :: 3 - Alpha"
+    version: 1.2.0

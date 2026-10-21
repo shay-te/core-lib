@@ -2,14 +2,18 @@ from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import any_to_pascal
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
-from core_lib_generator.generator_utils.helpers import generate_functions
+from core_lib_generator.generator_utils.helpers import generate_functions, unsupported_connection_type
 
+CRUD_FLAGS = ('is_crud', 'is_crud_soft_delete', 'is_crud_soft_delete_token')
 
 class DataAccessGenerateTemplate(TemplateGenerator):
     def generate(self, template_content: str, yaml_data: dict, core_lib_name: str, file_name: str) -> str:
         connections = yaml_data['connections']
         updated_file = template_content.replace('Template', file_name)
         conn = get_dict_attr(yaml_data, 'data_access.connection')
+        if not conn and any(get_dict_attr(yaml_data, f'data_access.{flag}') for flag in CRUD_FLAGS):
+            # The CRUD templates take the connection in __init__: without one, the project fails when it builds.
+            raise ValueError(f'data access `{file_name}` is a CRUD data access, so it needs a `connection`')
         entity = get_dict_attr(yaml_data, 'data_access.entity')
         is_init = False
         if entity:
@@ -33,6 +37,8 @@ class DataAccessGenerateTemplate(TemplateGenerator):
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.solr_connection_factory import SolrConnectionFactory')
             elif 'Neo4jConnectionFactory' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_factory import Neo4jConnectionFactory')
+            else:
+                raise unsupported_connection_type(conn, conn_data.type)
             init_str_list = [add_tab_spaces(f'def __init__(self, session: {conn_type}):'),
                              add_tab_spaces('self.session = session', 2)]
             updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))
@@ -54,11 +60,11 @@ class DataAccessGenerateTemplate(TemplateGenerator):
         return updated_file
 
     def get_template_file(self, yaml_data: dict) -> str:
-        if 'is_crud_soft_delete_token' in yaml_data.get('data_access'):
+        if get_dict_attr(yaml_data, 'data_access.is_crud_soft_delete_token'):
             return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_token_data_access.py'
-        elif 'is_crud_soft_delete' in yaml_data.get('data_access'):
+        elif get_dict_attr(yaml_data, 'data_access.is_crud_soft_delete'):
             return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_soft_delete_data_access.py'
-        elif 'is_crud' in yaml_data.get('data_access'):
+        elif get_dict_attr(yaml_data, 'data_access.is_crud'):
             return 'template_core_lib/template_core_lib/data_layers/data_access/template_crud_data_access.py'
         else:
             return (

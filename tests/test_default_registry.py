@@ -283,3 +283,29 @@ class TestDefaultRegistry(unittest.TestCase):
 
         customer_registry.unregister('customer_b')
         self.assertEqual(customer_registry.get(), customer_a)
+
+    def test_unregister_an_unknown_key_changes_nothing(self):
+        customer_registry = CustomerRegistry()
+        acme = Customer()
+        customer_registry.register('acme', acme, is_default=True)
+
+        customer_registry.unregister('widget')
+
+        self.assertEqual(['acme'], customer_registry.registered())
+        self.assertIs(acme, customer_registry.get())
+
+    def test_registry_without_an_object_type_is_refused(self):
+        with self.assertRaises(ValueError):
+            DefaultRegistry(None)
+
+    def test_register_an_existing_key_again_raises_and_keeps_the_first_object(self):
+        customer_registry = CustomerRegistry()
+        acme = Customer()
+        customer_registry.register('acme', acme)
+
+        with self.assertRaisesRegex(ValueError, 'already registered'):
+            customer_registry.register('acme', Customer(), is_default=True)
+
+        self.assertIs(acme, customer_registry.get('acme'))
+        self.assertEqual(['acme'], customer_registry.registered())
+        self.assertIsNone(customer_registry.default_key)  # the refused call did not make itself the default

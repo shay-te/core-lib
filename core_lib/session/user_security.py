@@ -37,10 +37,9 @@ class UserSecurity(ABC):
             return None
 
     def _secure_entry(self, request, policies):
-        cookies = {}
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
             cookies = request.COOKIES
-        elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
+        else:  # Flask: init() accepts only the two server types
             cookies = request.cookies
         token = cookies.get(self.cookie_name)
         session_obj = self.from_session_data(self.token_handler.decode(token)) if token else None

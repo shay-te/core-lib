@@ -1,13 +1,18 @@
 import unittest
+from datetime import datetime
+from http import HTTPStatus
 from time import sleep
 
-from sqlalchemy import Column, Integer, VARCHAR, Boolean
+from freezegun import freeze_time
+
+from sqlalchemy import Column, Integer, VARCHAR, Boolean, UniqueConstraint
+from sqlalchemy.exc import IntegrityError
 
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_token_mixin import SoftDeleteTokenMixin
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
-from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess
 from core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access import (
     CRUDSoftDeleteWithTokenDataAccess,
 )
@@ -85,6 +90,25 @@ class DataSoftDeleteToken(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
 class DataCRUDSoftDeleteTokenDataAccess(CRUDSoftDeleteWithTokenDataAccess):
     def __init__(self):
         CRUD.__init__(self, DataSoftDeleteToken, connect_to_mem_db())
+
+
+class Gadget(Base, SoftDeleteMixin, SoftDeleteTokenMixin):
+    __tablename__ = 'crud_token_gadget'
+
+    UQ_NAME = 'uq_crud_token_gadget_name'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(VARCHAR(length=255), nullable=False)
+
+    __table_args__ = (UniqueConstraint('name', 'deleted_at_token', name=UQ_NAME),)
+
+
+class GadgetDataAccess(CRUDSoftDeleteWithTokenDataAccess):
+    def __init__(self, db):
+        super().__init__(Gadget, db, RuleValidator([ValueRuleValidator(Gadget.name.key, str)]))
+
+
+ABSENT_ID = 2_000_000_000
 
 
 class TestCrud(unittest.TestCase):
@@ -175,3 +199,69 @@ class TestCrud(unittest.TestCase):
         crud_data_access.delete(4)
         with self.assertRaises(StatusCodeException):
             crud_data_access.get(4)
+
+    def test_create_ignores_a_given_id_and_keys_the_entity_does_not_have(self):
+        # No rule validator, so the dict reaches create() as given.
+        crud_data_access = DataCRUDSoftDeleteDataAccess()
+
+        created = crud_data_access.create({
+            DataSoftDelete.id.key: ABSENT_ID,
+            DataSoftDelete.name.key: 'widget',
+            DataSoftDelete.active.key: True,
+            'colour': 'blue',
+        })
+
+        self.assertNotEqual(ABSENT_ID, created.id)
+        self.assertFalse(hasattr(created, 'colour'))
+        self.assertEqual('widget', crud_data_access.get(created.id).name)
+        with self.assertRaises(StatusCodeException):
+            crud_data_access.get(ABSENT_ID)
+
+    def test_token_soft_delete_frees_a_unique_name_for_a_new_row(self):
+        gadget_data_access = GadgetDataAccess(connect_to_mem_db())
+        first_gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
+
+        with self.assertRaises(IntegrityError):  # a live row already holds the name
+            gadget_data_access.create({Gadget.name.key: 'widget'})
+        with self.assertRaises(PermissionError):  # the rule validator given to the constructor runs on create
+            gadget_data_access.create({Gadget.name.key: ['widget']})
+
+        self.assertEqual(1, gadget_data_access.delete(first_gadget.id))
+        with self.assertRaises(StatusCodeException) as missing:
+            gadget_data_access.get(first_gadget.id)
+        self.assertEqual(HTTPStatus.NOT_FOUND, missing.exception.status_code)
+
+        second_gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
+        self.assertNotEqual(first_gadget.id, second_gadget.id)
+        self.assertEqual('widget', gadget_data_access.get(second_gadget.id).name)
+
+    def test_soft_delete_of_a_deleted_row_returns_0_and_keeps_the_first_deletion(self):
+        db = connect_to_mem_db()
+        crud_data_access = CRUDSoftDeleteDataAccess(DataSoftDelete, db)
+        widget = crud_data_access.create({DataSoftDelete.name.key: 'widget', DataSoftDelete.active.key: True})
+
+        with freeze_time('2026-01-01 10:00:00'):
+            self.assertEqual(1, crud_data_access.delete(widget.id))
+        with freeze_time('2026-01-02 10:00:00'):
+            self.assertEqual(0, crud_data_access.delete(widget.id))
+
+        with db.get() as session:
+            self.assertEqual(datetime(2026, 1, 1, 10, 0), session.get(DataSoftDelete, widget.id).deleted_at)
+
+    def test_token_soft_delete_of_a_deleted_row_returns_0_and_keeps_the_first_deletion(self):
+        db = connect_to_mem_db()
+        gadget_data_access = GadgetDataAccess(db)
+        gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
+        with freeze_time('2026-01-01 10:00:00'):
+            self.assertEqual(1, gadget_data_access.delete(gadget.id))
+        with db.get() as session:
+            first_token = session.get(Gadget, gadget.id).deleted_at_token
+
+        with freeze_time('2026-01-02 10:00:00'):
+            self.assertEqual(0, gadget_data_access.delete(gadget.id))
+
+        with db.get() as session:
+            stored_gadget = session.get(Gadget, gadget.id)
+        self.assertNotEqual(0, first_token)
+        self.assertEqual(first_token, stored_gadget.deleted_at_token)
+        self.assertEqual(datetime(2026, 1, 1, 10, 0), stored_gadget.deleted_at)

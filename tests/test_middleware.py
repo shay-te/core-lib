@@ -55,3 +55,12 @@ class TestMiddlewareChain(unittest.TestCase):
 
         self.assertEqual(len(global_list), 1)
         self.assertEqual(global_list[0], TEST_2)
+
+    def test_remove_a_middleware_that_was_never_added_changes_nothing(self):
+        self.chain.add(TestMiddleware1())
+        self.chain.add(TestMiddleware2())
+
+        self.chain.remove(TestMiddleware1())  # a different instance: equal type, not in the chain
+        self.chain.execute(context={})
+
+        self.assertEqual([TEST_1, TEST_2], global_list)

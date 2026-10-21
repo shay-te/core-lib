@@ -1,17 +1,13 @@
-# Deprecated: the misspelled old name of `core_lib.web_helpers.web_helpers_utils`, kept so existing
-# imports keep working. Remove it in the next major version.
-#
-# It replaces itself with the real module, so both names are one module object: WebHelpersUtils keeps
-# its server type on the class, and `init()` through either name must set the one the helpers read.
-import sys
+# Deprecated since 0.3.0, to be removed in 1.0.0: the misspelled old name of
+# `core_lib.web_helpers.web_helpers_utils`, kept until then so existing imports keep working.
+# tests/test_web_helpers_utils_alias.py fails once the version reaches 1.0.0 and this file still exists.
 import warnings
 
-from core_lib.web_helpers import web_helpers_utils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils  # noqa: F401 - the same class, so init() is shared
 
 warnings.warn(
-    '`core_lib.web_helpers.web_helprs_utils` is deprecated, '
+    '`core_lib.web_helpers.web_helprs_utils` is deprecated since 0.3.0 and will be removed in 1.0.0, '
     'import `core_lib.web_helpers.web_helpers_utils` instead',
     DeprecationWarning,
     stacklevel=2,
 )
-sys.modules[__name__] = web_helpers_utils

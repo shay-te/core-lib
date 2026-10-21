@@ -21,7 +21,7 @@ Use them in your route handlers. Keep business logic in `Service` classes; a vie
 
 Stores which web framework, Flask or Django, the helpers should build responses for. The setting is a class attribute: one value for the whole process. Call `init()` once at startup, before any `response_*` helper, `@HandleException` or `@RequireLogin` builds a response.
 
-Older code imports it from `core_lib.web_helpers.web_helprs_utils`, the module's misspelled former name. That still works and is the same module, but it raises a `DeprecationWarning` and will be removed in the next major version. Import from `web_helpers_utils`.
+Older code imports it from `core_lib.web_helpers.web_helprs_utils`, the module's misspelled former name. That still works and gives the same `WebHelpersUtils` class, but it has been deprecated since 0.3.0, raises a `DeprecationWarning`, and will be removed in 1.0.0. Import from `web_helpers_utils`.
 
 ### `init()`
 
@@ -289,7 +289,7 @@ def request_body_dict(request):
 - **Flask:** returns `request.json`. If the body is not sent as `application/json`, or is not valid JSON, Flask raises its own 415 or 400 error.
 - **Django:** parses `request.body` with `json.loads`. An empty or invalid body raises `json.JSONDecodeError`.
 
-Under `@HandleException`, both of these become a 500 response (see [What the client gets](handle_exceptions.html#what-the-client-gets)).
+Under `@HandleException`, Flask's 415 or 400 keeps its status, and Django's `JSONDecodeError` becomes a 500 (see [What the client gets](handle_exceptions.html#what-the-client-gets)).
 
 **Example**
 

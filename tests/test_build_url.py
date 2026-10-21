@@ -34,3 +34,10 @@ class TestBuildUrl(unittest.TestCase):
         }
 
         self.assertEqual(build_url(**params), "http://shay:pass@some_domain.com:80/x/y/z/file.foo")
+
+    def test_password_without_username_keeps_the_password(self):
+        # A Redis server that only takes a password: losing it would connect without authenticating.
+        self.assertEqual(
+            "redis://:secret@cache.acme:6379",
+            build_url(protocol="redis", password="secret", host="cache.acme", port=6379),
+        )

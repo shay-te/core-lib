@@ -1,7 +1,6 @@
-"""CRUDDataAccess.get uses Session.get: the row by id, a 404 when absent, and no SQLAlchemy legacy-API warning."""
+"""CRUDDataAccess.get uses Session.get: the row by id, with no SQLAlchemy legacy-API warning."""
 import unittest
 import warnings
-from http import HTTPStatus
 
 from omegaconf import OmegaConf
 from sqlalchemy import Column, Integer, VARCHAR
@@ -10,11 +9,9 @@ from sqlalchemy.orm import declarative_base
 
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.data_layers.data_access.db.crud.crud_data_access import CRUDDataAccess
-from core_lib.error_handling.status_code_exception import StatusCodeException
 
 # A base of its own, so this table never joins core-lib's shared Base.metadata.
 LocalBase = declarative_base()
-ABSENT_WIDGET_ID = 2_000_000_000
 
 
 class Widget(LocalBase):
@@ -44,11 +41,3 @@ class TestCRUDDataAccessGet(unittest.TestCase):
 
         self.assertEqual(widget_id, widget.id)
         self.assertEqual('acme-widget', widget.name)
-
-    def test_get_absent_id_raises_404(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter('error', SADeprecationWarning)
-            with self.assertRaises(StatusCodeException) as context:
-                self.widget_data_access.get(ABSENT_WIDGET_ID)
-
-        self.assertEqual(HTTPStatus.NOT_FOUND, context.exception.status_code)

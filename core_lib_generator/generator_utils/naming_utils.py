@@ -9,7 +9,7 @@ def service_attribute_name(service_class_name: str) -> str:
     # (WidgetService -> widget). A name the CoreLib already uses (`config`, `load_jobs`, ...) keeps the full
     # snake_case class name instead, so the service never hides it.
     full_name = camel_to_snake(service_class_name)
-    if not service_class_name.endswith(SERVICE_SUFFIX) or service_class_name == SERVICE_SUFFIX:
+    if not service_class_name.endswith(SERVICE_SUFFIX):
         return full_name
     short_name = camel_to_snake(service_class_name[:-len(SERVICE_SUFFIX)])
     if short_name == 'config' or hasattr(CoreLib, short_name):
