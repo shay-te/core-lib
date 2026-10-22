@@ -700,10 +700,10 @@ foo-core-lib/
       __init__.py
       utils.py                        # sync_create_start_core_lib, load_config, new_project_id, seams
     data/
-      .env                            # test env vars (DB sqlite :memory:, backend 127.0.0.1, …)
+      .env                            # test env vars, if any (backend 127.0.0.1, …) — never the DB
       config/
-        config.yaml                   # defaults: [core_lib, foo_core_lib, (foo_core_lib_test | _self_)]
-        foo_core_lib_test.yaml        # test-safe overrides, if the packaged yaml is not fully env-driven
+        config.yaml                   # defaults: [core_lib, foo_core_lib, foo_core_lib_test]
+        foo_core_lib_test.yaml        # test-safe overrides (DB → sqlite :memory: + create_db: true)
       entities/                       # test-only stand-in entities (a test-only stand-in entity), if needed
     stub_<backend>.py                 # deterministic double for an uncontrollable backend, if needed
     test_thing_service.py             # ONE TestCase class per file
@@ -729,9 +729,9 @@ foo-core-lib/
 ### 3.1 `foo_core_lib/config/foo_core_lib.yaml`
 
 - First line is exactly `# @package _global_`. Root key is `core_lib:`.
-- **New libs source every value from an environment variable** with an in-yaml default — `${oc.env:FOO_<KEY>,<default>}`, nullable values defaulting to `null` — the style of the newer libs, which is the owner's latest direction. Exceptions, with NO default (`${oc.env:FOO_<KEY>}`): secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text. **(divergence: the older libs — the older libs — hardcode plain yaml values (`log_queries: false`, `create_db: false`, `protocol: postgresql`) and use bare `${oc.env:POSTGRES_*}` interpolations with NO defaults. Do not copy that for a new lib, and do not "fix" theirs while building yours.)**
+- **The DB block is copied verbatim from the existing libs — hardcoded, never invented** (shape below): `log_queries: false`, `create_db: false`, the `session` pool values, `protocol: postgresql`, and bare `${oc.env:POSTGRES_*}` with no defaults (`POSTGRES_DB` is the `file`). No lib-specific DB env vars (`FOO_DB_*`): every lib shares the host's one database and one `POSTGRES_*` set, and tests swap in sqlite through their own test yaml (§13.5). The lib's other deployment values (credentials, endpoints, host wording) are read from env as `${oc.env:FOO_<KEY>}`, with NO default for secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text.
 - **Booleans and numbers sourced from env MUST be wrapped in `oc.decode`:** `${oc.decode:${oc.env:FOO_USE_SSL,true}}`. A bare `${oc.env:...}` resolves to a STRING — `'false'` is truthy — which silently breaks `create_engine(echo=…)`, makes `create_db` impossible to disable, and defeats `use_ssl is False` checks. This was a real shipped bug.
-- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. Shape for a NEW lib (env-driven; the older libs carry the same path + `_target_` but hardcode the values):
+- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. The shape every lib uses (`workflow`, `user_journey`), copied as is:
 
 ```yaml
 # @package _global_
@@ -740,15 +740,18 @@ core_lib:
     sqlalchemy:
       _target_: core_lib.connection.sql_alchemy_connection_factory.SqlAlchemyConnectionFactory
       config:
-        log_queries: ${oc.decode:${oc.env:FOO_DB_LOG_QUERIES,false}}
-        create_db: ${oc.decode:${oc.env:FOO_DB_CREATE_DB,false}}
+        log_queries: false
+        create_db: false
+        session:
+          pool_recycle: 3200
+          pool_pre_ping: false
         url:
-          protocol: ${oc.env:FOO_DB_PROTOCOL,postgresql}
-          username: ${oc.env:POSTGRES_USER,null}
-          password: ${oc.env:POSTGRES_PASSWORD,null}
-          host: ${oc.env:POSTGRES_HOST,null}
-          port: ${oc.decode:${oc.env:POSTGRES_PORT,5432}}
-          file: ${oc.env:FOO_DB_FILE,null}
+          protocol: postgresql
+          username: ${oc.env:POSTGRES_USER}
+          password: ${oc.env:POSTGRES_PASSWORD}
+          host: ${oc.env:POSTGRES_HOST}
+          port: ${oc.env:POSTGRES_PORT}
+          file: ${oc.env:POSTGRES_DB}
   alembic:
     version_table: foo_alembic_version
 ```
@@ -1516,8 +1519,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 ### 13.5 `tests/data/` — config + env
 
-- `config/config.yaml`: `defaults: [core_lib, foo_core_lib, foo_core_lib_test]` where `foo_core_lib_test.yaml` (same dir, starts `# @package _global_`) carries test-safe overrides — an older lib’s sets `create_db: true` + sqlite + `version_table` + job config; an older lib’s sets a fake `api_key: SOME-KEY` so any eager construction succeeds. If the packaged yaml is FULLY env-driven (as in the reference lib), the third group may be unnecessary — then use `defaults: [core_lib, foo_core_lib, _self_]` plus inline keys for anything extra (e.g. a composed sibling's section). Never compose a sibling REPO's config group (§3.4).
-- `.env` (loaded by `load_config`): DB → `FOO_DB_PROTOCOL=sqlite`, `FOO_DB_FILE=:memory:`, `FOO_DB_CREATE_DB=true` (tests rely on `create_all`, not Alembic — except one variant); `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
+- `config/config.yaml`: `defaults: [core_lib, foo_core_lib, foo_core_lib_test]` where `foo_core_lib_test.yaml` (same dir, starts `# @package _global_`) carries test-safe overrides — an older lib’s sets `create_db: true` + sqlite + `version_table` + job config; an older lib’s sets a fake `api_key: SOME-KEY` so any eager construction succeeds. The packaged DB block is hardcoded postgres (§3.1), so this group always overrides it: `create_db: true` and a url of `protocol: sqlite`, `file: ':memory:'`, null `username`/`password`/`host`/`port`. Keys a composed sibling needs go inline here too. Never compose a sibling REPO's config group (§3.4).
+- `.env` (loaded by `load_config`): no DB values — the test yaml above swaps the DB (tests rely on `create_all`, not Alembic — except one variant); `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
 - Local S3 without Docker: `pip install "moto[server]"`, run exactly ONE `python -m moto.server -p 9000` (several instances on one port scatter requests and stall), create the bucket once via boto3. boto3/moto are dev-env deps, never `requirements.txt`.
 
 ### 13.6 Writing the suites
@@ -1632,7 +1635,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - [ ] `FooCoreLib(compose)` constructs twice in one process without registry explosions (guards work).
 - [ ] All public attributes are singular service names; every service subclasses `Service`; no DA reachable publicly.
 - [ ] `config/__init__.py` + `hydra_plugins/.../__init__.py` exist; `pkg://foo_core_lib.config` composes from a scratch dir.
-- [ ] Every config key code reads exists in `foo_core_lib.yaml`; env-sourced booleans/ints wrapped in `oc.decode`; DB block at `core_lib.data.sqlalchemy`; `version_table: foo_alembic_version` present.
+- [ ] Every config key code reads exists in `foo_core_lib.yaml`; env-sourced booleans/ints wrapped in `oc.decode`; DB block at `core_lib.data.sqlalchemy`, copied verbatim from the existing libs; `version_table: foo_alembic_version` present.
 - [ ] ONE migration; filename/date/rev/slug per §11.2; body references entities only (the current convention’s style, not an older lib’s 2024 file); `downgrade()` reverse order; `.migration_ver` = `1`; schema byte-identical to `create_all`; `install()`/`uninstall()` run against a scratch DB.
 - [ ] `tests/helpers/utils.py` matches §13.4 including the `finally` lock release (only if startup jobs); `.env` has sqlite `:memory:`, `127.0.0.1` endpoints, `MEMCACHED_HOST`.
 - [ ] Every service suite: one class per file; `cls.foo_core_lib`; inline access; fresh `new_project_id()` per test; `ABSENT_* = 2_000_000_000`; `Entity.col.key` for every dict read; zero `_da`/`_db`/`_storage` greps.
