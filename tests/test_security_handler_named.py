@@ -16,18 +16,19 @@ SECRET_KEY = 'named-handler-secret'
 NAMED_HANDLER = 'named_handler'
 NAMED_COOKIE = 'named_cookie'
 OTHER_COOKIE = 'other_cookie'
+TOKEN_TTL = timedelta(seconds=30)
 
 
 class TestSecurityHandlerNamed(unittest.TestCase):
 
     def setUp(self):
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
-        self.named_security = CustomerSecurity(NAMED_COOKIE, SECRET_KEY, timedelta(seconds=30))
+        self.named_security = CustomerSecurity(NAMED_COOKIE, SECRET_KEY, TOKEN_TTL)
         SecurityHandler.register(self.named_security, NAMED_HANDLER)
         user = result_to_dict(
             user_data_access.create({'username': 'named', 'email': 'named@def.com', 'role': User.PolicyRoles.ADMIN})
         )
-        user['exp'] = datetime.now() + timedelta(seconds=30)
+        user['exp'] = datetime.now() + TOKEN_TTL
         self.token = jwt.encode(user, SECRET_KEY)
         self.app = Flask(__name__)
 
@@ -50,7 +51,7 @@ class TestSecurityHandlerNamed(unittest.TestCase):
 
     def test_register_duplicate_name_raises(self):
         with self.assertRaises(ValueError):
-            SecurityHandler.register(CustomerSecurity(OTHER_COOKIE, SECRET_KEY, timedelta(seconds=30)), NAMED_HANDLER)
+            SecurityHandler.register(CustomerSecurity(OTHER_COOKIE, SECRET_KEY, TOKEN_TTL), NAMED_HANDLER)
 
     def test_get_unknown_name_raises(self):
         with self.assertRaises(ValueError):
