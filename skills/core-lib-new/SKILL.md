@@ -1,6 +1,6 @@
 ---
 name: core-lib-new
-description: MANDATORY — load this skill BEFORE you create, bootstrap, or start a whole new *-core-lib library or persistence/integration package from nothing; do not scaffold from memory. Produces the package layout, the main CoreLib composition-root class, singleton accessor, Hydra config plus hydra_plugins, requirements.txt, and a first entity→data-access→service slice. To add one part to an existing lib, use the per-part skill.
+description: MANDATORY — load this skill BEFORE you create, bootstrap, or start a whole new *-core-lib library or persistence/integration package from nothing; do not scaffold from memory. Produces the package layout, the main CoreLib composition-root class, Hydra config plus hydra_plugins, requirements.txt, and a first entity→data-access→service slice. To add one part to an existing lib, use the per-part skill.
 ---
 
 # Create a new *-core-lib (end to end)
@@ -14,7 +14,8 @@ Where they differ, the recipe wins.
 
 This skill orchestrates the others to stand up a complete, agnostic core-lib.
 Use the per-part skills for each layer: `core-lib-entity`,
-`core-lib-data-access`, `core-lib-service`, `core-lib-connection`,
+`core-lib-data-access`, `core-lib-service`, `core-lib-client` (HTTP APIs),
+`core-lib-connection` (SDK-backed backends),
 `core-lib-migration`, `core-lib-tests` — plus **`core-lib-reuse` before you
 write any helper, utility, converter or guard** (since `core_lib` already ships
 most of them and a hand-rolled copy is reliably thinner than the original), and
@@ -32,7 +33,8 @@ validation-failure type**.
 │   │   ├── data/db/migrations/versions/ # Alembic (core-lib-migration)
 │   │   ├── data_access/                 # query classes (core-lib-data-access)
 │   │   └── service/                     # business logic (core-lib-service)
-│   ├── connections/                     # outbound clients (core-lib-connection, optional)
+│   ├── client/                          # HTTP API clients on ClientBase (core-lib-client, optional)
+│   ├── connections/                     # SDK-backed backends (core-lib-connection, optional)
 │   ├── error_handling/                  # typed errors
 │   └── <name>_core_lib.py               # main class (composition root)
 ├── hydra_plugins/<name>_core_lib/       # advertises this lib's config to parents
@@ -43,17 +45,29 @@ validation-failure type**.
 
 ## Steps
 
-1. **Scaffold the tree** above. The package-root `foo_core_lib/__init__.py`
+0. **Build the MINIMUM version** (§0): only what the ticket or a caller in this
+   change needs — no "may happen" scenarios, extra error classes or config
+   knobs. Later steps grow it.
+1. **Scaffold the tree** above by copying `core_lib_generator/template_core_lib`
+   and renaming `template` in every case form, then clean the copy (§2):
+   delete `template_core_lib_instance.py`, `.dockerignore`,
+   `example_data.yaml`, the root `.env`, the unused `LICENSE_*` files and the
+   example entities/DAs/services/jobs; move the tests to `tests/helpers/utils.py`
+   + `tests/data/config/`; re-read every prose line the rename touched; and
+   rewrite `setup.py` + `MANIFEST.in` per §14 (text reads, `tests` excluded,
+   migration `*.mako` + `.migration_ver` shipped). The package-root `foo_core_lib/__init__.py`
    carries `__version__` **and** re-exports the class
    (`from foo_core_lib.foo_core_lib import FooCoreLib` + `__all__`). **Every
    other `__init__.py` is an empty 0-byte file — but it must exist** (§1, §2).
 2. **First vertical slice**: entity → data-access → service (run those three
    skills in order).
 3. **Main class** (composition root) — see template.
-4. **Singleton accessor** — see template.
+4. **No singleton accessor** in the lib — a host that wants one writes it.
 5. **Hydra config + plugin** so parent apps can override sections.
 6. **Migration** for the first entity (`core-lib-migration`).
-7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures.
+7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures, run
+   with `python -P`. Finish by building the wheel and installing it into a
+   clean venv (§17).
 8. **`.gitignore`** — copy `core_lib_generator/template_core_lib/.gitignore`
    verbatim; it is what the generator installs. It must cover bytecode
    (`**/*.py[cod]`, `__pycache__/`, `*$py.class`), **every** tool cache
@@ -127,8 +141,8 @@ class FooCoreLib(CoreLib):
   `Alembic(os.path.dirname(inspect.getfile(FooCoreLib)), cfg)` — note the import
   is `from core_lib.alembic.alembic import Alembic` (§7, §11.1).
 - **Agnostic**: no host/product name anywhere; read generic config keys / take
-  values via constructor params; inject product-specific text with safe
-  neutral defaults (AGENTS.md "this library is AGNOSTIC").
+  values via constructor params; product-specific text is a required config
+  key or argument with no default (AGENTS.md "this library is AGNOSTIC").
 - **Minimal deps**: `requirements.txt` is just `core-lib`; optional/heavy SDKs
   go in `extras_require` (§14).
 - **No empty re-export-only modules**; import from the defining submodule

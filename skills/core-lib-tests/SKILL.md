@@ -37,10 +37,19 @@ Aim to be surprised.
 4. Reset the cache registry per test so cached rows don't leak.
 5. Use generic fixture data; aim for full coverage of public methods +
    one `test_flow.py` driving the primary workflow A→Z.
-6. **Now do the work that matters**: write the adversarial cases (§1), walk the
-   edge-case checklist (§2), and drive complete user journeys (§3). Steps 1–5
+6. Run with `python -P -m unittest discover -s tests` — without `-P` a `tests`
+   package on the path (the cwd's, core-lib's) shadows the lib's own. Commit no
+   secret, not even a test one: `load_config` generates it into `os.environ`
+   before `compose()` (AGENTS §13.6). Add one file proving the suites hit real
+   SQLite (dialect, tables, a service write as a row, a NOT NULL insert raising
+   `IntegrityError`) and a migration-vs-`create_all` test on a SQLite FILE.
+   Expected epochs come through `result_to_dict` — it reads naive datetimes as
+   local time (§12).
+7. **Now do the work that matters**: write the adversarial cases (§1), walk the
+   edge-case checklist (§2), and drive complete user journeys (§3). Steps 1–6
    are the scaffolding; a suite that stops there is a green light with nothing
-   behind it.
+   behind it. Test what the code does — never a scenario the minimum version
+   deliberately does not handle.
 
 ## One TestCase per file
 

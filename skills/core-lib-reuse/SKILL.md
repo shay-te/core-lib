@@ -51,6 +51,7 @@ what core-lib lacks — so the next reader does not re-run your search.
 | cache a read | `@Cache(KEY, handler_name=...)` — `core_lib.cache.cache_decorator` | key templating via `build_function_key` |
 | fire a host event | `@Observe(event_key=..., observer_name=...)` — `core_lib.observer.observer_decorator` | |
 | turn a bare `assert` into a status code | `with StatusCodeAssert(code, msg):` — `core_lib.error_handling.status_code_assert` | context manager |
+| call an HTTP API | subclass `ClientBase` — `core_lib.client.client_base` | `_get/_post/_put/_delete(path, **requests_kwargs)` on one `base_url`; `set_timeout` / `set_headers` / `set_auth`; the `session` is the test boundary — see `core-lib-client` |
 
 **Functions**
 
@@ -82,13 +83,16 @@ Verified by inventory, so you can stop looking:
           return None
   ```
 - **No argument-guard helper.** `core_lib.helpers.validation` is `is_*`/`parse_*` only; `StatusCodeAssert` maps `AssertionError`, it does not check arguments. A lib-local `require(**kwargs)` raising `ValueError` is right (§6 convention).
+- **No encryption helper.** A thin wrapper over `cryptography.fernet.Fernet` (encrypt/decrypt a JSON dict, `ttl=` on decrypt for short-lived tokens) is right — a few lines. Fernet validates the key itself, and its `InvalidToken` needs no wrapper class.
 - **No transient-default mixin**, and do not write one — a column `default=` fires at INSERT by design (§4).
 
 ## Where a lib-local helper goes
 
-`<name>_core_lib/helpers.py`, at the **library root** — not under `service/`. A
-DataAccess needs `require` too, and importing it from the layer above would
-invert the dependency.
+`<name>_core_lib/helpers.py`, at the **library root**, when a DataAccess needs
+it too — importing it from `service/` would invert the dependency. Used by
+services only, it is ONE `service/<topic>_helper.py` grouping the related
+functions (`argument_helper.py`) — never one function per file, never a bare
+`helper.py` (AGENTS §6.1).
 
 ## Traps when adopting `result_to_dict`
 
