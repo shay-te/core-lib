@@ -6,8 +6,8 @@ from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 logger = logging.getLogger(__name__)
 
 
-def require_login(request, policies, func, *args, **kwargs):
-    response = handle_exception(SecurityHandler.get()._secure_entry, request, policies)
+def require_login(request, policies, func, *args, security_handler_name: str = None, **kwargs):
+    response = handle_exception(SecurityHandler.get(security_handler_name)._secure_entry, request, policies)
     if not response:
         try:
             if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
