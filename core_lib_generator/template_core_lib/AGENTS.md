@@ -12,8 +12,17 @@ there is exactly one source of truth:
 | `core-lib/AGENTS.md` | **Read first.** The AGNOSTIC principles, then the canonical recipe (§0–§17): naming, folder tree, config, entities, data types, error handling, DataAccess, services, composition root, observers, jobs, migrations, tests, packaging/`.gitignore`, build order, things to avoid, final checklist. |
 | `core-lib/skills/` | Copy-paste scaffolding templates, one per core-lib part. |
 
-Find them in the `core-lib` checkout beside this repo (`../core-lib/`) or in the
-installed `core-lib` package.
+Find them in the `core-lib` checkout beside this repo (`../core-lib/`). After a
+`pip install core-lib`, the same files are in the folder this prints, as
+`AGENTS.md` and `skills/<name>/SKILL.md`:
+
+```bash
+python -c "import core_lib, os; print(os.path.join(os.path.dirname(core_lib.__file__), 'agent_docs'))"
+```
+
+The skill links below use the checkout path; with a pip install, read the same
+`skills/<name>/SKILL.md` from that folder. An editable install (`pip install -e`)
+has no such folder: use the root of the checkout it points to.
 
 ## MANDATORY — load the matching skill before you write code
 
@@ -39,6 +48,10 @@ whoever adds a skill must add the row in both places.
 | add / fix / restructure tests or raise coverage | [`core-lib-tests`](../core-lib/skills/core-lib-tests/SKILL.md) |
 | write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`core-lib-reuse`](../core-lib/skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`core-lib-error-handling`](../core-lib/skills/core-lib-error-handling/SKILL.md) |
+| add or change the main `<Name>CoreLib` class: wiring, registries, `get_or_reg` / `instantiate_config`, `install()`, the instance holder, composing another CoreLib | [`core-lib-main`](../core-lib/skills/core-lib-main/SKILL.md) |
+| add or change a background / scheduled job, a `jobs:` YAML block or `load_jobs()` | [`core-lib-job`](../core-lib/skills/core-lib-job/SKILL.md) |
+| add or change events a host listens to (`@Observe`, listener ABC, `EVENT_*` keys) or a `CoreLibListener` hook | [`core-lib-observer`](../core-lib/skills/core-lib-observer/SKILL.md) |
+| write web routes that call a CoreLib, or use the web helpers, `@HandleException`, `@RequireLogin` / `UserSecurity` | [`core-lib-web`](../core-lib/skills/core-lib-web/SKILL.md) |
 
 ## This library is AGNOSTIC
 

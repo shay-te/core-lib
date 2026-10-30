@@ -9,8 +9,12 @@ import datetime
 import pymongo
 
 from sqlalchemy import Integer, Column, VARCHAR, DateTime, Enum, JSON, TEXT, Date, BLOB, Float, Boolean, Unicode
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.engine.row import Row
 from geoalchemy2 import WKTElement
+from geoalchemy2.shape import from_shape
+from shapely.geometry import LineString, Point as ShapelyPoint, Polygon
 
 from core_lib.data_transform.result_to_dict import ResultToDict, result_to_dict
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
@@ -38,6 +42,23 @@ class Data(Base):
     data_bool = Column(Boolean, nullable=False, default="")
     data_unicode = Column(Unicode, nullable=False, default="")
     data_enum = Column(Enum(MyEnum))
+
+
+class ResultOrder(Base):
+    __tablename__ = 'result_to_dict_order'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(VARCHAR(length=255), nullable=False)
+    widgets = relationship('ResultWidget', back_populates='order', order_by='ResultWidget.id')
+
+
+class ResultWidget(Base):
+    __tablename__ = 'result_to_dict_widget'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    order_id = Column(Integer, ForeignKey('result_to_dict_order.id'))
+    name = Column(VARCHAR(length=255), nullable=False)
+    order = relationship(ResultOrder, back_populates='widgets')
 
 
 def convert_str_to_dict(result):
@@ -147,7 +168,7 @@ class TestResultToDict(unittest.TestCase):
         self.assertTupleEqual(result[0]['object']['object_1']['object_2']['tuple'], tpl)
         self.assertDictEqual(result[0]['object']['object_1']['object_2']['object'], obj)
         self.assertSetEqual(result[0]['object']['object_1']['object_2']['set'], set_value)
-        self.assertEqual(result[0]['object']['object_1']['object_2']['point'], point)
+        self.assertEqual(result[0]['object']['object_1']['object_2']['point'], {'latitude': 45.0, 'longitude': 5.0})
 
     def test_base_db_entity(self):
         data_date = datetime.date(2022, 1, 1)
@@ -337,6 +358,141 @@ class TestResultToDict(unittest.TestCase):
         self.assertEqual(result['nested']['inner'], 99.9)
 
         self.assertListEqual(result['list'], [1.0, 2.5])
+
+    def _create_order(self, order_name: str, widget_names: list) -> ResultOrder:
+        with self.__class__.db_data_session.get() as session:
+            order = ResultOrder(name=order_name, widgets=[ResultWidget(name=name) for name in widget_names])
+            session.add(order)
+            session.flush()
+        return order
+
+    def test_entity_relationships_are_followed_once_per_call(self):
+        created = self._create_order('acme order', ['widget', 'gadget'])
+        first_widget, second_widget = created.widgets
+
+        with self.__class__.db_data_session.get() as session:
+            converted = result_to_dict(session.get(ResultOrder, created.id))
+
+        order_columns = {ResultOrder.id.key: created.id, ResultOrder.name.key: 'acme order'}
+        self.assertEqual({
+            **order_columns,
+            ResultOrder.widgets.key: [
+                {
+                    ResultWidget.id.key: first_widget.id,
+                    ResultWidget.order_id.key: created.id,
+                    ResultWidget.name.key: 'widget',
+                    # the widget's way back to its order is followed once, by the first widget, which stops there
+                    ResultWidget.order.key: order_columns,
+                },
+                {
+                    ResultWidget.id.key: second_widget.id,
+                    ResultWidget.order_id.key: created.id,
+                    ResultWidget.name.key: 'gadget',
+                },
+            ],
+        }, converted)
+
+    def test_relationship_without_a_related_row_is_none(self):
+        with self.__class__.db_data_session.get() as session:
+            loose_widget = ResultWidget(name='loose widget')
+            session.add(loose_widget)
+            session.flush()
+
+        with self.__class__.db_data_session.get() as session:
+            converted = result_to_dict(session.get(ResultWidget, loose_widget.id))
+
+        self.assertEqual({
+            ResultWidget.id.key: loose_widget.id,
+            ResultWidget.order_id.key: None,
+            ResultWidget.name.key: 'loose widget',
+            ResultWidget.order.key: None,
+        }, converted)
+
+    def test_detached_entity_leaves_out_a_relationship_that_was_not_loaded(self):
+        created = self._create_order('acme order', ['widget'])
+        with self.__class__.db_data_session.get() as session:
+            widget = session.get(ResultWidget, created.widgets[0].id)
+
+        converted = result_to_dict(widget)  # the session is closed, so `order` cannot be loaded now
+
+        self.assertEqual({
+            ResultWidget.id.key: created.widgets[0].id,
+            ResultWidget.order_id.key: created.id,
+            ResultWidget.name.key: 'widget',
+        }, converted)
+
+    def test_attribute_attached_to_an_entity_is_included_and_converted(self):
+        created = self._create_order('acme order', ['widget'])
+        with self.__class__.db_data_session.get() as session:
+            widget = session.get(ResultWidget, created.widgets[0].id)
+        widget.inspection = {'weight': Decimal('2.5'), 'checked_on': datetime.date(2024, 1, 1)}
+
+        converted = result_to_dict(widget)
+
+        self.assertEqual({
+            ResultWidget.id.key: created.widgets[0].id,
+            ResultWidget.order_id.key: created.id,
+            ResultWidget.name.key: 'widget',
+            'inspection': {'weight': 2.5, 'checked_on': datetime.datetime(2024, 1, 1).timestamp()},
+        }, converted)
+
+    def test_geometry_point_value_becomes_latitude_and_longitude(self):
+        geometry_value = from_shape(ShapelyPoint(34.7818, 32.0853))  # the WKBElement a Geometry('POINT') column holds
+
+        self.assertEqual(
+            {'where': {'latitude': 32.0853, 'longitude': 34.7818}}, result_to_dict({'where': geometry_value})
+        )
+
+    def test_any_other_geometry_shape_becomes_geojson(self):
+        # Geometry('LINESTRING') / Geometry('POLYGON') values: GeoJSON, with lists so the dict is JSON-safe.
+        route = from_shape(LineString([(34.78, 32.08), (35.21, 31.77)]))
+        area = from_shape(Polygon([(0, 0), (2, 0), (2, 1), (0, 0)]))
+
+        converted = result_to_dict({'route': route, 'area': area})
+
+        self.assertEqual({
+            'route': {'type': 'LineString', 'coordinates': [[34.78, 32.08], [35.21, 31.77]]},
+            'area': {'type': 'Polygon', 'coordinates': [[[0.0, 0.0], [2.0, 0.0], [2.0, 1.0], [0.0, 0.0]]]},
+        }, converted)
+        json.dumps(converted)
+
+    def test_geometry_assigned_as_wkt_is_converted_like_one_read_from_the_database(self):
+        # A WKTElement is what an entity holds after `entity.where = WKTElement(...)`, until it is read back.
+        converted = result_to_dict({
+            'where': WKTElement('POINT(34.7818 32.0853)', srid=4326),
+            'route': WKTElement('LINESTRING(34.78 32.08, 35.21 31.77)'),
+        })
+
+        self.assertEqual({
+            'where': {'latitude': 32.0853, 'longitude': 34.7818},
+            'route': {'type': 'LineString', 'coordinates': [[34.78, 32.08], [35.21, 31.77]]},
+        }, converted)
+
+    def test_scalar_attribute_attached_to_an_entity_is_converted_like_a_column(self):
+        created = self._create_order('acme order', ['widget'])
+        with self.__class__.db_data_session.get() as session:
+            widget = session.get(ResultWidget, created.widgets[0].id)
+        widget.shipped_at = datetime.datetime(2024, 1, 1)
+        widget.grade = MyEnum.two
+        widget.price = Decimal('9.5')
+
+        converted = result_to_dict(widget)
+
+        self.assertEqual({
+            ResultWidget.id.key: created.widgets[0].id,
+            ResultWidget.order_id.key: created.id,
+            ResultWidget.name.key: 'widget',
+            'shipped_at': datetime.datetime(2024, 1, 1).timestamp(),
+            'grade': 2,
+            'price': 9.5,
+        }, converted)
+
+    def test_properties_as_dict_false_leaves_nested_values_as_they_are(self):
+        picked = datetime.datetime(2024, 1, 1)
+
+        converted = result_to_dict({'picked': picked, 'batch': {'picked': picked}}, properties_as_dict=False)
+
+        self.assertEqual({'picked': picked.timestamp(), 'batch': {'picked': picked}}, converted)
 
     @ResultToDict()
     def get_from_params(self, param):

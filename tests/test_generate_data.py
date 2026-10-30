@@ -1,3 +1,4 @@
+import string
 import unittest
 from datetime import datetime, timedelta
 
@@ -5,45 +6,40 @@ from core_lib.helpers.datetime_utils import reset_datetime
 from core_lib.helpers.generate_data import generate_random_string, generate_email, generate_datetime
 from core_lib.helpers.validation import is_email
 
+LOWERCASE = set(string.ascii_lowercase)
+UPPERCASE = set(string.ascii_uppercase)
+DIGITS = set(string.digits)
+PUNCTUATION = set(string.punctuation)
 
-def has_numbers(input_string: str):
-    return any(char.isdigit() for char in input_string)
-
-
-def has_uppercase(input_string: str):
-    return any(char.isupper() for char in input_string)
-
-
-def has_special_chars(input_string: str):
-    return any(not c.isalnum() for c in input_string)
+# A flag only widens the set characters are picked from, so a short string may lack that class.
+# In 2000 picks the likeliest miss, no digit among 94 characters, has probability about 1e-98.
+LONG_SAMPLE_LENGTH = 2000
 
 
 class TestGenerateData(unittest.TestCase):
 
     def test_generate_string(self):
-        string = generate_random_string()
-        self.assertEqual(10, len(string))
-        self.assertFalse(has_uppercase(string))
-        self.assertFalse(has_numbers(string))
-        self.assertFalse(has_special_chars(string))
+        generated = generate_random_string()
+        self.assertEqual(10, len(generated))
+        self.assertLessEqual(set(generated), LOWERCASE)
 
-        string = generate_random_string(30, True)
-        self.assertEqual(30, len(string))
-        self.assertTrue(has_uppercase(string))
-        self.assertFalse(has_numbers(string))
-        self.assertFalse(has_special_chars(string))
+        generated = generate_random_string(30, True)
+        self.assertEqual(30, len(generated))
+        self.assertLessEqual(set(generated), LOWERCASE | UPPERCASE)
 
-        string = generate_random_string(30, True, True)
-        self.assertEqual(30, len(string))
-        self.assertTrue(has_uppercase(string))
-        self.assertTrue(has_numbers(string))
-        self.assertFalse(has_special_chars(string))
+        generated = generate_random_string(30, True, True)
+        self.assertEqual(30, len(generated))
+        self.assertLessEqual(set(generated), LOWERCASE | UPPERCASE | DIGITS)
 
-        string = generate_random_string(30, True, True, True)
-        self.assertEqual(30, len(string))
-        self.assertTrue(has_uppercase(string))
-        self.assertTrue(has_numbers(string))
-        self.assertTrue(has_special_chars(string))
+        generated = generate_random_string(30, True, True, True)
+        self.assertEqual(30, len(generated))
+        self.assertLessEqual(set(generated), LOWERCASE | UPPERCASE | DIGITS | PUNCTUATION)
+
+    def test_generate_string_flags_add_their_characters(self):
+        generated = generate_random_string(LONG_SAMPLE_LENGTH, upper=True, digits=True, special=True)
+
+        for character_class in (LOWERCASE, UPPERCASE, DIGITS, PUNCTUATION):
+            self.assertTrue(set(generated) & character_class)
 
     def test_generate_email(self):
         domain = 'example.com'

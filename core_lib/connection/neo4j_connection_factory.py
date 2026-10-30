@@ -1,7 +1,7 @@
 import logging
 
 from omegaconf import DictConfig
-from neo4j import GraphDatabase, basic_auth
+from neo4j import Driver, GraphDatabase, basic_auth
 
 from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.neo4j_connection import Neo4jConnection
@@ -21,7 +21,7 @@ class Neo4jConnectionFactory(ConnectionFactory):
         )
 
     @property
-    def driver(self) -> GraphDatabase:
+    def driver(self) -> Driver:
         return self._neo4j_driver
 
     def get(self, *args, **kwargs) -> Neo4jConnection:

@@ -19,32 +19,31 @@ threadLock = threading.Lock()
 
 def load_config():
     if not TemplateInstance.config:
-        path = os.path.join(os.path.dirname(__file__), '..', 'data')
-        load_dotenv(dotenv_path=os.path.join(path, '.env'))
+        project_root = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+        load_dotenv(dotenv_path=os.path.join(project_root, '.env'))
 
         GlobalHydra.instance().clear()
-        hydra.initialize(config_path=os.path.join('../../../../ob-love-admin-backend', 'data', 'config'), caller_stack_depth=1)
+        # tests/test_data/test_config/config.yaml, relative to this file
+        hydra.initialize(config_path=os.path.join('..', 'test_config'), caller_stack_depth=1, version_base=None)
         TemplateInstance.config = hydra.compose('config.yaml')
     return TemplateInstance.config
 
 
 def sync_create_start_core_lib() -> TemplateCoreLibClass:
     threadLock.acquire()
-    if not TemplateInstance.instance:
-        try:
+    try:
+        if not TemplateInstance.instance:
             [CoreLib.cache_registry.unregister(key) for key in CoreLib.cache_registry.registered()]
             [CoreLib.observer_registry.unregister(key) for key in CoreLib.observer_registry.registered()]
-            config = load_config()
-            TemplateInstance.instance = TemplateCoreLibClass(config)
-            TemplateInstance.instance.install(config)
+            TemplateInstance.instance = TemplateCoreLibClass(load_config())
             TemplateInstance.instance.start_core_lib()
-        except BaseException as e:
-            print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
-            raise e
 
-    # Clear the cache
-    for key in CoreLib.cache_registry.registered():
-        CoreLib.cache_registry.get(key).flush_all()
-
-    threadLock.release()
+        # Clear the cache
+        for key in CoreLib.cache_registry.registered():
+            CoreLib.cache_registry.get(key).flush_all()
+    except BaseException as e:
+        print(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
+        raise e
+    finally:
+        threadLock.release()
     return TemplateInstance.instance

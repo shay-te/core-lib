@@ -12,9 +12,8 @@ def generate_service_template(data_access: list, ask_cache: bool) -> list:
         return is_exists(user_input, service)
 
     data_access_list = []
-    if data_access:
-        for da in data_access:
-            data_access_list.append(da['key'])
+    for da in data_access:
+        data_access_list.append(da['key'])
     add_service = True
     while add_service:
         da_input = prompt_list(data_access_list, 'Select the Data Access to create service for')

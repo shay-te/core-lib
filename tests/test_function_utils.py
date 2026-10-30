@@ -9,6 +9,7 @@ from core_lib.helpers.func_utils import (
     get_func_parameters_as_dict,
     get_func_parameter_index_by_name,
     Keyable,
+    UnseenFormatter,
 )
 
 
@@ -25,6 +26,16 @@ class User(Keyable):
 
     def key(self) -> str:
         return f'User(id:{self.id}, name:{self.name})'
+
+
+class BrokenKey(Keyable):
+    def key(self) -> str:
+        raise RuntimeError('widget has no key')
+
+
+class WidgetService(object):
+    def get(self, widget_id):
+        return widget_id
 
 
 class TestFunctionUtils(unittest.TestCase):
@@ -109,6 +120,31 @@ class TestFunctionUtils(unittest.TestCase):
 
         key = build_function_key('{class_key}_{post}', function_with_two_params, User(3, 'Jon Doe'), 'developer')
         self.assertEqual('User(id:3, name:Jon Doe)_developer', key)
+
+    def test_key_names_a_template_field_that_is_not_a_parameter(self):
+        key = build_function_key('widget_{widget_id}_{tenant}', WidgetService.get, WidgetService(), 7)
+        self.assertEqual('widget_7_!MtenantM!', key)
+
+    def test_empty_key_is_the_function_qualname(self):
+        self.assertEqual('WidgetService.get', build_function_key('', WidgetService.get, WidgetService(), 7))
+        self.assertEqual('WidgetService.get', build_function_key(None, WidgetService.get, WidgetService(), 7))
+
+    def test_keyable_whose_key_raises_is_marked_and_logged(self):
+        # Building a cache key or a log line never fails: the broken value becomes `!E<name>E!`.
+        with self.assertLogs('core_lib.helpers.func_utils', level='WARNING') as logs:
+            key = build_function_key('widget_{widget_id}', WidgetService.get, WidgetService(), BrokenKey())
+        self.assertEqual('widget_!Ewidget_idE!', key)
+        self.assertEqual(1, len(logs.records))
+        self.assertEqual('Error while building key. `widget_id`', logs.records[0].getMessage())
+        self.assertIsInstance(logs.records[0].exc_info[1], RuntimeError)
+
+    def test_unseen_formatter_marks_missing_and_falsy_values(self):
+        formatter = UnseenFormatter()
+        self.assertEqual('user_7_!MmissingM!', formatter.format('user_{user_id}_{missing}', user_id=7))
+        self.assertEqual('user_!Euser_idE!', formatter.format('user_{user_id}', user_id=0))
+        self.assertEqual('a-!M1M!', formatter.format('{0}-{1}', 'a'))
+        self.assertEqual('acme-!E1E!', formatter.format('{0}-{1}', 'acme', ''))
+        self.assertEqual('User(id:4, name:Rosa Doe)', formatter.format('{0}', User(4, 'Rosa Doe')))
 
     def test_param_dict_func(self):
         def get_func_params_test_func(param_1, param_2, param_3=11, param_4=22):

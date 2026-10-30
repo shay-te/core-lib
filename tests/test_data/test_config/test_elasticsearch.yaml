@@ -1,6 +1,6 @@
 core_lib:
   elasticsearch:
-    _target_: core_lib.connection.elasticsearch_connection_factory.ElasticSearchConnectionFactory
+    _target_: core_lib.connection.elasticsearch_connection_factory.ElasticsearchConnectionFactory
     config:
       url:
         protocol: http

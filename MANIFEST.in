@@ -1,9 +1,11 @@
 include requirements.txt
 include LICENSE
 include README.md
+include AGENTS.md
+recursive-include skills SKILL.md
 
 global-exclude *.pyc
 global-exclude __pycache__
 recursive-include hydra_plugins/* *.yaml
 recursive-include core_lib/* *.yaml
-recursive-include core_lib_generator/template_core_lib *.yaml *.md .gitignore
+recursive-include core_lib_generator/template_core_lib *

@@ -25,6 +25,7 @@ class SqlAlchemyConnection(Connection):
             self.on_exit(self)
 
     def close(self):
-        self.session.commit()
-        self.session.flush()
-        self.session.close()
+        try:
+            self.session.commit()
+        finally:
+            self.session.close()  # also rolls back a failed commit and returns the connection to the pool

@@ -399,6 +399,19 @@ class TestParseUtils(unittest.TestCase):
         result = parse_range("1 to 10")
         self.assertIn(type(result), [tuple, type(None)])
 
+    def test_parse_range_keeps_a_non_digit_bound_as_text(self):
+        """Only a bound made of digits becomes an int; '1.5' and words stay strings"""
+        self.assertEqual(('1.5', 2), parse_range('1.5-2'))
+        self.assertEqual(('small', 'large'), parse_range('Small to Large'))
+
+    def test_parse_range_any_needs_its_limit(self):
+        """'any' takes min_limit/max_limit; without the matching limit the range is None"""
+        self.assertIsNone(parse_range('any to 10'))
+        self.assertIsNone(parse_range('10 to any'))
+        self.assertIsNone(parse_range('any - any', 0))
+        self.assertEqual((0, 10), parse_range('any - 10', 0))
+        self.assertEqual((0, 0), parse_range('any to any', 0, 0))
+
     # =====================================================
     # height_to_cm - COMPREHENSIVE
     # =====================================================
@@ -446,6 +459,14 @@ class TestParseUtils(unittest.TestCase):
 
     def test_height_plain_number_meter(self):
         self.assertEqual(height_to_cm("1.75"), 175)
+
+    def test_height_hebrew_centimetres(self):
+        """'ס"מ' is the Hebrew abbreviation of centimetre: straight quote, curly quote or none"""
+        self.assertEqual(height_to_cm('153 ס"מ'), 153)
+        self.assertEqual(height_to_cm('153ס”מ'), 153)
+        self.assertEqual(height_to_cm('170 סמ'), 170)
+        self.assertEqual(height_to_cm('164.6 ס"מ'), 165)
+        self.assertIsNone(height_to_cm('153 ס"מ tall'))
 
     # =====================================================
     # NUMERIC INPUT TESTS
@@ -854,6 +875,15 @@ class TestParseUtils(unittest.TestCase):
 
     def test_fetch_option_empty_list(self):
         self.assertIsNone(fetch_closest_option("test", []))
+
+    def test_fetch_option_source_not_a_string(self):
+        self.assertIsNone(fetch_closest_option(42, ["42", "forty two"]))
+        self.assertIsNone(fetch_closest_option(None, ["acme"]))
+
+    def test_fetch_option_skips_booleans_and_non_strings(self):
+        """True would normalize to 'true' and match exactly; it is skipped, so the weaker string wins"""
+        self.assertEqual(fetch_closest_option("true", [True, 1, None, ["true"], "Truly"], 0.5), "Truly")
+        self.assertIsNone(fetch_closest_option("true", [True, 1.0, ["true"]]))
 
     def test_fetch_option_return_type(self):
         """Should return option or None"""

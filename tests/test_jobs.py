@@ -289,6 +289,22 @@ class TestJobs(unittest.TestCase):
         sleep(4)
         self.assertEqual(job.called, 1)      # only the in-progress run; no reschedule
 
+    def test_stop_a_job_that_has_no_pending_run_then_schedule_it(self):
+        # stop() on a job with no timer (never scheduled, or its one-shot already ran) is harmless, and it does
+        # not stop a later schedule of that job: schedule() and schedule_once() clear the stopped mark.
+        scheduler = JobScheduler()
+        job = TestJob()
+        scheduler.stop(job)
+
+        scheduler.schedule_once('0s', job)
+        sleep(0.5)
+        self.assertEqual(job.called, 1)
+
+        scheduler.stop(job)  # its one-shot already ran, so it has no timer left
+        scheduler.schedule_once('0s', job)
+        sleep(0.5)
+        self.assertEqual(job.called, 2)
+
     def test_two_recurring_same_class_chains_both_survive(self):
         # Two recurring jobs of the same class: their triggers collide and skip, but
         # BOTH chains keep retrying and both make progress (no chain ever dies).

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake
@@ -29,11 +29,15 @@ from core_lib_generator.file_generators.test_config_override_generator import Te
 from core_lib_generator.file_generators.test_generator import TestGenerateTemplate
 from core_lib_generator.file_generators.test_util_generator import UtilTestGenerateTemplate
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
+from core_lib_generator.generator_utils.naming_utils import service_module_name
 
 
 class CoreLibGenerator:
     def __init__(self, config: DictConfig):
-        self.core_lib_name = config.core_lib.name
+        # Plain data with every `${...}` left as text: those values are for the generated project to resolve when it
+        # runs. Reading one through OmegaConf here would crash on an unset variable, or copy this machine's value.
+        config = OmegaConf.to_container(config, resolve=False)
+        self.core_lib_name = config['core_lib']['name']
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
 
         self.core_lib_env = get_dict_attr(config['core_lib'], 'env')
@@ -49,8 +53,6 @@ class CoreLibGenerator:
             self, file_path: str, yaml_data: dict, template_generator: TemplateGenerator, file_name: str = None
     ):
         file_dir_path = os.path.dirname(file_path)
-        if not file_dir_path:
-            file_dir_path = '.'
         os.makedirs(file_dir_path, exist_ok=True)
         excluded_init_dirs = template_generator.exclude_init_from_dirs()
         dir_names = file_dir_path.split('/')
@@ -86,7 +88,7 @@ class CoreLibGenerator:
             for service in self.core_lib_services:
                 service_name = service['key']
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/service/{camel_to_snake(service_name)}.py',
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/service/{service_module_name(service_name)}.py',
                     service,
                     ServiceGenerateTemplate(),
                     service_name,
@@ -154,14 +156,18 @@ class CoreLibGenerator:
 
     def generate_readme(self):
         self._generate_template(
-            f'{self.snake_core_lib_name}/README.md', self.core_lib_data_accesses, ReadmeGenerateTemplate()
+            f'{self.snake_core_lib_name}/README.md', self.core_lib_services, ReadmeGenerateTemplate()
         )
 
     def generate_agents(self):
         self._generate_template(f'{self.snake_core_lib_name}/AGENTS.md', {}, AgentsGenerateTemplate())
 
     def generate_requirements(self):
-        self._generate_template(f'{self.snake_core_lib_name}/requirements.txt', {}, RequirementsGenerateTemplate())
+        self._generate_template(
+            f'{self.snake_core_lib_name}/requirements.txt',
+            {'connections': self.core_lib_connections, 'cache': self.core_lib_caches},
+            RequirementsGenerateTemplate(),
+        )
 
     def generate_default_config(self):
         self._generate_template(f'{self.snake_core_lib_name}/core_lib_config.yaml', {}, DefaultConfigGenerateTemplate())

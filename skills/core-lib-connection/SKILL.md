@@ -3,13 +3,22 @@ name: core-lib-connection
 description: MANDATORY — load this skill BEFORE you add or change an SDK-backed backend, connection factory, or any wrapper around a third-party SDK that owns its own connection (object storage/S3, an LLM SDK, a database or workflow-engine driver) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors. A service the lib calls over plain HTTP is core-lib-client instead (`client/` on ClientBase).
 ---
 
+# Pick the right piece first (docs: *Connection*, *Client*)
+
+| You need | Use | Where it lives |
+|---|---|---|
+| a data source Core-Lib already wraps | the built-in factory: `SqlAlchemyConnectionFactory`, `MongoDBConnectionFactory`, `SolrConnectionFactory`, `Neo4jConnectionFactory`, `ElasticsearchConnectionFactory` (each needs its extra, e.g. `core-lib[elasticsearch]`) | no new file — built from YAML in the main class (`core-lib-main`) and passed to a DataAccess |
+| an API you call over HTTP | a `ClientBase` subclass — load **`core-lib-client`** | `client/<provider>_client.py` |
+| an SDK with credentials and config to validate (object storage, an LLM, a payment gateway) | the three pieces below | `connections/` + a DataAccess |
+| an object you already have, behind the factory interface (a fake, an in-memory client) | `ObjectConnectionFactory` | wherever you build it |
+
 # Create an SDK-backed backend (the `connections/` pattern)
 
 > **Calling an HTTP API yourself?** That is not this pattern: build a `ClientBase` subclass in
 > `client/` — load `core-lib-client`. This skill is for a backend reached through an SDK that
 > owns its connection.
 
-An outbound backend (object storage, an external API) is **three pieces**,
+An SDK-backed backend (object storage, an LLM SDK) is **three pieces**,
 mirroring the DB stack. Files are named after the **backend**, with no lib
 prefix (`storage_connection_factory.py`, not `foo_storage_...`). §10.
 

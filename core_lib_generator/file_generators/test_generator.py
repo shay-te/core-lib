@@ -2,6 +2,7 @@ from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import snake_to_camel, camel_to_snake
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
+from core_lib_generator.generator_utils.naming_utils import service_attribute_name, service_module_name
 
 
 class TestGenerateTemplate(TemplateGenerator):
@@ -10,6 +11,10 @@ class TestGenerateTemplate(TemplateGenerator):
         camel_core_lib = snake_to_camel(core_lib_name)
         core_lib_import = f'from {core_lib_name}.{core_lib_name} import {camel_core_lib}'
         updated_file = updated_file.replace('# template_core_lib_import', core_lib_import)
+        updated_file = updated_file.replace(
+            '# template_sync_create_core_lib_import',
+            'from tests.test_data.helpers.util import sync_create_start_core_lib',
+        )
         updated_file = updated_file.replace('TemplateCoreLib', camel_core_lib)
         updated_file = updated_file.replace('template_snake_core_lib', core_lib_name)
         if get_dict_attr(yaml_data, 'services'):
@@ -18,7 +23,7 @@ class TestGenerateTemplate(TemplateGenerator):
             updated_file = _generate_tests(updated_file, yaml_data, 'data_accesses', core_lib_name)
         else:
             updated_file = remove_line('# template_test_imports', updated_file)
-            test_instructions = f'# You can write tests for your Service functions or your DataAccess functions below, by using the Core-Lib instace created above'
+            test_instructions = f'# You can write tests for your Service functions or your DataAccess functions below, by using the Core-Lib instance created above'
             updated_file = updated_file.replace('# template_test_functions', add_tab_spaces(test_instructions))
         return updated_file
 
@@ -36,7 +41,7 @@ def _generate_tests(template_content: str, yaml_data: dict, key: str, core_lib_n
         if key == 'data_accesses':
             imports_list.append(f'from {core_lib_name}.data_layers.data_access.{snake_name} import {name}')
         else:
-            imports_list.append(f'from {core_lib_name}.data_layers.service.{snake_name} import {name}')
+            imports_list.append(f'from {core_lib_name}.data_layers.service.{service_module_name(name)} import {name}')
         test_function.append(add_tab_spaces(f'def test_{snake_name}(self):'))
         test_function.append(
             add_tab_spaces(
@@ -44,12 +49,13 @@ def _generate_tests(template_content: str, yaml_data: dict, key: str, core_lib_n
                 2
             )
         )
-        test_function.append(
-            add_tab_spaces(
-                f'# e.g. self.assertNone(self.{core_lib_name}.{snake_name}.your_function(data))',
-                2
+        if key == 'data_accesses':
+            example = f'# {name} is private to the CoreLib: test it through the service that uses it'
+        else:
+            example = (
+                f'# e.g. self.assertIsNone(self.{core_lib_name}.{service_attribute_name(name)}.your_function(data))'
             )
-        )
+        test_function.append(add_tab_spaces(example, 2))
         test_function.append(add_tab_spaces('pass', 2))
         test_functions.append('\n'.join(test_function))
     updated_file = updated_file.replace('# template_test_imports', '\n'.join(imports_list))

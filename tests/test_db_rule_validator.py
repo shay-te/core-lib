@@ -1,5 +1,6 @@
-import unittest
+import datetime
 import enum
+import unittest
 
 from core_lib.rule_validator.rule_validator import ValueRuleValidator, RuleValidator
 
@@ -76,3 +77,87 @@ class TestUpdateValidate(unittest.TestCase):
         )
         self.assertNotIn('new_field_i_am', new_dict)
         self.assertEqual(len(new_dict), 5)
+
+    def test_converts_what_it_safely_can(self):
+        rules_validator = RuleValidator([
+            ValueRuleValidator('name', str),
+            ValueRuleValidator('height', int),
+            ValueRuleValidator('born', datetime.date),
+            ValueRuleValidator('seen_at', datetime.datetime),
+        ])
+
+        validated = rules_validator.validate_dict(
+            {'name': 42, 'height': '180', 'born': '1990-04-01', 'seen_at': '2024-06-14T09:30:00'}
+        )
+
+        self.assertEqual(
+            {
+                'name': '42',
+                'height': 180,
+                'born': datetime.datetime(1990, 4, 1),   # a `date` rule still gives a datetime
+                'seen_at': datetime.datetime(2024, 6, 14, 9, 30),
+            },
+            validated,
+        )
+        self.assertIs(int, type(validated['height']))
+        self.assertEqual({'name': '1.5'}, rules_validator.validate_dict({'name': 1.5}))
+
+    def test_rejects_what_it_cannot_convert(self):
+        rules_validator = RuleValidator([
+            ValueRuleValidator('height', int),
+            ValueRuleValidator('born', datetime.date),
+            ValueRuleValidator('tags', list),
+        ])
+        for update in (
+            {'height': 'tall'},
+            {'height': '-5'},          # only a plain string of digits converts
+            {'height': '1.5'},
+            {'height': 1.5},
+            {'born': 'not a date'},
+            {'born': '1990-13-45'},
+            {'tags': 'acme'},
+        ):
+            with self.assertRaises(PermissionError, msg=update):
+                rules_validator.validate_dict(update)
+
+        with self.assertRaises(PermissionError) as bad_date:
+            rules_validator.validate_dict({'born': '1990-13-45'})
+        self.assertIsNotNone(bad_date.exception.__cause__)   # the parser's own error is kept
+
+        with self.assertRaises(PermissionError) as bad_type:
+            rules_validator.validate_dict({'tags': 'acme'})
+        self.assertEqual("Invalid update key:`tags` illegal type `<class 'str'>` expected <class 'list'>", str(bad_type.exception))
+
+    def test_falsy_values_skip_the_type_check(self):
+        rules_validator = RuleValidator([ValueRuleValidator('height', int), ValueRuleValidator('name', str)])
+        self.assertEqual({'height': '', 'name': 0}, rules_validator.validate_dict({'height': '', 'name': 0}))
+
+    def test_not_nullable_rejects_none(self):
+        rules_validator = RuleValidator([
+            ValueRuleValidator('name', str, nullable=False),
+            ValueRuleValidator('nick_name', str),
+        ])
+        with self.assertRaises(PermissionError):
+            rules_validator.validate_dict({'name': None})
+        self.assertEqual({'nick_name': None}, rules_validator.validate_dict({'nick_name': None}))
+
+    def test_update_adds_or_replaces_rules_and_remove_drops_one(self):
+        rules_validator = RuleValidator([ValueRuleValidator('height', int)])
+
+        rules_validator.update([ValueRuleValidator('height', str), ValueRuleValidator('name', str)])
+        self.assertEqual({'height': '180', 'name': 'acme'}, rules_validator.validate_dict({'height': 180, 'name': 'acme'}))
+
+        rules_validator.remove('name')
+        rules_validator.remove('never_added')   # an absent key is ignored
+        with self.assertRaises(PermissionError):
+            rules_validator.validate_dict({'name': 'acme'})
+        self.assertEqual({'height': '7'}, rules_validator.validate_dict({'height': 7}))
+
+    def test_rules_must_be_value_rule_validators(self):
+        with self.assertRaises(ValueError):
+            RuleValidator(['height'])
+
+        rules_validator = RuleValidator([ValueRuleValidator('height', int)])
+        with self.assertRaises(ValueError):
+            rules_validator.update([{'key': 'name', 'value_type': str}])
+        self.assertEqual({'height': 7}, rules_validator.validate_dict({'height': 7}))

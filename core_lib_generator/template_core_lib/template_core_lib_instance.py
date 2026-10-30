@@ -1,4 +1,4 @@
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 # template_core_lib_import
 
 
@@ -8,7 +8,7 @@ class TemplateCoreLibInstance(object):
     @staticmethod
     def init(core_lib_cfg):
         if not TemplateCoreLibInstance._app_instance:
-            # WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK) #TODO: initilazie the correct server type
+            # WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK) #TODO: initialize the correct server type
             TemplateCoreLibInstance._app_instance = TemplateCoreLibClass(core_lib_cfg)
 
     @staticmethod

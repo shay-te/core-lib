@@ -1,0 +1,10 @@
+core_lib:
+  name: AcmeBare
+  env: {}
+  connections: []
+  caches: []
+  jobs: []
+  entities: []
+  data_accesses: []
+  services: []
+  setup: {}

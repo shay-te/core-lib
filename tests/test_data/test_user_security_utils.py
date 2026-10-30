@@ -95,10 +95,11 @@ class CustomerSecurity(UserSecurity):
         UserSecurity.__init__(self, cookie_name, JWTTokenHandler(secret, expiration_time))
 
     def secure_entry(self, request, session_obj: SessionUser, policies: list):
+        # None lets @RequireLogin run the view; a response is returned instead of the view.
         if not policies:
-            return response_status(HTTPStatus.OK)
+            return None
         elif has_access(session_obj, policies):
-            return response_status(HTTPStatus.OK)
+            return None
         else:
             return response_status(HTTPStatus.UNAUTHORIZED)
 

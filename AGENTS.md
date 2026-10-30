@@ -167,6 +167,10 @@ also needs a migration), load all that apply. For a brand-new library, load
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
 | write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md) |
+| add or change the main `<Name>CoreLib` class: wiring, registries, `get_or_reg` / `instantiate_config`, `install()`, the instance holder, composing another CoreLib | [`skills/core-lib-main/SKILL.md`](skills/core-lib-main/SKILL.md) |
+| add or change a background / scheduled job, a `jobs:` YAML block or `load_jobs()` | [`skills/core-lib-job/SKILL.md`](skills/core-lib-job/SKILL.md) |
+| add or change events a host listens to (`@Observe`, listener ABC, `EVENT_*` keys) or a `CoreLibListener` hook | [`skills/core-lib-observer/SKILL.md`](skills/core-lib-observer/SKILL.md) |
+| write web routes that call a CoreLib, or use the web helpers, `@HandleException`, `@RequireLogin` / `UserSecurity` | [`skills/core-lib-web/SKILL.md`](skills/core-lib-web/SKILL.md) |
 
 **Adding a skill? This table is not the only place it must appear.** Add the row here AND in `core_lib_generator/template_core_lib/AGENTS.md`, which carries a convenience copy that every generated lib ships — a skill missing from that copy is one a generated lib is never told to load. (`core-lib-new` is the one deliberate omission: a generated lib already exists.)
 
@@ -543,7 +547,14 @@ should return nothing but comments. A domain rule that is ALSO enforced in
   the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
   the real module. `__init__.py` files stay empty package markers; §2.1 owns the
-  full rule.
+  full rule. The owner-approved exceptions are core-lib's own renames, each
+  deprecated since 0.3.0 and kept for existing importers until its removal in
+  1.0.0: `web_helprs_utils` (now `web_helpers_utils`), `crud_soft_data_access`
+  (now `crud_soft_delete_data_access`), and the
+  class names `ElasticSearchConnection` / `ElasticSearchConnectionFactory`
+  (now `Elasticsearch…`). Nothing in core-lib uses an old name
+  (`tests/test_deprecated_aliases.py` checks it, and fails at 1.0.0 if one is
+  still there), and no new shim follows from them.
 
 ## Self-contained and fully tested
 
@@ -722,7 +733,6 @@ foo-core-lib/
 - **Delete what a library does not ship:** `template_core_lib_instance.py` (a singleton is the host's choice — a host that wants one writes it), `.dockerignore` (a library has no image), `example_data.yaml`, the root `.env`, the unused `LICENSE_*` variants (keep one `LICENSE`), and the example entities, DataAccesses, services and `jobs/` once the real ones exist.
 - **Move the test tree** from the template's `tests/test_data/{helpers/util.py, test_config/}` to `tests/helpers/utils.py` and `tests/data/config/` (§13.4–13.5).
 - **Re-read every prose line after the rename**: a blind replace turns the English word into nonsense in READMEs, docstrings and comments ("use this calendar to start").
-- **Fix `setup.py` and `MANIFEST.in`** — the template's copies break an isolated build and ship a wheel that cannot migrate (§14).
 
 ## 3. Config (Hydra) — the packaged yaml, the search path, the compose
 
@@ -967,7 +977,7 @@ Pair it with a "would this catch a planted literal?" test, or an empty offender 
 | Base class | import from | get filter | delete does | use when |
 |---|---|---|---|---|
 | `CRUDDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_data_access` | `id` (404 if missing) | HARD delete, returns rowcount | rows may really vanish |
-| `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
+| `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
 | `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique indexes |
 
 Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exact imports:
@@ -975,7 +985,7 @@ Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exac
 ```python
 from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory
 from core_lib.data_layers.data_access.db.crud.crud import CRUD
-from core_lib.data_layers.data_access.db.crud.crud_soft_data_access import CRUDSoftDeleteDataAccess
+from core_lib.data_layers.data_access.db.crud.crud_soft_delete_data_access import CRUDSoftDeleteDataAccess
 from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
 
 from foo_core_lib.data_layers.data.db.entities.workspace import Workspace
@@ -1086,7 +1096,9 @@ def create(self, project_id: int, name: str): ...
 def get(self, thing_id: int):
     try:
         return self._thing_da.get(thing_id)
-    except StatusCodeException:
+    except StatusCodeException as missing:
+        if missing.status_code != HTTPStatus.NOT_FOUND:
+            raise                    # only 404 becomes None; a 409 is a real answer
         return None                  # service swallows the DA's 404 into None
 
 @Cache(CACHE_KEY_THING, handler_name=FOO_CORE_LIB_CACHE, invalidate=True)   # writes evict
@@ -1232,13 +1244,15 @@ class FooObserverListener(ObserverListener):
 3. In the composition root: a private `Observer`, a GUARDED registry registration under `FOO_CORE_LIB_NAME`, and a typed attach method **named after the domain** (never shadow the base `CoreLib.attach_listener` — **divergence: an older lib shadows it; the older libs's `attach_task_listener`/`attach_workflow_listener` are the convention**):
 
 ```python
-self._foo_observer = Observer()
 if not CoreLib.observer_registry.get(FOO_CORE_LIB_NAME):
-    CoreLib.observer_registry.register(FOO_CORE_LIB_NAME, self._foo_observer)
+    CoreLib.observer_registry.register(FOO_CORE_LIB_NAME, Observer())
+self._foo_observer = CoreLib.observer_registry.get(FOO_CORE_LIB_NAME)   # read the REGISTERED one back
 
 def attach_foo_listener(self, foo_listener: FooListener):
     self._foo_observer.attach(FooObserverListener(foo_listener))
 ```
+
+Read the registered observer back rather than keeping a fresh `Observer()`: `@Observe` notifies whatever the registry holds, so on a second construction in the process a fresh, unregistered observer receives the host's listener and nobody ever notifies it. Full recipe: [`skills/core-lib-observer/SKILL.md`](skills/core-lib-observer/SKILL.md).
 
 4. Services FIRE events through empty `_fire_*` methods decorated with `@Observe` — the decorator does the dispatch, the body is `pass`:
 
@@ -1540,8 +1554,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 ## 14. Packaging / repo hygiene
 
-- `requirements.txt` — RUNTIME deps only: `core-lib` first, then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
-- **`setup.py` reads text, never imports.** `__version__` comes from `foo_core_lib/__init__.py` by regex and requirements from `requirements.txt` line by line — never `import foo_core_lib` (its deps are absent in an isolated build) or `pip._internal` (not an API). `packages = find_packages(exclude=['tests', 'tests.*']) + find_namespace_packages(include=['hydra_plugins.*'])`: without the exclude the wheel installs a top-level `tests` package that collides with every other lib's. The generator template still does all three wrong.
+- `requirements.txt` — RUNTIME deps only: `core-lib` first, with the core-lib extras for the backends the lib uses (`core-lib[postgres]` for a Postgres-backed lib, `core-lib[redis]` for a Redis cache — since 0.3.0 plain `core-lib` brings only SQLite's driver), then real runtime deps (`temporalio`, another `*-core-lib` your lib composes). Test-only deps (hydra, python-dotenv, freezegun, boto3, moto) come from the dev environment — never listed. Optional backends stay optional via the lazy-import pattern (§10). **(divergence: an older lib’s file omits `core-lib` — an inconsistency, not a convention.)**
+- **`setup.py` reads text, never imports.** `__version__` comes from `foo_core_lib/__init__.py` by regex and requirements from `requirements.txt` line by line — never `import foo_core_lib` (its deps are absent in an isolated build) or `pip._internal` (not an API). `packages = find_packages(exclude=['tests', 'tests.*']) + find_namespace_packages(include=['hydra_plugins.*'])`: without the exclude the wheel installs a top-level `tests` package that collides with every other lib's. The generator template's `setup.py` does all three.
 - **`MANIFEST.in` ships the migration templates**: beside `recursive-include foo_core_lib *.yaml`, add `recursive-include foo_core_lib/data_layers/data/db/migrations *.mako .migration_ver` — without them an installed lib cannot run `install()`. Prove packaging by building the wheel, installing it into a clean venv, and composing + `install()`ing from outside the repo (delete a stale `build/` first; it leaks old files into the wheel).
 - If the lib uses coverage: `.coveragerc` with `source = foo_core_lib`, `branch = True`, omit `foo_core_lib/data_layers/data/db/migrations/*`. Never commit the data files (rule at the top of this document) — `.coveragerc` IS tracked, only its output is ignored.
 - **`.gitignore` covers every generated artifact, not just the ones this lib happens to produce today.** Bytecode and caches are written by whichever tool someone runs once, and then get swept in by a wide `git add`. The canonical list — keep the repo's own file and `core_lib_generator/template_core_lib/.gitignore` **in step**, since the template is what every generated lib inherits:
@@ -1624,7 +1638,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 22. Releasing the test-bootstrap lock only on the success path (deadlocks the whole run on a failed boot — §13.4).
 23. Committing `.coverage` files; letting a Dockerfile run build steps beyond dependency installation.
 24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
-25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
+25. Keeping the template's `_instance.py` or `.dockerignore` (§2); a committed test secret (§13.6).
 
 ## 17. Final checklist before handing the lib over
 

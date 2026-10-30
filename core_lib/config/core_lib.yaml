@@ -128,12 +128,12 @@ core_lib:
     render_as_batch: false
 
 #  jobs:
-#    - initial_delay: 2h32m # https://pypi.org/project/pytimeparse/
-#      frequency: 1h32m
+#    some_job:                     # the job name, the key you map in load_jobs()
+#      initial_delay: 2h32m        # https://pypi.org/project/pytimeparse/
+#      frequency: 1h32m            # leave it out to run the job once
 #      handler:
-#        class: some_package.SomeClass
-#        params:
-#          some_param: some value
+#        _target_: some_package.SomeJob
+#        some_param: some value    # passed to SomeJob(some_param=...)
 
 hydra:
   run:

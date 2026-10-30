@@ -15,6 +15,26 @@ builds the Alembic `Config()` **in memory** from the yaml node
 staticmethods on the CoreLib. Do **not** create an `alembic.ini` and do not
 invoke the `alembic` CLI with `-c` (§11.1).
 
+## Create and run revisions with `core_lib migrate` (docs: *Migrations*)
+
+From the project root (it needs `core_lib_config.yaml`, which composes `core_lib` with your lib and
+sets `core_lib_module`):
+
+- `core_lib migrate --rev new --name create_db` — writes an EMPTY numbered revision
+  (`versions/<date>_<N>_create_db.py`) and updates `.migration_ver`. There is no autogenerate: you
+  write `upgrade()`/`downgrade()` yourself, in the shape below.
+- `core_lib migrate --rev head` / `base` / `+N` / `-N` — move the database. A bare `2` means "two
+  steps up", not "to revision 2".
+
+## ⛔ Which database is migrated — the silent trap
+
+`Alembic` always migrates **`core_lib.data.sqlalchemy.config.url`**. If your lib keeps its connection
+anywhere else, that path keeps Core-Lib's default — an in-memory SQLite database — and the migration
+"succeeds" against it with no error, leaving the real database untouched. Keep the DB block at
+`core_lib.data.sqlalchemy` (§3.1), or point that `url` at yours with an interpolation. Overrides of
+the `alembic` section go under `core_lib.alembic` (a top-level `alembic:` key is ignored), and
+`script_location` must be relative to the package folder.
+
 ## While the lib is UNRELEASED there is exactly ONE migration
 
 Every schema change during initial development is **folded back into**
@@ -74,10 +94,16 @@ def downgrade():
 - A unique key is `op.create_index(Thing.INDEX_X, Thing.__tablename__, [...],
   unique=True)`, never `sa.UniqueConstraint` (see `core-lib-entity`).
 - **No `alembic.ini`; no `alembic -c` CLI invocation** — go through the lib's
-  `install()` / `uninstall()`.
+  `install()` / `uninstall()` or `core_lib migrate`.
 - **One migration while unreleased** — fold changes into `_1_create_db.py`.
 - `revision` / `down_revision` are stringified integers; update `.migration_ver`.
-- Every `upgrade()` has a matching `downgrade()`.
+- Every `upgrade()` has a matching `downgrade()`; `downgrade()` drops children before parents, and
+  `upgrade()` creates parents first.
+- **Mixin columns are spelled out per table**, after the business columns: `created_at`,
+  `updated_at`, `deleted_at`, and `deleted_at_token` for token entities (§11.3).
+- **Verify the revision against the entities**: run it and `Base.metadata.create_all` on two fresh
+  SQLite databases and diff the reflected schemas (tables, columns, types, nullability, defaults,
+  indexes, uniques). Any drift means the migration or the entity is wrong (§11.3).
 - Never commit `.coverage` or build artifacts alongside the migration.
 - **Test it on a SQLite FILE, never `:memory:`** — Alembic opens its own engine.
   `build_url` strips a leading `/`, so pass `os.path.relpath(path)`; compare the

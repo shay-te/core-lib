@@ -1,20 +1,47 @@
 import datetime
 import enum
+import json
 from collections.abc import Iterable
 
 from decimal import Decimal
 from functools import wraps
 from typing import Callable, Awaitable
 
-import mongomock
-import pymongo
-from geoalchemy2 import WKBElement
 from sqlalchemy import inspect
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from sqlalchemy.engine.row import Row
 
-from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+# Values from optional backends are converted only when that backend is installed.
+try:
+    from geoalchemy2 import WKBElement, WKTElement  # the [geo] extra
+    from geoalchemy2.shape import to_shape
+    from shapely.geometry import mapping
+    # What a Geometry column holds: WKB once read from the database, WKT when assigned in code and not yet re-read.
+    _GEOMETRY_TYPES = (WKBElement, WKTElement)
+except ImportError:
+    _GEOMETRY_TYPES = ()
+
+_cursor_types = []
+try:
+    import pymongo  # the [mongodb] extra
+    _cursor_types.append(pymongo.cursor.Cursor)
+except ImportError:
+    pass  # no MongoDB support installed
+try:
+    import mongomock  # the [test] extra: an in-memory MongoDB
+    _cursor_types.append(mongomock.collection.Cursor)
+except ImportError:
+    pass  # no in-memory MongoDB installed
+_MONGO_CURSOR_TYPES = tuple(_cursor_types)
+
+
+def __geometry_to_dict(value) -> dict:
+    shape = to_shape(value)
+    if shape.geom_type == 'Point':
+        return {'latitude': shape.y, 'longitude': shape.x}
+    # Any other shape as GeoJSON; the JSON round-trip turns shapely's coordinate tuples into lists.
+    return json.loads(json.dumps(mapping(shape)))
 
 
 def __convert_value(value):
@@ -24,8 +51,8 @@ def __convert_value(value):
         return value.timestamp()
     if isinstance(value, datetime.date):
         return datetime.datetime(year=value.year, month=value.month, day=value.day).timestamp()
-    if isinstance(value, WKBElement):
-        return Point.from_point_wkb(value)
+    if isinstance(value, _GEOMETRY_TYPES):
+        return __geometry_to_dict(value)
     if isinstance(value, Decimal):
         return float(value)
     return value
@@ -103,7 +130,9 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
         # get also fields that was loaded onto the model
         for key, value in return_val.__dict__.items():
             if key not in results and key != '_sa_instance_state':
-                results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
+                results[key] = result_to_dict(
+                    __convert_value(value), properties_as_dict=properties_as_dict, callback=callback
+                )
 
     elif isinstance(return_val, Row):
         # SQLAlchemy 2.0 Row iterates values, not key/value pairs, so dict(row)
@@ -112,7 +141,7 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
     else:
         results = return_val
 
-    if isinstance(return_val, (mongomock.collection.Cursor, pymongo.cursor.Cursor)):
+    if isinstance(return_val, _MONGO_CURSOR_TYPES):
         results = __pymongo_to_dict(return_val)
 
     if isinstance(results, dict):

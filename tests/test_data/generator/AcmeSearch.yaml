@@ -1,0 +1,64 @@
+core_lib:
+  name: AcmeSearch
+  env:
+    SEARCH_HOST: localhost
+  connections:
+    - key: search
+      migrate: false
+      config_instantiate: true
+      type: core_lib.connection.solr_connection_factory.SolrConnectionFactory
+      config:
+        always_commit: true
+        url:
+          protocol: http
+          host: ${oc.env:SEARCH_HOST}
+          port: 8983
+          file: solr/widgets
+    - key: graph
+      migrate: false
+      config_instantiate: false
+      type: core_lib.connection.neo4j_connection_factory.Neo4jConnectionFactory
+      config:
+        url:
+          protocol: neo4j
+          host: localhost
+          port: 7687
+        credentials:
+          username: reviewer
+          password: s3cret
+  caches:
+    - key: sessions
+      type: redis
+      url:
+        host: cache.acme.example
+        port: 6380
+        protocol: redis
+    - key: pages
+      type: memcached
+      url:
+        host: cache.acme.example
+        port: 11212
+  jobs: []
+  entities: []
+  data_accesses:
+    - key: SearchDataAccess
+      functions:
+        - key: find_widgets
+      connection: search
+    - key: GraphDataAccess
+      functions: []
+      connection: graph
+    - key: ReportDataAccess
+      functions: []
+    - key: AuditDataAccess
+      functions:
+        - key: record
+  services: []
+  setup:
+    author: acme
+    author_email: dev@acme.example
+    description: Search for acme
+    url: ""
+    license: MOZILLA_PUBLIC_LICENSE_2
+    classifiers: []
+    version: 0.1.0

@@ -17,8 +17,8 @@ def build_url(
     if username or password:
         if username:
             result.append(username)
-            if password:
-                result.append(f':{password}')
+        if password:
+            result.append(f':{password}')
         result.append('@')
 
     if host:

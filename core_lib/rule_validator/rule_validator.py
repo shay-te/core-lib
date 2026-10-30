@@ -33,7 +33,7 @@ class RuleValidator(object):
             if not isinstance(rule_validator, ValueRuleValidator):
                 raise ValueError(
                     f'RuleValidator.value_rule_validators can only be from type '
-                    f'{ValueRuleValidator.__class__.__name__}'
+                    f'{ValueRuleValidator.__name__}'
                 )
             self.rules[rule_validator.key] = rule_validator
 

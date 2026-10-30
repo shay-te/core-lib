@@ -266,13 +266,6 @@ def fetch_closest_option(source: str, options: list, threshold: float = 0.89) ->
 
 
 
-def _from_numeric(value: Union[int, float]) -> int:
-    return round(value * 100) if value < 3 else round(value)
-
-
-def _is_hebrew_cm(s: str) -> bool:
-    return re.search(r'ס["”]?מ', s) is not None
-
 def _sanitize(s: str) -> str:
     s = s.strip().lower()
     s = s.replace(",", ".")

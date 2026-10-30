@@ -223,6 +223,11 @@ The mixin choice decides the DataAccess base (§5).
   the library's name when the bare name could clash with a host's table
   (`__tablename__ = 'audit_access_event'`, module `audit_access_event.py`, indexes
   `ix_audit_access_event_*`), and grant per table in the migration.
+- **Geo columns are a geoalchemy2 `Geometry('POINT')` (or another shape), never core-lib's `Point()`
+  type.** Writing through a `Point()` column fails on PostgreSQL/PostGIS (`point` is not a geometry),
+  on MySQL, and on SQLite. Use `Point`'s static helpers (`to_point_str`, `from_point_wkb`) with the
+  geoalchemy2 column; `result_to_dict` turns a point into `{'latitude': ..., 'longitude': ...}` and
+  any other shape into GeoJSON (docs: *SQLAlchemy Types*).
 - **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals

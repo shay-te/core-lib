@@ -26,7 +26,7 @@ class CRUDSoftDeleteWithTokenDataAccess(DataAccess, CRUD):
         with self._db.get() as session:
             return (
                 session.query(self._db_entity)
-                .filter(self._db_entity.id == id)
+                .filter(self._db_entity.id == id, self._db_entity.deleted_at_token == 0)
                 .update(
                     {
                         self._db_entity.deleted_at: datetime.utcnow(),

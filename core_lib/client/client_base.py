@@ -1,5 +1,8 @@
+from typing import Tuple, Union
+
 import requests
 from requests import Response
+from requests.auth import AuthBase
 
 
 class ClientBase(object):
@@ -16,7 +19,7 @@ class ClientBase(object):
     def set_timeout(self, timeout: int):
         self.timeout = timeout
 
-    def set_auth(self, auth: dict):
+    def set_auth(self, auth: Union[Tuple[str, str], AuthBase]):
         self.auth = auth
 
     def _get(self, path: str, *args, **kwargs) -> Response:

@@ -1,9 +1,10 @@
+import secrets
 import unittest
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
+from http import HTTPStatus
 from typing import Callable
 
 import jwt
-from django.conf import settings
 from django.http import HttpRequest
 from flask import request as flask_request, Flask
 from flask_wtf.csrf import CSRFProtect
@@ -12,18 +13,64 @@ from werkzeug.http import dump_cookie
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
 from core_lib.data_transform.result_to_dict import result_to_dict
+from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
+from core_lib.session.token_handler import TokenHandler
+from core_lib.session.user_security import UserSecurity
+from core_lib.web_helpers.decorators import HandleException
 from core_lib.web_helpers.django.require_login import RequireLogin as RequireLoginDjango
 from core_lib.web_helpers.flask.require_login import RequireLogin as RequireLoginFlask
+from core_lib.web_helpers.request_response_helpers import response_status
 from core_lib.web_helpers.require_login_helper import require_login
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
-from tests.test_data.test_user_security_utils import CustomerSecurity, user_data_access, User, has_access
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
+from tests.test_data.test_user_security_utils import CustomerSecurity, SessionUser, user_data_access, User, has_access
+
+# The names of the views that actually ran, so a test can tell "the view ran"
+# from "the security check answered instead of the view".
+view_calls = []
+
+
+def ok_view(*args):
+    view_calls.append('ok_view')
+    return response_status(HTTPStatus.OK)
 
 # SECURITY HANDLER REGISTER
 secret_key = 'super-secret'
 cookie_name = 'my_cookie_name'
 security_handler = CustomerSecurity(cookie_name, secret_key, timedelta(seconds=30))
 SecurityHandler.register(security_handler)
+widget_secret = 'acme-widget-secret-0123456789abcdef'   # 32+ bytes, so PyJWT has no key-length warning
+
+
+class SessionStoreTokenHandler(TokenHandler):
+    # Opaque tokens: the session stays on the server, and the cookie holds only a random key to it.
+    def __init__(self):
+        self._sessions = {}
+
+    def encode(self, message: dict):
+        token = secrets.token_hex(16)
+        self._sessions[token] = dict(message)
+        return token
+
+    def decode(self, encoded):
+        return self._sessions.get(encoded)
+
+
+class WidgetSecurity(UserSecurity):
+    # Lets every request in, and keeps the policies each check was given.
+    def __init__(self, token_handler: TokenHandler):
+        UserSecurity.__init__(self, cookie_name, token_handler)
+        self.policies_seen = []
+
+    def secure_entry(self, request, session_obj, policies: list):
+        self.policies_seen.append(policies)
+        return None
+
+    def from_session_data(self, session_data: dict) -> SessionUser:
+        return SessionUser(session_data['id'], session_data['role'], session_data['status'])
+
+    def generate_session_data(self, user) -> dict:
+        return {'id': user['id'], 'role': user['role'], 'status': user['status']}
 
 
 class TestUserSecurity(unittest.TestCase):
@@ -77,6 +124,118 @@ class TestUserSecurity(unittest.TestCase):
         csrf.init_app(app)
         cls.app = app
 
+    def test_security_handler_holds_one_registration(self):
+        registered = SecurityHandler.user_security
+        try:
+            with self.assertRaises(ValueError) as twice:
+                SecurityHandler.register(CustomerSecurity('other_cookie', secret_key, timedelta(seconds=30)))
+            self.assertEqual('SecurityHandler already set', str(twice.exception))
+            self.assertIs(security_handler, SecurityHandler.get())   # the first registration is kept
+
+            SecurityHandler.user_security = None   # a process that never registered
+            with self.assertRaises(ValueError) as unset:
+                SecurityHandler.get()
+            self.assertEqual('SecurityHandler was not set', str(unset.exception))
+        finally:
+            SecurityHandler.user_security = registered
+
+    def test_require_login_without_policies_passes_an_empty_list(self):
+        from django.conf import settings
+        from django.test import RequestFactory
+        if not settings.configured:
+            settings.configure()
+        registered, server_type = SecurityHandler.user_security, WebHelpersUtils.server_type
+        widget_security = WidgetSecurity(JWTTokenHandler(widget_secret, timedelta(seconds=30)))
+        SecurityHandler.user_security = widget_security
+        try:
+            WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)
+
+            @RequireLoginDjango()
+            def list_widgets_django(request):
+                return response_status(HTTPStatus.OK)
+
+            self.assertEqual(200, list_widgets_django(RequestFactory().get('/widgets')).status_code)
+
+            WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+
+            @RequireLoginFlask()
+            def list_widgets_flask():
+                return response_status(HTTPStatus.OK)
+
+            with self.app.test_request_context('/widgets'):
+                self.assertEqual(200, list_widgets_flask().status_code)
+        finally:
+            SecurityHandler.user_security, WebHelpersUtils.server_type = registered, server_type
+
+        self.assertEqual([[], []], widget_security.policies_seen)
+
+    def test_view_errors_under_require_login(self):
+        # @RequireLogin logs a view's error and returns nothing, so Flask answers with its own HTML 500.
+        # With @HandleException() underneath, the client gets the JSON error response instead.
+        server_type = WebHelpersUtils.server_type
+        WebHelpersUtils.init(WebHelpersUtils.ServerType.FLASK)
+        app = Flask('acme')
+
+        @app.get('/widgets')
+        @RequireLoginFlask()
+        def list_widgets():
+            raise RuntimeError('widget store is down')
+
+        @app.get('/gadgets')
+        @RequireLoginFlask()
+        @HandleException()
+        def list_gadgets():
+            raise RuntimeError('gadget store is down')
+
+        client = app.test_client()
+        try:
+            with self.assertLogs('acme', level='ERROR') as flask_logs:
+                with self.assertLogs('core_lib.web_helpers.require_login_helper', level='ERROR') as logs:
+                    widgets = client.get('/widgets')
+            with self.assertLogs('core_lib.web_helpers.decorators', level='ERROR'):
+                gadgets = client.get('/gadgets')
+        finally:
+            WebHelpersUtils.server_type = server_type
+
+        self.assertEqual(500, widgets.status_code)
+        self.assertEqual('text/html; charset=utf-8', widgets.content_type)
+        self.assertEqual(
+            ['error while loading target page for controller entry name `list_widgets`'],
+            [record.getMessage() for record in logs.records],
+        )
+        self.assertIsInstance(logs.records[0].exc_info[1], RuntimeError)
+        self.assertIn('did not return a valid response', str(flask_logs.records[0].exc_info[1]))
+        self.assertEqual(500, gadgets.status_code)
+        self.assertEqual({'error': 'Internal Server Error'}, gadgets.get_json())
+
+    def test_token_to_session_object_never_raises(self):
+        user = {'id': 7, 'role': User.PolicyRoles.UPDATE.value, 'status': User.Status.ACTIVE.value}
+        jwt_security = WidgetSecurity(JWTTokenHandler(widget_secret, timedelta(seconds=30)))
+        token = jwt_security.generate_session_data_token(user)
+
+        session_user = jwt_security.token_to_session_object(token)
+        self.assertEqual((7, 4, 1), (session_user.id, session_user.role, session_user.status))
+
+        with freeze_time(datetime.now() + timedelta(seconds=31)):
+            with self.assertLogs(level='ERROR') as expired_logs:
+                self.assertIsNone(jwt_security.token_to_session_object(token))
+        self.assertEqual(
+            [('JWTTokenHandler', 'Signature has expired'), ('WidgetSecurity', 'Signature has expired')],
+            [(record.name, record.getMessage()) for record in expired_logs.records],
+        )
+
+        forged = jwt.encode(user, 'another-acme-secret-0123456789abcdef')
+        for bad_token in ('not-a-token', forged):
+            with self.assertLogs('WidgetSecurity', level='ERROR'):
+                with self.assertLogs('JWTTokenHandler', level='ERROR'):
+                    self.assertIsNone(jwt_security.token_to_session_object(bad_token))
+
+        store_security = WidgetSecurity(SessionStoreTokenHandler())
+        stored_token = store_security.generate_session_data_token(user)
+        self.assertEqual(7, store_security.token_to_session_object(stored_token).id)
+        with self.assertNoLogs(level='ERROR'):   # an unknown token is an absent session, not an error
+            self.assertIsNone(store_security.token_to_session_object('unknown-token'))
+
     def test_has_access(self):
         self.assertTrue(
             has_access(security_handler.from_session_data(self.user_admin), [User.PolicyRoles.ADMIN, User.Status.ACTIVE])
@@ -116,7 +275,7 @@ class TestUserSecurity(unittest.TestCase):
         self.assertTrue(has_access(security_handler.from_session_data(self.user_user), [User.Status.ACTIVE]))
 
     def test_session_data(self):
-        time_stamp = datetime.utcnow().timestamp()
+        time_stamp = datetime.now(timezone.utc).timestamp()
         user = result_to_dict(user_data_access.get(1))
         user_session = SecurityHandler.get().generate_session_data_token(user)
         decoded_dict = jwt.decode(user_session, options={"verify_signature": False})
@@ -129,6 +288,9 @@ class TestUserSecurity(unittest.TestCase):
 
     def test_secure_django(self):
         # DJANGO INIT
+        # Imported here: at module level the lazy `settings` object is touched by the test loader
+        # before anything configures Django, which fails when this module runs on its own.
+        from django.conf import settings
         if not settings.configured:
             settings.configure()
             settings.DEFAULT_CHARSET = 'utf-8'
@@ -154,14 +316,14 @@ class TestUserSecurity(unittest.TestCase):
                 self.assertEqual(flask_request.cookies[cookie_name], token)
                 if decorated_function:
                     return decorated_function()
-                return require_login(flask_request, policies, lambda: True)
+                return require_login(flask_request, policies, ok_view)
         else:
             django_request = HttpRequest
             django_request.COOKIES = {cookie_name: token}
             self.assertEqual(django_request.COOKIES[cookie_name], token)
             if decorated_function:
                 return decorated_function(django_request)
-            return require_login(django_request, policies, lambda: True)
+            return require_login(django_request, policies, ok_view)
 
     def _test_secure_entry(self):
 
@@ -289,41 +451,39 @@ class TestUserSecurity(unittest.TestCase):
             self.assertIn('handle_exception got ExpiredSignatureError error for function', str(cm.output))
 
     def _test_decorator_flask(self):
+        view_calls.clear()
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_flask).status_code, 401)
+        self.assertEqual([], view_calls)
         self.assertEqual(self._require_login(self.user_delete, [], delete_entry_flask).status_code, 200)
+        self.assertEqual(['delete_entry_flask'], view_calls)
 
     def _test_decorator_django(self):
+        view_calls.clear()
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_django).status_code, 401)
+        self.assertEqual([], view_calls)
         self.assertEqual(self._require_login(self.user_delete, [], delete_entry_django).status_code, 200)
+        self.assertEqual(['delete_entry_django'], view_calls)
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_django(request):
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('admin_entry_django')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_django(request):
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('delete_entry_django')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_flask():
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('admin_entry_flask')
+    return response_status(HTTPStatus.OK)
 
 
 @RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_flask():
-    """
-    Skipped because this a testing function and returns nothing
-    """
-    pass
+    view_calls.append('delete_entry_flask')
+    return response_status(HTTPStatus.OK)

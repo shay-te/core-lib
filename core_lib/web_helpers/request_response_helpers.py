@@ -6,11 +6,8 @@ from http import HTTPStatus
 from http.client import responses
 from typing import Union
 
-from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
+from core_lib.web_helpers.web_helpers_utils import WebHelpersUtils
 from core_lib.helpers.constants import MediaType, HttpHeaders
-
-from django.http import HttpResponse
-from flask import Flask
 
 
 def response_status(status: int = HTTPStatus.OK.value):
@@ -55,11 +52,12 @@ def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML,
         data = json.dumps(data)
     if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
         return generate_response_django(data, status, media_type, headers)
-    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
-        return generate_response_flask(data, status, media_type, headers)
+    return generate_response_flask(data, status, media_type, headers)  # init() accepts only the two server types
 
 
 def generate_response_django(data, status, media_type: MediaType, headers: dict = {}):
+    from django.http import HttpResponse  # the [django] extra: imported only by Django apps
+
     response = HttpResponse(content=data, status=status, content_type=media_type.value)
     for key, value in headers.items():
         response[key] = value
@@ -67,6 +65,8 @@ def generate_response_django(data, status, media_type: MediaType, headers: dict 
 
 
 def generate_response_flask(data, status, media_type: MediaType, headers: dict = {}):
+    from flask import Flask  # the [flask] extra: imported only by Flask apps
+
     response = Flask.response_class(response=data, status=status, mimetype=media_type.value)
     for key, value in headers.items():
         response.headers[key] = value
@@ -81,5 +81,4 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
 def request_body_dict(request):
     if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
         return json.loads(request.body.decode('utf-8'))
-    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
-        return request.json
+    return request.json  # Flask: init() accepts only the two server types
