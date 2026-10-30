@@ -13,6 +13,44 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.modules[name] = None makes `import name` raise ImportError, as if it were not installed.
 OPTIONAL_PACKAGES = OPTIONAL_MODULES + ['mongomock', 'fakeredis', 'moto', 'boto3', 'freezegun', 'flask_wtf', 'pandas']
 
+# The only modules a core install cannot import, because what each one does needs the package it is missing. Anything
+# else imports without an extra: a module that needs a backend for one function imports it in that function.
+MODULES_THAT_NEED_AN_EXTRA = {
+    'core_lib.cache.cache_handler_memcached',
+    'core_lib.cache.cache_handler_redis',
+    'core_lib.connection.elasticsearch_connection',
+    'core_lib.connection.elasticsearch_connection_factory',
+    'core_lib.connection.mongodb_connection',
+    'core_lib.connection.mongodb_connection_factory',
+    'core_lib.connection.neo4j_connection',
+    'core_lib.connection.neo4j_connection_factory',
+    'core_lib.connection.solr_connection',
+    'core_lib.connection.solr_connection_factory',
+    'core_lib.helpers.parse_utils',                       # pandas; its page says to install it
+    'core_lib.session.jwt_token_handler',
+    'core_lib.web_helpers.decorators',                    # the rest need Flask or Django, whose extras bring PyJWT
+    'core_lib.web_helpers.django.require_login',
+    'core_lib.web_helpers.django.user_auth_middleware',
+    'core_lib.web_helpers.flask.require_login',
+    'core_lib.web_helpers.flask.user_auth_middleware',
+    'core_lib.web_helpers.require_login_helper',
+}
+
+IMPORT_EVERY_MODULE = textwrap.dedent('''
+    import importlib, pkgutil, sys, warnings
+    warnings.simplefilter('ignore')                                 # the deprecated aliases warn on import
+    for name in OPTIONAL_PACKAGES:
+        sys.modules[name] = None
+
+    import core_lib
+    for module in pkgutil.walk_packages(core_lib.__path__, 'core_lib.'):
+        try:
+            importlib.import_module(module.name)
+            print('imported', module.name)
+        except ImportError:
+            print('needs an extra', module.name)
+''')
+
 CORE_SCRIPT = textwrap.dedent('''
     import enum, sys
     from datetime import datetime
@@ -42,7 +80,19 @@ CORE_SCRIPT = textwrap.dedent('''
     from core_lib.middleware.middleware_chain import MiddlewareChain
     from core_lib.observer.observer import Observer
     from core_lib.observer.observer_decorator import Observe
+    from core_lib.data_layers.data.db.sqlalchemy.types.point import Point
+    from core_lib.rule_validator.helpers import convert_datetime, convert_location, validate_location
     from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
+
+    assert convert_datetime(datetime(2024, 1, 1)) == datetime(2024, 1, 1)
+    assert validate_location(convert_location({'latitude': 32.0853, 'longitude': 34.7818}))
+    assert Point.from_point_str(Point.to_point_str(34.7818, 32.0853)) == {'latitude': 32.0853, 'longitude': 34.7818}
+    try:
+        Point.from_point_wkb(None)                                  # the one path that does need the [geo] extra
+    except ImportError:
+        pass
+    else:
+        raise AssertionError('from_point_wkb needs geoalchemy2')
 
     class Kind(enum.Enum):
         ALPHA = 1
@@ -102,3 +152,16 @@ class TestCoreInstall(unittest.TestCase):
 
         self.assertEqual(0, result.returncode, result.stderr[-3000:])
         self.assertEqual('widget 1 float', result.stdout.strip().splitlines()[-1])
+
+    def test_only_modules_that_need_a_backend_stop_importing_without_an_extra(self):
+        script = f'OPTIONAL_PACKAGES = {OPTIONAL_PACKAGES!r}\n' + IMPORT_EVERY_MODULE
+        environment = dict(os.environ, PYTHONPATH=REPO_ROOT)
+        result = subprocess.run(
+            [sys.executable, '-c', script], cwd=REPO_ROOT, env=environment, capture_output=True, text=True, timeout=120
+        )
+
+        self.assertEqual(0, result.returncode, result.stderr[-3000:])
+        lines = result.stdout.splitlines()
+        needs_an_extra = {line.split()[-1] for line in lines if line.startswith('needs an extra ')}
+        self.assertEqual(MODULES_THAT_NEED_AN_EXTRA, needs_an_extra)
+        self.assertIn('imported core_lib.rule_validator.helpers', lines)   # so an empty walk cannot pass

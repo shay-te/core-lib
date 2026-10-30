@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime
 from http import HTTPStatus
@@ -109,6 +110,10 @@ class GadgetDataAccess(CRUDSoftDeleteWithTokenDataAccess):
 
 
 ABSENT_ID = 2_000_000_000
+CRUD_PAGE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'docs', 'pages', 'core_lib_doc', 'Data Layers', '2.crud_data_access.md',
+)
 
 
 class TestCrud(unittest.TestCase):
@@ -234,6 +239,24 @@ class TestCrud(unittest.TestCase):
         second_gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
         self.assertNotEqual(first_gadget.id, second_gadget.id)
         self.assertEqual('widget', gadget_data_access.get(second_gadget.id).name)
+
+    def test_two_token_deletes_of_one_name_in_the_same_second_collide(self):
+        # A known bug: the token is the deletion time in whole seconds, so both deleted rows would hold the same
+        # (name, token). The CRUD page warns about it; a fix fails here, which is the reminder to take that off.
+        gadget_data_access = GadgetDataAccess(connect_to_mem_db())
+        with freeze_time('2026-01-01 10:00:00'):
+            first_gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
+            self.assertEqual(1, gadget_data_access.delete(first_gadget.id))
+            second_gadget = gadget_data_access.create({Gadget.name.key: 'widget'})
+            with self.assertRaises(IntegrityError):
+                gadget_data_access.delete(second_gadget.id)
+
+        self.assertEqual('widget', gadget_data_access.get(second_gadget.id).name)    # the row stayed live
+        with freeze_time('2026-01-01 10:00:01'):
+            self.assertEqual(1, gadget_data_access.delete(second_gadget.id))
+
+        with open(CRUD_PAGE, encoding='utf-8') as page:
+            self.assertIn('two deletes of the same value in the same second collide', page.read())
 
     def test_soft_delete_of_a_deleted_row_returns_0_and_keeps_the_first_deletion(self):
         db = connect_to_mem_db()

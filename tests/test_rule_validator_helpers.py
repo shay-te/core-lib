@@ -7,6 +7,10 @@ import unittest
 from core_lib.rule_validator.helpers import convert_datetime, convert_location, validate_location
 from core_lib.rule_validator.rule_validator import RuleValidator, ValueRuleValidator
 
+RULES_PAGE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'docs', 'pages', 'core_lib_doc', 'rules_validator.md',
+)
+
 place_rule_validator = RuleValidator([
     ValueRuleValidator('location', dict, custom_converter=convert_location, custom_validator=validate_location),
 ])
@@ -77,3 +81,12 @@ class TestRuleValidatorHelpers(unittest.TestCase):
 
         self.assertEqual(datetime.datetime(2024, 6, 14, 9, 30), convert_datetime(1718357400))
         self.assertEqual(datetime.datetime(2024, 6, 14, 9, 30, 0, 500000), convert_datetime(1718357400.5))
+
+    @unittest.skipUnless(hasattr(time, 'tzset'), 'time.tzset() is needed to change the process time zone')
+    def test_convert_datetime_uses_the_server_time_zone_as_the_docs_say(self):
+        os.environ['TZ'] = 'Asia/Tokyo'
+        time.tzset()
+
+        self.assertEqual(datetime.datetime(2024, 6, 14, 18, 30), convert_datetime(1718357400))
+        with open(RULES_PAGE, encoding='utf-8') as page:
+            self.assertIn("in the server's local time", page.read())

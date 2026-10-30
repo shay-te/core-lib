@@ -44,6 +44,18 @@ class TestGenerateRequirements(unittest.TestCase):
         # ExampleCoreLib.yaml: PostgreSQL, Solr and Neo4j connections, and an in-memory cache.
         self.assertEqual('core-lib[neo4j,postgres,solr]', self._requirements(OmegaConf.load(EXAMPLE_YAML)))
 
+    def test_an_interpolated_protocol_is_unknown_and_never_resolved(self):
+        # Unset is the normal state when generating: `env` only reaches the project's .env. Set, it is this machine's
+        # value, not the project's, so it must not decide the requirements either.
+        config = self._config([sql_connection('widget_db', '${oc.env:ACME_DB_PROTOCOL}')])
+
+        self.assertNotIn('ACME_DB_PROTOCOL', os.environ)
+        self.assertEqual('core-lib', self._requirements(config))
+
+        os.environ['ACME_DB_PROTOCOL'] = 'postgresql'
+        self.addCleanup(os.environ.pop, 'ACME_DB_PROTOCOL')
+        self.assertEqual('core-lib', self._requirements(config))
+
     def test_sqlite_and_memory_cache_need_no_extra(self):
         config = self._config([sql_connection('widget_db', 'sqlite')], [{'key': 'acme_cache', 'type': 'memory'}])
 

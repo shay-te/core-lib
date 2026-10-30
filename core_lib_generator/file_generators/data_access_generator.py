@@ -28,9 +28,9 @@ class DataAccessGenerateTemplate(TemplateGenerator):
             is_init = True
             conn_data = {}
             for connection in connections:
-                if connection.key == conn:
+                if connection['key'] == conn:
                     conn_data = connection
-            conn_type = conn_data.type.split('.')[-1]
+            conn_type = conn_data['type'].split('.')[-1]
             if 'SqlAlchemyConnectionFactory' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.sql_alchemy_connection_factory import SqlAlchemyConnectionFactory')
             elif 'SolrConnectionFactory' in conn_type:
@@ -38,7 +38,7 @@ class DataAccessGenerateTemplate(TemplateGenerator):
             elif 'Neo4jConnectionFactory' in conn_type:
                 updated_file = updated_file.replace('# template_connections_imports', 'from core_lib.connection.neo4j_connection_factory import Neo4jConnectionFactory')
             else:
-                raise unsupported_connection_type(conn, conn_data.type)
+                raise unsupported_connection_type(conn, conn_data['type'])
             init_str_list = [add_tab_spaces(f'def __init__(self, session: {conn_type}):'),
                              add_tab_spaces('self.session = session', 2)]
             updated_file = updated_file.replace('# template_init', '\n'.join(init_str_list))

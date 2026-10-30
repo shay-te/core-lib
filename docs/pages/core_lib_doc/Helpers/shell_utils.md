@@ -7,7 +7,7 @@ folder: core_lib_doc
 toc: false
 ---
 
-Functions that ask a question in the terminal and keep asking until the answer is valid: a string with a default, a yes/no, a number, an email or URL, a duration, a choice from a menu, or a comma-separated list. `core_lib generate` uses them when you run it without `--yaml` and it asks you to describe your library.
+Functions that ask a question in the terminal and keep asking until the answer is valid: a string with a default, a yes/no, a number, an email or URL, a duration, a choice from a menu, or a comma-separated list. `core_lib generate` uses them when you run it without `--yaml` and it asks you to describe your library. That mode only works for a library with no database and no jobs; see [Generation](generation.html#generate-from-a-yaml-file).
 
 > **Optional utility.** You can use Core-Lib without them. They are for interactive command-line scripts: they read with `input()`, so do not call them from a web request, a job or a test without replacing `builtins.input`.
 >

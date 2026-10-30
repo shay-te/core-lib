@@ -84,7 +84,7 @@ The `height` validator starts with `height is None or`: a custom validator is al
 
 - `convert_location(location)`: turns `{'lat': ..., 'lng': ...}` or `{'latitude': ..., 'longitude': ...}` into a WKT string `'POINT(lng lat)'`. `None` stays `None`. There are two catches. It needs a dict: a string or a list raises `AttributeError` (see `custom_converter` below). And with the short keys, a coordinate of exactly `0` counts as missing, because the helper uses `or` to fall back from `lat` to `latitude`: `{'lat': 0, 'lng': 34.7818}` becomes `'POINT(34.7818 None)'` and fails `validate_location`. Send points on the equator or the prime meridian with the long keys: `{'latitude': 0, 'longitude': 34.7818}` becomes `'POINT(34.7818 0)'`.
 - `validate_location(point)`: takes that WKT string and returns `True` when latitude is within -90..90 and longitude within -180..180. `None` is valid.
-- `convert_datetime(value)`: turns an `int`/`float` Unix timestamp or a `date` into a `datetime`. A falsy value (`None`, `0`) becomes `None`; anything else is returned as is.
+- `convert_datetime(value)`: turns an `int`/`float` Unix timestamp into a `datetime` in the server's local time, not UTC, and a `date` into a `datetime` at midnight. A falsy value (`None`, `0`) becomes `None`; anything else is returned as is.
 
 For example, for a geoalchemy2 `Geometry('POINT')` column:
 

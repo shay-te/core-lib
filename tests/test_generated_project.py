@@ -1,6 +1,7 @@
 """A project made by `core_lib generate` builds its CoreLib twice in one process and its own tests pass."""
 import contextlib
 import datetime
+import keyword
 import os
 import re
 import shutil
@@ -304,6 +305,41 @@ class TestGeneratedProject(unittest.TestCase):
         self.assertEqual('widget', service_attribute_name('WidgetService'))
         self.assertEqual('config_service', service_attribute_name('ConfigService'))
         self.assertEqual('load_jobs_service', service_attribute_name('LoadJobsService'))
+
+    def test_every_service_name_gives_an_attribute_the_generated_class_can_assign(self):
+        attributes = {f'{word.title()}Service': f'{word}_service' for word in keyword.kwlist if word.islower()}
+        attributes.update({
+            'WidgetService': 'widget',
+            'MatchService': 'match',                # a soft keyword is a valid attribute
+            'Service': 'service',                   # nothing is left of the name
+            'Import': 'service_import',             # no suffix, so the full name is the keyword or the CoreLib's own
+            'Class': 'service_class',
+            'Config': 'service_config',
+            'LoadJobs': 'service_load_jobs',
+            '_3dService': 'service_3d_service',     # `camel_to_snake` strips the underscore, leaving a leading digit
+        })
+        self.assertEqual(attributes, {class_name: service_attribute_name(class_name) for class_name in attributes})
+
+        core_lib = OmegaConf.create({'core_lib': {
+            'name': 'AcmeDocs', 'services': [{'key': class_name} for class_name in attributes],
+        }})
+        folder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, folder)
+        generator = CoreLibGenerator(core_lib)
+        with inside(folder):
+            generator.generate_service()
+            generator.generate_core_lib_class()
+        package = os.path.join(folder, 'acme_docs', 'acme_docs')
+        source = read(package, 'acme_docs.py')
+
+        compile(source, 'acme_docs.py', 'exec')   # a keyword or an empty name is a SyntaxError here
+        for class_name, attribute in attributes.items():
+            self.assertIn(f'self.{attribute} = {class_name}()', source)
+        imported_modules = re.findall(r'^from acme_docs\.data_layers\.service\.(\w+) import ', source, flags=re.M)
+        self.assertEqual(len(attributes), len(imported_modules))
+        for module in imported_modules:
+            self.assertFalse(keyword.iskeyword(module))
+            compile(read(package, 'data_layers', 'service', f'{module}.py'), module, 'exec')
 
     def test_readme_comments_out_a_service_without_functions(self):
         with open(os.path.join(REPO_ROOT, 'core_lib_generator', 'template_core_lib', 'README.md')) as template:

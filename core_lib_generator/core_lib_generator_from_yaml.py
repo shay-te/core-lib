@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import camel_to_snake
@@ -29,11 +29,15 @@ from core_lib_generator.file_generators.test_config_override_generator import Te
 from core_lib_generator.file_generators.test_generator import TestGenerateTemplate
 from core_lib_generator.file_generators.test_util_generator import UtilTestGenerateTemplate
 from core_lib_generator.file_generators.version_generator import VersionGenerateTemplate
+from core_lib_generator.generator_utils.naming_utils import service_module_name
 
 
 class CoreLibGenerator:
     def __init__(self, config: DictConfig):
-        self.core_lib_name = config.core_lib.name
+        # Plain data with every `${...}` left as text: those values are for the generated project to resolve when it
+        # runs. Reading one through OmegaConf here would crash on an unset variable, or copy this machine's value.
+        config = OmegaConf.to_container(config, resolve=False)
+        self.core_lib_name = config['core_lib']['name']
         self.snake_core_lib_name = camel_to_snake(self.core_lib_name)
 
         self.core_lib_env = get_dict_attr(config['core_lib'], 'env')
@@ -84,7 +88,7 @@ class CoreLibGenerator:
             for service in self.core_lib_services:
                 service_name = service['key']
                 self._generate_template(
-                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/service/{camel_to_snake(service_name)}.py',
+                    f'{self.snake_core_lib_name}/{self.snake_core_lib_name}/data_layers/service/{service_module_name(service_name)}.py',
                     service,
                     ServiceGenerateTemplate(),
                     service_name,

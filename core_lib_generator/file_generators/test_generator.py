@@ -2,7 +2,7 @@ from core_lib.data_transform.helpers import get_dict_attr
 from core_lib.helpers.string import snake_to_camel, camel_to_snake
 from core_lib_generator.file_generators.template_generator import TemplateGenerator
 from core_lib_generator.generator_utils.formatting_utils import add_tab_spaces, remove_line
-from core_lib_generator.generator_utils.naming_utils import service_attribute_name
+from core_lib_generator.generator_utils.naming_utils import service_attribute_name, service_module_name
 
 
 class TestGenerateTemplate(TemplateGenerator):
@@ -41,7 +41,7 @@ def _generate_tests(template_content: str, yaml_data: dict, key: str, core_lib_n
         if key == 'data_accesses':
             imports_list.append(f'from {core_lib_name}.data_layers.data_access.{snake_name} import {name}')
         else:
-            imports_list.append(f'from {core_lib_name}.data_layers.service.{snake_name} import {name}')
+            imports_list.append(f'from {core_lib_name}.data_layers.service.{service_module_name(name)} import {name}')
         test_function.append(add_tab_spaces(f'def test_{snake_name}(self):'))
         test_function.append(
             add_tab_spaces(

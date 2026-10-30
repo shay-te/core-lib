@@ -21,7 +21,15 @@ core_lib generate --yaml ExampleCoreLib.yaml
 
 The YAML path may be relative to the current folder or absolute. Run the command from the folder where the new project should go: the project is written to the current folder. If the file does not exist, the command prints the path it looked for and exits with status 1. If you omit `--yaml`, the command asks you questions, writes the YAML to the current folder, and then generates from it.
 
+> **Known issue:** the questions only work for a library with no database and no jobs, because the YAML they write does not match what the generator reads. For any other library, write the YAML yourself and pass `--yaml`.
+>
+> - A database with an entity stops `core_lib generate` with an error.
+> - A database without entities generates a project, but its config holds `<connection>: null`, so building your `CoreLib` fails.
+> - A job generates a `_target_` one package too deep, so building your `CoreLib` fails.
+
 The same YAML always generates the same files, line for line, so a regenerated project diffs cleanly against the last one.
+
+The generator never resolves `${...}` values. It copies them into the generated files as text, so a variable such as `${oc.env:DB_HOST}` doesn't have to be set when you generate, and its value never ends up in the project. Write `key` and `type` out in full, because they decide which files and code get generated.
 
 For a sample input, copy [`core_lib_generator/ExampleCoreLib.yaml`](https://github.com/shay-te/core-lib/blob/master/core_lib_generator/ExampleCoreLib.yaml){:target="_blank"} from the Core-Lib repository and edit it. Its top-level keys, all under `core_lib:`, are:
 
@@ -84,9 +92,9 @@ example_core_lib/                         # the project folder
 
 `AGENTS.md` tells an AI coding agent to load the matching Core-Lib skill before it writes code, and says where to find the skills: in a `core-lib` checkout next to the project, or in the installed package's `agent_docs` folder (see [Built for AI coding agents](advantages.html#built-for-ai-coding-agents)).
 
-`requirements.txt` names the [Core-Lib extras](index.html#installing) for the connections and caches in your YAML: `postgres` or `mysql` from a SQLAlchemy URL's `protocol`, `solr` and `neo4j` from the connection's `type`, `redis` and `memcached` from a cache's `type`. An SQLite-only project gets plain `core-lib`. Add `flask` or `django` yourself if the project serves web requests with Core-Lib's web helpers.
+`requirements.txt` names the [Core-Lib extras](index.html#installing) for the connections and caches in your YAML: `postgres` or `mysql` from a SQLAlchemy URL's `protocol`, `solr` and `neo4j` from the connection's `type`, `redis` and `memcached` from a cache's `type`. An SQLite-only project gets plain `core-lib`. A `protocol` written as `${oc.env:...}` isn't known when you generate, so add its extra yourself. Add `flask` or `django` yourself if the project serves web requests with Core-Lib's web helpers.
 
-In the generated `ExampleCoreLib`, each service is a public attribute named after its class without `Service`: `DetailsService` becomes `example_core_lib.details`. Each data access class is private (`_details_data_access`), so routes, jobs and tests go through the services. A service whose short name `CoreLib` already uses, such as `ConfigService`, keeps its full name (`config_service`).
+In the generated `ExampleCoreLib`, each service is a public attribute named after its class without `Service`: `DetailsService` becomes `example_core_lib.details`. Each data access class is private (`_details_data_access`), so routes, jobs and tests go through the services. A service whose short name can't be used, because it is a Python keyword (`ImportService`) or `CoreLib` already uses it (`ConfigService`), keeps its full name (`import_service`, `config_service`).
 
 It also writes `__init__.py` files, `.gitignore`, `.dockerignore`, `MANIFEST.in` and a license file. There is no `client/` folder; add one when you need an external API. See [Project Structure](project_structure.html) for what each folder is for.
 
