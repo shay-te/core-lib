@@ -852,6 +852,7 @@ Rules, each load-bearing:
 - VARCHAR lengths are always explicit (`VARCHAR(length=255)`, names get 512, keys/paths get 1024). Free text is `Text`. Dict payloads are `JSON` columns named `meta_data` (not `metadata` — that name collides with SQLAlchemy).
 - FKs whose child rows must die with the parent declare it in the schema: `ForeignKey('document.id', ondelete='CASCADE')` (collaborators/favorites die with their document — `empty_trash` relies on it).
 - **An enum a table uses is NESTED inside its entity class and read as `Thing.ThingKind`**, never declared at module level beside it; every entity in the older libs does this. Name it for what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`: a host that publishes enums by class name would get two `status` keys.
+- **No `__mapper_args__` on an entity, `eager_defaults` included.** SQLAlchemy 2.0 (the pinned version) already reads server-generated values back on INSERT, and no core-lib entity sets mapper options. This rule and the nested-enum rule above are checked in SOURCE by a test — an `ast` walk over `entities/` with a planted-offender case — because the enum rule, written down alone, was broken anyway.
 - Derive enum-based strings from the member NAME, not the value: a file extension is `f'.{kind.name.lower()}'` — using `.value` after an IntEnum conversion produced the literal extension `.1` in production code. Real bug.
 
 ### 4.0 An entity is where agnosticism is usually lost
@@ -1004,6 +1005,7 @@ Rules:
 
 - The `rule_validator` (module-level, next to the class) is the allow-list: one `ValueRuleValidator(Entity.col.key, type, custom_validator=...)` per column. Anything not listed is rejected under strict mode with `PermissionError` (§12 for exact semantics).
 - **Do not override `create`** — §5.1. `CRUD.create(data: dict)` plus the `rule_validator` above already IS the write API.
+- **Never `session.commit()` or `session.flush()` in a DataAccess.** `SqlAlchemyConnection` commits and flushes when the `with self._db.get()` block exits (rollback on an exception), on a session with `expire_on_commit=False`, so a written entity keeps its generated id. A session the service hands in is the service's `with self._thing_da.transaction()` block and commits when that exits. A service that needs the stored row reads it back through its cached `get` after the write — never by flushing early.
 - `update` overrides guard immutable columns (strip `project_id`/FKs from the payload) before `super().update(id, data)`.
 - Domain queries (`get_by_project`, `full_text_search`, `list_trash`, `search_by_name`, …) live on the DataAccess, written in the query-builder style the other DAs use (`session.query(Entity).filter(...).all()` chains). Do NOT refactor an existing DA's access pattern to a different style — that exact change was rejected in review.
 - Normal update paths validate STRICT (the base's plain `validate_dict(data)` — unknown key raises `PermissionError`; tests rely on that). For a PARTIAL metadata-style bulk update where callers may pass a superset dict, use `self._rule_validator.validate_dict(data, strict_mode=False, strict_output=True)` (unknown keys silently DROPPED) and `session.query(...).update(validated, synchronize_session=False)` — `synchronize_session=False` avoids `InvalidRequestError: Invalid expression type` on bulk updates. Library uses the strict form on 2 of 3 update paths and the lenient form only on `DocumentDataAccess.update_metadata` — default to strict.
@@ -1110,7 +1112,7 @@ Rules:
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
 - Batch loops that delete/purge use a module-level batch constant (`EMPTY_TRASH_BATCH = 10_000`) so tests can patch the MODULE GLOBAL (allowed) instead of internals (forbidden).
-- **A write spanning tables, or a check-then-write behind a guard, runs in ONE session the service opens.** Each CRUD call commits on its own, so the DA adds — beside the base, never overriding `create`/`update` (§5.1) — `transaction()` (`return self._db.get()`), `create_in_transaction(session, data)` / `update_in_transaction(session, row, data)` that validate with the same module `rule_validator`, `flush()` and never commit, and `get_for_update(session, id)` (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`). Without the row lock, two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2).
+- **A write spanning tables, or a check-then-write behind a guard, runs in ONE session the service opens.** Each CRUD call commits on its own, so the DA adds — beside the base, never overriding `create`/`update` (§5.1) — `transaction()` (`return self._db.get()`), `create_in_transaction(session, data)` / `update_in_transaction(session, row, data)` that validate with the same module `rule_validator` and only add or set — never flush, never commit (§5) — and `get_for_update(session, id)` (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`). Without the row lock, two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2).
 - **A date that anchors a deadline or a retention period and cannot be corrected later is refused in the future and before the date it follows** (received → answered, detected → notified). A typo there silently moves a deadline, or keeps a row years past its period.
 
 ### 6.1 Every file in `service/` ends `_service.py` or `_helper.py`. Nothing else.
@@ -1637,6 +1639,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 23. Committing `.coverage` files; letting a Dockerfile run build steps beyond dependency installation.
 24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
 25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
+26. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
+27. An enum declared at module level beside its entity, or `__mapper_args__` on an entity (§4).
 
 ## 17. Final checklist before handing the lib over
 
@@ -1650,6 +1654,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - [ ] Every service suite: one class per file; `cls.foo_core_lib`; inline access; fresh `new_project_id()` per test; `ABSENT_* = 2_000_000_000`; `Entity.col.key` for every dict read; zero `_da`/`_db`/`_storage` greps.
 - [ ] Mutation check done (break code → red; revert → green). Full suite green from a clean checkout with only the documented env (moto/MinIO where applicable).
 - [ ] `requirements.txt` runtime-only; nothing under `.coverage*` tracked.
+- [ ] `grep -rn "\.commit()\|\.flush()" data_layers/data_access/` and `grep -n "^class .*Enum)\|__mapper_args__" data_layers/data/db/entities/*.py` print nothing, and a test walks `entities/` for both entity rules (§4, §5).
 - [ ] The run reports no `skipped=`, under both `discover -s tests` and `-t .`; a lib on Postgres-only features ran on real Postgres (§13.2).
 - [ ] Wheel built and installed into a clean venv: no `tests` package inside, `script.py.mako` + `.migration_ver` present, composes and `install()`s from outside the repo.
 
