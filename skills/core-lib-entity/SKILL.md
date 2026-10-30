@@ -77,6 +77,24 @@ names collide with the local variables these functions get assigned to.
 
 See "An entity is DATA. core-lib is not Active Record." in `AGENTS.md`.
 
+## ⛔ Enums live INSIDE the entity, and no `__mapper_args__`. Both greps must return nothing.
+
+```
+grep -n "^class .*Enum)" data_layers/data/db/entities/*.py    # an enum beside its entity
+grep -n "__mapper_args__" data_layers/data/db/entities/*.py
+```
+
+An enum a column uses is declared inside its entity class and read as
+`Thing.ThingKind` (the canonical template below) — never at module level next to
+the entity. And an entity sets no mapper options, `eager_defaults` included:
+SQLAlchemy 2.0, core-lib's pin, already reads server-generated values back on
+INSERT, and no core-lib entity carries `__mapper_args__`.
+
+Hold both as a test, not only here: an `ast` walk over `entities/` that fails on a
+module-level `Enum` subclass or a `__mapper_args__` assignment, paired with a
+planted-offender case so an empty result cannot mean the walk stopped working. A
+rule that is only written down gets broken; the test is what holds it.
+
 ## ⛔ This is where agnosticism is usually lost. A schema is the hardest thing to walk back.
 
 A core-lib is **product-agnostic**: it ships the mechanism, and every particular
@@ -215,14 +233,16 @@ The mixin choice decides the DataAccess base (§5).
   Values for an `IntEnum(...)` column **must start at 1, never 0** (§4, §12).
   Storage goes through the `IntEnum(...)` column type; the Python type must
   not extend `int`.
+- **No `__mapper_args__`** on an entity, `eager_defaults` included — SQLAlchemy 2.0
+  reads server-generated values back on INSERT by itself (§4).
 - **Derive enum-based strings from `.name`, not `.value`** — e.g.
   `f'.{kind.name.lower()}'` (§4).
 - **No database schema of its own** — never `{'schema': ...}` in `__table_args__`. The
   tables sit in the host's default schema: all core-lib entities share `Base.metadata`, so a
   host's `create_all` would fail on a schema that does not exist yet. Prefix the table name with
   the library's name when the bare name could clash with a host's table
-  (`__tablename__ = 'audit_access_event'`, module `audit_access_event.py`, indexes
-  `ix_audit_access_event_*`), and grant per table in the migration.
+  (`__tablename__ = 'foo_event'`, module `foo_event.py`, indexes `ix_foo_event_*`),
+  and grant per table in the migration.
 - **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals

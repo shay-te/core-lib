@@ -141,6 +141,15 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   `enum.Enum`.
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
+- **Several writes that must land together, or a guard checked before a
+  write** (a set-once field, "not answered yet"), run in ONE session the service
+  opens through the DA's `transaction()`, with the row read by
+  `get_for_update` — each plain CRUD call commits alone, and without the lock
+  two concurrent calls both pass the check (§6).
+- **A date anchoring a deadline or retention, never correctable later**, is
+  refused in the future and before the date it follows (§6).
+- **A decorator shipped for hosts** checks its parameter names and derived
+  identifiers at decoration time; options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).
