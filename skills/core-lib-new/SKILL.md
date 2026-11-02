@@ -63,7 +63,12 @@ validation-failure type**.
    skills in order).
 3. **Main class** (composition root) — see template.
 4. **No singleton accessor** in the lib — a host that wants one writes it.
-5. **Hydra config + plugin** so parent apps can override sections.
+5. **Hydra config + plugin** so parent apps can override sections. **The DB
+   block is copied from AGENTS §3.1 exactly, never written fresh**: the same
+   values, the same `session`, the `POSTGRES_*` names with no defaults; only
+   `version_table` changes. Never invent a lib-prefixed database key
+   (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …). A host's install compose for the lib
+   is `defaults:` only, and tests reach sqlite through the test yaml (§13.5).
 6. **Migration** for the first entity (`core-lib-migration`).
 7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures, run
    with `python -P`. Finish by building the wheel and installing it into a
