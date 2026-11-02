@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Core-Lib: application structure for Python backends</title>
+<meta name="description" content="Core-Lib keeps Flask, SQLAlchemy, and external services out of your business logic, so changing them doesn't mean rewriting your app.">
+<link rel="canonical" href="https://shay-te.github.io/core-lib/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Core-Lib">
+<meta property="og:title" content="Core-Lib: swap the framework, keep the app">
+<meta property="og:description" content="An application-structure framework for Python backends. Flask, SQLAlchemy and external services plug in from the outside, so changing them doesn't mean rewriting your app.">
+<meta property="og:url" content="https://shay-te.github.io/core-lib/">
+<meta property="og:image" content="https://shay-te.github.io/core-lib/images/og-core-lib.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#03051f">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-20 -10 430 430'%3E%3Crect x='-20' y='-10' width='430' height='430' rx='80' fill='%2303051f'/%3E%3Cpath d='M105.7 113.9A115 115 0 0 1 259.6 212.0M259.6 232.0A115 115 0 0 1 100.1 327.9M72.6 311.4A115 115 0 0 1 72.6 132.6M121.7 158.1A68 68 0 0 1 212.6 214.9M212.6 229.1A68 68 0 0 1 118.4 284.6M111.0 264.0A54 54 0 0 1 111.0 180.0' fill='none' stroke='%230ba4f8' stroke-width='16'/%3E%3Cpath d='M145 222L52 52M145 222L50 380M145 222L340 227' fill='none' stroke='%230ba4f8' stroke-width='13'/%3E%3Crect x='-23' y='-23' width='46' height='46' transform='translate(44 38) rotate(12)' fill='%230ba4f8'/%3E%3Ccircle cx='44' cy='388' r='23' fill='%230ba4f8'/%3E%3Cpath d='M338 197L382 227L338 257Z' fill='%230ba4f8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=Martian+Mono:wdth,wght@75..100,300..600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&text=Core-Lib&display=swap">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* The hero is the circuit board itself. Everything below it reads as that board's datasheet. */
+:root {
+  --ground: #03051f;
+  --signal: #0ba4f8;
+  --gold: #e8bd62;
+  --silk: #eef2ff;
+  --silk-dim: #aab4e0;
+  --panel: #080d3c;
+  --panel-line: #1f2a78;
+
+  --bg: #f4f6fd;
+  --surface: #ffffff;
+  --ink: #0b1038;
+  --muted: #4b5277;
+  --line: #d6dcef;
+  --accent: #0a69bb;
+
+  --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --wordmark: 'Montserrat', var(--display);
+
+  --gutter-l: max(20px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(20px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #060826;
+    --surface: #0b103c;
+    --ink: #e9edff;
+    --muted: #a6aed6;
+    --line: #20285f;
+    --accent: #58beff;
+    color-scheme: dark;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.65 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p, ol, ul, pre { margin: 0; padding: 0; }
+ol, ul { list-style: none; }
+a { color: inherit; }
+code { font-family: var(--mono); font-stretch: 75%; font-size: .84em; }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; border-radius: 3px; }
+
+.wrap { max-width: 1216px; margin-inline: auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+.label {
+  font: 500 .6875rem/1.4 var(--mono);
+  font-stretch: 85%;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h2 {
+  font: 700 clamp(1.9rem, 3.7vw, 3rem)/1.08 var(--display);
+  font-stretch: 108%;
+  letter-spacing: -.018em;
+  text-wrap: balance;
+}
+.prose { color: var(--muted); max-width: 58ch; }
+section { padding-block: clamp(64px, 9vw, 120px); }
+section + section { border-top: 1px solid var(--line); }
+.head { display: grid; gap: 14px; }
+
+/* Board surfaces: the same in both themes, because a board is a physical object. */
+.hero, .close {
+  position: relative;
+  color: var(--silk);
+  background-color: var(--ground);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(140, 165, 255, .14) 1px, transparent 0),
+    radial-gradient(70% 90% at 80% 28%, #0e1a70 0%, transparent 72%);
+  background-size: 26px 26px, auto;
+}
+.hero { padding-bottom: 14px; }
+.hero::after, .close::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background-repeat: repeat-x;
+  background-size: 34px 14px;
+}
+/* Castellated edge: the half-plated holes along the side of a real module. */
+.hero::after {
+  bottom: 0;
+  background-image: radial-gradient(circle at 50% 100%, var(--bg) 6.5px, var(--gold) 7px, var(--gold) 9.5px, transparent 10px);
+}
+.close::before {
+  top: 0;
+  background-image: radial-gradient(circle at 50% 0, var(--bg) 6.5px, var(--gold) 7px, var(--gold) 9.5px, transparent 10px);
+}
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 20px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 500 1.3rem/1 var(--wordmark); }
+.brand svg { width: 30px; height: 31px; color: var(--signal); }
+.brand b { font-weight: 500; color: var(--signal); }
+.topnav { display: flex; gap: clamp(16px, 3vw, 30px); font-size: .95rem; font-weight: 500; }
+.topnav a { text-decoration: none; color: var(--silk-dim); transition: color .15s; }
+.topnav a:hover { color: var(--silk); }
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6.5fr);
+  gap: clamp(32px, 5vw, 76px);
+  align-items: center;
+  padding-block: clamp(8px, 1.2vw, 16px) clamp(52px, 6vw, 76px);
+}
+.pitch { display: grid; gap: 24px; justify-items: start; }
+h1 {
+  font: 700 clamp(2.75rem, 4.55vw, 4.125rem)/1.03 var(--display);
+  font-stretch: 112%;
+  letter-spacing: -.024em;
+  text-wrap: balance;
+}
+h1 em { display: block; font-style: normal; color: var(--signal); }
+.lede { font-size: clamp(1.08rem, 1.5vw, 1.25rem); line-height: 1.55; color: #cdd5f7; max-width: 44ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50px;
+  padding-inline: 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform .15s, background-color .15s, border-color .15s;
+}
+.button:hover { transform: translateY(-1px); }
+.button.gold { background: linear-gradient(180deg, #f6d994, #e2b452); color: #231903; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5); }
+.button.line { border: 1px solid #3a4aa6; color: var(--silk); }
+.button.line:hover { border-color: var(--silk-dim); }
+.install {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50px;
+  max-width: 100%;
+  border: 1px solid #2c3a96;
+  border-radius: 8px;
+  background: rgba(3, 5, 31, .6);
+}
+.install code { padding-inline: 16px 12px; font-size: .8125rem; color: var(--silk); white-space: nowrap; }
+.install code span { color: var(--gold); }
+.copy {
+  align-self: stretch;
+  padding-inline: 14px;
+  border: 0;
+  border-left: 1px solid #2c3a96;
+  border-radius: 0 7px 7px 0;
+  background: none;
+  color: var(--silk-dim);
+  font: 500 .8125rem var(--body);
+  cursor: pointer;
+}
+.copy:hover { color: var(--silk); background: rgba(140, 165, 255, .1); }
+.specs { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 400 .6875rem/1.5 var(--mono); font-stretch: 85%; color: var(--silk-dim); }
+
+/* Board */
+.rig { display: grid; gap: 14px; min-width: 0; }
+.try { display: flex; align-items: center; gap: 10px; font: 600 clamp(1.25rem, 1.95vw, 1.5rem)/1.2 var(--display); font-stretch: 104%; color: var(--gold); }
+.try svg { flex: none; width: 24px; height: 24px; }
+.try.done svg { display: none; }
+.board { display: block; width: 100%; height: auto; filter: drop-shadow(0 24px 42px rgba(0, 0, 0, .55)); overflow: visible; }
+.tr { fill: none; stroke: #3451c4; stroke-width: 4; stroke-linejoin: round; }
+.tr.thin { stroke-width: 3; opacity: .75; }
+.ring { fill: none; stroke: #2a42ae; stroke-width: 3; }
+.stitch { fill: none; stroke: #e3b555; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 0 27; opacity: .55; }
+.via { fill: #0a1050; stroke: url(#gold); stroke-width: 3; }
+.pad, .mount circle { fill: url(#gold); }
+.hole circle { fill: var(--ground); }
+.part { fill: #171a33; }
+.crystal { fill: url(#can); stroke: #5a628a; }
+.chip { fill: url(#epoxy); }
+.chip-edge { fill: none; stroke: #2a2f55; }
+.chip-dot { fill: #2d3360; }
+.chip-mark { color: var(--signal); }
+.chip-name { font: 500 19px var(--mono); font-stretch: 85%; fill: var(--silk); }
+.chip-sub { font: 400 11.5px var(--mono); font-stretch: 85%; fill: var(--silk-dim); }
+.silk { fill: #dfe6ff; font-family: var(--mono); font-stretch: 85%; }
+.ref { font-size: 14px; font-weight: 500; letter-spacing: .05em; }
+.tiny { font-size: 11px; opacity: .8; }
+.led { fill: #7ee2ff; filter: drop-shadow(0 0 7px #39c0ff); }
+
+.mod { cursor: pointer; outline: none; transition: transform .2s ease, opacity .2s ease; }
+.mod.lift { transform: translate(var(--dx), var(--dy)); opacity: .3; }
+.mod-hit { fill: transparent; }
+.mod-body { fill: #0c0f28; stroke: #b98f3e; stroke-width: 2; transition: stroke .15s, fill .15s; }
+.mod:hover .mod-body { stroke: #ffe2a0; fill: #151a48; }
+.mod:focus-visible .mod-body { stroke: var(--silk); stroke-width: 3.5; }
+.mod-name { font: 600 23px var(--display); font-stretch: 100%; fill: var(--silk); }
+.mod-pill { fill: url(#gold); transition: fill .15s; }
+.mod:hover .mod-pill { fill: #ffe7ae; }
+.mod-hint { font: 600 13.5px var(--mono); font-stretch: 85%; letter-spacing: .1em; text-transform: uppercase; fill: #231903; }
+.mod-ring { fill: none; stroke: #ffe2a0; stroke-width: 3; opacity: 0; pointer-events: none; transform-box: fill-box; transform-origin: center; }
+.mod.next .mod-ring { opacity: .9; }
+#ghost { pointer-events: none; transition: transform .7s cubic-bezier(.3, .9, .3, 1), opacity .3s; }
+#ghost.gone { opacity: 0; }
+.ghost-arrow { fill: #fff; stroke: #0a0f33; stroke-width: 2.5; stroke-linejoin: round; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .55)); }
+
+.sig { fill: none; stroke: #7fd4ff; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 11 100; stroke-dashoffset: 11; filter: drop-shadow(0 0 5px #0ba4f8); }
+@media (prefers-reduced-motion: no-preference) {
+  .sig { animation: flow 8s linear infinite; animation-delay: calc(var(--bus) * 2s + var(--i) * .09s); }
+  .bus.burst .sig { animation: zip .75s ease-in both; animation-delay: calc(var(--i) * .05s); }
+  .led { animation: breathe 3.6s ease-in-out infinite; }
+  .mod.next .mod-ring { animation: ring 1.5s ease-out infinite; }
+  .ghost-arrow { animation: press 1.5s ease-in-out infinite; }
+  .try svg { animation: drop 1.3s ease-in-out infinite; }
+  .result strong.pop { animation: pop .5s ease-out; }
+}
+@keyframes ring { 0% { opacity: .95; transform: scale(1); } 75%, 100% { opacity: 0; transform: scale(1.17); } }
+@keyframes press { 0%, 100% { transform: translate(7px, 8px); } 45%, 60% { transform: translate(0, 0); } }
+@keyframes drop { 50% { transform: translateY(5px); } }
+@keyframes pop { 40% { transform: scale(1.5); } }
+@keyframes flow { 0% { stroke-dashoffset: 11; } 13%, 100% { stroke-dashoffset: -100; } }
+@keyframes zip { from { stroke-dashoffset: 11; } to { stroke-dashoffset: -100; } }
+@keyframes breathe { 50% { opacity: .55; } }
+
+/* Diff console */
+.console { min-width: 0; border: 1px solid var(--panel-line); border-radius: 12px; background: rgba(5, 8, 42, .86); overflow: hidden; }
+.console header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 12px 16px; border-bottom: 1px solid var(--panel-line); }
+.console h2 { font: 600 1rem/1.3 var(--display); font-stretch: 100%; letter-spacing: 0; color: var(--silk); }
+.console .where { font: 400 .6875rem/1.4 var(--mono); font-stretch: 80%; color: var(--silk-dim); }
+.console .stat { margin-left: auto; font: 500 .6875rem/1.4 var(--mono); font-stretch: 80%; }
+.stat .a { color: #84ecb7; }
+.stat .d { color: #ff9d9d; }
+.diff { display: block; min-height: 7.4rem; padding-block: 10px; overflow-x: auto; font: 400 .71875rem/1.72 var(--mono); font-stretch: 75%; color: #c3cbf0; tab-size: 4; }
+.ln { display: block; min-width: max-content; padding-inline: 16px; white-space: pre; }
+.ln .sign { display: inline-block; width: 1.5em; color: #7681b4; }
+.ln.add { background: rgba(70, 215, 145, .13); color: #b8f4d4; }
+.ln.add .sign { color: #84ecb7; }
+.ln.del { background: rgba(255, 110, 110, .11); color: #ffc4c4; }
+.ln.del .sign { color: #ff9d9d; }
+.ln mark { padding: 1px 3px; border-radius: 3px; background: rgba(232, 189, 98, .2); color: #ffe3a3; }
+.result { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--panel-line); font-size: .9rem; line-height: 1.35; color: #cdd5f7; }
+.result strong { display: inline-block; font: 700 2rem/1 var(--display); color: var(--gold); }
+
+/* Failure mode */
+.split { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(36px, 6vw, 88px); align-items: start; }
+.leaks { display: grid; }
+.leaks li { display: grid; gap: 4px; padding-block: 18px; border-top: 1px solid var(--line); }
+.leaks li:last-child { border-bottom: 1px solid var(--line); }
+.leaks code { color: var(--accent); font-size: .8125rem; overflow-wrap: anywhere; }
+
+/* Layer stack-up */
+.stack-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: clamp(36px, 6vw, 80px); align-items: start; }
+.stack { display: grid; border-radius: 10px; overflow: hidden; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.layer { display: grid; grid-template-columns: 74px minmax(0, 170px) minmax(0, 1fr); }
+.layer + .layer { box-shadow: 0 -1px 0 var(--line); }
+.band { background: #123a9c; }
+.layer b { align-self: center; padding: 15px 0 15px 20px; font: 600 1.0625rem/1.25 var(--display); }
+.layer p { align-self: center; padding: 15px 22px 15px 18px; font-size: .95rem; line-height: 1.5; color: var(--muted); }
+.layer.edge { --band: linear-gradient(90deg, #b88a2d, #f4d68f 45%, #c3963a); }
+.layer.edge .band { background: var(--band); }
+.layer.main .band { background: var(--signal); }
+.layer.core .band { background: repeating-linear-gradient(135deg, #0ba4f8 0 7px, #0a6fc9 7px 14px); }
+.layer.core b, .layer.core p { padding-block: 36px; }
+.layer.low .band { background: #0a57b0; }
+
+/* Typical application */
+.ide {
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr);
+  margin-top: clamp(30px, 4vw, 44px);
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: #d5dcff;
+  overflow: hidden;
+}
+.tree { padding-block: 16px; border-right: 1px solid var(--panel-line); font: 400 .71875rem/1.5 var(--mono); font-stretch: 78%; }
+.tree li { padding-left: calc(16px + var(--d) * 13px); }
+.tree .dir { padding-block: 5px; color: #8a94c6; }
+.tree button {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 5px 0 0 5px;
+  background: none;
+  color: #d5dcff;
+  font: inherit;
+  font-stretch: 78%;
+  text-align: left;
+  cursor: pointer;
+}
+.tree button:hover { background: rgba(140, 165, 255, .1); }
+.tree button[aria-selected="true"] { background: var(--signal); color: #04102e; font-weight: 500; }
+.panel { min-width: 0; padding: 20px 24px 24px; }
+.js .panel:not(.on) { display: none; }
+.panel + .panel { border-top: 1px solid var(--panel-line); }
+.js .panel + .panel { border-top: 0; }
+.path { font: 400 .6875rem/1.5 var(--mono); font-stretch: 78%; color: #8a94c6; overflow-wrap: anywhere; }
+.note { margin-top: 6px; font-size: .95rem; line-height: 1.5; color: var(--silk); }
+.code { margin-top: 18px; overflow-x: auto; font: 400 .75rem/1.75 var(--mono); font-stretch: 75%; tab-size: 4; }
+.code code { font: inherit; font-stretch: inherit; }
+.code .k, .code .kn, .code .kd, .code .kc, .code .ow { color: #6cc4ff; }
+.code .nc, .code .nf, .code .fm { color: #ffe0a0; }
+.code .nd { color: var(--gold); }
+.code .s1, .code .s2, .code .sa, .code .si, .code .sd { color: #a5ecc9; }
+.code .c1, .code .cm { color: #8a94c6; }
+.code .mi, .code .mf { color: #f2bbff; }
+.code .bp, .code .nb { color: #bcc6ff; }
+.after { margin-top: 18px; font-size: .95rem; color: var(--muted); }
+
+/* Bill of materials */
+.bom-wrap { margin-top: clamp(28px, 4vw, 40px); overflow-x: auto; }
+.bom { width: 100%; border-collapse: collapse; font-size: .975rem; line-height: 1.45; }
+.bom th, .bom td { padding: 13px 22px 13px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: baseline; }
+.bom thead th { border-top: 0; padding-block: 0 10px; font: 500 .6875rem/1.4 var(--mono); font-stretch: 85%; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.bom tbody th { font: 500 .75rem/1.4 var(--mono); font-stretch: 85%; color: var(--accent); white-space: nowrap; }
+.bom td:nth-child(2) { font-weight: 600; min-width: 170px; }
+.bom td:nth-child(2) a { text-decoration-color: var(--line); text-underline-offset: 3px; }
+.bom td:nth-child(2) a:hover { color: var(--accent); text-decoration-color: currentColor; }
+.bom td:last-child { color: var(--muted); padding-right: 0; }
+.bom-note { margin-top: 16px; font-size: .9rem; color: var(--muted); }
+
+/* Operating conditions */
+.fit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(28px, 5vw, 64px); margin-top: clamp(28px, 4vw, 44px); }
+.fit h3, .not h3 { font: 600 1.25rem/1.25 var(--display); }
+.fit ul { display: grid; gap: 12px; margin-top: 16px; }
+.fit li { display: grid; grid-template-columns: 22px minmax(0, 1fr); color: var(--muted); }
+.fit li::before { font: 500 .9rem/1.8 var(--mono); }
+.fit .yes li::before { content: "+"; color: var(--accent); }
+.fit .no li::before { content: "-"; color: var(--muted); }
+.not { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(28px, 5vw, 64px); margin-top: clamp(32px, 5vw, 52px); padding-top: clamp(24px, 3vw, 32px); border-top: 1px solid var(--line); }
+.not p { margin-top: 8px; color: var(--muted); max-width: 52ch; }
+
+/* Close */
+.close { padding-top: 14px; }
+.close-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 64px); align-items: center; padding-block: clamp(56px, 8vw, 96px); }
+.close h2 { color: var(--silk); }
+.close .lede { margin-top: 14px; }
+.steps { display: grid; gap: 14px; justify-items: start; min-width: 0; }
+.steps .step { display: grid; gap: 6px; justify-items: start; max-width: 100%; }
+.steps .step p { font-size: .9rem; color: var(--silk-dim); }
+.footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-block: 22px; border-top: 1px solid #1c2569; font-size: .875rem; color: var(--silk-dim); }
+.footer nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.footer a { text-decoration: none; }
+.footer a:hover { color: var(--silk); }
+.footer .brand { font-size: 1.05rem; color: var(--silk); }
+.footer .brand svg { width: 24px; height: 25px; }
+.footer .brand:hover { color: var(--silk); }
+
+@media (max-width: 1040px) {
+  .hero-grid, .split, .stack-grid, .close-grid { grid-template-columns: minmax(0, 1fr); }
+  .rig { max-width: 720px; }
+}
+@media (max-width: 760px) {
+  .ide { grid-template-columns: minmax(0, 1fr); }
+  .tree { display: flex; gap: 6px; padding: 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--panel-line); }
+  .tree li { padding-left: 0; }
+  .tree .dir { display: none; }
+  .tree button { border-radius: 5px; white-space: nowrap; }
+  .panel { padding: 18px; }
+  .layer { grid-template-columns: 34px minmax(0, 1fr); }
+  .layer .band { grid-row: span 2; }
+  .layer b { padding: 14px 16px 2px; }
+  .layer p { padding: 0 16px 14px; }
+  .layer.core b { padding-top: 26px; }
+  .layer.core p { padding-top: 0; padding-bottom: 26px; }
+  .fit, .not { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .bom thead { display: none; }
+  .bom, .bom tbody, .bom tr, .bom th, .bom td { display: block; }
+  .bom tr { display: grid; grid-template-columns: 48px minmax(0, 1fr); padding-block: 12px; border-top: 1px solid var(--line); }
+  .bom th, .bom td, .bom tbody th { padding: 0; border: 0; }
+  .bom td:nth-child(2) { min-width: 0; }
+  .bom td:last-child { grid-column: 2; margin-top: 2px; }
+  .ref { font-size: 21px; }
+  .tiny { display: none; }
+  .mod-name { font-size: 24px; }
+  .mod-hint { font-size: 17px; }
+  .chip-name { font-size: 22px; }
+  .chip-sub { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .button, .mod, .mod-body { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Core-Lib home"><svg viewBox="0 0 400 420" aria-hidden="true"><path d="M105.7 113.9A115 115 0 0 1 259.6 212.0M259.6 232.0A115 115 0 0 1 100.1 327.9M72.6 311.4A115 115 0 0 1 72.6 132.6M121.7 158.1A68 68 0 0 1 212.6 214.9M212.6 229.1A68 68 0 0 1 118.4 284.6M111.0 264.0A54 54 0 0 1 111.0 180.0" fill="none" stroke="currentColor" stroke-width="16"/><path d="M145 222L52 52M145 222L50 380M145 222L340 227" fill="none" stroke="currentColor" stroke-width="13"/><rect x="-23" y="-23" width="46" height="46" transform="translate(44 38) rotate(12)" fill="currentColor"/><circle cx="44" cy="388" r="23" fill="currentColor"/><path d="M338 197L382 227L338 257Z" fill="currentColor"/></svg><span>Core-<b>Lib</b></span></a>
+      <nav class="topnav" aria-label="Main">
+        <a href="getting_started.html">Docs</a>
+        <a href="https://github.com/shay-te/core-lib">GitHub</a>
+        <a href="https://pypi.org/project/core-lib/">PyPI</a>
+      </nav>
+    </header>
+
+    <main class="hero-grid">
+      <div class="pitch">
+        <h1>Swap the framework. <em>Keep the app.</em></h1>
+        <p class="lede">Core-Lib keeps Flask, SQLAlchemy, and external services out of your business logic, so changing them doesn't mean rewriting your app.</p>
+        <div class="actions">
+          <a class="button gold" href="getting_started.html">Read the docs</a>
+          <div class="install">
+            <code id="install-hero"><span>$</span> pip install core-lib</code>
+            <button class="copy" type="button" data-copy="pip install core-lib" aria-label="Copy the install command">Copy</button>
+          </div>
+        </div>
+        <p class="specs"><span>Python 3.7+</span><span>MIT license</span><span>Works alongside Flask, Django, FastAPI</span></p>
+      </div>
+
+      <div class="rig">
+        <p class="try" id="try"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v16M5 12.5l7 7 7-7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="try-text">Click any module to swap it</span></p>
+        <svg class="board" viewBox="0 0 800 640" role="group" aria-label="A circuit board. Your application is the chip in the center. Web, database, cache and payment modules plug in around it, and each one can be swapped.">
+<defs>
+<linearGradient id="mask" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#121c78"/><stop offset=".55" stop-color="#0b1357"/><stop offset="1" stop-color="#080e45"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7dc95"/><stop offset=".5" stop-color="#e3b555"/><stop offset="1" stop-color="#b98a2e"/></linearGradient>
+<linearGradient id="epoxy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1f3a"/><stop offset="1" stop-color="#0a0c1f"/></linearGradient>
+<linearGradient id="can" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1fb"/><stop offset=".45" stop-color="#aab2cf"/><stop offset="1" stop-color="#6d7596"/></linearGradient>
+<linearGradient id="gloss" x1="0" y1="0" x2="1" y2=".7"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#2740a8" stroke-width="1"/></pattern>
+</defs>
+<rect width="800" height="640" rx="22" fill="url(#mask)"/>
+<rect width="800" height="640" rx="22" fill="url(#hatch)" opacity=".2"/>
+<rect class="stitch" x="15" y="15" width="770" height="610" rx="14"/>
+<path class="ring" d="M545.2 400.5A166 166 0 0 1 480.5 465.2M319.5 465.2A166 166 0 0 1 254.8 400.5M254.8 239.5A166 166 0 0 1 319.5 174.8M480.5 174.8A166 166 0 0 1 545.2 239.5M552.2 404.4A174 174 0 0 1 484.4 472.2M315.6 472.2A174 174 0 0 1 247.8 404.4M247.8 235.6A174 174 0 0 1 315.6 167.8M484.4 167.8A174 174 0 0 1 552.2 235.6M588.7 412.1A210 210 0 0 1 492.1 508.7M307.9 508.7A210 210 0 0 1 211.3 412.1M211.3 227.9A210 210 0 0 1 307.9 131.3M492.1 131.3A210 210 0 0 1 588.7 227.9M595.9 415.6A218 218 0 0 1 495.6 515.9M304.4 515.9A218 218 0 0 1 204.1 415.6M204.1 224.4A218 218 0 0 1 304.4 124.1M495.6 124.1A218 218 0 0 1 595.9 224.4M603.1 419.1A226 226 0 0 1 499.1 523.1M300.9 523.1A226 226 0 0 1 196.9 419.1M196.9 220.9A226 226 0 0 1 300.9 116.9M499.1 116.9A226 226 0 0 1 603.1 220.9"/>
+<path class="tr thin" d="M226.9 174.7L192.9 140.7H130.9M254.7 146.9L220.7 112.9H130.7M545.3 146.9L579.3 112.9H641.3M573.1 174.7L607.1 140.7H697.1M573.1 465.3L607.1 499.3H669.1M545.3 493.1L579.3 527.1H669.3M254.7 493.1L220.7 527.1H158.7M226.9 465.3L192.9 499.3H102.9"/><circle class="via" cx="130.9" cy="140.7" r="4.5"/><circle class="via" cx="130.7" cy="112.9" r="4.5"/><circle class="via" cx="641.3" cy="112.9" r="4.5"/><circle class="via" cx="697.1" cy="140.7" r="4.5"/><circle class="via" cx="669.1" cy="499.3" r="4.5"/><circle class="via" cx="669.3" cy="527.1" r="4.5"/><circle class="via" cx="158.7" cy="527.1" r="4.5"/><circle class="via" cx="102.9" cy="499.3" r="4.5"/>
+<g class="bus" id="bus-web" style="--bus:0"><path class="tr" d="M182.0 287.5L197.0 287.5L239.5 245.0L288.0 245.0"/><path class="tr" d="M182.0 300.5L197.0 300.5L222.5 275.0L288.0 275.0"/><path class="tr" d="M182.0 313.5L197.0 313.5L205.5 305.0L288.0 305.0"/><path class="tr" d="M182.0 326.5L197.0 326.5L205.5 335.0L288.0 335.0"/><path class="tr" d="M182.0 339.5L197.0 339.5L222.5 365.0L288.0 365.0"/><path class="tr" d="M182.0 352.5L197.0 352.5L239.5 395.0L288.0 395.0"/><path class="sig" pathLength="100" style="--i:0" d="M182.0 287.5L197.0 287.5L239.5 245.0L288.0 245.0"/><path class="sig" pathLength="100" style="--i:1" d="M182.0 300.5L197.0 300.5L222.5 275.0L288.0 275.0"/><path class="sig" pathLength="100" style="--i:2" d="M182.0 313.5L197.0 313.5L205.5 305.0L288.0 305.0"/><path class="sig" pathLength="100" style="--i:3" d="M182.0 326.5L197.0 326.5L205.5 335.0L288.0 335.0"/><path class="sig" pathLength="100" style="--i:4" d="M182.0 339.5L197.0 339.5L222.5 365.0L288.0 365.0"/><path class="sig" pathLength="100" style="--i:5" d="M182.0 352.5L197.0 352.5L239.5 395.0L288.0 395.0"/></g><g class="bus" id="bus-db" style="--bus:2"><path class="tr" d="M618.0 287.5L603.0 287.5L560.5 245.0L512.0 245.0"/><path class="tr" d="M618.0 300.5L603.0 300.5L577.5 275.0L512.0 275.0"/><path class="tr" d="M618.0 313.5L603.0 313.5L594.5 305.0L512.0 305.0"/><path class="tr" d="M618.0 326.5L603.0 326.5L594.5 335.0L512.0 335.0"/><path class="tr" d="M618.0 339.5L603.0 339.5L577.5 365.0L512.0 365.0"/><path class="tr" d="M618.0 352.5L603.0 352.5L560.5 395.0L512.0 395.0"/><path class="sig" pathLength="100" style="--i:0" d="M618.0 287.5L603.0 287.5L560.5 245.0L512.0 245.0"/><path class="sig" pathLength="100" style="--i:1" d="M618.0 300.5L603.0 300.5L577.5 275.0L512.0 275.0"/><path class="sig" pathLength="100" style="--i:2" d="M618.0 313.5L603.0 313.5L594.5 305.0L512.0 305.0"/><path class="sig" pathLength="100" style="--i:3" d="M618.0 326.5L603.0 326.5L594.5 335.0L512.0 335.0"/><path class="sig" pathLength="100" style="--i:4" d="M618.0 339.5L603.0 339.5L577.5 365.0L512.0 365.0"/><path class="sig" pathLength="100" style="--i:5" d="M618.0 352.5L603.0 352.5L560.5 395.0L512.0 395.0"/></g><g class="bus" id="bus-cache" style="--bus:1"><path class="tr" d="M367.5 112.0L367.5 127.0L325.0 169.5L325.0 208.0"/><path class="tr" d="M380.5 112.0L380.5 127.0L355.0 152.5L355.0 208.0"/><path class="tr" d="M393.5 112.0L393.5 127.0L385.0 135.5L385.0 208.0"/><path class="tr" d="M406.5 112.0L406.5 127.0L415.0 135.5L415.0 208.0"/><path class="tr" d="M419.5 112.0L419.5 127.0L445.0 152.5L445.0 208.0"/><path class="tr" d="M432.5 112.0L432.5 127.0L475.0 169.5L475.0 208.0"/><path class="sig" pathLength="100" style="--i:0" d="M367.5 112.0L367.5 127.0L325.0 169.5L325.0 208.0"/><path class="sig" pathLength="100" style="--i:1" d="M380.5 112.0L380.5 127.0L355.0 152.5L355.0 208.0"/><path class="sig" pathLength="100" style="--i:2" d="M393.5 112.0L393.5 127.0L385.0 135.5L385.0 208.0"/><path class="sig" pathLength="100" style="--i:3" d="M406.5 112.0L406.5 127.0L415.0 135.5L415.0 208.0"/><path class="sig" pathLength="100" style="--i:4" d="M419.5 112.0L419.5 127.0L445.0 152.5L445.0 208.0"/><path class="sig" pathLength="100" style="--i:5" d="M432.5 112.0L432.5 127.0L475.0 169.5L475.0 208.0"/></g><g class="bus" id="bus-pay" style="--bus:3"><path class="tr" d="M367.5 528.0L367.5 513.0L325.0 470.5L325.0 432.0"/><path class="tr" d="M380.5 528.0L380.5 513.0L355.0 487.5L355.0 432.0"/><path class="tr" d="M393.5 528.0L393.5 513.0L385.0 504.5L385.0 432.0"/><path class="tr" d="M406.5 528.0L406.5 513.0L415.0 504.5L415.0 432.0"/><path class="tr" d="M419.5 528.0L419.5 513.0L445.0 487.5L445.0 432.0"/><path class="tr" d="M432.5 528.0L432.5 513.0L475.0 470.5L475.0 432.0"/><path class="sig" pathLength="100" style="--i:0" d="M367.5 528.0L367.5 513.0L325.0 470.5L325.0 432.0"/><path class="sig" pathLength="100" style="--i:1" d="M380.5 528.0L380.5 513.0L355.0 487.5L355.0 432.0"/><path class="sig" pathLength="100" style="--i:2" d="M393.5 528.0L393.5 513.0L385.0 504.5L385.0 432.0"/><path class="sig" pathLength="100" style="--i:3" d="M406.5 528.0L406.5 513.0L415.0 504.5L415.0 432.0"/><path class="sig" pathLength="100" style="--i:4" d="M419.5 528.0L419.5 513.0L445.0 487.5L445.0 432.0"/><path class="sig" pathLength="100" style="--i:5" d="M432.5 528.0L432.5 513.0L475.0 470.5L475.0 432.0"/></g>
+<circle class="via" cx="520.2" cy="440.2" r="4.5"/><circle class="via" cx="279.8" cy="440.2" r="4.5"/><circle class="via" cx="279.8" cy="199.8" r="4.5"/><circle class="via" cx="520.2" cy="199.8" r="4.5"/>
+<g class="mount"><circle cx="40" cy="40" r="15"/><circle cx="760" cy="40" r="15"/><circle cx="40" cy="600" r="15"/><circle cx="760" cy="600" r="15"/></g>
+<g class="hole"><circle cx="40" cy="40" r="8"/><circle cx="760" cy="40" r="8"/><circle cx="40" cy="600" r="8"/><circle cx="760" cy="600" r="8"/></g>
+<rect class="crystal" x="636" y="128" width="84" height="30" rx="15"/>
+<text class="silk tiny" x="678" y="178" text-anchor="middle">Y1</text>
+<circle class="led" cx="716" cy="70" r="6"/>
+<text class="silk tiny" x="700" y="75" text-anchor="end">PWR</text>
+<g transform="translate(128 170)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="128" y="192" text-anchor="middle">C1</text><g transform="translate(178 150)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="178" y="172" text-anchor="middle">C2</text><g transform="translate(92 452)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="92" y="474" text-anchor="middle">R1</text><g transform="translate(138 478)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="138" y="500" text-anchor="middle">R2</text><g transform="translate(664 452) rotate(90)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="664" y="484" text-anchor="middle">R3</text><g transform="translate(712 478) rotate(90)"><rect class="pad" x="-14" y="-6" width="8" height="12" rx="1"/><rect class="pad" x="6" y="-6" width="8" height="12" rx="1"/><rect class="part" x="-8" y="-5" width="16" height="10" rx="1"/></g><text class="silk tiny" x="712" y="510" text-anchor="middle">C3</text>
+<text class="silk ref" x="22" y="262">J1 WEB</text>
+<text class="silk ref" x="778" y="262" text-anchor="end">J2 DATABASE</text>
+<text class="silk ref" x="492" y="46">J3 CACHE</text>
+<text class="silk ref" x="492" y="608">J4 PAYMENTS</text>
+<text class="silk ref" x="292" y="196" text-anchor="start">U1</text>
+<rect class="pad" x="321.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="321.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="241.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="241.5" width="14" height="7" rx="1"/><rect class="pad" x="336.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="336.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="256.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="256.5" width="14" height="7" rx="1"/><rect class="pad" x="351.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="351.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="271.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="271.5" width="14" height="7" rx="1"/><rect class="pad" x="366.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="366.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="286.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="286.5" width="14" height="7" rx="1"/><rect class="pad" x="381.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="381.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="301.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="301.5" width="14" height="7" rx="1"/><rect class="pad" x="396.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="396.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="316.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="316.5" width="14" height="7" rx="1"/><rect class="pad" x="411.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="411.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="331.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="331.5" width="14" height="7" rx="1"/><rect class="pad" x="426.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="426.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="346.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="346.5" width="14" height="7" rx="1"/><rect class="pad" x="441.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="441.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="361.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="361.5" width="14" height="7" rx="1"/><rect class="pad" x="456.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="456.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="376.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="376.5" width="14" height="7" rx="1"/><rect class="pad" x="471.5" y="208" width="7" height="14" rx="1"/><rect class="pad" x="471.5" y="418" width="7" height="14" rx="1"/><rect class="pad" x="288" y="391.5" width="14" height="7" rx="1"/><rect class="pad" x="498" y="391.5" width="14" height="7" rx="1"/><rect class="chip" x="300" y="220" width="200" height="200" rx="7"/><rect class="chip-edge" x="305" y="225" width="190" height="190" rx="4"/><circle class="chip-dot" cx="318" cy="238" r="4.5"/><svg x="356" y="242" width="96" height="100" viewBox="0 0 400 420" class="chip-mark"><path d="M105.7 113.9A115 115 0 0 1 259.6 212.0M259.6 232.0A115 115 0 0 1 100.1 327.9M72.6 311.4A115 115 0 0 1 72.6 132.6M121.7 158.1A68 68 0 0 1 212.6 214.9M212.6 229.1A68 68 0 0 1 118.4 284.6M111.0 264.0A54 54 0 0 1 111.0 180.0" fill="none" stroke="currentColor" stroke-width="16"/><path d="M145 222L52 52M145 222L50 380M145 222L340 227" fill="none" stroke="currentColor" stroke-width="13"/><rect x="-23" y="-23" width="46" height="46" transform="translate(44 38) rotate(12)" fill="currentColor"/><circle cx="44" cy="388" r="23" fill="currentColor"/><path d="M338 197L382 227L338 257Z" fill="currentColor"/></svg><text class="chip-name" x="400" y="372" text-anchor="middle">YourCoreLib</text><text class="chip-sub" x="400" y="394" text-anchor="middle">your code lives here</text>
+<g class="mod next" id="mod-web" data-socket="web" data-x="128.0" data-y="339.0" role="button" tabindex="0" aria-label="Web module: FastAPI. Activate to swap it." style="--dx:-14px;--dy:0px"><rect class="mod-hit" x="10" y="265.0" width="184" height="110" rx="16"/><rect class="pad" x="175" y="284.0" width="14" height="7" rx="1"/><rect class="pad" x="175" y="297.0" width="14" height="7" rx="1"/><rect class="pad" x="175" y="310.0" width="14" height="7" rx="1"/><rect class="pad" x="175" y="323.0" width="14" height="7" rx="1"/><rect class="pad" x="175" y="336.0" width="14" height="7" rx="1"/><rect class="pad" x="175" y="349.0" width="14" height="7" rx="1"/><rect class="mod-ring" x="17" y="272.0" width="170" height="96" rx="13"/><rect class="mod-body" x="22" y="277.0" width="160" height="86" rx="9"/><text class="mod-name" x="102.0" y="312.0" text-anchor="middle">FastAPI</text><rect class="mod-pill" x="59.0" y="324.0" width="86" height="28" rx="14"/><text class="mod-hint" x="102.0" y="343.0" text-anchor="middle">swap</text></g><g class="mod" id="mod-db" data-socket="db" data-x="724.0" data-y="339.0" role="button" tabindex="0" aria-label="Database module: PostgreSQL. Activate to swap it." style="--dx:14px;--dy:0px"><rect class="mod-hit" x="606" y="265.0" width="184" height="110" rx="16"/><rect class="pad" x="611" y="284.0" width="14" height="7" rx="1"/><rect class="pad" x="611" y="297.0" width="14" height="7" rx="1"/><rect class="pad" x="611" y="310.0" width="14" height="7" rx="1"/><rect class="pad" x="611" y="323.0" width="14" height="7" rx="1"/><rect class="pad" x="611" y="336.0" width="14" height="7" rx="1"/><rect class="pad" x="611" y="349.0" width="14" height="7" rx="1"/><rect class="mod-ring" x="613" y="272.0" width="170" height="96" rx="13"/><rect class="mod-body" x="618" y="277.0" width="160" height="86" rx="9"/><text class="mod-name" x="698.0" y="312.0" text-anchor="middle">PostgreSQL</text><rect class="mod-pill" x="655.0" y="324.0" width="86" height="28" rx="14"/><text class="mod-hint" x="698.0" y="343.0" text-anchor="middle">swap</text></g><g class="mod" id="mod-cache" data-socket="cache" data-x="426.0" data-y="88" role="button" tabindex="0" aria-label="Cache module: Redis. Activate to swap it." style="--dx:0px;--dy:-14px"><rect class="mod-hit" x="308.0" y="14" width="184" height="110" rx="16"/><rect class="pad" x="364.0" y="105" width="7" height="14" rx="1"/><rect class="pad" x="377.0" y="105" width="7" height="14" rx="1"/><rect class="pad" x="390.0" y="105" width="7" height="14" rx="1"/><rect class="pad" x="403.0" y="105" width="7" height="14" rx="1"/><rect class="pad" x="416.0" y="105" width="7" height="14" rx="1"/><rect class="pad" x="429.0" y="105" width="7" height="14" rx="1"/><rect class="mod-ring" x="315.0" y="21" width="170" height="96" rx="13"/><rect class="mod-body" x="320.0" y="26" width="160" height="86" rx="9"/><text class="mod-name" x="400.0" y="61" text-anchor="middle">Redis</text><rect class="mod-pill" x="357.0" y="73" width="86" height="28" rx="14"/><text class="mod-hint" x="400.0" y="92" text-anchor="middle">swap</text></g><g class="mod" id="mod-pay" data-socket="pay" data-x="426.0" data-y="590" role="button" tabindex="0" aria-label="Payments module: Stripe. Activate to swap it." style="--dx:0px;--dy:14px"><rect class="mod-hit" x="308.0" y="516" width="184" height="110" rx="16"/><rect class="pad" x="364.0" y="521" width="7" height="14" rx="1"/><rect class="pad" x="377.0" y="521" width="7" height="14" rx="1"/><rect class="pad" x="390.0" y="521" width="7" height="14" rx="1"/><rect class="pad" x="403.0" y="521" width="7" height="14" rx="1"/><rect class="pad" x="416.0" y="521" width="7" height="14" rx="1"/><rect class="pad" x="429.0" y="521" width="7" height="14" rx="1"/><rect class="mod-ring" x="315.0" y="523" width="170" height="96" rx="13"/><rect class="mod-body" x="320.0" y="528" width="160" height="86" rx="9"/><text class="mod-name" x="400.0" y="563" text-anchor="middle">Stripe</text><rect class="mod-pill" x="357.0" y="575" width="86" height="28" rx="14"/><text class="mod-hint" x="400.0" y="594" text-anchor="middle">swap</text></g>
+<rect width="800" height="640" rx="22" fill="url(#gloss)" pointer-events="none"/>
+<g id="ghost" style="transform:translate(128.0px,339.0px)"><path class="ghost-arrow" d="M0 0V34L9.5 26L16 41L24 37.5L17.5 23H30Z"/></g>
+</svg>
+        <div class="console">
+          <header>
+            <h2 id="swap-title" aria-live="polite">Flask to FastAPI</h2>
+            <span class="where" id="swap-file">web/user_routes.py</span>
+            <span class="stat"><span class="a" id="swap-adds">+3</span> <span class="d" id="swap-dels">-3</span></span>
+          </header>
+          <code class="diff" id="diff"><span class="ln del"><span class="sign">-</span>@app.route('/api/user/&lt;int:user_id&gt;')</span><span class="ln add"><span class="sign">+</span>@router.get('/api/user/{user_id}')</span><span class="ln del"><span class="sign">-</span>def get_user(user_id):</span><span class="ln add"><span class="sign">+</span>def get_user(user_id: int):</span><span class="ln del"><span class="sign">-</span>    return response_json(<mark>your_core_lib.user.get(user_id)</mark>)</span><span class="ln add"><span class="sign">+</span>    return <mark>your_core_lib.user.get(user_id)</mark></span></code>
+          <p class="result"><strong>0</strong> <span>lines changed in your services, data access and service tests</span></p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<section id="why">
+  <div class="wrap split">
+    <div class="head">
+      <p class="label">Failure mode</p>
+      <h2>It didn't look tightly coupled until they tried to change it.</h2>
+      <p class="prose">A team built a complete production system on Play Framework 1.2. Then Play 2.0 arrived with a completely different architecture. Migrating would have cost as much as rebuilding the product, so the project was dropped.</p>
+    </div>
+    <div class="head">
+      <p class="prose">Most Python backends drift the same way, one small shortcut at a time:</p>
+      <ul class="leaks">
+        <li><code>from flask import request</code><span>Your services import Flask's request.</span></li>
+        <li><code>db.session.query(User)</code><span>Your business logic depends on SQLAlchemy sessions.</span></li>
+        <li><code>redis.Redis(host='cache')</code><span>Your tests need real external services to run.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="layers">
+  <div class="wrap stack-grid">
+    <div class="head">
+      <p class="label">Layer stack-up</p>
+      <h2>Your code in the middle. Everything else on the outside.</h2>
+      <p class="prose">Core-Lib doesn't invent a new pattern. It enforces one consistently, so the structure survives past the first few months, when shortcuts start creeping in.</p>
+    </div>
+    <ol class="stack" aria-label="The layers of a Core-Lib application, from the outside in">
+      <li class="layer edge"><span class="band"></span><b>Web framework</b><p>Flask, Django or FastAPI. A thin layer you can replace.</p></li>
+      <li class="layer main"><span class="band"></span><b>CoreLib</b><p>Your application, and the single entry point for web, jobs, scripts and tests.</p></li>
+      <li class="layer core"><span class="band"></span><b>Service</b><p>Business logic and orchestration. It never touches a database session.</p></li>
+      <li class="layer low"><span class="band"></span><b>DataAccess, Client, Job</b><p>Database queries, third-party API wrappers, and background tasks.</p></li>
+      <li class="layer"><span class="band"></span><b>Connection</b><p>Sessions and connection pooling, wired in at startup from config.</p></li>
+      <li class="layer edge"><span class="band"></span><b>Infrastructure</b><p>PostgreSQL, MongoDB, Redis, Memcached, Solr, Neo4j and any HTTP API.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap">
+    <div class="head">
+      <p class="label">Typical application</p>
+      <h2>A complete feature in four small files.</h2>
+    </div>
+    <div class="ide">
+      <ul class="tree" role="tablist" aria-label="Files in the example" aria-orientation="vertical"><li class="dir" role="presentation" style="--d:0">your_core_lib/</li><li role="presentation" style="--d:1"><button role="tab" id="tab-0" aria-controls="file-0" aria-selected="true" tabindex="0">your_core_lib.py</button></li><li class="dir" role="presentation" style="--d:1">data_layers/</li><li class="dir" role="presentation" style="--d:2">service/</li><li role="presentation" style="--d:3"><button role="tab" id="tab-1" aria-controls="file-1" aria-selected="false" tabindex="-1">user_service.py</button></li><li class="dir" role="presentation" style="--d:2">data_access/</li><li role="presentation" style="--d:3"><button role="tab" id="tab-2" aria-controls="file-2" aria-selected="false" tabindex="-1">user_data_access.py</button></li><li class="dir" role="presentation" style="--d:2">data/db/entities/</li><li role="presentation" style="--d:3"><button role="tab" id="tab-3" aria-controls="file-3" aria-selected="false" tabindex="-1">user.py</button></li><li class="dir" role="presentation" style="--d:0">tests/</li><li role="presentation" style="--d:1"><button role="tab" id="tab-4" aria-controls="file-4" aria-selected="false" tabindex="-1">test_user_service.py</button></li></ul>
+      <div><div class="panel on" role="tabpanel" id="file-0" aria-labelledby="tab-0" tabindex="0"><p class="path">your_core_lib/your_core_lib.py</p><p class="note">The whole application, in one class. Web, jobs, scripts and tests all start here.</p><pre class="code"><code><span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">DictConfig</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.cache.cache_handler_ram</span><span class="w"> </span><span class="kn">import</span> <span class="n">CacheHandlerRam</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.core_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreLib</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">YOUR_CORE_LIB_CACHE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.data_access.user_data_access</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserDataAccess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.service.user_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserService</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">YourCoreLib</span><span class="p">(</span><span class="n">CoreLib</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="n">DictConfig</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">conf</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">CoreLib</span><span class="o">.</span><span class="n">cache_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">YOUR_CORE_LIB_CACHE</span><span class="p">):</span>
+            <span class="n">CoreLib</span><span class="o">.</span><span class="n">cache_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">YOUR_CORE_LIB_CACHE</span><span class="p">,</span> <span class="n">CacheHandlerRam</span><span class="p">())</span>
+
+        <span class="n">db</span> <span class="o">=</span> <span class="n">CoreLib</span><span class="o">.</span><span class="n">connection_factory_registry</span><span class="o">.</span><span class="n">get_or_reg</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">core_lib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sqlalchemy</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">UserService</span><span class="p">(</span><span class="n">UserDataAccess</span><span class="p">(</span><span class="n">db</span><span class="p">))</span></code></pre></div><div class="panel" role="tabpanel" id="file-1" aria-labelledby="tab-1" tabindex="0"><p class="path">your_core_lib/data_layers/service/user_service.py</p><p class="note">Business logic. Caching and error mapping are decorators, and nothing here knows about a request or a session.</p><pre class="code"><code><span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.cache.cache_decorator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_layers.service.service</span><span class="w"> </span><span class="kn">import</span> <span class="n">Service</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_transform.result_to_dict</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResultToDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.error_handling.duplicate_error_decorator</span><span class="w"> </span><span class="kn">import</span> <span class="n">DuplicateErrorHandler</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">YOUR_CORE_LIB_CACHE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.data.db.entities.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.data_access.user_data_access</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserDataAccess</span>
+
+<span class="n">CACHE_KEY_USER</span> <span class="o">=</span> <span class="s1">&#39;your_user_</span><span class="si">{user_id}</span><span class="s1">&#39;</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UserService</span><span class="p">(</span><span class="n">Service</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_da</span><span class="p">:</span> <span class="n">UserDataAccess</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_da</span> <span class="o">=</span> <span class="n">user_da</span>
+
+    <span class="nd">@ResultToDict</span><span class="p">()</span>
+    <span class="nd">@DuplicateErrorHandler</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_da</span><span class="o">.</span><span class="n">create</span><span class="p">({</span><span class="n">User</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">email</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">name</span><span class="p">})</span>
+
+    <span class="nd">@Cache</span><span class="p">(</span><span class="n">CACHE_KEY_USER</span><span class="p">,</span> <span class="n">handler_name</span><span class="o">=</span><span class="n">YOUR_CORE_LIB_CACHE</span><span class="p">)</span>
+    <span class="nd">@ResultToDict</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_da</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+
+    <span class="nd">@Cache</span><span class="p">(</span><span class="n">CACHE_KEY_USER</span><span class="p">,</span> <span class="n">handler_name</span><span class="o">=</span><span class="n">YOUR_CORE_LIB_CACHE</span><span class="p">,</span> <span class="n">invalidate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_da</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code></pre></div><div class="panel" role="tabpanel" id="file-2" aria-labelledby="tab-2" tabindex="0"><p class="path">your_core_lib/data_layers/data_access/user_data_access.py</p><p class="note">Create, read, update and delete come from the base class. The validator is an allow-list for every write.</p><pre class="code"><code><span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.connection.sql_alchemy_connection_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">SqlAlchemyConnectionFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_layers.data_access.db.crud.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">CRUD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_layers.data_access.db.crud.crud_soft_data_access</span><span class="w"> </span><span class="kn">import</span> <span class="n">CRUDSoftDeleteDataAccess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.rule_validator.rule_validator</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuleValidator</span><span class="p">,</span> <span class="n">ValueRuleValidator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.data.db.entities.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="n">rule_validator</span> <span class="o">=</span> <span class="n">RuleValidator</span><span class="p">([</span>
+    <span class="n">ValueRuleValidator</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+    <span class="n">ValueRuleValidator</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+<span class="p">])</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UserDataAccess</span><span class="p">(</span><span class="n">CRUDSoftDeleteDataAccess</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">SqlAlchemyConnectionFactory</span><span class="p">):</span>
+        <span class="n">CRUD</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">User</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">rule_validator</span><span class="p">)</span></code></pre></div><div class="panel" role="tabpanel" id="file-3" aria-labelledby="tab-3" tabindex="0"><p class="path">your_core_lib/data_layers/data/db/entities/user.py</p><p class="note">Plain SQLAlchemy. You keep writing models the way you already do.</p><pre class="code"><code><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">INTEGER</span><span class="p">,</span> <span class="n">VARCHAR</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_layers.data.db.sqlalchemy.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Base</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoftDeleteMixin</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="n">SoftDeleteMixin</span><span class="p">):</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;user&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">INTEGER</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">VARCHAR</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">VARCHAR</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code></pre></div><div class="panel" role="tabpanel" id="file-4" aria-labelledby="tab-4" tabindex="0"><p class="path">tests/test_user_service.py</p><p class="note">The full application on in-memory SQLite. No Docker and no services to start.</p><pre class="code"><code><span class="kn">import</span><span class="w"> </span><span class="nn">unittest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tests.helpers.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">sync_create_start_core_lib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_core_lib.data_layers.data.db.entities.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestUserService</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUpClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">your_core_lib</span> <span class="o">=</span> <span class="n">sync_create_start_core_lib</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_update_is_visible_on_the_next_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">your_core_lib</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;reviewer@acme.example&#39;</span><span class="p">,</span> <span class="s1">&#39;Reviewer&#39;</span><span class="p">)</span>
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;Reviewer&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">your_core_lib</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_id</span><span class="p">)[</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">your_core_lib</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="p">{</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="s1">&#39;Lead reviewer&#39;</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s1">&#39;Lead reviewer&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">your_core_lib</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_id</span><span class="p">)[</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">key</span><span class="p">])</span></code></pre></div></div>
+    </div>
+    <p class="after">These files are tested as shown. The YAML config, a one-line constants file and the test bootstrap are left out for space. Continue with <a href="getting_started.html">the getting started guide</a>.</p>
+  </div>
+</section>
+
+<section id="parts">
+  <div class="wrap">
+    <div class="head">
+      <p class="label">Bill of materials</p>
+      <h2>What's on the board.</h2>
+    </div>
+    <div class="bom-wrap">
+      <table class="bom">
+        <thead><tr><th scope="col">Ref</th><th scope="col">Part</th><th scope="col">What it does</th></tr></thead>
+        <tbody><tr><th scope="row">U1</th><td><a href="core_lib_main_class.html">CoreLib</a></td><td>The base class your application extends. One entry point for web, jobs, scripts and tests.</td></tr><tr><th scope="row">U2</th><td><a href="alembic.html">Alembic</a></td><td>Versioned schema migrations, run with <code>core_lib migrate</code> or <code>install()</code>.</td></tr><tr><th scope="row">J1</th><td><a href="sql_alchemy_connection.html">SQLAlchemy</a></td><td>Sessions and connection pooling, configured from YAML.</td></tr><tr><th scope="row">J2</th><td><a href="connection.html">MongoDB, Neo4j, Solr, Elasticsearch</a></td><td>Connection factories that follow the same lifecycle.</td></tr><tr><th scope="row">J3</th><td><a href="client_base.html">ClientBase</a></td><td>A base for HTTP API clients, with headers, auth and timeouts.</td></tr><tr><th scope="row">C1</th><td><a href="cache.html">@Cache</a></td><td>Cache and invalidate by key template on RAM, Memcached or Redis.</td></tr><tr><th scope="row">Q1</th><td><a href="crud.html">CRUD data access</a></td><td>Create, read, update and delete, with soft-delete variants.</td></tr><tr><th scope="row">R1</th><td><a href="rules_validator.html">RuleValidator</a></td><td>An allow-list of fields and types for every write.</td></tr><tr><th scope="row">T1</th><td><a href="result_to_dict.html">@ResultToDict</a></td><td>Turns entities into plain dicts your web layer can return.</td></tr><tr><th scope="row">F1</th><td><a href="error_handler.html">Error handlers</a></td><td>Map missing rows and duplicates to HTTP status codes.</td></tr><tr><th scope="row">Y1</th><td><a href="job.html">Job</a></td><td>Scheduled and one-shot background work, declared in config.</td></tr><tr><th scope="row">D1</th><td><a href="observer.html">@Observe</a></td><td>Fire events that the rest of your system can listen to.</td></tr><tr><th scope="row">TP1</th><td><a href="test_core_lib.html">Test support</a></td><td>Start the full application against SQLite with a config override.</td></tr><tr><th scope="row">P1</th><td><a href="generation.html">core_lib CLI</a></td><td>Scaffold a new library and run its migrations.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="bom-note">The references follow PCB convention: U for chips, J for connectors, C for storage, R for what resists bad input, F for fuses, Y for the clock.</p>
+  </div>
+</section>
+
+<section id="fit">
+  <div class="wrap">
+    <div class="head">
+      <p class="label">Recommended operating conditions</p>
+      <h2>Built for backends that last.</h2>
+    </div>
+    <div class="fit">
+      <div class="yes">
+        <h3>Use it when</h3>
+        <ul>
+          <li>Your backend will live for years, not weeks</li>
+          <li>Multiple engineers will touch the same codebase</li>
+          <li>You want to run the same logic from web, jobs, scripts, and tests</li>
+          <li>You need to swap infrastructure without touching business logic</li>
+        </ul>
+      </div>
+      <div class="no">
+        <h3>Skip it when</h3>
+        <ul>
+          <li>Your app is a prototype, script, or simple CRUD app</li>
+          <li>There's no long-term maintenance expectation</li>
+          <li>Your app is small and unlikely to change much</li>
+        </ul>
+      </div>
+    </div>
+    <div class="not">
+      <div>
+        <h3>It has no router</h3>
+        <p>Core-Lib has no request lifecycle of its own. It works alongside Flask, Django and FastAPI, and you bring the web layer.</p>
+      </div>
+      <div>
+        <h3>You keep your tools</h3>
+        <p>You still write SQLAlchemy models and Redis commands. Core-Lib handles the connection lifecycle and stops those dependencies from spreading.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="close">
+  <div class="wrap">
+    <div class="close-grid">
+      <div>
+        <h2>Put your application at the center.</h2>
+        <p class="lede">Install it, answer a few questions, and start from a complete library with config, tests and a place for every layer.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="install"><code><span>$</span> pip install core-lib</code><button class="copy" type="button" data-copy="pip install core-lib" aria-label="Copy the install command">Copy</button></div>
+        </div>
+        <div class="step">
+          <div class="install"><code><span>$</span> core_lib generate</code><button class="copy" type="button" data-copy="core_lib generate" aria-label="Copy the generate command">Copy</button></div>
+        </div>
+        <a class="button gold" href="getting_started.html">Read the docs</a>
+      </div>
+    </div>
+    <footer class="footer">
+      <a class="brand" href="./" aria-label="Core-Lib home"><svg viewBox="0 0 400 420" aria-hidden="true"><path d="M105.7 113.9A115 115 0 0 1 259.6 212.0M259.6 232.0A115 115 0 0 1 100.1 327.9M72.6 311.4A115 115 0 0 1 72.6 132.6M121.7 158.1A68 68 0 0 1 212.6 214.9M212.6 229.1A68 68 0 0 1 118.4 284.6M111.0 264.0A54 54 0 0 1 111.0 180.0" fill="none" stroke="currentColor" stroke-width="16"/><path d="M145 222L52 52M145 222L50 380M145 222L340 227" fill="none" stroke="currentColor" stroke-width="13"/><rect x="-23" y="-23" width="46" height="46" transform="translate(44 38) rotate(12)" fill="currentColor"/><circle cx="44" cy="388" r="23" fill="currentColor"/><path d="M338 197L382 227L338 257Z" fill="currentColor"/></svg><span>Core-<b>Lib</b></span></a>
+      <nav aria-label="Footer">
+        <a href="getting_started.html">Docs</a>
+        <a href="https://github.com/shay-te/core-lib">GitHub</a>
+        <a href="https://pypi.org/project/core-lib/">PyPI</a>
+        <a href="https://github.com/shay-te/core-lib/blob/master/LICENSE">MIT License</a>
+      </nav>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  var sockets = {"web":{"title":"Web","file":"web/user_routes.py","at":1,"options":[{"name":"Flask","lines":["@app.route('/api/user/<int:user_id>')","def get_user(user_id):","    return response_json(your_core_lib.user.get(user_id))"]},{"name":"FastAPI","lines":["@router.get('/api/user/{user_id}')","def get_user(user_id: int):","    return your_core_lib.user.get(user_id)"]},{"name":"Django","lines":["@require_GET","def get_user(request, user_id):","    return JsonResponse(your_core_lib.user.get(user_id))"]}]},"db":{"title":"Database","file":"your_core_lib.yaml","at":0,"options":[{"name":"PostgreSQL","lines":["protocol: postgresql","host: db.acme.example","port: 5432"]},{"name":"MySQL","lines":["protocol: mysql+pymysql","host: db.acme.example","port: 3306"]},{"name":"SQLite","lines":["protocol: sqlite","file: app.db","port: null"]}]},"cache":{"title":"Cache","file":"your_core_lib.py","at":1,"options":[{"name":"RAM","lines":["handler = CacheHandlerRam()","CoreLib.cache_registry.register(YOUR_CORE_LIB_CACHE, handler)"]},{"name":"Redis","lines":["handler = CacheHandlerRedis(conf.core_lib.cache.url)","CoreLib.cache_registry.register(YOUR_CORE_LIB_CACHE, handler)"]},{"name":"Memcached","lines":["handler = CacheHandlerMemcached(conf.core_lib.cache.url)","CoreLib.cache_registry.register(YOUR_CORE_LIB_CACHE, handler)"]}]},"pay":{"title":"Payments","file":"your_core_lib.py","at":0,"options":[{"name":"Stripe","lines":["client = StripeClient(conf.billing.url)","self.billing = BillingService(client)"]},{"name":"PayPal","lines":["client = PayPalClient(conf.billing.url)","self.billing = BillingService(client)"]},{"name":"Invoices","lines":["client = InvoiceClient(conf.billing.url)","self.billing = BillingService(client)"]}]}};
+  var CONSTANT_CALL = 'your_core_lib.user.get(user_id)';
+  var GUIDE = { web: 'the web framework', db: 'the database', cache: 'the cache', pay: 'payments' };
+  var ORDER = ['web', 'db', 'cache', 'pay'];
+  var byId = document.getElementById.bind(document);
+  var diff = byId('diff');
+  var ghost = byId('ghost');
+  var swapped = {};
+
+  if (window.matchMedia('(hover: none)').matches) {
+    byId('try-text').textContent = 'Tap any module to swap it';
+  }
+
+  function line(kind, text) {
+    var row = document.createElement('span');
+    var sign = document.createElement('span');
+    row.className = 'ln ' + kind;
+    sign.className = 'sign';
+    sign.textContent = { add: '+', del: '-', ctx: ' ' }[kind];
+    row.appendChild(sign);
+    text.split(CONSTANT_CALL).forEach(function (part, index, parts) {
+      row.appendChild(document.createTextNode(part));
+      if (index < parts.length - 1) {
+        var highlight = document.createElement('mark');
+        highlight.textContent = CONSTANT_CALL;
+        row.appendChild(highlight);
+      }
+    });
+    return row;
+  }
+
+  function showDiff(socket, before, after) {
+    var added = 0;
+    var removed = 0;
+    diff.textContent = '';
+    before.lines.forEach(function (oldLine, index) {
+      var newLine = after.lines[index];
+      if (oldLine === newLine) {
+        diff.appendChild(line('ctx', oldLine));
+        return;
+      }
+      diff.appendChild(line('del', oldLine));
+      diff.appendChild(line('add', newLine));
+      added += 1;
+      removed += 1;
+    });
+    byId('swap-title').textContent = before.name + ' to ' + after.name;
+    byId('swap-file').textContent = socket.file;
+    byId('swap-adds').textContent = '+' + added;
+    byId('swap-dels').textContent = '-' + removed;
+  }
+
+  function replay(element, className, duration) {
+    element.classList.remove(className);
+    element.getBoundingClientRect();
+    element.classList.add(className);
+    setTimeout(function () { element.classList.remove(className); }, duration);
+  }
+
+  function aim(key) {
+    document.querySelectorAll('.mod.next').forEach(function (module) { module.classList.remove('next'); });
+    if (!key) {
+      ghost.classList.add('gone');
+      return;
+    }
+    var target = byId('mod-' + key);
+    target.classList.add('next');
+    ghost.style.transform = 'translate(' + target.getAttribute('data-x') + 'px,' + target.getAttribute('data-y') + 'px)';
+  }
+
+  function guide(key) {
+    swapped[key] = true;
+    var next = ORDER.filter(function (candidate) { return !swapped[candidate]; })[0];
+    byId('try-text').textContent = next ? 'Now swap ' + GUIDE[next] : 'All four swapped. 0 lines changed in your business logic.';
+    byId('try').classList.toggle('done', !next);
+    aim(next);
+  }
+
+  function swap(key) {
+    var socket = sockets[key];
+    var module = byId('mod-' + key);
+    var before = socket.options[socket.at];
+    socket.at = (socket.at + 1) % socket.options.length;
+    var after = socket.options[socket.at];
+    module.classList.add('lift');
+    setTimeout(function () {
+      module.querySelector('.mod-name').textContent = after.name;
+      module.setAttribute('aria-label', socket.title + ' module: ' + after.name + '. Activate to swap it.');
+      module.classList.remove('lift');
+      replay(byId('bus-' + key), 'burst', 1300);
+      replay(document.querySelector('.result strong'), 'pop', 600);
+    }, 200);
+    showDiff(socket, before, after);
+    guide(key);
+  }
+
+  document.querySelectorAll('.mod').forEach(function (module) {
+    var key = module.getAttribute('data-socket');
+    module.addEventListener('click', function () { swap(key); });
+    module.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        swap(key);
+      }
+    });
+  });
+
+  document.querySelectorAll('.copy').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var label = button.textContent;
+      function report(text) {
+        button.textContent = text;
+        setTimeout(function () { button.textContent = label; }, 1600);
+      }
+      function selectInstead() {
+        var range = document.createRange();
+        range.selectNodeContents(button.previousElementSibling);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        report('Press Ctrl+C');
+      }
+      if (!navigator.clipboard) {
+        selectInstead();
+        return;
+      }
+      navigator.clipboard.writeText(button.getAttribute('data-copy')).then(function () { report('Copied'); }, selectInstead);
+    });
+  });
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab) {
+    tabs.forEach(function (other) {
+      var active = other === tab;
+      other.setAttribute('aria-selected', active ? 'true' : 'false');
+      other.tabIndex = active ? 0 : -1;
+      byId(other.getAttribute('aria-controls')).classList.toggle('on', active);
+    });
+  }
+  tabs.forEach(function (tab, index) {
+    tab.addEventListener('click', function () { select(tab); });
+    tab.addEventListener('keydown', function (event) {
+      var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+      if (!step) {
+        return;
+      }
+      event.preventDefault();
+      var next = tabs[(index + step + tabs.length) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+})();
+</script>
+</body>
+</html>

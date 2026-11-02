@@ -1,8 +1,8 @@
 ---
-id: main
-title:
+id: getting_started
+title: Getting started
 sidebar: core_lib_doc_sidebar
-permalink: index.html
+permalink: getting_started.html
 folder: core_lib_doc
 toc: false
 ---
@@ -320,5 +320,5 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 MIT — see the [LICENSE](https://github.com/shay-te/core-lib/blob/master/LICENSE){:target="_blank"} file for details.
 
 <div style="margin-top:2em">
-  <button class="pageNext-btn"><a href="/advantages.html">Next >></a></button>
+  <button class="pageNext-btn"><a href="advantages.html">Next >></a></button>
 </div>
