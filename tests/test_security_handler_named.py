@@ -50,8 +50,9 @@ class TestSecurityHandlerNamed(unittest.TestCase):
         self.assertIsNot(SecurityHandler.user_security, self.named_security)
 
     def test_register_duplicate_name_raises(self):
+        other_security = CustomerSecurity(OTHER_COOKIE, SECRET_KEY, TOKEN_TTL)
         with self.assertRaises(ValueError):
-            SecurityHandler.register(CustomerSecurity(OTHER_COOKIE, SECRET_KEY, TOKEN_TTL), NAMED_HANDLER)
+            SecurityHandler.register(other_security, NAMED_HANDLER)
 
     def test_get_unknown_name_raises(self):
         with self.assertRaises(ValueError):
