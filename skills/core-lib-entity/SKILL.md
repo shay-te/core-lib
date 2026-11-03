@@ -221,8 +221,11 @@ The mixin choice decides the DataAccess base (§5).
   tables sit in the host's default schema: all core-lib entities share `Base.metadata`, so a
   host's `create_all` would fail on a schema that does not exist yet. Prefix the table name with
   the library's name when the bare name could clash with a host's table
-  (`__tablename__ = 'audit_access_event'`, module `audit_access_event.py`, indexes
-  `ix_audit_access_event_*`), and grant per table in the migration.
+  (`__tablename__ = 'audit_access_event'`, class `AuditAccessEvent`, module
+  `audit_access_event.py`, indexes `ix_audit_access_event_*`). **The table, the class and
+  the file always carry the same name.**
+- **An entity sets no `__mapper_args__`.** SQLAlchemy 2.0 reads server defaults back on
+  insert by itself, so `eager_defaults` adds nothing.
 - **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals
