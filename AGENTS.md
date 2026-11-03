@@ -542,8 +542,9 @@ should return nothing but comments. A domain rule that is ALSO enforced in
   and the lib itself, plus a planted-import test so an empty result can't mean
   the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
-  the real module. `__init__.py` files stay empty package markers; §2.1 owns the
-  full rule.
+  the real module. `__init__.py` files stay empty package markers, and the
+  package root's holds only `__version__`, with no import and no `__all__`. A
+  re-export there breaks the build; §1 owns the full rule.
 
 ## Self-contained and fully tested
 
@@ -622,7 +623,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 ## 1. Naming (exact — no variation)
 
 - Repo `foo-core-lib` → python package `foo_core_lib` → main class `FooCoreLib` in `foo_core_lib/foo_core_lib.py`.
-- `foo_core_lib/__init__.py` carries `__version__ = '0.0.0.1'` and (current convention) re-exports the class: `from foo_core_lib.foo_core_lib import FooCoreLib` plus `__all__`. **(divergence: the older libs top-level `__init__.py` contain ONLY `__version__` — so `from foo_core_lib import FooCoreLib` does NOT work; always import from the module path `foo_core_lib.foo_core_lib` when consuming siblings.)** Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
+- `foo_core_lib/__init__.py` carries ONLY `__version__ = '0.0.0.1'` (plus its one comment line). **No `import`, no re-export of `FooCoreLib`, no `__all__`.** The build reads the version by importing the package (the generated `setup.py` runs `import foo_core_lib`), and that import executes `__init__.py`. A `from foo_core_lib.foo_core_lib import FooCoreLib` line there loads the whole lib (`core_lib`, SQLAlchemy, Hydra) before the build has installed any of it, and the build fails. This broke a real generated lib's build. Consumers and tests import the class from its module: `from foo_core_lib.foo_core_lib import FooCoreLib`. `from foo_core_lib import FooCoreLib` is not supported. Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
 - Constants in `foo_core_lib/constants.py` (current convention): the cache handler key `FOO_CORE_LIB_CACHE = 'foo_core_lib'` and (if the lib fires events) the observer key `FOO_CORE_LIB_NAME = 'FOO_CORE_LIB'`. **(divergence: an older lib uses `<name>_core_lib_constants.py`; an older lib uses `constants/core_lib_constants.py` with `CACHE = 'CACHE_CUSTOM_FIELD'`; an older lib’s key is `CACHE_WORKFLOW = 'WORKFLOW_CACHE'`. New libs use `constants.py` + the `FOO_CORE_LIB_CACHE = 'foo_core_lib'` name/value shape.)**
 - Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file. A non-persisted data type `ThingResult` goes in `data_layers/data/data_types/thing_result.py` — same one-class-per-file rule, and never under `service/` (§4.1). A pure engine/helper module under `service/` ends `_helper.py` — those two suffixes are the only ones that folder allows (§6.1). Anything error-shaped goes in `error_handling/<snake_case_class>.py`, one class per file (§4.2).
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
@@ -637,7 +638,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 ```
 foo-core-lib/
   foo_core_lib/
-    __init__.py                       # __version__ (+ newest style: re-export FooCoreLib)
+    __init__.py                       # __version__ ONLY: no import, no __all__ (§1)
     foo_core_lib.py                   # composition root
     constants.py                      # FOO_CORE_LIB_CACHE (+ FOO_CORE_LIB_NAME if events)
     config/
@@ -1630,10 +1631,12 @@ def sync_create_start_core_lib() -> FooCoreLib:
 24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
 25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
 26. A lib-prefixed database key (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …), or any other change to the DB block (§3.1).
+27. Any `import` or `__all__` in `foo_core_lib/__init__.py`, such as re-exporting `FooCoreLib` "for convenience". `setup.py` imports the package to read `__version__`, so the re-export loads the whole lib before its dependencies are installed and the build fails (§1).
 
 ## 17. Final checklist before handing the lib over
 
 - [ ] Package imports clean with NO optional SDKs installed (`python -c "import foo_core_lib"`).
+- [ ] `foo_core_lib/__init__.py` holds only `__version__`: `grep -nE "import|__all__" foo_core_lib/__init__.py` prints nothing.
 - [ ] `FooCoreLib(compose)` constructs twice in one process without registry explosions (guards work).
 - [ ] All public attributes are singular service names; every service subclasses `Service`; no DA reachable publicly.
 - [ ] `config/__init__.py` + `hydra_plugins/.../__init__.py` exist; `pkg://foo_core_lib.config` composes from a scratch dir.

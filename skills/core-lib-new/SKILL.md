@@ -56,8 +56,12 @@ validation-failure type**.
    + `tests/data/config/`; re-read every prose line the rename touched; and
    rewrite `setup.py` + `MANIFEST.in` per §14 (text reads, `tests` excluded,
    migration `*.mako` + `.migration_ver` shipped). The package-root `foo_core_lib/__init__.py`
-   carries `__version__` **and** re-exports the class
-   (`from foo_core_lib.foo_core_lib import FooCoreLib` + `__all__`). **Every
+   carries **only** `__version__ = '0.0.0.1'`. **Do NOT add
+   `from foo_core_lib.foo_core_lib import FooCoreLib` or `__all__`.** The
+   build imports the package to read `__version__`, so a re-export loads
+   `core_lib`, SQLAlchemy and Hydra before they are installed, and the build
+   fails. This happened on a real generated lib. Import the class from its
+   module instead: `from foo_core_lib.foo_core_lib import FooCoreLib`. **Every
    other `__init__.py` is an empty 0-byte file — but it must exist** (§1, §2).
 2. **First vertical slice**: entity → data-access → service (run those three
    skills in order).
@@ -146,6 +150,9 @@ class FooCoreLib(CoreLib):
   go in `extras_require` (§14).
 - **No empty re-export-only modules**; import from the defining submodule
   (§1).
+- **No `import` and no `__all__` in the package-root `__init__.py`.** It holds
+  `__version__` and nothing else; a re-export of `FooCoreLib` there breaks the
+  build (§1, AGENTS §16 #27).
 
 ## The agnosticism litmus test
 
