@@ -350,6 +350,69 @@ h1 em { display: block; font-style: normal; color: var(--signal); }
 .code .bp, .code .nb { color: #bcc6ff; }
 .after { margin-top: 18px; font-size: .95rem; color: var(--muted); }
 
+/* Data map */
+.dm-picks { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: clamp(24px, 3vw, 34px); }
+.dm-picks p { font: 600 clamp(1.2rem, 1.9vw, 1.45rem)/1.2 var(--display); font-stretch: 104%; }
+.dm-pick { min-height: 44px; padding-inline: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: 500 .875rem var(--mono); font-stretch: 85%; cursor: pointer; transition: border-color .15s; }
+.dm-pick:hover { border-color: var(--accent); }
+.dm-pick[aria-pressed="true"] { border-color: transparent; background: linear-gradient(180deg, #f6d994, #e2b452); color: #231903; }
+.dm-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 20px; align-items: start; margin-top: 14px; }
+.dm-board { min-width: 0; padding: clamp(8px, 1.4vw, 16px); border: 1px solid var(--panel-line); border-radius: 12px; background: var(--panel); }
+.dm-svg { display: block; width: 100%; height: auto; }
+.dm-lane { font: 600 19px var(--display); fill: var(--silk); }
+.dm-sub { font: 400 13px var(--mono); font-stretch: 80%; fill: #8a94c6; }
+.dm-card { fill: #05082a; stroke: #2a3690; stroke-width: 1.5; }
+.dm-h { font: 500 16px var(--mono); font-stretch: 78%; fill: var(--silk); }
+.dm-m { font: 400 16px var(--mono); font-stretch: 78%; fill: #d5dcff; }
+.dm-c { font: 400 14.5px var(--mono); font-stretch: 78%; fill: #8a94c6; }
+.dm-tag { font: 400 12.5px var(--mono); font-stretch: 78%; fill: #8a94c6; }
+.dm-row { fill: transparent; stroke: none; }
+.dm-part { opacity: .55; transition: opacity .2s; }
+.dm-tr:not(.on), .dm-fk:not(.on) { opacity: .4; }
+.dm-part.on { opacity: 1; }
+.dm-tr { fill: none; stroke: #3451c4; stroke-width: 2.5; stroke-linejoin: round; }
+.dm-tr.write { stroke: var(--gold); stroke-dasharray: 7 7; }
+.dm-tr.read { stroke: #5ec0ff; stroke-dasharray: 7 7; }
+.dm-fk { fill: none; stroke: #6d77ad; stroke-width: 2; }
+.dm-part.write .dm-row { fill: rgba(232, 189, 98, .16); stroke: var(--gold); }
+.dm-part.read .dm-row { fill: rgba(94, 192, 255, .15); stroke: #5ec0ff; }
+.dm-table { cursor: pointer; outline: none; }
+.dm-table:hover .dm-tcard { stroke: #ffe2a0; }
+.dm-table:focus-visible .dm-tcard { stroke: var(--silk); stroke-width: 3; }
+.dm-table.sel .dm-tcard { stroke: var(--gold); stroke-width: 2.5; }
+.dm-table.sel .dm-th { fill: var(--gold); }
+.dm-readout { min-width: 0; padding: 20px 22px; border-radius: 12px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.dm-name { font: 700 1.5rem/1.2 var(--display); overflow-wrap: anywhere; }
+.dm-columns { margin-top: 2px; font: 400 .75rem/1.5 var(--mono); font-stretch: 80%; color: var(--muted); }
+.dm-readout dl { display: grid; gap: 14px; margin: 16px 0 0; }
+.dm-entry { padding-left: 12px; border-left: 3px solid var(--line); }
+.dm-entry.w { border-left-color: var(--gold); }
+.dm-entry.r { border-left-color: var(--signal); }
+.dm-entry dt { font: 500 .6875rem/1.4 var(--mono); font-stretch: 85%; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.dm-entry dd { margin: 4px 0 0; font: 400 .8125rem/1.45 var(--mono); font-stretch: 80%; overflow-wrap: anywhere; }
+.dm-entry small { display: block; font-size: .75rem; color: var(--muted); }
+.dm-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin-top: 14px; font-size: .9rem; color: var(--muted); }
+.dm-legend { display: inline-flex; align-items: center; gap: 8px; }
+.dm-key { display: block; width: 18px; height: 4px; border-radius: 2px; }
+.dm-key.w { background: var(--gold); }
+.dm-key.r { background: var(--signal); }
+@media (prefers-reduced-motion: no-preference) {
+  .dm-tr.write { animation: dm-write 1s linear infinite; }
+  .dm-tr.read { animation: dm-read 1s linear infinite; }
+}
+@keyframes dm-write { to { stroke-dashoffset: -14; } }
+@keyframes dm-read { to { stroke-dashoffset: 14; } }
+@media (max-width: 1040px) {
+  .dm-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .dm-tag, .dm-sub { display: none; }
+  .dm-picks p { width: 100%; }
+  .dm-lane { font-size: 22px; }
+  .dm-m { font-size: 18.5px; }
+  .dm-c { font-size: 17px; }
+}
+
 /* Bill of materials */
 .bom-wrap { margin-top: clamp(28px, 4vw, 40px); overflow-x: auto; }
 .bom { width: 100%; border-collapse: collapse; font-size: .975rem; line-height: 1.45; }
@@ -688,6 +751,26 @@ tests/</pre>
   </div>
 </section>
 
+<section id="data">
+  <div class="wrap">
+    <div class="head">
+      <p class="label">Data map</p>
+      <h2>Get a clear picture of where your data goes.</h2>
+      <p class="prose">Every service has its job and every data access has its job, so your data follows one clear path. Pick a table to see who writes it, who reads it, and where it leaves your app.</p>
+    </div>
+    <div class="dm-picks"><p>Pick your data</p><button class="dm-pick" type="button" data-table="user" aria-pressed="false">user</button><button class="dm-pick" type="button" data-table="order" aria-pressed="true">order</button><button class="dm-pick" type="button" data-table="invoice" aria-pressed="false">invoice</button></div>
+    <div class="dm-grid">
+      <div class="dm-board" data-selected="order"><svg class="dm-svg" viewBox="0 0 760 642" role="img" aria-label="Map of where data goes in a sample shop library: services call data access classes, which read and write tables."><text class="dm-lane" x="40" y="28">Service</text><text class="dm-sub" x="40" y="48">its job: the logic</text><text class="dm-lane" x="292" y="28">DataAccess</text><text class="dm-sub" x="292" y="48">its job: the queries</text><text class="dm-lane" x="532" y="28">Table</text><text class="dm-sub" x="532" y="48">your data</text><path class="dm-part dm-tr" data-w="invoice" data-r="" d="M240 545.5H263.0L266.0 542.5V542.5L269.0 539.5H292"/><path class="dm-part dm-tr" data-w="" data-r="invoice" d="M240 592.5H257.0L266.0 583.5V583.5L275.0 574.5H292"/><path class="dm-part dm-tr" data-w="order" data-r="" d="M240 336.5H263.0L266.0 333.5V333.5L269.0 330.5H292"/><path class="dm-part dm-tr" data-w="" data-r="order" d="M240 383.5H257.0L266.0 374.5V374.5L275.0 365.5H292"/><path class="dm-part dm-tr" data-w="order" data-r="" d="M240 430.5H257.0L266.0 421.5V409.5L275.0 400.5H292"/><path class="dm-part dm-tr" data-w="user" data-r="" d="M240 127.5H263.0L266.0 124.5V124.5L269.0 121.5H292"/><path class="dm-part dm-tr" data-w="" data-r="user" d="M240 174.5H257.0L266.0 165.5V165.5L275.0 156.5H292"/><path class="dm-part dm-tr" data-w="user" data-r="" d="M240 221.5H257.0L266.0 212.5V200.5L275.0 191.5H292"/><path class="dm-part dm-tr" data-w="invoice" data-r="" d="M482 539.5H496.9L502.5 533.9V533.9L508.1 528.3H532"/><path class="dm-part dm-tr" data-w="" data-r="invoice" d="M482 574.5H510.6L511.5 573.6V573.6L512.4 572.7H532"/><path class="dm-part dm-tr" data-w="order" data-r="" d="M482 330.5H490.5L498.0 323.0V323.0L505.5 315.5H532"/><path class="dm-part dm-tr" data-w="" data-r="order" d="M482 365.5H502.2L507.0 360.8V360.8L511.8 356.0H532"/><path class="dm-part dm-tr" data-w="order" data-r="" d="M482 400.5H514.0L516.0 398.5V398.5L518.0 396.5H532"/><path class="dm-part dm-tr" data-w="user" data-r="" d="M482 121.5H489.0L498.0 112.5V108.2L507.0 99.2H532"/><path class="dm-part dm-tr" data-w="" data-r="user" d="M482 156.5H498.0L507.0 147.5V141.5L516.0 132.5H532"/><path class="dm-part dm-tr" data-w="user" data-r="" d="M482 191.5H507.0L516.0 182.5V174.8L525.0 165.8H532"/><path class="dm-part dm-tr" data-w="" data-r="user" d="M40 336.5H33.0L26.0 329.5V181.5L33.0 174.5H40"/><path class="dm-part dm-tr" data-w="invoice" data-r="" d="M40 336.5H24.0L17.0 343.5V538.5L24.0 545.5H40"/><path class="dm-part dm-fk" data-l="invoice order" d="M718 550.5H727.0L734.0 543.5V363.0L727.0 356.0H718"/><path class="dm-part dm-fk" data-l="order user" d="M718 356.0H727.0L734.0 349.0V139.5L727.0 132.5H718"/><rect class="dm-card" x="40" y="66" width="200" height="187" rx="9"/><text class="dm-h" x="54" y="91">UserService</text><g class="dm-part" data-w="user" data-r=""><rect class="dm-row" x="46" y="107" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="132">register</text></g><g class="dm-part" data-w="" data-r="user"><rect class="dm-row" x="46" y="154" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="171">get</text><text class="dm-tag" x="58" y="188">cached</text></g><g class="dm-part" data-w="user" data-r=""><rect class="dm-row" x="46" y="201" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="218">rename</text><text class="dm-tag" x="58" y="235">clears cache</text></g><rect class="dm-card" x="292" y="66" width="190" height="151" rx="9"/><text class="dm-h" x="306" y="91">UserDataAccess</text><g class="dm-part" data-w="user" data-r=""><rect class="dm-row" x="298" y="106" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="127">create</text></g><g class="dm-part" data-w="" data-r="user"><rect class="dm-row" x="298" y="141" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="162">get</text></g><g class="dm-part" data-w="user" data-r=""><rect class="dm-row" x="298" y="176" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="197">update</text></g><g class="dm-table" data-table="user" role="button" tabindex="0" aria-label="Show where user data goes"><rect class="dm-card dm-tcard" x="532" y="66" width="186" height="133" rx="9"/><text class="dm-h dm-th" x="546" y="91">user</text><text class="dm-c" x="550" y="124">id</text><text class="dm-c" x="550" y="153">email</text><text class="dm-c" x="550" y="182">name</text></g><rect class="dm-card" x="40" y="275" width="200" height="187" rx="9"/><text class="dm-h" x="54" y="300">OrderService</text><g class="dm-part" data-w="invoice order" data-r="user"><rect class="dm-row" x="46" y="316" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="333">place</text><text class="dm-tag" x="58" y="350">event</text></g><g class="dm-part" data-w="" data-r="order"><rect class="dm-row" x="46" y="363" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="380">get</text><text class="dm-tag" x="58" y="397">cached</text></g><g class="dm-part" data-w="order" data-r=""><rect class="dm-row" x="46" y="410" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="427">ship</text><text class="dm-tag" x="58" y="444">clears cache · event</text></g><rect class="dm-card" x="292" y="275" width="190" height="151" rx="9"/><text class="dm-h" x="306" y="300">OrderDataAccess</text><g class="dm-part" data-w="order" data-r=""><rect class="dm-row" x="298" y="315" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="336">create</text></g><g class="dm-part" data-w="" data-r="order"><rect class="dm-row" x="298" y="350" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="371">get</text></g><g class="dm-part" data-w="order" data-r=""><rect class="dm-row" x="298" y="385" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="406">update</text></g><g class="dm-table" data-table="order" role="button" tabindex="0" aria-label="Show where order data goes"><rect class="dm-card dm-tcard" x="532" y="275" width="186" height="162" rx="9"/><text class="dm-h dm-th" x="546" y="300">order</text><text class="dm-c" x="550" y="333">id</text><text class="dm-c" x="550" y="362">user_id</text><text class="dm-c" x="550" y="391">total</text><text class="dm-c" x="550" y="420">status</text></g><rect class="dm-card" x="40" y="484" width="200" height="140" rx="9"/><text class="dm-h" x="54" y="509">BillingService</text><g class="dm-part" data-w="invoice" data-r=""><rect class="dm-row" x="46" y="525" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="542">charge</text><text class="dm-tag" x="58" y="559">payment API</text></g><g class="dm-part" data-w="" data-r="invoice"><rect class="dm-row" x="46" y="572" width="188" height="41" rx="6"/><text class="dm-m" x="58" y="597">invoices</text></g><rect class="dm-card" x="292" y="484" width="190" height="116" rx="9"/><text class="dm-h" x="306" y="509">InvoiceDataAccess</text><g class="dm-part" data-w="invoice" data-r=""><rect class="dm-row" x="298" y="524" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="545">create</text></g><g class="dm-part" data-w="" data-r="invoice"><rect class="dm-row" x="298" y="559" width="178" height="31" rx="6"/><text class="dm-m" x="310" y="580">list_for_order</text></g><g class="dm-table" data-table="invoice" role="button" tabindex="0" aria-label="Show where invoice data goes"><rect class="dm-card dm-tcard" x="532" y="484" width="186" height="133" rx="9"/><text class="dm-h dm-th" x="546" y="509">invoice</text><text class="dm-c" x="550" y="542">id</text><text class="dm-c" x="550" y="571">order_id</text><text class="dm-c" x="550" y="600">amount</text></g></svg></div>
+      <div class="dm-readout">
+        <p class="dm-name" id="dm-name">order</p>
+        <p class="dm-columns" id="dm-columns">id, user_id, total, status</p>
+        <dl id="dm-details"><div class="dm-entry w"><dt>Written by</dt><dd>OrderService.place</dd><dd>OrderService.ship</dd></div><div class="dm-entry r"><dt>Read by</dt><dd>OrderService.get</dd></div><div class="dm-entry "><dt>Cached as</dt><dd>shop_order_{order_id} <small>cleared by OrderService.ship</small></dd></div><div class="dm-entry "><dt>Fires</dt><dd>order_placed</dd><dd>order_shipped</dd></div></dl>
+      </div>
+    </div>
+    <p class="dm-note"><span class="dm-legend"><i class="dm-key w"></i>Writes</span><span class="dm-legend"><i class="dm-key r"></i>Reads</span><span>Generated from the code of a small sample shop library.</span></p>
+  </div>
+</section>
+
 <section id="parts">
   <div class="wrap">
     <div class="head">
@@ -925,6 +1008,43 @@ tests/</pre>
       next.focus();
     });
   });
+
+  var dataMap = {"user":{"columns":"id, email, name","html":"\u003cdiv class=\"dm-entry w\">\u003cdt>Written by\u003c/dt>\u003cdd>UserService.register\u003c/dd>\u003cdd>UserService.rename\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry r\">\u003cdt>Read by\u003c/dt>\u003cdd>OrderService.place \u003csmall>through UserService.get\u003c/small>\u003c/dd>\u003cdd>UserService.get\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry \">\u003cdt>Cached as\u003c/dt>\u003cdd>shop_user_{user_id} \u003csmall>cleared by UserService.rename\u003c/small>\u003c/dd>\u003c/div>"},"order":{"columns":"id, user_id, total, status","html":"\u003cdiv class=\"dm-entry w\">\u003cdt>Written by\u003c/dt>\u003cdd>OrderService.place\u003c/dd>\u003cdd>OrderService.ship\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry r\">\u003cdt>Read by\u003c/dt>\u003cdd>OrderService.get\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry \">\u003cdt>Cached as\u003c/dt>\u003cdd>shop_order_{order_id} \u003csmall>cleared by OrderService.ship\u003c/small>\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry \">\u003cdt>Fires\u003c/dt>\u003cdd>order_placed\u003c/dd>\u003cdd>order_shipped\u003c/dd>\u003c/div>"},"invoice":{"columns":"id, order_id, amount","html":"\u003cdiv class=\"dm-entry w\">\u003cdt>Written by\u003c/dt>\u003cdd>BillingService.charge\u003c/dd>\u003cdd>OrderService.place \u003csmall>through BillingService.charge\u003c/small>\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry r\">\u003cdt>Read by\u003c/dt>\u003cdd>BillingService.invoices\u003c/dd>\u003c/div>\u003cdiv class=\"dm-entry \">\u003cdt>Leaves the app\u003c/dt>\u003cdd>PaymentClient \u003csmall>from BillingService.charge\u003c/small>\u003c/dd>\u003c/div>"}};
+  var mapBoard = document.querySelector('.dm-board');
+  var mapParts = Array.prototype.slice.call(mapBoard.querySelectorAll('.dm-part'));
+  var mapTables = Array.prototype.slice.call(mapBoard.querySelectorAll('.dm-table'));
+  var mapPicks = Array.prototype.slice.call(document.querySelectorAll('.dm-pick'));
+
+  function names(part, attribute) {
+    return (part.getAttribute(attribute) || '').split(' ');
+  }
+
+  function showTable(table) {
+    mapParts.forEach(function (part) {
+      var writes = names(part, 'data-w').indexOf(table) !== -1;
+      var reads = names(part, 'data-r').indexOf(table) !== -1;
+      part.classList.toggle('write', writes);
+      part.classList.toggle('read', reads && !writes);
+      part.classList.toggle('on', writes || reads || names(part, 'data-l').indexOf(table) !== -1);
+    });
+    mapTables.forEach(function (card) { card.classList.toggle('sel', card.getAttribute('data-table') === table); });
+    mapPicks.forEach(function (pick) { pick.setAttribute('aria-pressed', pick.getAttribute('data-table') === table ? 'true' : 'false'); });
+    byId('dm-name').textContent = table;
+    byId('dm-columns').textContent = dataMap[table].columns;
+    byId('dm-details').innerHTML = dataMap[table].html;
+  }
+
+  mapPicks.concat(mapTables).forEach(function (control) {
+    var table = control.getAttribute('data-table');
+    control.addEventListener('click', function () { showTable(table); });
+    control.addEventListener('keydown', function (event) {
+      if (control.tagName !== 'BUTTON' && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        showTable(table);
+      }
+    });
+  });
+  showTable(mapBoard.getAttribute('data-selected'));
 })();
 </script>
 </body>
