@@ -22,7 +22,7 @@ class UserAuthMiddleware(BaseHTTPMiddleware):
         self.cookie_name = cookie_name
 
     async def dispatch(self, request, call_next):
-        token = request.cookies.get(self.cookie_name)
-        if token:
-            request.state.user = SecurityHandler.get().token_to_session_object(token)
+        cookie_value = request.cookies.get(self.cookie_name)
+        if cookie_value:
+            request.state.user = SecurityHandler.get().token_to_session_object(cookie_value)
         return await call_next(request)
