@@ -118,8 +118,9 @@ class TestUpdateValidate(unittest.TestCase):
                 self.assertRaises(PermissionError, rules_validator.validate_dict, payload)
 
     def test_4_nested_rule_validator_keeps_the_inner_reason_as_the_cause(self):
+        rules_validator = self._nested_rule_validator()
         with self.assertRaises(PermissionError) as context:
-            self._nested_rule_validator().validate_dict({'items': [{'size': 2}]})
+            rules_validator.validate_dict({'items': [{'size': 2}]})
         self.assertIn('items', str(context.exception))
         self.assertIsInstance(context.exception.__cause__, PermissionError)
         self.assertIn('name', str(context.exception.__cause__))
@@ -156,8 +157,9 @@ class TestUpdateValidate(unittest.TestCase):
         valid = payload({'name': 'widget'})
         self.assertDictEqual(root.validate_dict(valid), valid)
 
+        invalid = payload({'name': 'widget', 'unknown': 1})
         with self.assertRaises(PermissionError) as context:
-            root.validate_dict(payload({'name': 'widget', 'unknown': 1}))
+            root.validate_dict(invalid)
         causes = []
         cause = context.exception.__cause__
         while cause is not None:
