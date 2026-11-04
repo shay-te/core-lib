@@ -1,6 +1,7 @@
 #
 # RESPONSE
 #
+import asyncio
 import json
 from http import HTTPStatus
 from http.client import responses
@@ -106,6 +107,18 @@ def request_body_dict(request):
         return request.json
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
         # Starlette reads the body asynchronously. FastAPI runs a sync view in an AnyIO worker thread, which
-        # reaches back into the event loop to read it. An async view has no worker thread, so this raises
-        # there: an async view awaits `request.json()` itself.
+        # reaches back into the event loop to read it. An async view runs on the loop itself, where nothing
+        # synchronous can wait for the body.
+        if _running_on_event_loop():
+            raise RuntimeError('request_body_dict cannot read a FastAPI body inside an async view: '
+                               'use `await request.json()` there')
         return json.loads(from_thread.run(request.body).decode('utf-8'))
+
+
+def _running_on_event_loop() -> bool:
+    # core_lib has no such check. `get_running_loop` succeeds only on the thread that runs the loop.
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return False
+    return True

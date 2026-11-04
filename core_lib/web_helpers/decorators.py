@@ -1,5 +1,7 @@
 import logging
 import traceback
+from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from http import HTTPStatus
 
@@ -12,6 +14,20 @@ from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_message
 
 logger = logging.getLogger(__name__)
+
+# FASTAPI has no thread-local request proxy. `@RequireLogin` binds the request here while its view runs.
+_fastapi_request = ContextVar('fastapi_request', default=None)
+
+
+@contextmanager
+def bind_fastapi_request(request):
+    """While the block runs, `_get_request` returns `request` on FASTAPI, so error middlewares can report it."""
+    token = _fastapi_request.set(request)
+    try:
+        yield
+    finally:
+        _fastapi_request.reset(token)
+
 
 def _get_request():
     try:
@@ -33,8 +49,7 @@ def _get_request():
             except Exception as e:
                 logger.debug(f"Failed to resolve Django request: {e}")
         else:
-            # FASTAPI binds the request per task, with no thread-local proxy to read it from.
-            return None
+            return _fastapi_request.get()
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
 
@@ -76,7 +91,12 @@ def _exception_response(exc, func, log_exception: bool):
 
 def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop("log_exception", True)
+    return handle_exception_call(func, args, kwargs, log_exception)
 
+
+def handle_exception_call(func, args: tuple, kwargs: dict, log_exception: bool = True):
+    """`handle_exception` with `func`'s arguments passed as they are, so a `log_exception` among them reaches
+    `func`. FastAPI passes a view every parameter by keyword, whatever its name."""
     try:
         return func(*args, **kwargs)
 

@@ -1,5 +1,5 @@
 from core_lib.session.security_handler import SecurityHandler
-from core_lib.web_helpers.decorators import handle_exception
+from core_lib.web_helpers.decorators import handle_exception, handle_exception_call
 import logging
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
@@ -12,15 +12,15 @@ def require_login(request, policies, func, *args, security_handler_name: str = N
         # Route the view function through handle_exception so its exceptions
         # become proper HTTP responses (rather than being silently swallowed
         # and returning None — which previously rendered as a blank page).
-        # Django and FastAPI views receive the request as a positional arg
-        # (Django convention; FastAPI via this lib's RequireLogin wrapper).
-        # Flask views read the request from a thread-local proxy so it isn't
-        # passed positionally.
+        # A Django view takes the request as its first positional arg. A FastAPI view
+        # gets it by keyword, as FastAPI calls every view, so `request` may sit anywhere
+        # in its signature. Flask views read the request from a thread-local proxy so
+        # it isn't passed at all.
         server_type = WebHelpersUtils.get_server_type()
-        if server_type in (
-            WebHelpersUtils.ServerType.DJANGO,
-            WebHelpersUtils.ServerType.FASTAPI,
-        ):
+        if server_type == WebHelpersUtils.ServerType.DJANGO:
             return handle_exception(func, request, *args, **kwargs)
+        if server_type == WebHelpersUtils.ServerType.FASTAPI:
+            # `handle_exception` would take a view parameter named `log_exception` as its own option.
+            return handle_exception_call(func, args, dict(kwargs, request=request))
         return handle_exception(func, *args, **kwargs)
     return response

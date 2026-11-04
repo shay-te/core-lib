@@ -14,8 +14,10 @@ import jwt
 from fastapi import Depends, FastAPI, Request
 from fastapi.testclient import TestClient
 
+from core_lib.core_lib import CoreLib
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.helpers.constants import MediaType
+from core_lib.middleware.middleware import Middleware
 from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
@@ -30,13 +32,15 @@ COOKIE_NAME = 'widget_session'
 ROLE_ADMIN = 1
 ROLE_REVIEWER = 2
 USER_ID = 7
+NAMED_HANDLER = 'partner_portal'
+NAMED_COOKIE = 'partner_session'
 
 
 class _RoleSecurity(UserSecurity):
     """Allows a request by returning None, denies it by returning a response — the `secure_entry` contract."""
 
-    def __init__(self):
-        UserSecurity.__init__(self, COOKIE_NAME, JWTTokenHandler(SECRET, timedelta(seconds=60)))
+    def __init__(self, cookie_name=COOKIE_NAME):
+        UserSecurity.__init__(self, cookie_name, JWTTokenHandler(SECRET, timedelta(seconds=60)))
 
     def secure_entry(self, request, session_obj, policies):
         if session_obj is None:
@@ -50,6 +54,16 @@ class _RoleSecurity(UserSecurity):
 
     def generate_session_data(self, obj):
         return {'id': obj['id'], 'role': obj['role']}
+
+
+class _RequestRecorder(Middleware):
+    """An error middleware that keeps the request each failure reports."""
+
+    def __init__(self):
+        self.requests = []
+
+    def handle(self, context):
+        self.requests.append(context['request'])
 
 
 def _token(role, expires_in_seconds=60):
@@ -108,6 +122,36 @@ class TestWebHelpersFastapi(unittest.TestCase):
                 raise RuntimeError('boom')
             raise StatusCodeException(status)
 
+        @app.get('/sync-request-last/{item_id}')
+        @RequireLogin()
+        def sync_request_last(item_id: int, request: Request):
+            return {'item_id': item_id, 'user': request.state.user}
+
+        @app.get('/async-request-last/{item_id}')
+        @RequireLogin()
+        async def async_request_last(item_id: int, request: Request):
+            return {'item_id': item_id, 'user': request.state.user}
+
+        @app.get('/sync-log-exception')
+        @RequireLogin()
+        def sync_log_exception(request: Request, log_exception: bool = False):
+            return {'log_exception': log_exception}
+
+        @app.get('/async-log-exception')
+        @RequireLogin()
+        async def async_log_exception(request: Request, log_exception: bool = False):
+            return {'log_exception': log_exception}
+
+        @app.get('/named-handler')
+        @RequireLogin([ROLE_ADMIN], security_handler_name=NAMED_HANDLER)
+        def named_handler(request: Request):
+            return {'ok': True}
+
+        @app.get('/async-named-handler')
+        @RequireLogin([ROLE_ADMIN], security_handler_name=NAMED_HANDLER)
+        async def async_named_handler(request: Request):
+            return {'ok': True}
+
         @app.get('/html')
         @RequireLogin()
         def html(request: Request):
@@ -132,16 +176,18 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self._previous_security = SecurityHandler.user_security
         WebHelpersUtils.init(WebHelpersUtils.ServerType.FASTAPI)
         SecurityHandler.user_security = _RoleSecurity()
+        SecurityHandler.register(_RoleSecurity(NAMED_COOKIE), NAMED_HANDLER)
         self.view_calls.clear()
 
     def tearDown(self):
         WebHelpersUtils.server_type = self._previous_server_type
         SecurityHandler.user_security = self._previous_security
+        SecurityHandler.named_user_securities.pop(NAMED_HANDLER, None)
 
-    def _client(self, token=None):
+    def _client(self, token=None, cookie_name=COOKIE_NAME):
         client = TestClient(self.app)
         if token:
-            client.cookies.set(COOKIE_NAME, token)
+            client.cookies.set(cookie_name, token)
         return client
 
     # RequireLogin, sync views
@@ -220,6 +266,31 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_code)
         self.assertEqual({'error': 'Internal Server Error'}, response.json())
 
+    def test_request_need_not_be_the_first_parameter(self):
+        # FastAPI calls a view by keyword, so the view may declare `request` anywhere.
+        for path in ('/sync-request-last/3', '/async-request-last/3'):
+            with self.subTest(path=path):
+                response = self._client(_token(ROLE_ADMIN)).get(path)
+                self.assertEqual(HTTPStatus.OK, response.status_code)
+                self.assertEqual({'item_id': 3, 'user': {'id': USER_ID, 'role': ROLE_ADMIN}}, response.json())
+
+    def test_view_parameter_named_log_exception_reaches_the_view(self):
+        # `handle_exception` has an option of that name. The view's own parameter must not be taken for it.
+        for path in ('/sync-log-exception', '/async-log-exception'):
+            with self.subTest(path=path):
+                response = self._client(_token(ROLE_ADMIN)).get(path, params={'log_exception': 'true'})
+                self.assertEqual(HTTPStatus.OK, response.status_code)
+                self.assertEqual({'log_exception': True}, response.json())
+
+    def test_route_runs_the_security_handler_it_names(self):
+        # The named handler reads its own cookie, so the default handler's cookie alone must be refused.
+        for path in ('/named-handler', '/async-named-handler'):
+            with self.subTest(path=path):
+                allowed = self._client(_token(ROLE_ADMIN), cookie_name=NAMED_COOKIE).get(path)
+                self.assertEqual(HTTPStatus.OK, allowed.status_code)
+                refused = self._client(_token(ROLE_ADMIN)).get(path)
+                self.assertEqual(HTTPStatus.UNAUTHORIZED, refused.status_code)
+
     def test_wrapper_matches_the_view_kind(self):
         # A FastAPI that does not follow `__wrapped__` decides sync/async from the wrapper alone. A sync wrapper
         # around an async view would hand it an un-awaited coroutine, and the current FastAPI hides that.
@@ -253,11 +324,11 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual({'parsed': body}, response.json())
 
-    def test_request_body_dict_in_async_view_fails_loudly(self):
+    def test_request_body_dict_in_async_view_says_to_await_request_json(self):
         # An async view runs on the event loop, where a sync helper cannot read the body. It must fail, not
-        # return None as if the client had sent nothing.
+        # return None as if the client had sent nothing, and say what to do instead.
         client = self._client()
-        with self.assertRaises(RuntimeError):
+        with self.assertRaisesRegex(RuntimeError, r'await request\.json\(\)'):
             client.post('/body-async', json={'name': 'widget'})
 
     # UserAuthMiddleware
@@ -274,6 +345,24 @@ class TestWebHelpersFastapi(unittest.TestCase):
 
     # _get_request
 
+    def test_error_middleware_gets_the_failing_request(self):
+        recorder = _RequestRecorder()
+        CoreLib.handle_exception_middleware.add(recorder)
+        self.addCleanup(CoreLib.handle_exception_middleware.remove, recorder)
+        for path in (f'/sync-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}',
+                     f'/async-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}'):
+            with self.subTest(path=path):
+                recorder.requests.clear()
+                self._client(_token(ROLE_REVIEWER)).get(path)
+                self.assertEqual([path], [request and request.url.path for request in recorder.requests])
+
+    def test_request_is_unbound_once_the_view_returns(self):
+        # Called directly, in this thread: the wrapper must not leave its request behind for a later error report.
+        request = Request({'type': 'http', 'method': 'GET', 'path': '/', 'query_string': b'',
+                           'headers': [(b'cookie', f'{COOKIE_NAME}={_token(ROLE_ADMIN)}'.encode())]})
+        RequireLogin()(lambda request: None)(request=request)
+        self.assertIsNone(_get_request())
+
     def test_get_request_returns_none(self):
-        # No thread-local request on FastAPI; error middlewares get the request from their context instead.
+        # Only a `@RequireLogin` view binds the request, and only while it runs.
         self.assertIsNone(_get_request())
