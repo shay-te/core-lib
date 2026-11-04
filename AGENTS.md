@@ -320,6 +320,27 @@ next reader does not re-check.
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
+## Every decorator is a thin wrapper over a plain function that does the job
+
+Write the function first, then a decorator that calls it. That is how core-lib's own decorators are built:
+
+| Decorator | Calls |
+|---|---|
+| `@ResultToDict()` | `result_to_dict(value)` |
+| `@HandleException()` | `handle_exception(func, *args)` |
+| `@RequireLogin()` | `require_login(request, policies, view)` |
+| `@Cache(...)` | `build_function_key(...)` for the key, and a `CacheHandler`'s `get` / `set` / `delete` |
+
+Two reasons:
+- **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
+- **Any caller can use the function independently**: on a value it already holds, from a job or a script, or wherever a decorator does not fit.
+
+The decorator does only two things:
+1. It gathers the function's inputs from the decorated call. `@RequireLogin` finds the request the way each framework hands it over.
+2. It runs the decoration-time checks of §8 by calling the same check the function runs (`assert_def_view` in `require_login_helper.py`), never a copy of it.
+
+Any other logic left in the decorator is logic a direct call silently misses. While binding the request for error middlewares lived in `@RequireLogin`, a direct `require_login(...)` call reported `request=None` to every middleware.
+
 ## The entity IS the type. Do not mirror it in a second class.
 
 The same rule as names, one level up: an entity already declares a shape, so

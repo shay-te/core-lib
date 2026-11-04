@@ -225,6 +225,7 @@ class TestWebHelpersFastapi(unittest.TestCase):
         async def async_view(request):
             return None
 
+        # Refused when decorated, so the app fails at startup rather than on the view's first request.
         decorator = RequireLogin()
         with self.assertRaisesRegex(TypeError, 'not `async def`'):
             decorator(async_view)

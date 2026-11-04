@@ -14,6 +14,7 @@ from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.require_login import RequireLogin
+from core_lib.web_helpers.require_login_helper import require_login
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 DEPRECATED_PATHS = ('core_lib.web_helpers.flask.require_login', 'core_lib.web_helpers.django.require_login')
@@ -93,3 +94,26 @@ class TestRequireLogin(unittest.TestCase):
         request = HttpRequest()
         view(request)
         self.assertEqual([request], recorder.requests)
+
+    # `require_login` is the whole implementation: called without the decorator, it behaves the same.
+
+    def test_direct_call_reports_the_request_to_error_middlewares(self):
+        WebHelpersUtils.init(WebHelpersUtils.ServerType.DJANGO)
+        recorder = _RequestRecorder()
+        CoreLib.handle_exception_middleware.add(recorder)
+        self.addCleanup(CoreLib.handle_exception_middleware.remove, recorder)
+
+        def view(request):
+            raise RuntimeError('boom')
+
+        request = HttpRequest()
+        require_login(request, [], view)
+        self.assertEqual([request], recorder.requests)
+
+    def test_direct_call_refuses_an_async_view(self):
+        async def view(request):
+            return None
+
+        request = HttpRequest()
+        with self.assertRaisesRegex(TypeError, 'not `async def`'):
+            require_login(request, [], view)

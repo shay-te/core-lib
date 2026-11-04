@@ -1,21 +1,21 @@
 """@RequireLogin: one decorator for Flask, Django and FastAPI views.
 
-It finds the request the way each framework hands it over, then runs `require_login`:
+The check itself is `require_login` (require_login_helper.py), which can also be called directly. The decorator
+only finds the request the way each framework hands it over, and calls it:
 - Flask: the view gets no request. The decorator reads Flask's thread-local `request`.
 - Django: the request is the view's first positional argument.
 - FastAPI: a parameter named `request` (`request: Request`), anywhere in the signature. FastAPI passes every
   argument by keyword.
 
-A view is a plain `def`, not `async def`. core-lib services are synchronous: FastAPI runs a `def` view in its
-thread pool, while an `async def` view would hold the event loop, and every other request, for the whole call.
+A view is a plain `def`, not `async def`: decorating an `async def` view raises when the app starts. core-lib
+services are synchronous: FastAPI runs a `def` view in its thread pool, while an `async def` view would hold the
+event loop, and every other request, for the whole call.
 """
-import inspect
 from functools import wraps
 
 from flask import request as flask_request
 
-from core_lib.web_helpers.decorators import bind_request
-from core_lib.web_helpers.require_login_helper import require_login
+from core_lib.web_helpers.require_login_helper import assert_def_view, require_login
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 
@@ -27,8 +27,7 @@ class RequireLogin(object):
         self.security_handler_name = security_handler_name
 
     def __call__(self, func, *args, **kwargs):
-        if inspect.iscoroutinefunction(func):
-            raise TypeError(f'@RequireLogin takes a plain `def` view, not `async def`: {func.__qualname__}')
+        assert_def_view(func)
 
         @wraps(func)
         def __wrapper(*args, **kwargs):
@@ -39,8 +38,7 @@ class RequireLogin(object):
                 request = kwargs.pop('request')
             else:
                 request = flask_request
-            with bind_request(request):
-                return require_login(request, self.policies, func, *args,
-                                     security_handler_name=self.security_handler_name, **kwargs)
+            return require_login(request, self.policies, func, *args,
+                                 security_handler_name=self.security_handler_name, **kwargs)
 
         return __wrapper
