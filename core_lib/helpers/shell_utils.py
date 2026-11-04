@@ -44,6 +44,37 @@ def _coalesce_prompt_value(raw: str, default) -> str:
     return ''
 
 
+def _parse_toggle_indices(raw: str, max_index: int) -> list:
+    """Parse ``1,3,5`` / ``1 3 5`` / ``1-3,7`` into 0-based indices.
+
+    Out-of-range and unparseable tokens are dropped silently — a typo in
+    one token shouldn't drop the whole edit.
+    """
+    cleaned = raw.replace(',', ' ').strip()
+    if not cleaned:
+        return []
+    out = []
+    for token in cleaned.split():
+        if '-' in token and not token.startswith('-'):
+            start_text, _, end_text = token.partition('-')
+            try:
+                start = int(start_text)
+                end = int(end_text)
+            except ValueError:
+                continue
+            for n in range(min(start, end), max(start, end) + 1):
+                if 1 <= n <= max_index:
+                    out.append(n - 1)
+            continue
+        try:
+            n = int(token)
+        except ValueError:
+            continue
+        if 1 <= n <= max_index:
+            out.append(n - 1)
+    return out
+
+
 # ── string ────────────────────────────────────────────────────────────────────
 
 
@@ -242,6 +273,57 @@ def prompt_list(
                 continue
             return idx
         is_valid = True
+
+
+def prompt_multi_select(
+    items: Sequence[ListItem],
+    title: str,
+    initial_selected: Optional[Sequence[bool]] = None,
+    label_for: Optional[Callable[[ListItem], str]] = None,
+    instructions: str = (
+        'Type indices to toggle (e.g. 1,3,5-7), '
+        'or press Enter to apply. Type "q" to cancel.'
+    ),
+    empty_message: str = '(no items)',
+) -> Optional[list]:
+    """Toggle-list picker with ``[x]`` / ``[ ]`` checkboxes.
+
+    Operator types comma-separated indices or ranges (``1,3,5-7``) to toggle
+    selection, presses Enter to apply, or types ``q`` to cancel. Returns the
+    final selection state as a list of bools parallel to ``items``, or
+    ``None`` on cancel.
+
+    ``label_for`` formats each row's text after the checkbox; defaults to
+    ``str(item)``. The caller owns all formatting (alignment, suffixes,
+    warnings) — the picker only owns index, checkbox, and the toggle loop.
+    """
+    items = list(items)
+    if initial_selected is None:
+        selected = [False] * len(items)
+    else:
+        selected = [bool(s) for s in initial_selected]
+        if len(selected) != len(items):
+            raise ValueError('initial_selected must match items in length')
+    label = label_for if label_for is not None else str
+
+    while True:
+        print()
+        print(title)
+        if not items:
+            print(f'  {empty_message}')
+        else:
+            for i, item in enumerate(items, start=1):
+                mark = '[x]' if selected[i - 1] else '[ ]'
+                print(f'  {i:>3}. {mark}  {label(item)}')
+        print()
+        print(instructions)
+        raw = _prompt('> ')
+        if raw.lower() in ('q', 'quit', 'exit'):
+            return None
+        if not raw:
+            return selected
+        for idx in _parse_toggle_indices(raw, len(items)):
+            selected[idx] = not selected[idx]
 
 
 def prompt_comma_list(
