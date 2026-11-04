@@ -139,6 +139,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **Tuning values are module constants, not config**, until a host asks (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`.
+- **A map between two enums is a constant, declared once** — `<SOURCE>_TO_<TARGET>`
+  in the constants module of the vocabulary it maps into, imported by every
+  service and host that reads it; never a private `_X_TYPES = {...}` dict at the
+  top of a service file ("A map between two vocabularies is a constant too" in
+  `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
 - **Several writes that must land together, or a guard checked before a
