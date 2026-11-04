@@ -203,6 +203,11 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **Errors:** your own arg guards raise `ValueError`; the base's guards are
   bare `assert` (→ `AssertionError`); a missing row on `get` is
   `StatusCodeException(404)` (§5).
+- **What a query returns** — the entity when its caller uses nearly all of it (never narrowed to drop a few unread
+  columns); only the columns shown when a list or report query reads many rows nobody has fetched, a shared field set
+  composed in (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a query for part of ONE row a cached
+  getter already returns: that is a Service method over the getter ("Part of a row" and "A set of an entity's fields
+  that several readers use is declared once" in `AGENTS.md`).
 - **Cross-entity guards** live in module-level helpers inside the DA file (§5).
 - **A DB DataAccess is only ever called BY a Service** — never from a host app,
   a test, or another lib (§5).

@@ -166,6 +166,22 @@ has one file to open.
 - Key it the way its readers look up: by member, or by `.value` when a query
   compares stored ints. Say which in its comment.
 
+### A set of an entity's fields that several readers use is declared once
+
+When more than one reader takes the same columns of an entity (who a record is shown as, the fields every summary of
+it carries), the set is ONE constant in the library that owns the entity, written as the columns themselves, next to
+its other field sets (or in its constants module, as for maps):
+
+```python
+MEMBER_SUMMARY_FIELDS = (Member.first_name, Member.last_name, Member.email)
+```
+
+One row is cut to it by ONE method on the entity's Service, which every reader calls, host included ("Part of a row"
+below); a query over many rows selects it (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a private
+`_KEYS` tuple per service, and never a host re-typing it: the host imports the constant or calls the method. A reader
+that needs more composes it (`[*MEMBER_SUMMARY_FIELDS, Member.status]`) rather than re-listing it. Before declaring a
+set, grep the libraries for its columns: the copies usually exist already, under other names.
+
 ### Enforce it, do not just document it
 
 A rename cannot catch an alias, and neither can any behavioural test — by
@@ -356,6 +372,25 @@ next reader does not re-check.
 ### Use the call that already returns it — no new function per field
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
+
+### Part of a row: the owning Service returns it, a caller never cuts rows down
+
+A service or host that fetches rows and keeps some keys (`{key: row[key] for key in WANTED_KEYS}`) cuts in the wrong
+place. The library that owns the entity returns what its callers need, and the read decides how:
+
+- **Nearly the whole row** (all but bookkeeping such as `deleted_at`): return the entity as its query returns it.
+  Never narrow a query to drop a few columns nobody reads; sending them is fine.
+- **A field set of one row a cached getter already returns**: a method on the entity's Service reads that getter and
+  keeps the set; every reader calls it, host included. No new query. Rows of another table shown beside a list (the
+  members of each item) are this case too: one cached call per distinct id, not a new `IN` query.
+
+  ```python
+  def get_summary(self, member_id: int) -> dict:
+      member = self.get_full(member_id)
+      return {field.key: member[field.key] for field in MEMBER_SUMMARY_FIELDS}
+  ```
+- **Many rows nobody has fetched** (a list or report query): the DataAccess query selects the columns the list shows.
+- One column of a cached row, for a check, is the section above: `service.get(id)[Entity.column.key]`.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
