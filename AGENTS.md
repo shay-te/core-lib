@@ -251,6 +251,27 @@ real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
 
+## The other direction: the library owns the rules about its own data
+
+Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
+**every rule about what the library stores — a value's shape, whether a value is valid, how to encode or decode
+it — is a public helper in the library, even when only one host calls it today.** The library defines the data, so
+it is the one place that can say what a good value of it is; a check written in the host is re-written by the next
+product that uses the library, and the copies drift.
+
+The test: **would a second, completely different host storing the same thing need this function?** If yes, it is
+the library's. For a library storing user-defined fields: "is this a valid phone number value", "is this one of the
+field's options", "turn the stored phone value into a dialable number" are the library's; "the API refuses photo
+uploads" or "this endpoint answers 400 with no body" are the host's policy.
+
+What the host owns stays a parameter: the helper takes the field's options, the host's key names, a threshold —
+never reads the host's config or constants. The host then calls the library helper and adds only its policy around
+it (which status to answer, what to log).
+
+Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
+library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
+was missing from the library.
+
 ## Before writing a helper, check core-lib for it
 
 The third form of the same mistake. A mirror type re-declares a shape; a
