@@ -178,6 +178,19 @@ This package is a **standalone, product-agnostic library**. Treat it as if it
 will be published on its own and dropped into any application that has never
 heard of this project. It must know nothing about the host that consumes it.
 
+**"This package" means core-lib itself AND every `*-core-lib` built on it.** core-lib is the most agnostic of
+all, one level further: it knows nothing about the products that use it, and nothing about the libraries built on
+it either. So in core-lib's own source, tests and docs:
+
+- No product name and no product domain (users, matches, payments, phone numbers — whatever one product is about).
+- No sibling library's name, import, entity, enum or constant; core-lib never imports a `*-core-lib`.
+- A helper belongs here only if any library could use it unchanged (a decorator, a converter, a validator of a
+  general format). A helper about one library's data goes in that library ("The other direction" below); a helper
+  about one product goes in that product.
+
+The test for a change to core-lib: would it make sense to a library that has nothing to do with the one you are
+working on? If it only makes sense for that one, it is in the wrong package.
+
 ## No host or product knowledge — anywhere
 
 The name of the host application or product (its brand, its CLI, its env-var

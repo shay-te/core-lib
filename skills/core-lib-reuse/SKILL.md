@@ -86,6 +86,13 @@ Verified by inventory, so you can stop looking:
 - **No encryption helper.** A thin wrapper over `cryptography.fernet.Fernet` (encrypt/decrypt a JSON dict, `ttl=` on decrypt for short-lived tokens) is right — a few lines. Fernet validates the key itself, and its `InvalidToken` needs no wrapper class.
 - **No transient-default mixin**, and do not write one — a column `default=` fires at INSERT by design (§4).
 
+## Adding a helper to core-lib itself
+
+core-lib is agnostic of products AND of the libraries built on it (AGENTS "this library is AGNOSTIC"). A helper
+goes into `core_lib` only if every library could use it unchanged — a decorator, a converter, a validator of a
+general format. It never names or imports a `*-core-lib`, and never carries one library's or one product's domain;
+those go in that library or that product.
+
 ## Library or host? Decide before you write it
 
 A helper about the data a `*-core-lib` stores — a value's shape, its validity, its encoding — belongs in that
