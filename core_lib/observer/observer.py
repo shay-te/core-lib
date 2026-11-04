@@ -26,9 +26,13 @@ class Observer(object):
         for observer in self._listener:
             try:
                 observer.update(key, value)
-            except Exception as ex:
-                logger.error(f'error while Observer.notify on key: `{key}`', ex)
-                raise ex
+            except Exception:
+                # Don't pass the exception as a positional arg — logging
+                # treats positional args as ``msg % args`` substitutions
+                # and the formatting failure replaces the original
+                # exception with TypeError ("not all arguments converted").
+                logger.exception('error while Observer.notify on key: `%s`', key)
+                raise
 
     def _validate(self, listener: ObserverListener):
         assert listener, 'ObserverListener cannot be None'
