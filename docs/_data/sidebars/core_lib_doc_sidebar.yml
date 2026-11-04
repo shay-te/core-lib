@@ -9,7 +9,7 @@ entries:
             output: web
             folderitems:
                 - title: Getting started
-                  url: /index.html
+                  url: /getting_started.html
                   output: web
                   type: homepage
 

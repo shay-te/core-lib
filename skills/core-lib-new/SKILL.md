@@ -1,6 +1,6 @@
 ---
 name: core-lib-new
-description: MANDATORY — load this skill BEFORE you create, bootstrap, or start a whole new *-core-lib library or persistence/integration package from nothing; do not scaffold from memory. Produces the package layout, the main CoreLib composition-root class, singleton accessor, Hydra config plus hydra_plugins, requirements.txt, and a first entity→data-access→service slice. To add one part to an existing lib, use the per-part skill.
+description: MANDATORY — load this skill BEFORE you create, bootstrap, or start a whole new *-core-lib library or persistence/integration package from nothing; do not scaffold from memory. Produces the package layout, the main CoreLib composition-root class, Hydra config plus hydra_plugins, requirements.txt, and a first entity→data-access→service slice. To add one part to an existing lib, use the per-part skill.
 ---
 
 # Create a new *-core-lib (end to end)
@@ -14,8 +14,13 @@ Where they differ, the recipe wins.
 
 This skill orchestrates the others to stand up a complete, agnostic core-lib.
 Use the per-part skills for each layer: `core-lib-entity`,
-`core-lib-data-access`, `core-lib-service`, `core-lib-connection`,
-`core-lib-migration`, `core-lib-tests`.
+`core-lib-data-access`, `core-lib-service`, `core-lib-client` (HTTP APIs),
+`core-lib-connection` (SDK-backed backends),
+`core-lib-migration`, `core-lib-tests` — plus **`core-lib-reuse` before you
+write any helper, utility, converter or guard** (since `core_lib` already ships
+most of them and a hand-rolled copy is reliably thinner than the original), and
+**`core-lib-error-handling` before you add any exception, error code or
+validation-failure type**.
 
 ## Package layout
 
@@ -28,7 +33,8 @@ Use the per-part skills for each layer: `core-lib-entity`,
 │   │   ├── data/db/migrations/versions/ # Alembic (core-lib-migration)
 │   │   ├── data_access/                 # query classes (core-lib-data-access)
 │   │   └── service/                     # business logic (core-lib-service)
-│   ├── connections/                     # outbound clients (core-lib-connection, optional)
+│   ├── client/                          # HTTP API clients on ClientBase (core-lib-client, optional)
+│   ├── connections/                     # SDK-backed backends (core-lib-connection, optional)
 │   ├── error_handling/                  # typed errors
 │   └── <name>_core_lib.py               # main class (composition root)
 ├── hydra_plugins/<name>_core_lib/       # advertises this lib's config to parents
@@ -39,17 +45,49 @@ Use the per-part skills for each layer: `core-lib-entity`,
 
 ## Steps
 
-1. **Scaffold the tree** above. The package-root `foo_core_lib/__init__.py`
-   carries `__version__` **and** re-exports the class
-   (`from foo_core_lib.foo_core_lib import FooCoreLib` + `__all__`). **Every
+0. **Build the MINIMUM version** (§0): only what the ticket or a caller in this
+   change needs — no "may happen" scenarios, extra error classes or config
+   knobs. Later steps grow it.
+1. **Scaffold the tree** above by copying `core_lib_generator/template_core_lib`
+   and renaming `template` in every case form, then clean the copy (§2):
+   delete `template_core_lib_instance.py`, `.dockerignore`,
+   `example_data.yaml`, the root `.env`, the unused `LICENSE_*` files and the
+   example entities/DAs/services/jobs; move the tests to `tests/helpers/utils.py`
+   + `tests/data/config/`; re-read every prose line the rename touched; and
+   rewrite `setup.py` + `MANIFEST.in` per §14 (text reads, `tests` excluded,
+   migration `*.mako` + `.migration_ver` shipped). The package-root `foo_core_lib/__init__.py`
+   carries **only** `__version__ = '0.0.0.1'`. **Do NOT add
+   `from foo_core_lib.foo_core_lib import FooCoreLib` or `__all__`.** The
+   build imports the package to read `__version__`, so a re-export loads
+   `core_lib`, SQLAlchemy and Hydra before they are installed, and the build
+   fails. This happened on a real generated lib. Import the class from its
+   module instead: `from foo_core_lib.foo_core_lib import FooCoreLib`. **Every
    other `__init__.py` is an empty 0-byte file — but it must exist** (§1, §2).
 2. **First vertical slice**: entity → data-access → service (run those three
    skills in order).
 3. **Main class** (composition root) — see template.
-4. **Singleton accessor** — see template.
-5. **Hydra config + plugin** so parent apps can override sections.
+4. **No singleton accessor** in the lib — a host that wants one writes it.
+5. **Hydra config + plugin** so parent apps can override sections. **The DB
+   block is copied from AGENTS §3.1 exactly, never written fresh**: the same
+   values, the same `session`, the `POSTGRES_*` names with no defaults; only
+   `version_table` changes. Never invent a lib-prefixed database key
+   (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …). A host's install compose for the lib
+   is `defaults:` only, and tests reach sqlite through the test yaml (§13.5).
 6. **Migration** for the first entity (`core-lib-migration`).
-7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures.
+7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures, run
+   with `python -P`. Finish by building the wheel and installing it into a
+   clean venv (§17).
+8. **`.gitignore`** — copy `core_lib_generator/template_core_lib/.gitignore`
+   verbatim; it is what the generator installs. It must cover bytecode
+   (`**/*.py[cod]`, `__pycache__/`, `*$py.class`), **every** tool cache
+   (`.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.hypothesis/`, `.tox/`)
+   whether or not this lib uses that tool today, the coverage outputs
+   (`.coverage`, `.coverage.*`, `coverage.xml`, `htmlcov/` — but NOT
+   `.coveragerc`, which is tracked), both env dirs (`/venv` **and** `.venv` —
+   the first does not match the second), and the build artifacts. A cache
+   directory appears the first time someone runs a tool and then rides in on a
+   wide `git add`. If you change this file, change the template too — that is
+   the copy every future lib inherits (§14).
 
 ## Composition root template (copy §7 exactly)
 
@@ -101,17 +139,26 @@ class FooCoreLib(CoreLib):
   `if not CoreLib.cache_registry.get(FOO_CORE_LIB_CACHE):` — registries are
   process-global and `register()` RAISES on a duplicate key (§7, §12).
 - **DB comes from `CoreLib.connection_factory_registry.get_or_reg(core_cfg.data.sqlalchemy)`**,
-  not a hand-built factory (§7).
+  not a hand-built factory (§7). A lib whose queries must run under a
+  different login than the host's registers its OWN node
+  (`core_lib.foo_core_lib.sqlalchemy`, own `_instance_key_`, `create_db: false`),
+  resolved with `OmegaConf.to_container(node, resolve=True)` first — the
+  registry stores an unresolved copy (§3.1, §12).
+- **Jobs only log their failures** — a job whose silent failure matters calls a
+  service method that alarms and re-raises (§9).
 - **Ship `install()` / `uninstall()` staticmethods** using
   `Alembic(os.path.dirname(inspect.getfile(FooCoreLib)), cfg)` — note the import
   is `from core_lib.alembic.alembic import Alembic` (§7, §11.1).
 - **Agnostic**: no host/product name anywhere; read generic config keys / take
-  values via constructor params; inject product-specific text with safe
-  neutral defaults (AGENTS.md "this library is AGNOSTIC").
+  values via constructor params; product-specific text is a required config
+  key or argument with no default (AGENTS.md "this library is AGNOSTIC").
 - **Minimal deps**: `requirements.txt` is just `core-lib`; optional/heavy SDKs
   go in `extras_require` (§14).
 - **No empty re-export-only modules**; import from the defining submodule
   (§1).
+- **No `import` and no `__all__` in the package-root `__init__.py`.** It holds
+  `__version__` and nothing else; a re-export of `FooCoreLib` there breaks the
+  build (§1, AGENTS §16 #27).
 
 ## The agnosticism litmus test
 

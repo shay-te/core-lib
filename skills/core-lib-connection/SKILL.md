@@ -1,9 +1,13 @@
 ---
 name: core-lib-connection
-description: MANDATORY — load this skill BEFORE you add or change an external client, provider, API or SDK integration, HTTP client, connection factory, or any wrapper around a third-party service (LLM, object storage/S3, payment gateway) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors.
+description: MANDATORY — load this skill BEFORE you add or change an SDK-backed backend, connection factory, or any wrapper around a third-party SDK that owns its own connection (object storage/S3, an LLM SDK, a database or workflow-engine driver) in a *-core-lib; do not write it from memory. Creates a ConnectionFactory that builds the SDK client once (fetch→validate→use, lazy import) plus a Connection with typed errors. A service the lib calls over plain HTTP is core-lib-client instead (`client/` on ClientBase).
 ---
 
-# Create a non-DB backend (the `connections/` pattern)
+# Create an SDK-backed backend (the `connections/` pattern)
+
+> **Calling an HTTP API yourself?** That is not this pattern: build a `ClientBase` subclass in
+> `client/` — load `core-lib-client`. This skill is for a backend reached through an SDK that
+> owns its connection.
 
 An outbound backend (object storage, an external API) is **three pieces**,
 mirroring the DB stack. Files are named after the **backend**, with no lib
@@ -64,6 +68,17 @@ rejected in review (§0).
   extra, never in `requirements.txt` (§14).
 - **Validate every required key in the factory** and raise the lib's own typed
   error; callers never import the SDK's exception hierarchy.
+- **The keys you read are library-owned and generic — never host-specific.**
+  This is the agnosticism rule at the config boundary, and the factory is where
+  it breaks. A core-lib NEVER reads a host's env var or a host-prefixed config
+  key: it reads its own generic name, or better, takes the value as a
+  constructor param. The host owns its config and **bridges** it — passing the
+  value in, or exporting it under the generic name this library reads. Same for
+  any product-specific text (endpoints, bucket names, prompts, operator
+  messages): injected by the caller as a required value with no default,
+  never hardcoded here. Litmus: could a stranger configure this package without ever
+  learning what application it came from? See "this library is AGNOSTIC" in
+  `AGENTS.md`.
 - **Provider quirks are absorbed in the factory** (e.g. `provider: minio` +
   `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the
   real local backend rather than faking it in tests.
