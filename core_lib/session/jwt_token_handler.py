@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from datetime import timedelta
 import logging
 import jwt
@@ -17,7 +17,8 @@ class JWTTokenHandler(TokenHandler):
 
     def encode(self, message: dict) -> str:
         if self._expiration_time:
-            message['exp'] = (datetime.utcnow() + self._expiration_time).timestamp()
+            # An aware "now": `.timestamp()` reads a naive datetime as local time, not as UTC.
+            message['exp'] = (datetime.now(timezone.utc) + self._expiration_time).timestamp()
 
         return jwt.encode(message, self._secret, algorithm=self._algorithm)
 
