@@ -101,6 +101,19 @@ one layer up, and two copies can disagree.
 
 See "A DataAccess holds NO business logic" in `AGENTS.md`.
 
+## ⛔ Never commit, never flush. `grep -n "\.commit()\|\.flush()"` must return nothing.
+
+`SqlAlchemyConnection` does both when the `with self._db.get() as session:` block
+exits — commit, flush, close; rollback on an exception — and its sessions use
+`expire_on_commit=False`, so the entity a write returns still carries its
+generated id afterwards. A session the Service hands in is no different: it is
+the Service's `with self._thing_da.transaction() as session:` block, which commits
+when it exits. A DataAccess only adds rows and sets attributes.
+
+If the Service needs the stored row — its id, a value the database filled in —
+it reads it back through its own cached `get` after the write. Never flush early
+to get it.
+
 ## Steps
 
 1. Confirm the entity exists (use `core-lib-entity` first if not).
@@ -173,6 +186,12 @@ That is the whole class — no `create`, no guards, domain queries only.
   `nullable=False`. **`update` overrides strip immutable columns** before
   `super().update(id, data)` (§5).
 - **Never returns soft-deleted rows**; don't add `include_deleted` (§5).
+- **A write the service must commit together with another table's, or a
+  check-then-write behind a guard**, gets session-taking methods BESIDE the
+  base (never an override): `transaction()`, `create_in_transaction(session,
+  data)` / `update_in_transaction(session, row, data)` — same `rule_validator`,
+  add or set only, never flush or commit — and `get_for_update(session, id)` with
+  `SET LOCAL lock_timeout` then `with_for_update=True` (§6).
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale
