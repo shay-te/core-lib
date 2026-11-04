@@ -168,19 +168,21 @@ def get() -> UserSecurity:
 
 # RequireLogin Decorator
 
-*core_lib.web_helpers.django.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/require_login.py#L10){:target="_blank"}
+*core_lib.web_helpers.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/require_login.py#L22){:target="_blank"}
 
 This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
 It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+One decorator serves Flask, Django and FastAPI. The old `core_lib.web_helpers.flask.require_login` and `core_lib.web_helpers.django.require_login` paths still import it, with a `DeprecationWarning`.
 
 ```python
 class RequireLogin(object):
-    def __init__(self, policies: list = []):
+    def __init__(self, policies=None, security_handler_name: str = None):
 ```
 
 **Arguments**
 
 - **`policies`** *`(list)`* : List of policies which will be further passed on the the `UserSecurity` functions.
+- **`security_handler_name`** *`(str)`* : The name a `UserSecurity` was registered under with `SecurityHandler.register`. Default: the unnamed one.
 
 
 # UserAuthMiddleware
@@ -213,7 +215,7 @@ from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.decorators import HandleException
-from core_lib.web_helpers.django.require_login import RequireLogin
+from core_lib.web_helpers.require_login import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 
 

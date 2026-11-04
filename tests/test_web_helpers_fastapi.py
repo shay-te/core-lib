@@ -4,7 +4,6 @@ Every request goes through FastAPI routing, Starlette's `Request`, a real cookie
 `UserSecurity`. Nothing is mocked: a fake request only proves what the fake allows, and the fakes this file
 replaced passed while an async view crashed on every denial and `request_body_dict` always returned None.
 """
-import inspect
 import time
 import unittest
 from datetime import timedelta
@@ -22,9 +21,9 @@ from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.decorators import _get_request
-from core_lib.web_helpers.fastapi.require_login import RequireLogin
 from core_lib.web_helpers.fastapi.user_auth_middleware import UserAuthMiddleware
 from core_lib.web_helpers.request_response_helpers import generate_response, request_body_dict, response_status
+from core_lib.web_helpers.require_login import RequireLogin
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
 SECRET = 'fastapi-test-secret'
@@ -103,33 +102,9 @@ class TestWebHelpersFastapi(unittest.TestCase):
                 raise RuntimeError('boom')
             raise StatusCodeException(status)
 
-        @app.get('/async/{item_id}')
-        @RequireLogin([ROLE_ADMIN, ROLE_REVIEWER])
-        async def async_item(request: Request, item_id: int, q: str = 'none'):
-            cls.view_calls.append('async_item')
-            return {'item_id': item_id, 'q': q, 'user': request.state.user}
-
-        @app.get('/async-admin')
-        @RequireLogin([ROLE_ADMIN])
-        async def async_admin(request: Request):
-            cls.view_calls.append('async_admin')
-            return {'ok': True}
-
-        @app.get('/async-raises/{status}')
-        @RequireLogin()
-        async def async_raises(request: Request, status: int):
-            if status == HTTPStatus.INTERNAL_SERVER_ERROR:
-                raise RuntimeError('boom')
-            raise StatusCodeException(status)
-
         @app.get('/sync-request-last/{item_id}')
         @RequireLogin()
         def sync_request_last(item_id: int, request: Request):
-            return {'item_id': item_id, 'user': request.state.user}
-
-        @app.get('/async-request-last/{item_id}')
-        @RequireLogin()
-        async def async_request_last(item_id: int, request: Request):
             return {'item_id': item_id, 'user': request.state.user}
 
         @app.get('/sync-log-exception')
@@ -137,19 +112,9 @@ class TestWebHelpersFastapi(unittest.TestCase):
         def sync_log_exception(request: Request, log_exception: bool = False):
             return {'log_exception': log_exception}
 
-        @app.get('/async-log-exception')
-        @RequireLogin()
-        async def async_log_exception(request: Request, log_exception: bool = False):
-            return {'log_exception': log_exception}
-
         @app.get('/named-handler')
         @RequireLogin([ROLE_ADMIN], security_handler_name=NAMED_HANDLER)
         def named_handler(request: Request):
-            return {'ok': True}
-
-        @app.get('/async-named-handler')
-        @RequireLogin([ROLE_ADMIN], security_handler_name=NAMED_HANDLER)
-        async def async_named_handler(request: Request):
             return {'ok': True}
 
         @app.get('/html')
@@ -223,9 +188,7 @@ class TestWebHelpersFastapi(unittest.TestCase):
     def test_sync_view_with_token_signed_by_another_secret_never_runs(self):
         forged = jwt.encode({'id': USER_ID, 'role': ROLE_ADMIN, 'exp': int(time.time()) + 60}, 'not-the-secret')
         response = self._client(forged).get('/sync/5')
-        # Only the view not running is pinned. The status is 500 today, not 401: `_get_exception_status_code`
-        # maps ExpiredSignatureError alone, for every server type.
-        self.assertNotEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
         self.assertEqual([], self.view_calls)
 
     def test_sync_view_status_code_exception_becomes_that_status(self):
@@ -238,70 +201,33 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_code)
         self.assertEqual({'error': 'Internal Server Error'}, response.json())
 
-    # RequireLogin, async views
-
-    def test_async_view_allowed_gets_request_path_query_and_user(self):
-        response = self._client(_token(ROLE_ADMIN)).get('/async/9', params={'q': 'widget'})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual({'item_id': 9, 'q': 'widget', 'user': {'id': USER_ID, 'role': ROLE_ADMIN}}, response.json())
-        self.assertEqual(['async_item'], self.view_calls)
-
-    def test_async_view_with_wrong_role_is_403_and_view_never_runs(self):
-        response = self._client(_token(ROLE_REVIEWER)).get('/async-admin')
-        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
-        self.assertEqual([], self.view_calls)
-
-    def test_async_view_without_cookie_is_401(self):
-        response = self._client().get('/async/9')
-        self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
-        self.assertEqual([], self.view_calls)
-
-    def test_async_view_status_code_exception_becomes_that_status(self):
-        response = self._client(_token(ROLE_REVIEWER)).get(f'/async-raises/{HTTPStatus.CONFLICT.value}')
-        self.assertEqual(HTTPStatus.CONFLICT, response.status_code)
-        self.assertEqual({'message': 'Conflict'}, response.json())
-
-    def test_async_view_unexpected_error_becomes_500(self):
-        response = self._client(_token(ROLE_REVIEWER)).get(f'/async-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}')
-        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_code)
-        self.assertEqual({'error': 'Internal Server Error'}, response.json())
-
     def test_request_need_not_be_the_first_parameter(self):
         # FastAPI calls a view by keyword, so the view may declare `request` anywhere.
-        for path in ('/sync-request-last/3', '/async-request-last/3'):
-            with self.subTest(path=path):
-                response = self._client(_token(ROLE_ADMIN)).get(path)
-                self.assertEqual(HTTPStatus.OK, response.status_code)
-                self.assertEqual({'item_id': 3, 'user': {'id': USER_ID, 'role': ROLE_ADMIN}}, response.json())
+        response = self._client(_token(ROLE_ADMIN)).get('/sync-request-last/3')
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual({'item_id': 3, 'user': {'id': USER_ID, 'role': ROLE_ADMIN}}, response.json())
 
     def test_view_parameter_named_log_exception_reaches_the_view(self):
         # `handle_exception` has an option of that name. The view's own parameter must not be taken for it.
-        for path in ('/sync-log-exception', '/async-log-exception'):
-            with self.subTest(path=path):
-                response = self._client(_token(ROLE_ADMIN)).get(path, params={'log_exception': 'true'})
-                self.assertEqual(HTTPStatus.OK, response.status_code)
-                self.assertEqual({'log_exception': True}, response.json())
+        response = self._client(_token(ROLE_ADMIN)).get('/sync-log-exception', params={'log_exception': 'true'})
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual({'log_exception': True}, response.json())
 
     def test_route_runs_the_security_handler_it_names(self):
         # The named handler reads its own cookie, so the default handler's cookie alone must be refused.
-        for path in ('/named-handler', '/async-named-handler'):
-            with self.subTest(path=path):
-                allowed = self._client(_token(ROLE_ADMIN), cookie_name=NAMED_COOKIE).get(path)
-                self.assertEqual(HTTPStatus.OK, allowed.status_code)
-                refused = self._client(_token(ROLE_ADMIN)).get(path)
-                self.assertEqual(HTTPStatus.UNAUTHORIZED, refused.status_code)
+        allowed = self._client(_token(ROLE_ADMIN), cookie_name=NAMED_COOKIE).get('/named-handler')
+        self.assertEqual(HTTPStatus.OK, allowed.status_code)
+        refused = self._client(_token(ROLE_ADMIN)).get('/named-handler')
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, refused.status_code)
 
-    def test_wrapper_matches_the_view_kind(self):
-        # A FastAPI that does not follow `__wrapped__` decides sync/async from the wrapper alone. A sync wrapper
-        # around an async view would hand it an un-awaited coroutine, and the current FastAPI hides that.
+    def test_async_view_is_refused(self):
+        # Views are plain `def`: an `async def` view would hold the event loop through every sync core-lib call.
         async def async_view(request):
             return None
 
-        def sync_view(request):
-            return None
-
-        self.assertTrue(inspect.iscoroutinefunction(RequireLogin()(async_view)))
-        self.assertFalse(inspect.iscoroutinefunction(RequireLogin()(sync_view)))
+        decorator = RequireLogin()
+        with self.assertRaisesRegex(TypeError, 'not `async def`'):
+            decorator(async_view)
 
     def test_openapi_documents_the_view_parameters_not_the_wrapper(self):
         parameters = self.app.openapi()['paths']['/sync/{item_id}']['get']['parameters']
@@ -349,12 +275,9 @@ class TestWebHelpersFastapi(unittest.TestCase):
         recorder = _RequestRecorder()
         CoreLib.handle_exception_middleware.add(recorder)
         self.addCleanup(CoreLib.handle_exception_middleware.remove, recorder)
-        for path in (f'/sync-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}',
-                     f'/async-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}'):
-            with self.subTest(path=path):
-                recorder.requests.clear()
-                self._client(_token(ROLE_REVIEWER)).get(path)
-                self.assertEqual([path], [request and request.url.path for request in recorder.requests])
+        path = f'/sync-raises/{HTTPStatus.INTERNAL_SERVER_ERROR.value}'
+        self._client(_token(ROLE_REVIEWER)).get(path)
+        self.assertEqual([path], [request and request.url.path for request in recorder.requests])
 
     def test_request_is_unbound_once_the_view_returns(self):
         # Called directly, in this thread: the wrapper must not leave its request behind for a later error report.
