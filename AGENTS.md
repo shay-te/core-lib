@@ -735,7 +735,7 @@ foo-core-lib/
       __init__.py
       utils.py                        # sync_create_start_core_lib, load_config, new_project_id, seams
     data/
-      .env                            # test env vars (backend 127.0.0.1, …)
+      .env                            # test env vars, if any (backend 127.0.0.1, …) — never the DB
       config/
         config.yaml                   # defaults: [core_lib, foo_core_lib, (foo_core_lib_test | _self_)]
         foo_core_lib_test.yaml        # test-safe overrides: the DB on sqlite (§13.5), anything not env-driven
@@ -766,7 +766,7 @@ foo-core-lib/
 - First line is exactly `# @package _global_`. Root key is `core_lib:`.
 - **New libs source every value from an environment variable** with an in-yaml default — `${oc.env:FOO_<KEY>,<default>}`, nullable values defaulting to `null` — the style of the newer libs, which is the owner's latest direction. Exceptions, with NO default (`${oc.env:FOO_<KEY>}`): secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text. **The DB block below follows neither rule: it is copied as written.**
 - **Booleans and numbers sourced from env MUST be wrapped in `oc.decode`:** `${oc.decode:${oc.env:FOO_USE_SSL,true}}`. A bare `${oc.env:...}` resolves to a STRING — `'false'` is truthy — which silently breaks `create_engine(echo=…)`, makes `create_db` impossible to disable, and defeats `use_ssl is False` checks. This was a real shipped bug.
-- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. **Copy this block exactly into every DB lib**: the same values, the same `session`, the `POSTGRES_*` names with no defaults, and `port` left bare (the one `oc.decode` exception: it is only formatted into the URL). Only `version_table` differs per lib. **Never invent a lib-prefixed database key (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, `FOO_DB_CREATE_DB`, …).** The host sets one database, and a lib with its own names forces every install compose to override them: a host's install compose for the lib is `defaults:` only. Tests reach sqlite through the test yaml (§13.5), never through an env key.
+- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. **Copy this block exactly into every DB lib** — it is the block the existing libs carry (`workflow`, `user_journey`): the same values, the same `session`, the `POSTGRES_*` names with no defaults (`POSTGRES_DB` is the `file`), and `port` left bare (the one `oc.decode` exception: it is only formatted into the URL). Only `version_table` differs per lib. **Never invent a lib-prefixed database key (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, `FOO_DB_CREATE_DB`, …).** The host sets one database, and a lib with its own names forces every install compose to override them: a host's install compose for the lib is `defaults:` only. Tests reach sqlite through the test yaml (§13.5), never through an env key.
 
 ```yaml
 # @package _global_
@@ -778,8 +778,8 @@ core_lib:
         log_queries: false
         create_db: false
         session:
-          pool_size: 5
-          max_overflow: 10
+          pool_recycle: 3200
+          pool_pre_ping: false
         url:
           protocol: postgresql
           username: ${oc.env:POSTGRES_USER}
@@ -1568,7 +1568,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 ### 13.5 `tests/data/` — config + env
 
 - `config/config.yaml`: `defaults: [core_lib, foo_core_lib, foo_core_lib_test]` where `foo_core_lib_test.yaml` (same dir, starts `# @package _global_`) carries test-safe overrides. For a DB lib that is where sqlite goes, since the packaged DB block is fixed (§3.1): `create_db: true` (tests rely on `create_all`, not Alembic — except one variant) and the WHOLE `url` — `protocol: sqlite`, `file: ':memory:'`, and `username`, `password`, `host`, `port` all `~`. `build_url` reads every key, so one left out resolves its `${oc.env:POSTGRES_*}` and the boot dies on a variable no test sets. An older lib’s also sets `version_table` + job config; an older lib’s sets a fake `api_key: SOME-KEY` so any eager construction succeeds. A lib with no DB whose packaged yaml is fully env-driven may not need the third group — then use `defaults: [core_lib, foo_core_lib, _self_]` plus inline keys for anything extra (e.g. a composed sibling's section). Never compose a sibling REPO's config group (§3.4).
-- `.env` (loaded by `load_config`): `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
+- `.env` (loaded by `load_config`): no DB values — the test yaml above carries the DB; `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
 - Local S3 without Docker: `pip install "moto[server]"`, run exactly ONE `python -m moto.server -p 9000` (several instances on one port scatter requests and stall), create the bucket once via boto3. boto3/moto are dev-env deps, never `requirements.txt`.
 
 ### 13.6 Writing the suites
