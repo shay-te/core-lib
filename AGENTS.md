@@ -129,6 +129,43 @@ on that entity (`Entity.PARAM_MATRIX = 'matrix'`) are the right home — the
 entity owns its own blob's shape. What is never fine is the same literal at
 three call sites.
 
+### A map between two vocabularies is a constant too — declared once
+
+A dict from one enum's members to another vocabulary (a row's status to the
+event type it logs, an event type to its title key, one type to the type a
+sibling vocabulary uses) is a constant, not a service detail. It lives ONCE, in
+the constants module of the vocabulary it maps INTO, beside that enum, named
+`<SOURCE>_TO_<TARGET>`:
+
+```python
+# constants/event_constants.py, beside EventType, which these maps target
+ORDER_STATUS_TO_EVENT_TYPE = {
+    Order.OrderStatus.PAID: EventType.ORDER_PAID,
+    Order.OrderStatus.REFUNDED: EventType.ORDER_REFUNDED,
+}
+EVENT_TYPE_TO_TITLE_KEY = {
+    EventType.ORDER_PAID: 'event.orderPaid',
+    EventType.ORDER_REFUNDED: 'event.orderRefunded',
+}
+```
+
+Never a private `_STATUS_TYPES = {...}` at the top of a service, a DataAccess or
+a host module. The maps over one vocabulary depend on each other (a status
+mapped to an event type that has no title fails only at runtime, and is visible
+only when the two sit side by side), and a second reader imports the same
+object instead of growing its own copy. "Which event does status X write?" then
+has one file to open.
+
+- It may import the entity whose nested enum it keys on (§4 nests enums in
+  their entity). The "imports no entity" rule above is about re-declared payload
+  NAMES, not about maps. If that entity imports the constants module back, give
+  the maps their own `constants/<topic>_constants.py`.
+- A host that needs a library's map imports it from the library, never
+  redeclares it. A map onto a host-owned enum is the host's, in its own
+  constants.
+- Key it the way its readers look up: by member, or by `.value` when a query
+  compares stored ints. Say which in its comment.
+
 ### Enforce it, do not just document it
 
 A rename cannot catch an alias, and neither can any behavioural test — by

@@ -141,6 +141,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`. The Service takes the member as given: converting a request's
   int is the host's job, and the Service neither converts nor re-checks it.
+- **A map between two enums is a constant, declared once** — `<SOURCE>_TO_<TARGET>`
+  in the constants module of the vocabulary it maps into, imported by every
+  service and host that reads it; never a private `_X_TYPES = {...}` dict at the
+  top of a service file ("A map between two vocabularies is a constant too" in
+  `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
   A create whose duplicate is an error does not look the row up first: the
