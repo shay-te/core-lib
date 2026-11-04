@@ -178,6 +178,19 @@ This package is a **standalone, product-agnostic library**. Treat it as if it
 will be published on its own and dropped into any application that has never
 heard of this project. It must know nothing about the host that consumes it.
 
+**"This package" means core-lib itself AND every `*-core-lib` built on it.** core-lib is the most agnostic of
+all, one level further: it knows nothing about the products that use it, and nothing about the libraries built on
+it either. So in core-lib's own source, tests and docs:
+
+- No product name and no product domain (users, matches, payments, phone numbers — whatever one product is about).
+- No sibling library's name, import, entity, enum or constant; core-lib never imports a `*-core-lib`.
+- A helper belongs here only if any library could use it unchanged (a decorator, a converter, a validator of a
+  general format). A helper about one library's data goes in that library ("The other direction" below); a helper
+  about one product goes in that product.
+
+The test for a change to core-lib: would it make sense to a library that has nothing to do with the one you are
+working on? If it only makes sense for that one, it is in the wrong package.
+
 ## No host or product knowledge — anywhere
 
 The name of the host application or product (its brand, its CLI, its env-var
@@ -250,6 +263,27 @@ realistic, named configuration SHOULD live. It proves the mechanism works on a
 real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
+
+## The other direction: the library owns the rules about its own data
+
+Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
+**every rule about what the library stores — a value's shape, whether a value is valid, how to encode or decode
+it — is a public helper in the library, even when only one host calls it today.** The library defines the data, so
+it is the one place that can say what a good value of it is; a check written in the host is re-written by the next
+product that uses the library, and the copies drift.
+
+The test: **would a second, completely different host storing the same thing need this function?** If yes, it is
+the library's. For a library storing user-defined fields: "is this a valid phone number value", "is this one of the
+field's options", "turn the stored phone value into a dialable number" are the library's; "the API refuses photo
+uploads" or "this endpoint answers 400 with no body" are the host's policy.
+
+What the host owns stays a parameter: the helper takes the field's options, the host's key names, a threshold —
+never reads the host's config or constants. The host then calls the library helper and adds only its policy around
+it (which status to answer, what to log).
+
+Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
+library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
+was missing from the library.
 
 ## Before writing a helper, check core-lib for it
 
