@@ -29,11 +29,20 @@ def require_login(policies, func, *args, security_handler_name: str = None, **kw
 
 
 def _view_request(args: tuple, kwargs: dict):
-    """The request in a view's arguments. Django passes it first. FastAPI passes every argument by keyword, so it is
-    the `request` parameter. A Flask view gets none and reads Flask's thread-local `request`."""
+    """The request in a view's arguments. A Flask view gets none and reads Flask's thread-local `request`."""
     server_type = WebHelpersUtils.get_server_type()
     if server_type == WebHelpersUtils.ServerType.DJANGO:
-        return args[0]
+        return _django_request(*args, **kwargs)
     if server_type == WebHelpersUtils.ServerType.FASTAPI:
-        return kwargs['request']
+        return _fastapi_request(*args, **kwargs)
     return flask_request
+
+
+def _django_request(request, *_args, **_kwargs):
+    """Django passes a view its request as the first argument."""
+    return request
+
+
+def _fastapi_request(*_args, request, **_kwargs):
+    """FastAPI passes a view every argument by keyword, so the request comes as `request`."""
+    return request
