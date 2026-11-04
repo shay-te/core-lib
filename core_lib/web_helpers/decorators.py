@@ -15,7 +15,7 @@ from core_lib.web_helpers.request_response_helpers import response_message
 
 logger = logging.getLogger(__name__)
 
-# Django and FastAPI have no thread-local request proxy. `@RequireLogin` binds the request here while its view runs.
+# Django and FastAPI have no thread-local request proxy. `require_login` binds the request here while its view runs.
 _request = ContextVar('request', default=None)
 
 

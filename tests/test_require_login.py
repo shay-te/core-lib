@@ -107,7 +107,7 @@ class TestRequireLogin(unittest.TestCase):
             raise RuntimeError('boom')
 
         request = HttpRequest()
-        require_login(request, [], view)
+        require_login([], view, request)
         self.assertEqual([request], recorder.requests)
 
     def test_direct_call_refuses_an_async_view(self):
@@ -116,4 +116,4 @@ class TestRequireLogin(unittest.TestCase):
 
         request = HttpRequest()
         with self.assertRaisesRegex(TypeError, 'not `async def`'):
-            require_login(request, [], view)
+            require_login([], view, request)

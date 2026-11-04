@@ -165,7 +165,7 @@ also needs a migration), load all that apply. For a brand-new library, load
 | add a migration / alter / create / drop a table, column, index, or constraint | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
-| write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
+| write ANY helper / utility / decorator / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md) |
 
 **Adding a skill? This table is not the only place it must appear.** Add the row here AND in `core_lib_generator/template_core_lib/AGENTS.md`, which carries a convenience copy that every generated lib ships — a skill missing from that copy is one a generated lib is never told to load. (`core-lib-new` is the one deliberate omission: a generated lib already exists.)
@@ -328,16 +328,14 @@ Write the function first, then a decorator that calls it. That is how core-lib's
 |---|---|
 | `@ResultToDict()` | `result_to_dict(value)` |
 | `@HandleException()` | `handle_exception(func, *args)` |
-| `@RequireLogin()` | `require_login(request, policies, view)` |
+| `@RequireLogin()` | `require_login(policies, view, *view_args)` |
 | `@Cache(...)` | `build_function_key(...)` for the key, and a `CacheHandler`'s `get` / `set` / `delete` |
 
 Two reasons:
 - **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
 - **Any caller can use the function independently**: on a value it already holds, from a job or a script, or wherever a decorator does not fit.
 
-The decorator does only two things:
-1. It gathers the function's inputs from the decorated call. `@RequireLogin` finds the request the way each framework hands it over.
-2. It runs the decoration-time checks of §8 by calling the same check the function runs (`assert_def_view` in `require_login_helper.py`), never a copy of it.
+The decorator only passes the decorated call's arguments to the function, as they came. `@RequireLogin` hands `require_login` the view's arguments unchanged, and the function finds the request in them. A decorator that takes an argument apart for the function to put back holds the same branch twice, and a direct call cannot reach the decorator's copy. Likewise, a check the function already runs is not repeated in the decorator.
 
 Any other logic left in the decorator is logic a direct call silently misses. While binding the request for error middlewares lived in `@RequireLogin`, a direct `require_login(...)` call reported `request=None` to every middleware.
 

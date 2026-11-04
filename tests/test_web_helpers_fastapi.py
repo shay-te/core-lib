@@ -222,13 +222,12 @@ class TestWebHelpersFastapi(unittest.TestCase):
 
     def test_async_view_is_refused(self):
         # Views are plain `def`: an `async def` view would hold the event loop through every sync core-lib call.
+        @RequireLogin()
         async def async_view(request):
             return None
 
-        # Refused when decorated, so the app fails at startup rather than on the view's first request.
-        decorator = RequireLogin()
         with self.assertRaisesRegex(TypeError, 'not `async def`'):
-            decorator(async_view)
+            async_view(request=None)
 
     def test_openapi_documents_the_view_parameters_not_the_wrapper(self):
         parameters = self.app.openapi()['paths']['/sync/{item_id}']['get']['parameters']

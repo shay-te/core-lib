@@ -155,14 +155,14 @@ class TestUserSecurity(unittest.TestCase):
                 self.assertEqual(flask_request.cookies[cookie_name], token)
                 if decorated_function:
                     return decorated_function()
-                return require_login(flask_request, policies, lambda: True)
+                return require_login(policies, lambda: True)
         else:
             django_request = HttpRequest
             django_request.COOKIES = {cookie_name: token}
             self.assertEqual(django_request.COOKIES[cookie_name], token)
             if decorated_function:
                 return decorated_function(django_request)
-            return require_login(django_request, policies, lambda: True)
+            return require_login(policies, lambda request: True, django_request)
 
     def _test_secure_entry(self):
 
