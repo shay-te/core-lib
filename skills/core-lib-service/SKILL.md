@@ -46,7 +46,9 @@ functions get assigned to.
 2. Create `data_layers/service/<entity>_service.py` extending `Service`.
 3. Wrap reads/writes with decorators in the right order.
 4. Add caching only where the win is real (cross-service hot paths).
-5. Type enum parameters as the enum and validate with an explicit raise.
+5. Type enum parameters as the enum and take the member as given: no conversion
+   from an int, no check of its own — the DataAccess's `RuleValidator` refuses a
+   wrong value.
 6. Any pure logic that grew its own name goes in `<name>_helper.py` beside it.
 
 ## Canonical template
@@ -87,9 +89,7 @@ class WidgetService(Service):
     def update(self, widget_id: int, data: dict):
         return self._widget_da.update(widget_id, data)
 
-    def set_status(self, widget_id: int, status: Widget.Status):
-        if not isinstance(status, Widget.Status):     # enum at the boundary
-            raise ValueError('status must be a Widget.Status member')
+    def set_status(self, widget_id: int, status: Widget.Status):   # the member, never its int
         return self.update(widget_id, {Widget.status.key: status})
 ```
 
@@ -132,15 +132,27 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
-- **Minimum surface** — every public method has a caller or a ticket line;
-  no "may happen" branches (§0).
+- **Minimum surface** — every public method has a caller in this change; one
+  the plan lists for a LATER step is written in that step. No "may happen"
+  branches (§0).
 - **A method taking a row id also takes the tenant key** (`project_id`) and
   treats another tenant's row as absent (§6).
 - **Tuning values are module constants, not config**, until a host asks (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
-  `enum.Enum`.
+  `enum.Enum`. The Service takes the member as given: converting a request's
+  int is the host's job, and the Service neither converts nor re-checks it.
+- **A map between two enums is a constant, declared once** — `<SOURCE>_TO_<TARGET>`
+  in the constants module of the vocabulary it maps into, imported by every
+  service and host that reads it; never a private `_X_TYPES = {...}` dict at the
+  top of a service file ("A map between two vocabularies is a constant too" in
+  `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
+  A create whose duplicate is an error does not look the row up first: the
+  unique index answers 409 (the `if existing` read is for an upsert only).
+- **No read before a write to answer 404/409.** A by-id write is the
+  DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
+  `update`); let the database and the `RuleValidator` refuse (§6).
 - **Several writes that must land together, or a guard checked before a
   write** (a set-once field, "not answered yet"), run in ONE session the service
   opens through the DA's `transaction()`, with the row read by

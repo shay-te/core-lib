@@ -129,6 +129,43 @@ on that entity (`Entity.PARAM_MATRIX = 'matrix'`) are the right home — the
 entity owns its own blob's shape. What is never fine is the same literal at
 three call sites.
 
+### A map between two vocabularies is a constant too — declared once
+
+A dict from one enum's members to another vocabulary (a row's status to the
+event type it logs, an event type to its title key, one type to the type a
+sibling vocabulary uses) is a constant, not a service detail. It lives ONCE, in
+the constants module of the vocabulary it maps INTO, beside that enum, named
+`<SOURCE>_TO_<TARGET>`:
+
+```python
+# constants/event_constants.py, beside EventType, which these maps target
+ORDER_STATUS_TO_EVENT_TYPE = {
+    Order.OrderStatus.PAID: EventType.ORDER_PAID,
+    Order.OrderStatus.REFUNDED: EventType.ORDER_REFUNDED,
+}
+EVENT_TYPE_TO_TITLE_KEY = {
+    EventType.ORDER_PAID: 'event.orderPaid',
+    EventType.ORDER_REFUNDED: 'event.orderRefunded',
+}
+```
+
+Never a private `_STATUS_TYPES = {...}` at the top of a service, a DataAccess or
+a host module. The maps over one vocabulary depend on each other (a status
+mapped to an event type that has no title fails only at runtime, and is visible
+only when the two sit side by side), and a second reader imports the same
+object instead of growing its own copy. "Which event does status X write?" then
+has one file to open.
+
+- It may import the entity whose nested enum it keys on (§4 nests enums in
+  their entity). The "imports no entity" rule above is about re-declared payload
+  NAMES, not about maps. If that entity imports the constants module back, give
+  the maps their own `constants/<topic>_constants.py`.
+- A host that needs a library's map imports it from the library, never
+  redeclares it. A map onto a host-owned enum is the host's, in its own
+  constants.
+- Key it the way its readers look up: by member, or by `.value` when a query
+  compares stored ints. Say which in its comment.
+
 ### Enforce it, do not just document it
 
 A rename cannot catch an alias, and neither can any behavioural test — by
@@ -652,7 +689,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 - Defensive config reads (`storage_cfg.get('prefix_originals')`) in a composition root or service — rejected; direct attribute access, fail loud, and make sure the key ALWAYS exists in the yaml (§3). (The one sanctioned `.get(...)` site is a connection factory's validation layer — §10.)
 - Standalone DB-DataAccess test files — rejected: "no one is exposing the DA; we only test what we expose, which is the service" (§13.3 — the backend *client adapter* test is the one sanctioned exception).
 
-**The first version of a lib is the MINIMUM version.** Every public method, DataAccess query, column, config key, error class and branch traces to the ticket or to a caller in the same change — never to a scenario "that may happen" (retries, concurrency claims, account switching, a second tenant column, collaboration, tuning knobs). Later steps add them when a requirement names the need; a smaller lib is easier to review and deploy. Ask of every line: "which requirement or caller needs this today?"
+**The first version of a lib is the MINIMUM version.** Every public method, DataAccess query, column, config key, error class and branch traces to the ticket or to a caller in the same change — never to a scenario "that may happen" (retries, concurrency claims, account switching, a second tenant column, collaboration, tuning knobs). Later steps add them when a requirement names the need; a smaller lib is easier to review and deploy. Ask of every line: "which requirement or caller needs this today?" The same holds for a feature added to an existing lib: a method whose only consumer is a LATER step of the plan is written in that step, even when the plan lists it now.
 
 ## 1. Naming (exact — no variation)
 
@@ -1146,6 +1183,8 @@ Rules:
 - **A public method that takes a row id also takes the tenant key** (`cancel(appointment_id, project_id)`) and treats another tenant's row as absent — a primary key is not authority to read or write. The tell is a public method whose only argument is an id.
 - **Tuning values are module constants, not config** (`CONNECT_STATE_TTL_SECONDS = 600`) until a host asks to change one. Config holds what differs per deployment: credentials, endpoints, host wording (required, no default — see "this library is AGNOSTIC").
 - Missing required args raise `ValueError` at the top of the method. Argument guards that several services share live together in ONE `<topic>_helper.py` (`argument_helper.py`: `require_id`, `to_naive_utc`, …) — never one function per file, never a bare `helper.py`. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
+- **Let the database refuse what it can: no Service pre-check repeats a constraint.** A create whose duplicate is an error does not look the row up first: the unique index raises and `@DuplicateErrorHandler()` on the Service's `create` answers 409, while the read adds a query and a race window for nothing (`if existing: update else: create` is for an upsert only). Likewise a by-id write does not `get` the row first to raise 404: it is the DataAccess `update` under `@Cache(..., invalidate=True)`, as in the template above.
+- **A Service takes enum members, never their ints.** A parameter typed `Thing.ThingKind` receives the member. Converting a request's int into it is the host's job at its own boundary, so the Service neither converts nor re-checks it; an int or a wrong value fails in the DataAccess's `RuleValidator`.
 - **A row's PARENT can be soft-deleted too, and that is still an absence.** Swallowing the 404 on the row you asked for is only half of it: a read that walks stored children and resolves each one's parent hits rows whose parent went away after they were written, and it must skip rather than raise. Get this wrong on ONE method and the surface becomes incoherent — in the case that prompted this rule, `history`, `scores`, `latest_per_scale` and `compare_pair` all returned empty on a soft-deleted parent while `result_for` raised a `ValueError` from a PURE ENGINE's argument guard, so the caller got an error naming a parameter rather than the record. Swallow only 404 (a helper like `row_or_none(get, row_id)` at the library root, since a DataAccess needs it too) — catching the base `StatusCodeException` turns a 409 into a silent "not found".
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
