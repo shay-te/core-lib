@@ -316,6 +316,10 @@ next reader does not re-check.
 - **`@NotFoundErrorHandler()` is not a get-or-none.** It goes the other way — falsy result → raise 404 — and it is already on the CRUD bases' `get`. A service that returns `None` for an absent row swallows that 404 itself, and must catch **only** 404: a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found".
 - **`result_to_dict` only converts values INSIDE a structure.** `result_to_dict(a_datetime)` returns the datetime unchanged. Convert a hand-built dict by decorating the METHOD with `@ResultToDict()`, not by calling the function per field. (Then mind the str-enum key trap — §skills.)
 
+### Every lib keeps a helper map in its own `AGENTS.md`
+
+A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in its `helpers.py` and `*_helper.py` modules, plus the constants other modules import, saying what each does. Read it before writing a helper, since the one you need may already sit one module over, and add, rename or remove the line in the same change as the code. A lib without a map gets one the first time someone works in it.
+
 ### Use the call that already returns it — no new function per field
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
