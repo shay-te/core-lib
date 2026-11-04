@@ -186,6 +186,9 @@ That is the whole class — no `create`, no guards, domain queries only.
   `nullable=False`. **`update` overrides strip immutable columns** before
   `super().update(id, data)` (§5).
 - **Never returns soft-deleted rows**; don't add `include_deleted` (§5).
+- **No query that exists only for a Service pre-check** (a `get_by_<unique
+  columns>` read before a create): the unique index refuses the duplicate and
+  the Service's `@DuplicateErrorHandler()` answers 409 (§6).
 - **A write the service must commit together with another table's, or a
   check-then-write behind a guard**, gets session-taking methods BESIDE the
   base (never an override): `transaction()`, `create_in_transaction(session,
