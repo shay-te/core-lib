@@ -8,7 +8,7 @@ from http import HTTPStatus
 from core_lib.core_lib import CoreLib
 
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
-from jwt import ExpiredSignatureError
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 from core_lib.error_handling.status_code_exception import StatusCodeException
 from core_lib.web_helpers.request_response_helpers import response_message
@@ -72,7 +72,8 @@ def _execute_error_middlewares(exc, func):
 def _get_exception_status_code(exc):
     if isinstance(exc, StatusCodeException):
         return response_message(status=exc.status_code)
-    elif isinstance(exc, ExpiredSignatureError):
+    elif isinstance(exc, InvalidTokenError):
+        # Expired, signed with another secret, or not a JWT at all.
         return response_message(status=HTTPStatus.UNAUTHORIZED)
     elif isinstance(exc, AssertionError):
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
