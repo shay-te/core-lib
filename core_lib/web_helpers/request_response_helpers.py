@@ -11,6 +11,7 @@ from core_lib.helpers.constants import MediaType, HttpHeaders
 
 from django.http import HttpResponse
 from flask import Flask
+from anyio import from_thread
 from starlette.responses import Response as StarletteResponse
 
 
@@ -104,11 +105,7 @@ def request_body_dict(request):
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
         return request.json
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
-        # FastAPI's normal pattern is `await request.json()` inside an async
-        # view. Inside this sync helper we expect callers to have pre-read
-        # the body (e.g. via a sync wrapper, or by passing `request.json()`
-        # already-resolved). Accept both shapes for ergonomics.
-        body = request.body if isinstance(request.body, (bytes, bytearray)) else None
-        if body is not None:
-            return json.loads(body.decode('utf-8'))
-        return None
+        # Starlette reads the body asynchronously. FastAPI runs a sync view in an AnyIO worker thread, which
+        # reaches back into the event loop to read it. An async view has no worker thread, so this raises
+        # there: an async view awaits `request.json()` itself.
+        return json.loads(from_thread.run(request.body).decode('utf-8'))

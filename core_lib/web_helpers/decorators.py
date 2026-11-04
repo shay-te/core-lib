@@ -33,26 +33,10 @@ def _get_request():
             except Exception as e:
                 logger.debug(f"Failed to resolve Django request: {e}")
         else:
+            # FASTAPI binds the request per task, with no thread-local proxy to read it from.
             return None
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
-<<<<<<< Updated upstream
-=======
-        return None
-
-    if server_type == WebHelpersUtils.ServerType.FLASK:
-        try:
-            from flask import request as flask_request
-            return flask_request
-        except Exception as e:
-            logger.debug(f"Failed to fetch Flask request: {e}")
-            return None
-    # DJANGO / FASTAPI / unknown: no thread-local request available — both
-    # bind the request per-task (per-view for Django, per-async-task for
-    # FastAPI / Starlette). Callers should attach the request to the error
-    # middleware context explicitly.
-    return None
->>>>>>> Stashed changes
 
 def _execute_error_middlewares(exc, func):
     request = _get_request()
@@ -80,6 +64,16 @@ def _get_exception_status_code(exc):
     else:
         return response_message(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+def _exception_response(exc, func, log_exception: bool):
+    # Run middlewares on all failures
+    _execute_error_middlewares(exc, func)
+
+    logger.error(f"handle_exception got {type(exc).__name__} error for function `{func}`")
+    logger.exception(exc, exc_info=log_exception)
+
+    return _get_exception_status_code(exc)
+
+
 def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop("log_exception", True)
 
@@ -87,13 +81,20 @@ def handle_exception(func, *args, **kwargs):
         return func(*args, **kwargs)
 
     except (StatusCodeException, AssertionError, ExpiredSignatureError, BaseException) as exc:
-        # Run middlewares on all failures
-        _execute_error_middlewares(exc, func)
+        return _exception_response(exc, func, log_exception)
 
-        logger.error(f"handle_exception got {type(exc).__name__} error for function `{func}`")
-        logger.exception(exc, exc_info=log_exception)
 
-        return _get_exception_status_code(exc)
+async def handle_exception_async(awaitable, func, log_exception: bool = True):
+    """`handle_exception` for a coroutine already created from `func`: await it, and turn a failure into the
+    same response.
+
+    Catches `Exception`, not `BaseException`: in async code that would also swallow `asyncio.CancelledError`,
+    and a cancelled request (a client that disconnected) could never unwind.
+    """
+    try:
+        return await awaitable
+    except Exception as exc:
+        return _exception_response(exc, func, log_exception)
 
 
 

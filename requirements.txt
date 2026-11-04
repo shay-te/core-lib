@@ -29,6 +29,7 @@ setuptools
 django
 flask
 flask_cors
+fastapi
 requests
 
 
@@ -38,3 +39,4 @@ moto==3.1.4
 freezegun
 mongomock
 flask_wtf
+httpx
