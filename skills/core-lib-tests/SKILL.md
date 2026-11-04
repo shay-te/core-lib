@@ -34,6 +34,9 @@ Aim to be surprised.
 3. Compose the real library against a **real SQLite** database — the factory is
    *pointed* at sqlite, not mocked; the session, migrations and transactions are
    genuine. Mock only an outbound SDK / the clock / a dangerous filesystem call.
+   Point it from `tests/data/config/foo_core_lib_test.yaml`, overriding the
+   WHOLE `url` (AGENTS §13.5), never through an env key: the packaged DB block
+   is fixed (§3.1).
 4. Reset the cache registry per test so cached rows don't leak.
 5. Use generic fixture data; aim for full coverage of public methods +
    one `test_flow.py` driving the primary workflow A→Z.

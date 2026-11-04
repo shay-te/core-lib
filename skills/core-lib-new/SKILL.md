@@ -56,14 +56,23 @@ validation-failure type**.
    + `tests/data/config/`; re-read every prose line the rename touched; and
    rewrite `setup.py` + `MANIFEST.in` per §14 (text reads, `tests` excluded,
    migration `*.mako` + `.migration_ver` shipped). The package-root `foo_core_lib/__init__.py`
-   carries `__version__` **and** re-exports the class
-   (`from foo_core_lib.foo_core_lib import FooCoreLib` + `__all__`). **Every
+   carries **only** `__version__ = '0.0.0.1'`. **Do NOT add
+   `from foo_core_lib.foo_core_lib import FooCoreLib` or `__all__`.** The
+   build imports the package to read `__version__`, so a re-export loads
+   `core_lib`, SQLAlchemy and Hydra before they are installed, and the build
+   fails. This happened on a real generated lib. Import the class from its
+   module instead: `from foo_core_lib.foo_core_lib import FooCoreLib`. **Every
    other `__init__.py` is an empty 0-byte file — but it must exist** (§1, §2).
 2. **First vertical slice**: entity → data-access → service (run those three
    skills in order).
 3. **Main class** (composition root) — see template.
 4. **No singleton accessor** in the lib — a host that wants one writes it.
-5. **Hydra config + plugin** so parent apps can override sections.
+5. **Hydra config + plugin** so parent apps can override sections. **The DB
+   block is copied from AGENTS §3.1 exactly, never written fresh**: the same
+   values, the same `session`, the `POSTGRES_*` names with no defaults; only
+   `version_table` changes. Never invent a lib-prefixed database key
+   (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …). A host's install compose for the lib
+   is `defaults:` only, and tests reach sqlite through the test yaml (§13.5).
 6. **Migration** for the first entity (`core-lib-migration`).
 7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures, run
    with `python -P`. Finish by building the wheel and installing it into a
@@ -147,6 +156,9 @@ class FooCoreLib(CoreLib):
   go in `extras_require` (§14).
 - **No empty re-export-only modules**; import from the defining submodule
   (§1).
+- **No `import` and no `__all__` in the package-root `__init__.py`.** It holds
+  `__version__` and nothing else; a re-export of `FooCoreLib` there breaks the
+  build (§1, AGENTS §16 #27).
 
 ## The agnosticism litmus test
 

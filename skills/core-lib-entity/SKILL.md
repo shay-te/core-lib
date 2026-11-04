@@ -241,8 +241,8 @@ The mixin choice decides the DataAccess base (§5).
   tables sit in the host's default schema: all core-lib entities share `Base.metadata`, so a
   host's `create_all` would fail on a schema that does not exist yet. Prefix the table name with
   the library's name when the bare name could clash with a host's table
-  (`__tablename__ = 'foo_event'`, module `foo_event.py`, indexes `ix_foo_event_*`),
-  and grant per table in the migration.
+  (`__tablename__ = 'foo_event'`, class `FooEvent`, module `foo_event.py`, indexes
+  `ix_foo_event_*`). **The table, the class and the file always carry the same name.**
 - **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals
