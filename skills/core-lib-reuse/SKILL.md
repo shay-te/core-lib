@@ -86,6 +86,22 @@ Verified by inventory, so you can stop looking:
 - **No encryption helper.** A thin wrapper over `cryptography.fernet.Fernet` (encrypt/decrypt a JSON dict, `ttl=` on decrypt for short-lived tokens) is right — a few lines. Fernet validates the key itself, and its `InvalidToken` needs no wrapper class.
 - **No transient-default mixin**, and do not write one — a column `default=` fires at INSERT by design (§4).
 
+## Adding a helper to core-lib itself
+
+core-lib is agnostic of products AND of the libraries built on it (AGENTS "this library is AGNOSTIC"). A helper
+goes into `core_lib` only if every library could use it unchanged — a decorator, a converter, a validator of a
+general format. It never names or imports a `*-core-lib`, and never carries one library's or one product's domain;
+those go in that library or that product.
+
+## Library or host? Decide before you write it
+
+A helper about the data a `*-core-lib` stores — a value's shape, its validity, its encoding — belongs in that
+library, public, even if one host is its only caller today. Ask: **would a second host storing the same thing need
+it?** If yes, write it in the library; the host calls it and keeps only its own policy (the status it answers, what
+it logs). What the host owns (option lists, key names, thresholds) comes in as a parameter. Written in the host,
+the next product re-implements it and the copies drift (AGENTS "The other direction: the library owns the rules
+about its own data").
+
 ## Where a lib-local helper goes
 
 `<name>_core_lib/helpers.py`, at the **library root**, when a DataAccess needs
@@ -106,6 +122,7 @@ functions (`argument_helper.py`) — never one function per file, never a bare
 
 ## Checklist
 
+0. Writing it in a host? If it is about a library's own data, it goes in that library ("Library or host?" above).
 1. Name the behaviour you need in one phrase ("entity → dict", "missing row → None").
 2. Search the table above; then `grep -rn "def <verb>" <core-lib>/core_lib/`.
 3. If it exists — call it. If it exists at 80% — call it and add the 20%.

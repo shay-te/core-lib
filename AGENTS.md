@@ -178,6 +178,19 @@ This package is a **standalone, product-agnostic library**. Treat it as if it
 will be published on its own and dropped into any application that has never
 heard of this project. It must know nothing about the host that consumes it.
 
+**"This package" means core-lib itself AND every `*-core-lib` built on it.** core-lib is the most agnostic of
+all, one level further: it knows nothing about the products that use it, and nothing about the libraries built on
+it either. So in core-lib's own source, tests and docs:
+
+- No product name and no product domain (users, matches, payments, phone numbers — whatever one product is about).
+- No sibling library's name, import, entity, enum or constant; core-lib never imports a `*-core-lib`.
+- A helper belongs here only if any library could use it unchanged (a decorator, a converter, a validator of a
+  general format). A helper about one library's data goes in that library ("The other direction" below); a helper
+  about one product goes in that product.
+
+The test for a change to core-lib: would it make sense to a library that has nothing to do with the one you are
+working on? If it only makes sense for that one, it is in the wrong package.
+
 ## No host or product knowledge — anywhere
 
 The name of the host application or product (its brand, its CLI, its env-var
@@ -251,6 +264,27 @@ real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
 
+## The other direction: the library owns the rules about its own data
+
+Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
+**every rule about what the library stores — a value's shape, whether a value is valid, how to encode or decode
+it — is a public helper in the library, even when only one host calls it today.** The library defines the data, so
+it is the one place that can say what a good value of it is; a check written in the host is re-written by the next
+product that uses the library, and the copies drift.
+
+The test: **would a second, completely different host storing the same thing need this function?** If yes, it is
+the library's. For a library storing user-defined fields: "is this a valid phone number value", "is this one of the
+field's options", "turn the stored phone value into a dialable number" are the library's; "the API refuses photo
+uploads" or "this endpoint answers 400 with no body" are the host's policy.
+
+What the host owns stays a parameter: the helper takes the field's options, the host's key names, a threshold —
+never reads the host's config or constants. The host then calls the library helper and adds only its policy around
+it (which status to answer, what to log).
+
+Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
+library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
+was missing from the library.
+
 ## Before writing a helper, check core-lib for it
 
 The third form of the same mistake. A mirror type re-declares a shape; a
@@ -281,6 +315,10 @@ next reader does not re-check.
 - **A decorator usually already does it.** Before hand-writing a try/except or a conversion loop, check `@ResultToDict()`, `@NotFoundErrorHandler()`, `@DuplicateErrorHandler()`, `@Cache`, `@Observe`, `StatusCodeAssert`. A dict-building loop over `__table__.columns` IS `result_to_dict` with every conversion removed.
 - **`@NotFoundErrorHandler()` is not a get-or-none.** It goes the other way — falsy result → raise 404 — and it is already on the CRUD bases' `get`. A service that returns `None` for an absent row swallows that 404 itself, and must catch **only** 404: a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found".
 - **`result_to_dict` only converts values INSIDE a structure.** `result_to_dict(a_datetime)` returns the datetime unchanged. Convert a hand-built dict by decorating the METHOD with `@ResultToDict()`, not by calling the function per field. (Then mind the str-enum key trap — §skills.)
+
+### Use the call that already returns it — no new function per field
+
+Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
@@ -538,8 +576,9 @@ should return nothing but comments. A domain rule that is ALSO enforced in
   and the lib itself, plus a planted-import test so an empty result can't mean
   the walk broke.
 - No compatibility shims, barrel files, or re-export-only modules — import from
-  the real module. `__init__.py` files stay empty package markers; §2.1 owns the
-  full rule.
+  the real module. `__init__.py` files stay empty package markers, and the
+  package root's holds only `__version__`, with no import and no `__all__`. A
+  re-export there breaks the build; §1 owns the full rule.
 
 ## Self-contained and fully tested
 
@@ -618,13 +657,13 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 ## 1. Naming (exact — no variation)
 
 - Repo `foo-core-lib` → python package `foo_core_lib` → main class `FooCoreLib` in `foo_core_lib/foo_core_lib.py`.
-- `foo_core_lib/__init__.py` carries `__version__ = '0.0.0.1'` and (current convention) re-exports the class: `from foo_core_lib.foo_core_lib import FooCoreLib` plus `__all__`. **(divergence: the older libs top-level `__init__.py` contain ONLY `__version__` — so `from foo_core_lib import FooCoreLib` does NOT work; always import from the module path `foo_core_lib.foo_core_lib` when consuming siblings.)** Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
+- `foo_core_lib/__init__.py` carries ONLY `__version__ = '0.0.0.1'` (plus its one comment line). **No `import`, no re-export of `FooCoreLib`, no `__all__`.** The build reads the version by importing the package (the generated `setup.py` runs `import foo_core_lib`), and that import executes `__init__.py`. A `from foo_core_lib.foo_core_lib import FooCoreLib` line there loads the whole lib (`core_lib`, SQLAlchemy, Hydra) before the build has installed any of it, and the build fails. This broke a real generated lib's build. Consumers and tests import the class from its module: `from foo_core_lib.foo_core_lib import FooCoreLib`. `from foo_core_lib import FooCoreLib` is not supported. Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
 - Constants in `foo_core_lib/constants.py` (current convention): the cache handler key `FOO_CORE_LIB_CACHE = 'foo_core_lib'` and (if the lib fires events) the observer key `FOO_CORE_LIB_NAME = 'FOO_CORE_LIB'`. **(divergence: an older lib uses `<name>_core_lib_constants.py`; an older lib uses `constants/core_lib_constants.py` with `CACHE = 'CACHE_CUSTOM_FIELD'`; an older lib’s key is `CACHE_WORKFLOW = 'WORKFLOW_CACHE'`. New libs use `constants.py` + the `FOO_CORE_LIB_CACHE = 'foo_core_lib'` name/value shape.)**
 - Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file. A non-persisted data type `ThingResult` goes in `data_layers/data/data_types/thing_result.py` — same one-class-per-file rule, and never under `service/` (§4.1). A pure engine/helper module under `service/` ends `_helper.py` — those two suffixes are the only ones that folder allows (§6.1). Anything error-shaped goes in `error_handling/<snake_case_class>.py`, one class per file (§4.2).
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
 - The DataAccess instance is private: `self._thing_da` on the CoreLib (or a local variable in `__init__` if nothing else needs it — the older libs do that) and `self._thing_da` on the service that owns it. It is NEVER a public attribute.
 - Cache key templates (current convention): `'<lib>_<entity>_{param}'`, e.g. `'foo_thing_{project_id}_{thing_id}'`, defined as module-level constants next to the service: `CACHE_KEY_DOCUMENT = '...'`. **(divergence: the older libs keys predate this scheme and live as class attributes — `CACHE_WORKFLOW_GET_{workflow_id}`, `custom_field_{id}`. New libs use the current convention’s shape.)**
-- Index/constraint name constants on the entity: `INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'` — `ix_<table>_<column>` for indexes (composite: `ix_<table>_<col1>_<col2>` or a meaningful pair name), `uq_<table>_<meaning>` for UNIQUE constraints (the current convention’s `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`). **(divergence: the older libs's older indexes use free-form literal names like `index_workflow_project_id` — old style, do not copy.)**
+- Index name constants on the entity: `INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'` — `ix_<table>_<column>` for indexes (composite: `ix_<table>_<col1>_<col2>` or a meaningful pair name), `uq_<table>_<meaning>` for unique indexes (the current convention’s `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`). **(divergence: the older libs's older indexes use free-form literal names like `index_workflow_project_id` — old style, do not copy.)**
 - Searchpath plugin: file `hydra_plugins/foo_core_lib/foo_core_lib_searchpath.py`, class `FooCoreLibSearchPathPlugin` (use the `...Plugin` suffix). **(divergence: the newest libs named theirs without the `Plugin` suffix; an older lib’s FILE is misnamed `*_sourcepath.py`. New libs: `_searchpath.py` file + `...SearchPathPlugin` class.)**
 - Module-level tuning constants are SCREAMING_SNAKE at the top of the service module (`EMPTY_TRASH_BATCH = 10_000`, `VIEW_URL_EXPIRES_SECONDS = 900`); add a comment when the value isn't self-explanatory (the presigned-URL lifetimes carry one).
 
@@ -633,7 +672,7 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 ```
 foo-core-lib/
   foo_core_lib/
-    __init__.py                       # __version__ (+ newest style: re-export FooCoreLib)
+    __init__.py                       # __version__ ONLY: no import, no __all__ (§1)
     foo_core_lib.py                   # composition root
     constants.py                      # FOO_CORE_LIB_CACHE (+ FOO_CORE_LIB_NAME if events)
     config/
@@ -698,8 +737,8 @@ foo-core-lib/
     data/
       .env                            # test env vars, if any (backend 127.0.0.1, …) — never the DB
       config/
-        config.yaml                   # defaults: [core_lib, foo_core_lib, foo_core_lib_test]
-        foo_core_lib_test.yaml        # test-safe overrides (DB → sqlite :memory: + create_db: true)
+        config.yaml                   # defaults: [core_lib, foo_core_lib, (foo_core_lib_test | _self_)]
+        foo_core_lib_test.yaml        # test-safe overrides: the DB on sqlite (§13.5), anything not env-driven
       entities/                       # test-only stand-in entities (a test-only stand-in entity), if needed
     stub_<backend>.py                 # deterministic double for an uncontrollable backend, if needed
     test_thing_service.py             # ONE TestCase class per file
@@ -725,9 +764,9 @@ foo-core-lib/
 ### 3.1 `foo_core_lib/config/foo_core_lib.yaml`
 
 - First line is exactly `# @package _global_`. Root key is `core_lib:`.
-- **The DB block is copied verbatim from the existing libs — hardcoded, never invented** (shape below): `log_queries: false`, `create_db: false`, the `session` pool values, `protocol: postgresql`, and bare `${oc.env:POSTGRES_*}` with no defaults (`POSTGRES_DB` is the `file`). No lib-specific DB env vars (`FOO_DB_*`): every lib shares the host's one database and one `POSTGRES_*` set, and tests swap in sqlite through their own test yaml (§13.5). The lib's other deployment values (credentials, endpoints, host wording) are read from env as `${oc.env:FOO_<KEY>}`, with NO default for secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text.
+- **New libs source every value from an environment variable** with an in-yaml default — `${oc.env:FOO_<KEY>,<default>}`, nullable values defaulting to `null` — the style of the newer libs, which is the owner's latest direction. Exceptions, with NO default (`${oc.env:FOO_<KEY>}`): secrets (§13.6) and host wording ("this library is AGNOSTIC") — a default would be a committed secret or one product's text. **The DB block below follows neither rule: it is copied as written.**
 - **Booleans and numbers sourced from env MUST be wrapped in `oc.decode`:** `${oc.decode:${oc.env:FOO_USE_SSL,true}}`. A bare `${oc.env:...}` resolves to a STRING — `'false'` is truthy — which silently breaks `create_engine(echo=…)`, makes `create_db` impossible to disable, and defeats `use_ssl is False` checks. This was a real shipped bug.
-- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. The shape every lib uses (`workflow`, `user_journey`), copied as is:
+- **The DB block lives at the PATH `core_lib.data.sqlalchemy` — not anywhere else.** That exact path is what all DB libs share, and two framework pieces hard-code it: `CoreLib.connection_factory_registry.get_or_reg(cfg.core_lib.data.sqlalchemy)` and `Alembic.__init__`, which builds the migration URL from `core_lib.data.sqlalchemy.config.url`. The base `core_lib` group already supplies `_instance_key_: sqlalchemy_connection` and the `session` pool defaults via the config merge — your lib's yaml declares `_target_` and the keys it overrides. **Copy this block exactly into every DB lib** — it is the block the existing libs carry (`workflow`, `user_journey`): the same values, the same `session`, the `POSTGRES_*` names with no defaults (`POSTGRES_DB` is the `file`), and `port` left bare (the one `oc.decode` exception: it is only formatted into the URL). Only `version_table` differs per lib. **Never invent a lib-prefixed database key (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, `FOO_DB_CREATE_DB`, …).** The host sets one database, and a lib with its own names forces every install compose to override them: a host's install compose for the lib is `defaults:` only. Tests reach sqlite through the test yaml (§13.5), never through an env key.
 
 ```yaml
 # @package _global_
@@ -754,6 +793,7 @@ core_lib:
 
   (the reference lib currently keeps its DB block at `core_lib.data.db` and constructs the factory directly — that divergence breaks its `install()` because Alembic can't find the URL, **and the current convention’s yaml also lacks the `alembic.version_table` override, so it would fall back to the shared `alembic_version` table.** Do NOT copy either; `data.sqlalchemy` + a per-lib `version_table` is the contract.)
 - `version_table` is ALWAYS overridden per lib: `task_alembic_version`, `workflow_alembic_version`, `custom_field_alembic_version` → yours is `foo_alembic_version`. Without it every lib fights over the shared `alembic_version` table in a shared database.
+- **A lib whose queries must run under a DIFFERENT database login than the host's gets its own connection node** — e.g. a restricted role that may INSERT but never UPDATE/DELETE. `core_lib.data.sqlalchemy` is ONE engine shared by every composed lib, and Alembic always migrates through it, so it stays the owner/install connection. Declare `core_lib.foo_core_lib.sqlalchemy` with its own `_instance_key_: foo_sqlalchemy_connection`, `create_db: false` (the factory's code default `true` would `create_all` as the restricted login, bypassing the grants) and `url: ${core_lib.data.sqlalchemy.config.url}` as the default the host overrides. **Resolve that node before registering it** — `get_or_reg(OmegaConf.create(OmegaConf.to_container(node, resolve=True)))` — the registry stores an UNRESOLVED copy, and a detached copy cannot reach an interpolation pointing outside itself (§12). A test proves the lib's session runs as its own login (`SELECT current_user`), not the host's.
 - Backend/domain sections follow the same env pattern (see the current convention’s storage block: `provider`, `region`, `bucket`, `endpoint_url`, `access_key`, `secret_key`, `use_ssl` (decoded), `addressing_style`, `prefix_originals`, `prefix_markdown`). If code reads a key, the key EXISTS in this yaml — code never `.get()`s around a missing key.
 - Limits/tuning live under a named section (`core_lib.limits.max_upload_bytes`) — sourced from env like everything else.
 
@@ -808,16 +848,11 @@ def main(cfg):
 ```python
 import enum
 
-from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index, UniqueConstraint
+from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
-
-
-class ThingKind(enum.Enum):
-    ALPHA = 1        # IntEnum-column enum values MUST start at 1 — never 0 (see §12)
-    BETA = 2
 
 
 class Thing(Base, SoftDeleteMixin):
@@ -826,6 +861,10 @@ class Thing(Base, SoftDeleteMixin):
 
     INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'
     INDEX_WORKSPACE_NAME = 'ix_thing_workspace_name'
+
+    class ThingKind(enum.Enum):
+        ALPHA = 1        # IntEnum-column enum values MUST start at 1 — never 0 (see §12)
+        BETA = 2
 
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     workspace_id = Column(INTEGER, ForeignKey('workspace.id'), nullable=False)
@@ -841,15 +880,17 @@ class Thing(Base, SoftDeleteMixin):
 
 Rules, each load-bearing:
 
-- **Inside the entity class body, `Index`/`UniqueConstraint` columns are STRING literals** (`'workspace_id'`), exactly as above and in every real entity — at class-body time `.key` on a just-declared Column is not usable. The `Entity.col.key` referencing style belongs to MIGRATIONS and query/service code (§11.3), not to `__table_args__`. A unique constraint on a token-mixin entity looks like: `UniqueConstraint('document_id', 'user_id', 'deleted_at_token', name=INDEX_DOCUMENT_USER)` with `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`.
+- **Inside the entity class body, `Index` columns are STRING literals** (`'workspace_id'`), exactly as above and in every real entity — at class-body time `.key` on a just-declared Column is not usable. The `Entity.col.key` referencing style belongs to MIGRATIONS and query/service code (§11.3), not to `__table_args__`. A unique key on a token-mixin entity looks like: `Index(INDEX_DOCUMENT_USER, 'document_id', 'user_id', 'deleted_at_token', unique=True)` with `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`.
+- **A unique key is `Index(NAME, 'col_a', 'col_b', unique=True)`, never `UniqueConstraint`** (`op.create_index(..., unique=True)` in the migration), as every entity in the older libs declares it. The database enforces both the same way, but an index changes with a plain drop and create on every database, while SQLite cannot alter a constraint without batch mode.
 - **Mixin choice decides the DataAccess base** (§5). `SoftDeleteMixin` gives `created_at`/`updated_at`/`deleted_at` (all Python-side `default=`, no `server_default`, forced to the end of the table via `_creation_order`). `SoftDeleteTokenMixin` adds ONLY `deleted_at_token` (Integer, default 0) — **an entity used with `CRUDSoftDeleteWithTokenDataAccess` needs BOTH mixins** (`class X(Base, SoftDeleteMixin, SoftDeleteTokenMixin)`), because the token delete stamps both `deleted_at` and `deleted_at_token`.
-- **Use the token mixin whenever the table carries a UNIQUE constraint over business columns.** The live-row marker is `deleted_at_token == 0`, so the unique constraint is declared over `(business_cols..., deleted_at_token)` — a soft-deleted row (token = deletion epoch) no longer collides with a re-created live row. **(divergence: the current convention’s `Workspace` has a unique `project_id` index with only `SoftDeleteMixin` — a delete-then-recreate on the same project collides with the dead row. Known latent gap; do not copy it into a new entity.)**
-- **Every index and unique constraint gets a class-constant name** referenced from `__table_args__` AND from the migration — the name exists in exactly one place.
-- **No database schema of its own.** The tables sit in the host's default schema, beside the host's own — never `{'schema': ...}` in `__table_args__`. Every core-lib entity shares `Base.metadata`, so a host's `create_all` (`create_db: true`) would fail on a schema that does not exist yet, and the lib would need a `CREATE SCHEMA` hook, schema-wide grants and search-path caveats that no other lib has. Instead, prefix a table name with the library's name when the bare name could clash with a host's table (`audit_access_event`, never `access_event`; indexes `ix_audit_access_event_*`), name the module after the table (`audit_access_event.py`), and grant per table in the migration.
+- **Use the token mixin whenever the table carries a UNIQUE index over business columns.** The live-row marker is `deleted_at_token == 0`, so the unique index is declared over `(business_cols..., deleted_at_token)` — a soft-deleted row (token = deletion epoch) no longer collides with a re-created live row. **(divergence: the current convention’s `Workspace` has a unique `project_id` index with only `SoftDeleteMixin` — a delete-then-recreate on the same project collides with the dead row. Known latent gap; do not copy it into a new entity.)**
+- **Every index, unique or not, gets a class-constant name** referenced from `__table_args__` AND from the migration — the name exists in exactly one place.
+- **No database schema of its own.** The tables sit in the host's default schema, beside the host's own — never `{'schema': ...}` in `__table_args__`. Every core-lib entity shares `Base.metadata`, so a host's `create_all` (`create_db: true`) would fail on a schema that does not exist yet, and the lib would need a `CREATE SCHEMA` hook, schema-wide grants and search-path caveats that no other lib has. Instead, prefix a table name with the library's name when the bare name could clash with a host's table (`foo_event`, never `event`; indexes `ix_foo_event_*`), and name the module and the class after the table (`foo_event.py`, `FooEvent`).
 - **Any column with a `server_default` MUST also carry the matching Python `default=`** (`default=0, server_default='0'`). With only `server_default`, a freshly inserted ORM row holds `None` for the column until re-fetched — which surfaces as `None` through `@ResultToDict` and as `DetachedInstanceError` under lazy refresh. This was a real bug that hand-written fake-DA tests hid and the real composed stack exposed.
 - VARCHAR lengths are always explicit (`VARCHAR(length=255)`, names get 512, keys/paths get 1024). Free text is `Text`. Dict payloads are `JSON` columns named `meta_data` (not `metadata` — that name collides with SQLAlchemy).
 - FKs whose child rows must die with the parent declare it in the schema: `ForeignKey('document.id', ondelete='CASCADE')` (collaborators/favorites die with their document — `empty_trash` relies on it).
-- The enum class lives in the SAME file as its entity, right above it.
+- **An enum a table uses is NESTED inside its entity class and read as `Thing.ThingKind`**, never declared at module level beside it; every entity in the older libs does this. Name it for what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`: a host that publishes enums by class name would get two `status` keys.
+- **No `__mapper_args__` on an entity, `eager_defaults` included.** SQLAlchemy 2.0 (the pinned version) already reads server-generated values back on INSERT, and no core-lib entity sets mapper options. This rule and the nested-enum rule above are checked in SOURCE by a test — an `ast` walk over `entities/` with a planted-offender case — because the enum rule, written down alone, was broken anyway.
 - Derive enum-based strings from the member NAME, not the value: a file extension is `f'.{kind.name.lower()}'` — using `.value` after an IntEnum conversion produced the literal extension `.1` in production code. Real bug.
 
 ### 4.0 An entity is where agnosticism is usually lost
@@ -967,7 +1008,7 @@ Pair it with a "would this catch a planted literal?" test, or an empty offender 
 |---|---|---|---|---|
 | `CRUDDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_data_access` | `id` (404 if missing) | HARD delete, returns rowcount | rows may really vanish |
 | `CRUDSoftDeleteDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_data_access` | `id AND deleted_at IS NULL` | stamps `deleted_at=utcnow()`, returns rowcount | normal soft delete |
-| `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique constraints |
+| `CRUDSoftDeleteWithTokenDataAccess` | `core_lib.data_layers.data_access.db.crud.crud_soft_delete_token_data_access` | `id AND deleted_at_token == 0` | stamps `deleted_at` + `deleted_at_token=epoch`, returns rowcount | soft delete + unique indexes |
 
 Canonical shape (the current convention’s `WorkspaceDataAccess`) with the exact imports:
 
@@ -1002,6 +1043,7 @@ Rules:
 
 - The `rule_validator` (module-level, next to the class) is the allow-list: one `ValueRuleValidator(Entity.col.key, type, custom_validator=...)` per column. Anything not listed is rejected under strict mode with `PermissionError` (§12 for exact semantics).
 - **Do not override `create`** — §5.1. `CRUD.create(data: dict)` plus the `rule_validator` above already IS the write API.
+- **Never `session.commit()` or `session.flush()` in a DataAccess.** `SqlAlchemyConnection` commits and flushes when the `with self._db.get()` block exits (rollback on an exception), on a session with `expire_on_commit=False`, so a written entity keeps its generated id. A session the service hands in is the service's `with self._thing_da.transaction()` block and commits when that exits. A service that needs the stored row reads it back through its cached `get` after the write — never by flushing early.
 - `update` overrides guard immutable columns (strip `project_id`/FKs from the payload) before `super().update(id, data)`.
 - Domain queries (`get_by_project`, `full_text_search`, `list_trash`, `search_by_name`, …) live on the DataAccess, written in the query-builder style the other DAs use (`session.query(Entity).filter(...).all()` chains). Do NOT refactor an existing DA's access pattern to a different style — that exact change was rejected in review.
 - Normal update paths validate STRICT (the base's plain `validate_dict(data)` — unknown key raises `PermissionError`; tests rely on that). For a PARTIAL metadata-style bulk update where callers may pass a superset dict, use `self._rule_validator.validate_dict(data, strict_mode=False, strict_output=True)` (unknown keys silently DROPPED) and `session.query(...).update(validated, synchronize_session=False)` — `synchronize_session=False` avoids `InvalidRequestError: Invalid expression type` on bulk updates. Library uses the strict form on 2 of 3 update paths and the lenient form only on `DocumentDataAccess.update_metadata` — default to strict.
@@ -1108,6 +1150,8 @@ Rules:
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
 - Batch loops that delete/purge use a module-level batch constant (`EMPTY_TRASH_BATCH = 10_000`) so tests can patch the MODULE GLOBAL (allowed) instead of internals (forbidden).
+- **A write spanning tables, or a check-then-write behind a guard, runs in ONE session the service opens.** Each CRUD call commits on its own, so the DA adds — beside the base, never overriding `create`/`update` (§5.1) — `transaction()` (`return self._db.get()`), `create_in_transaction(session, data)` / `update_in_transaction(session, row, data)` that validate with the same module `rule_validator` and only add or set — never flush, never commit (§5) — and `get_for_update(session, id)` (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`). Without the row lock, two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2).
+- **A date that anchors a deadline or a retention period and cannot be corrected later is refused in the future and before the date it follows** (received → answered, detected → notified). A typo there silently moves a deadline, or keeps a row years past its period.
 
 ### 6.1 Every file in `service/` ends `_service.py` or `_helper.py`. Nothing else.
 
@@ -1251,6 +1295,8 @@ Event payloads are the `@ResultToDict`-style dicts (a listener gets `thing[Thing
 
 **Contract that bites:** `Observer.notify` catches, logs, and then RE-RAISES a listener's exception. `@Observe` fires AFTER the wrapped function body ran — so a host listener that throws makes the service method raise even though the DB write already committed. Listeners must be defensive (swallow their own errors) unless they intend to fail the service call.
 
+**A decorator the lib ships for HOSTS to put on their own functions validates everything at decoration time**, so a mistake fails at import, not on the first production call: every parameter name it is told to read (checked against `inspect.signature(func)`), and any identifier it derives — `f'{func.__module__}.{func.__qualname__}'` contains `<locals>` / `<lambda>` for a nested function, so validate it or require it explicitly. Every option after the first positional one is keyword-only (`*,`).
+
 ## 9. Jobs (scheduled background work)
 
 - `jobs/thing_due_job.py` (file name matches the class, snake_cased):
@@ -1279,6 +1325,8 @@ class ThingDueJob(Job):
 
 - Wire in `__init__` (after the services exist): `self.load_jobs(self.config.core_lib.foo_core_lib.jobs, {'thing_due': self})` — the dict maps job name → the `data_handler` passed to `initialized` (one lib passes the whole CoreLib; an older lib passes the one service it needs).
 - `initial_delay` is MANDATORY (`load_jobs` raises `ValueError` when falsy). A job that is also a `CoreLibListener` is auto-attached.
+- **A job that raises is only LOGGED** (§12). When a silent failure matters — a purge, a watchdog — the service method the job calls alarms through the lib's observer (the host's listener delivers it) and then re-raises; the job stays a one-line delegation.
+- **A retention purge: one anchor timestamp per table, one period per table from config.** The cutoff (`SELECT now() - make_interval(months => :months)`) is computed by the DATABASE once per table per run and reused for every batch; a NULL anchor (an open case) is never purged; a period of 0 / empty means never. No per-row `expires_at` or retention class — changing a period then applies to every row, with nothing to backfill.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
 ## 10. SDK-backed backends (object storage etc.) — the `connections/` pattern
@@ -1383,7 +1431,7 @@ def downgrade():
 - Table names: `Entity.__tablename__`. Column names: `Entity.col.key` (works here — the mapping is fully configured by import time, unlike inside the entity's own class body, §4). Index/constraint names: `Entity.INDEX_*` constants. **The ONLY string literal permitted is the ForeignKey target** (`ForeignKey('workspace.id')`, with `ondelete='CASCADE'` where the entity declares it). Writing `'thing'` or `'workspace_id'` as a literal is exactly the "not paying attention to the smallest details" review rejection.
 - Type mapping: `IntEnum(X)` column → `sa.Integer`. `VARCHAR` keeps its exact length. `JSON` → `sa.JSON`, `Text` → `sa.Text`.
 - Mixin columns are SPELLED OUT per table, in this order after the business columns: `created_at` (`default=datetime.utcnow`), `updated_at` (`default=datetime.utcnow, onupdate=datetime.utcnow`), `deleted_at` (`default=None`), and for token entities `deleted_at_token` (`sa.Integer, default=0`).
-- Unique constraints over soft-deletable rows include the token column and take their name from the entity constant: `sa.UniqueConstraint(A.document_id.key, A.user_id.key, A.deleted_at_token.key, name=A.INDEX_DOCUMENT_USER)`.
+- Unique indexes over soft-deletable rows include the token column and take their name from the entity constant: `sa.Index(A.INDEX_DOCUMENT_USER, A.document_id.key, A.user_id.key, A.deleted_at_token.key, unique=True)`.
 - `downgrade()` drops tables in REVERSE dependency order (children first).
 - Create parent tables before children within `upgrade()` (FK targets must exist).
 - **Before committing, verify the migration produces a schema IDENTICAL to `Base.metadata.create_all`** — run both against fresh sqlite databases and diff the reflected schema (tables, columns, types, nullability, defaults, indexes, uniques). Any drift means the migration (or the entity) is wrong.
@@ -1396,7 +1444,7 @@ def downgrade():
 - **`RuleValidator.validate_dict` gotcha:** the method's own defaults (`strict_mode=True, strict_output=False`) override the constructor's — constructor-level settings apply only when the caller passes `None` explicitly. `strict_mode=True` → unknown key raises `PermissionError`; `strict_mode=False, strict_output=True` → unknown key silently dropped. EVERY validation failure is `PermissionError` (wrong type, non-nullable None, failing `custom_validator`, unparseable datetime string).
 - **`get` on every CRUD base is wrapped in `@NotFoundErrorHandler()`, which raises `StatusCodeException(404)` on ANY falsy result** (None, `[]`, `0`, `''`). Services must try/except it when "absent → None" is the contract.
 - **`@DuplicateErrorHandler()`** catches only `sqlalchemy.exc.IntegrityError` and raises `StatusCodeException(HTTPStatus.CONFLICT)`. It is NOT applied by the CRUD base — put it on your create paths.
-- **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == ThingKind.ALPHA.value` (an int) and timestamps as floats.
+- **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == Thing.ThingKind.ALPHA.value` (an int) and timestamps as floats.
 - **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
 - **`IntEnum` TypeDecorator is truthiness-based.** READ side: a stored `0` comes back as `None` (`self._enumtype(value) if value else None`) — so **enum values MUST start at 1**. BIND side: a plain `enum.Enum` member (the convention, §4) is always truthy and binds its `.value` — but a python `enum.IntEnum` member with value 0 is falsy and binds NULL. Both directions are safe as long as values start at 1.
 - **Mixins carry Python-side `default=` only** (no `server_default`, no `nullable=False`) and `_creation_order = 9998` pins them to the end of the table.
@@ -1406,6 +1454,8 @@ def downgrade():
 - **`SqlAlchemyConnectionFactory`:** reads `create_db` (code default TRUE → `Base.metadata.create_all` at construction; base yaml ships `false` — prod relies on `install()`), `log_queries` → `echo`, `session.pool_recycle` (code default 3200) / `pool_pre_ping` always passed; `pool_size`/`max_overflow` are OMITTED for sqlite (unsupported-pool protocols). Session contexts auto-commit on clean exit and rollback on exception.
 - **`build_url`:** `{protocol: sqlite, file: ':memory:'}` → `sqlite:///:memory:`. It strips a leading `/` from `file`, so an absolute SQLite path silently becomes relative — pass `os.path.relpath(path)`.
 - **`@ResultToDict` epochs a NAIVE datetime as LOCAL time** (`.timestamp()`), so a naive-UTC column is off by the machine's UTC offset outside a UTC container. Tests derive expected epochs through `result_to_dict` itself (or run under `TZ=UTC`), never `calendar.timegm`.
+- **`ConnectionFactoryRegistry.get_or_reg(node)`** keys on `_instance_key_` — the FIRST registration wins, so a second node under the same key silently gets the first engine — and registers a copy made with `OmegaConf.to_container(node, resolve=False)`: an interpolation pointing outside the node no longer resolves in that copy (§3.1). A node with `_target_` but no `_instance_key_` is instantiated unregistered, with only a warning.
+- **`JobScheduler` catches `BaseException` around `job.run`, logs it and carries on** — a failing job raises nowhere and alarms no one (§9).
 
 ## 13. Tests — the philosophy and the exact mechanics
 
@@ -1422,7 +1472,7 @@ A test you were confident would pass before running it taught you nothing.
 
 ### 13.1 The formula (non-negotiable)
 
-**A test asserts the data you WANT the function to return — recomputed independently — never the data the function happens to return.** Expected values are hardcoded literals or derived from the test's own inputs by DIFFERENT means than the code under test. Never echo a function's output back into its own assertion. Never loosen an assertion so a test passes. **When a test fails, the CODE is wrong — you fix the code, not the test.** A test that adapts itself to broken output is worse than no test. Prove strictness with a mutation check: temporarily break the production code (drop a decorator, flip a filter) and confirm the suite goes RED; revert.
+**A test asserts the data you WANT the function to return — recomputed independently — never the data the function happens to return.** Expected values are hardcoded literals or derived from the test's own inputs by DIFFERENT means than the code under test. Never echo a function's output back into its own assertion. Never loosen an assertion so a test passes. **When a test fails, the CODE is wrong — you fix the code, not the test.** A test that adapts itself to broken output is worse than no test. Prove strictness with a mutation check: temporarily break the production code (drop a decorator, flip a filter) and confirm the suite goes RED; revert. A scripted harness (many breaks, one suite run each) asserts each break's anchor text matches EXACTLY once before applying it — after a refactor a stale anchor silently skips its break — and restores in `finally`; after an interrupted run, confirm every anchor is back before trusting the next result.
 
 ### 13.2 Test the REAL composed stack — fakes hid real bugs
 
@@ -1434,6 +1484,8 @@ Suites run against the real `FooCoreLib` — real DataAccess, real `@Cache`/`@Re
   unit files and flow tests, and a fake subclass of the abstract client swapped in through the
   utils seam for service suites.
 Nothing else — never monkeypatch the composed lib's internals from a test.
+
+**A lib built on Postgres-only behaviour** — role grants, row-level security, arrays with a GIN index, `FOR UPDATE`, `make_interval` — **tests on a real Postgres container, never sqlite**: an emulation that passes proves neither the operator nor the permission. Ship it as `docker-compose-dev.yaml` with a fixed container name. Those suites are env-guarded (`skipUnless(os.environ.get('FOO_TEST_POSTGRES_URL'))`), so the repo also ships `run_tests.sh`, which fails when the output contains `skipped=` — a skipped suite is a green run that tested nothing.
 
 ### 13.3 Service-only — we test what we expose, and we expose services
 
@@ -1515,8 +1567,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 ### 13.5 `tests/data/` — config + env
 
-- `config/config.yaml`: `defaults: [core_lib, foo_core_lib, foo_core_lib_test]` where `foo_core_lib_test.yaml` (same dir, starts `# @package _global_`) carries test-safe overrides — an older lib’s sets `create_db: true` + sqlite + `version_table` + job config; an older lib’s sets a fake `api_key: SOME-KEY` so any eager construction succeeds. The packaged DB block is hardcoded postgres (§3.1), so this group always overrides it: `create_db: true` and a url of `protocol: sqlite`, `file: ':memory:'`, null `username`/`password`/`host`/`port`. Keys a composed sibling needs go inline here too. Never compose a sibling REPO's config group (§3.4).
-- `.env` (loaded by `load_config`): no DB values — the test yaml above swaps the DB (tests rely on `create_all`, not Alembic — except one variant); `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
+- `config/config.yaml`: `defaults: [core_lib, foo_core_lib, foo_core_lib_test]` where `foo_core_lib_test.yaml` (same dir, starts `# @package _global_`) carries test-safe overrides. For a DB lib that is where sqlite goes, since the packaged DB block is fixed (§3.1): `create_db: true` (tests rely on `create_all`, not Alembic — except one variant) and the WHOLE `url` — `protocol: sqlite`, `file: ':memory:'`, and `username`, `password`, `host`, `port` all `~`. `build_url` reads every key, so one left out resolves its `${oc.env:POSTGRES_*}` and the boot dies on a variable no test sets. An older lib’s also sets `version_table` + job config; an older lib’s sets a fake `api_key: SOME-KEY` so any eager construction succeeds. A lib with no DB whose packaged yaml is fully env-driven may not need the third group — then use `defaults: [core_lib, foo_core_lib, _self_]` plus inline keys for anything extra (e.g. a composed sibling's section). Never compose a sibling REPO's config group (§3.4).
+- `.env` (loaded by `load_config`): no DB values — the test yaml above carries the DB; `MEMCACHED_HOST=localhost` (cheap insurance — §3.4); backend endpoints → **`http://127.0.0.1:9000`, NEVER `http://localhost:9000`**: on Windows `localhost` resolves to IPv6 `::1` first and a moto/MinIO bound on IPv4 stalls EVERY NEW connection ~60s before falling back — an 8-second suite becomes ~17 minutes at ~0s CPU, and the only tell is `create_connection` at the top of a `faulthandler` dump.
 - Local S3 without Docker: `pip install "moto[server]"`, run exactly ONE `python -m moto.server -p 9000` (several instances on one port scatter requests and stall), create the bucket once via boto3. boto3/moto are dev-env deps, never `requirements.txt`.
 
 ### 13.6 Writing the suites
@@ -1527,7 +1579,8 @@ def sync_create_start_core_lib() -> FooCoreLib:
 - The DB (and bucket) are shared across the whole run: every test takes a fresh `new_project_id()`, never assumes an empty table, an absolute autoincrement id, or `id == 1`. "ids are monotonic" is asserted relatively (`second > first`).
 - Unknown-id branches probe with a constant far above any autoincrement: `ABSENT_THING_ID = 2_000_000_000` — never `99`/`999` (a long-lived shared DB WILL reach those).
 - Dict fields are read with entity keys — `row[Thing.name.key]`, `row[Thing.kind.key]` — never string literals.
-- Enum columns assert the INT value (and optionally round-trip: `ThingKind(row[Thing.kind.key]) is ThingKind.ALPHA`).
+- **Never hardcode a test module's dotted name** (`'tests.test_thing.view_client'`): it is `test_thing` or `tests.test_thing` depending on whether discovery ran with `-t`, so the test passes one way and fails the other. Build it from `__name__`.
+- Enum columns assert the INT value (and optionally round-trip: `Thing.ThingKind(row[Thing.kind.key]) is Thing.ThingKind.ALPHA`).
 - Log-contract tests use `assertLogs` on the service's module logger (warning fallbacks, swallowed extraction errors) — asserting the documented side channel, not internals.
 - Patching a MODULE-LEVEL tuning constant (`document_service.EMPTY_TRASH_BATCH = 2`) to force loop boundaries is allowed — always restored in `try/finally`. Patching methods/attributes of the composed lib is NOT (the one exception is the utils-owned seam, §13.4).
 - Exercise error paths as the service defines them: 409 via a real duplicate through the real DB (`assertRaises(StatusCodeException)` + `status_code == HTTPStatus.CONFLICT`), 404/`None` via the service's own contract, `ValueError` for missing args, `PermissionError` for rule-validator rejections — with a follow-up assertion that the failed call left the data untouched (read it back through the service).
@@ -1582,7 +1635,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 
 1. Skeleton: package dirs + every `__init__.py` (§2), `constants.py`, `requirements.txt`, `.gitignore` (+ `.coveragerc` if using coverage).
 2. Config: `config/foo_core_lib.yaml` (+ empty `config/__init__.py`), searchpath plugin, repo-root `core_lib_config.yaml` (if the lib has install/CLI). Every future config key goes here FIRST.
-3. Entities (+ enums, INDEX_/UQ_ constants, mixins).
+3. Entities (+ nested enums, INDEX_ constants, mixins).
 4. DataAccess per entity (CRUD base + rule_validator + domain queries).
 5. Services per entity (`Service` base, decorators, tenant boundary, events fired via `@Observe` if any).
 6. Composition root (guarded registrations, `get_or_reg`, services in dependency order, install/uninstall) — plus observer/jobs wiring if used.
@@ -1607,14 +1660,14 @@ def sync_create_start_core_lib() -> FooCoreLib:
 6. `@property`/alias indirection in tests; `cls.lib`; anything but the full inline spelling.
 7. Plural public service attributes (`self.documents`); exposing a DA publicly.
 8. `.get('key', default)` / `try` around config reads in composition/services (the connection-factory validation layer is the one sanctioned `.get` site — §10); missing keys in the packaged yaml.
-9. Bare `${oc.env:...}` for booleans/numbers in a NEW lib's yaml (string-truthiness bug) — always `oc.decode`.
+9. Bare `${oc.env:...}` for booleans/numbers in a NEW lib's yaml (string-truthiness bug) — always `oc.decode`. The DB block's `port` is the one exception (§3.1).
 10. Composing a sibling repo's hydra config group in any defaults list.
 11. Missing `config/__init__.py` (or any package `__init__.py`).
 12. `localhost` in backend endpoints (Windows `::1` stall) — `127.0.0.1`.
 13. More than one moto/MinIO bound to a port; per-run bucket wipes that tests don't need.
 14. `random.randint` for a uniquely-constrained tenant key in tests; magic absent-ids like `99`.
 15. String literals for table/column/index names in MIGRATIONS (entity refs only — §11.3; note the entity class body itself is the opposite, §4); uuid revision ids; multiple migrations before first release; a stale `.migration_ver`.
-16. `server_default` without `default=` on an entity column.
+16. `server_default` without `default=` on an entity column; `__mapper_args__` on an entity (§4).
 17. Enum values starting at 0 on an `IntEnum`-typed column.
 18. Unguarded `cache_registry`/`observer_registry` registration; shadowing `CoreLib.attach_listener` instead of `attach_foo_listener`.
 19. Editing a test to make it pass; echo-assertions; exact-order assertions over `created_at` ties; tests that "pass with broken data".
@@ -1624,19 +1677,26 @@ def sync_create_start_core_lib() -> FooCoreLib:
 23. Committing `.coverage` files; letting a Dockerfile run build steps beyond dependency installation.
 24. Speculative surface in a first version (§0); an error class nobody catches by type (§4.2); a tuning knob in config (§6); a by-id method without the tenant key (§6).
 25. Keeping the template's `_instance.py`, `.dockerignore` or `setup.py`/`MANIFEST.in` as generated (§2, §14); a committed test secret (§13.6).
+26. A lib-prefixed database key (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …), or any other change to the DB block (§3.1).
+27. Any `import` or `__all__` in `foo_core_lib/__init__.py`, such as re-exporting `FooCoreLib` "for convenience". `setup.py` imports the package to read `__version__`, so the re-export loads the whole lib before its dependencies are installed and the build fails (§1).
+28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
+29. An enum declared at module level beside its entity (§4).
 
 ## 17. Final checklist before handing the lib over
 
 - [ ] Package imports clean with NO optional SDKs installed (`python -c "import foo_core_lib"`).
+- [ ] `foo_core_lib/__init__.py` holds only `__version__`: `grep -nE "import|__all__" foo_core_lib/__init__.py` prints nothing.
 - [ ] `FooCoreLib(compose)` constructs twice in one process without registry explosions (guards work).
 - [ ] All public attributes are singular service names; every service subclasses `Service`; no DA reachable publicly.
 - [ ] `config/__init__.py` + `hydra_plugins/.../__init__.py` exist; `pkg://foo_core_lib.config` composes from a scratch dir.
-- [ ] Every config key code reads exists in `foo_core_lib.yaml`; env-sourced booleans/ints wrapped in `oc.decode`; DB block at `core_lib.data.sqlalchemy`, copied verbatim from the existing libs; `version_table: foo_alembic_version` present.
+- [ ] Every config key code reads exists in `foo_core_lib.yaml`; env-sourced booleans/ints wrapped in `oc.decode`; DB block at `core_lib.data.sqlalchemy`, copied unchanged from §3.1; `version_table: foo_alembic_version` present.
 - [ ] ONE migration; filename/date/rev/slug per §11.2; body references entities only (the current convention’s style, not an older lib’s 2024 file); `downgrade()` reverse order; `.migration_ver` = `1`; schema byte-identical to `create_all`; `install()`/`uninstall()` run against a scratch DB.
-- [ ] `tests/helpers/utils.py` matches §13.4 including the `finally` lock release (only if startup jobs); `.env` has sqlite `:memory:`, `127.0.0.1` endpoints, `MEMCACHED_HOST`.
+- [ ] `tests/helpers/utils.py` matches §13.4 including the `finally` lock release (only if startup jobs); the test yaml puts the DB on sqlite `:memory:` (§13.5); `.env` has `127.0.0.1` endpoints, `MEMCACHED_HOST`.
 - [ ] Every service suite: one class per file; `cls.foo_core_lib`; inline access; fresh `new_project_id()` per test; `ABSENT_* = 2_000_000_000`; `Entity.col.key` for every dict read; zero `_da`/`_db`/`_storage` greps.
 - [ ] Mutation check done (break code → red; revert → green). Full suite green from a clean checkout with only the documented env (moto/MinIO where applicable).
 - [ ] `requirements.txt` runtime-only; nothing under `.coverage*` tracked.
+- [ ] `grep -rn "\.commit()\|\.flush()" data_layers/data_access/` and `grep -n "^class .*Enum)\|__mapper_args__" data_layers/data/db/entities/*.py` print nothing, and a test walks `entities/` for both entity rules (§4, §5).
+- [ ] The run reports no `skipped=`, under both `discover -s tests` and `-t .`; a lib on Postgres-only features ran on real Postgres (§13.2).
 - [ ] Wheel built and installed into a clean venv: no `tests` package inside, `script.py.mako` + `.migration_ver` present, composes and `install()`s from outside the repo.
 
 ---

@@ -49,6 +49,10 @@ fixtures. Anything host-specific is *injected* as a required parameter or
 config key, with no default. The full rule is the "this library is AGNOSTIC" block in
 `core-lib/AGENTS.md`.
 
+The reverse holds too: every rule about the data this library stores (a value's shape, its validity, its encoding)
+is a public helper here, even when one host is its only caller — never re-written in a host. See "The other
+direction: the library owns the rules about its own data" in `core-lib/AGENTS.md`.
+
 ## template_core_lib-specific notes
 
 _Nothing yet. Record lessons that are specific to **this** library here._

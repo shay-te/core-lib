@@ -34,6 +34,9 @@ Aim to be surprised.
 3. Compose the real library against a **real SQLite** database — the factory is
    *pointed* at sqlite, not mocked; the session, migrations and transactions are
    genuine. Mock only an outbound SDK / the clock / a dangerous filesystem call.
+   Point it from `tests/data/config/foo_core_lib_test.yaml`, overriding the
+   WHOLE `url` (AGENTS §13.5), never through an env key: the packaged DB block
+   is fixed (§3.1).
 4. Reset the cache registry per test so cached rows don't leak.
 5. Use generic fixture data; aim for full coverage of public methods +
    one `test_flow.py` driving the primary workflow A→Z.
@@ -228,7 +231,8 @@ you the work of writing it AND the confidence you thought you bought.
 Always real, never mocked:
 
 - the composed `FooCoreLib` and every service and DataAccess in it
-- a real **sqlite** database, real migrations, real transactions
+- a real **sqlite** database (real **Postgres** when the lib relies on
+  Postgres-only behaviour), real migrations, real transactions
 - real `@Cache`, `@ResultToDict`, `@Observe`, `@DuplicateErrorHandler`,
   `@NotFoundErrorHandler`
 - real `RuleValidator`s, real enum coercion, real soft-delete filtering
@@ -266,7 +270,14 @@ database. See §3 above for what a complete flow looks like, and add a
 - One `unittest.TestCase` per file; filename mirrors the class (§13).
 - **Tests are adversarial**: written to break the code, not to demonstrate it
   works. Mutation-check the ones that matter — break the code on purpose and
-  confirm the test fails.
+  confirm the test fails. A scripted harness asserts each break's anchor
+  matches exactly once (a stale anchor skips its break silently) and, after an
+  interrupted run, that every anchor is restored (§13.1).
+- **Postgres-only behaviour (grants, RLS, arrays, `FOR UPDATE`) is tested on a
+  real Postgres container, never sqlite**; its env-guarded suites run through a
+  `run_tests.sh` that fails on `skipped=` (§13.2).
+- **No hardcoded `tests.`-prefixed module names** — the dotted name differs
+  with and without `-t`; build it from `__name__` (§13.6).
 - **Edge cases are mandatory, not optional extras** — empty/one/many, both ends
   of every boundary, ties, nulls, over-length, wrong tenant, soft-deleted,
   duplicate calls. Work the checklist in §2.

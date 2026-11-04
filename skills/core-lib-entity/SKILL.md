@@ -77,6 +77,24 @@ names collide with the local variables these functions get assigned to.
 
 See "An entity is DATA. core-lib is not Active Record." in `AGENTS.md`.
 
+## ⛔ Enums live INSIDE the entity, and no `__mapper_args__`. Both greps must return nothing.
+
+```
+grep -n "^class .*Enum)" data_layers/data/db/entities/*.py    # an enum beside its entity
+grep -n "__mapper_args__" data_layers/data/db/entities/*.py
+```
+
+An enum a column uses is declared inside its entity class and read as
+`Thing.ThingKind` (the canonical template below) — never at module level next to
+the entity. And an entity sets no mapper options, `eager_defaults` included:
+SQLAlchemy 2.0, core-lib's pin, already reads server-generated values back on
+INSERT, and no core-lib entity carries `__mapper_args__`.
+
+Hold both as a test, not only here: an `ast` walk over `entities/` that fails on a
+module-level `Enum` subclass or a `__mapper_args__` assignment, paired with a
+planted-offender case so an empty result cannot mean the walk stopped working. A
+rule that is only written down gets broken; the test is what holds it.
+
 ## ⛔ This is where agnosticism is usually lost. A schema is the hardest thing to walk back.
 
 A core-lib is **product-agnostic**: it ships the mechanism, and every particular
@@ -130,34 +148,33 @@ instrument on this without editing a line of library source?**
 1. Pick the table name and columns. Decide soft-delete strategy (see mixins).
 2. Create `data_layers/data/db/entities/<entity>.py` with one entity class.
 3. Use `INTEGER` (not `Integer`), `VARCHAR(length=...)`, and `IntEnum(...)` for
-   enum columns. Declare nested enums as plain `enum.Enum`.
-4. If the entity has a `UniqueConstraint` that must survive soft-delete +
-   re-insert, add `SoftDeleteTokenMixin` and scope the constraint to active
-   rows.
+   enum columns. Nest each enum inside the entity class, as a plain `enum.Enum`.
+4. Declare a unique key as `Index(NAME, ..., unique=True)`, never a
+   `UniqueConstraint`. If it must survive soft-delete + re-insert, add
+   `SoftDeleteTokenMixin` and include `deleted_at_token` in the index.
 
 ## Canonical template
 
 ```python
 import enum
 
-from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index, UniqueConstraint
+from sqlalchemy import Column, VARCHAR, INTEGER, ForeignKey, JSON, Index
 
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 from core_lib.data_layers.data.db.sqlalchemy.mixins.soft_delete_mixin import SoftDeleteMixin
 from core_lib.data_layers.data.db.sqlalchemy.types.int_enum import IntEnum
 
 
-class ThingKind(enum.Enum):      # SAME file, directly ABOVE the entity — not nested
-    ALPHA = 1                    # IntEnum-column values MUST start at 1, never 0 (§12)
-    BETA = 2
-
-
 class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
 
     __tablename__ = 'thing'                # singular
 
-    INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'      # every index/constraint name
+    INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'      # every index name
     INDEX_WORKSPACE_NAME = 'ix_thing_workspace_name'  # is a class constant
+
+    class ThingKind(enum.Enum):            # NESTED in its entity, read as Thing.ThingKind
+        ALPHA = 1                          # IntEnum-column values MUST start at 1, never 0 (§12)
+        BETA = 2
 
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     workspace_id = Column(INTEGER, ForeignKey('workspace.id'), nullable=False)
@@ -175,8 +192,8 @@ class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
 
 - `SoftDeleteMixin` → `created_at` / `updated_at` / `deleted_at`.
 - `+ SoftDeleteTokenMixin` → adds `deleted_at_token` (`0` = live). **Use it
-  whenever the table carries a UNIQUE constraint over business columns** — the
-  constraint is then declared over `(business_cols…, deleted_at_token)` so a
+  whenever the table carries a UNIQUE index over business columns** — the
+  index is then declared over `(business_cols…, deleted_at_token)` so a
   soft-deleted row stops colliding with a fresh insert.
 - Neither → hard-delete table.
 
@@ -210,19 +227,23 @@ The mixin choice decides the DataAccess base (§5).
 - **`INTEGER`, not `Integer`**; VARCHAR lengths always explicit
   (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
   dict payloads are `JSON` columns named `meta_data` (§4).
-- **The enum class is plain `enum.Enum`, in the same file directly ABOVE the
-  entity — not nested inside it.** Values for an `IntEnum(...)` column **must
-  start at 1, never 0** (§4, §12). Storage goes through the `IntEnum(...)`
-  column type; the Python type must not extend `int`.
+- **The enum class is plain `enum.Enum`, NESTED inside its entity class and
+  read as `Thing.ThingKind`** — never at module level beside it. Name it for
+  what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.
+  Values for an `IntEnum(...)` column **must start at 1, never 0** (§4, §12).
+  Storage goes through the `IntEnum(...)` column type; the Python type must
+  not extend `int`.
+- **No `__mapper_args__`** on an entity, `eager_defaults` included — SQLAlchemy 2.0
+  reads server-generated values back on INSERT by itself (§4).
 - **Derive enum-based strings from `.name`, not `.value`** — e.g.
   `f'.{kind.name.lower()}'` (§4).
 - **No database schema of its own** — never `{'schema': ...}` in `__table_args__`. The
   tables sit in the host's default schema: all core-lib entities share `Base.metadata`, so a
   host's `create_all` would fail on a schema that does not exist yet. Prefix the table name with
   the library's name when the bare name could clash with a host's table
-  (`__tablename__ = 'audit_access_event'`, module `audit_access_event.py`, indexes
-  `ix_audit_access_event_*`), and grant per table in the migration.
-- **Every index / unique constraint gets a class-constant name** referenced
+  (`__tablename__ = 'foo_event'`, class `FooEvent`, module `foo_event.py`, indexes
+  `ix_foo_event_*`). **The table, the class and the file always carry the same name.**
+- **Every index, unique or not, gets a class-constant name** referenced
   from `__table_args__` **and** from the migration, so the name lives in one
   place. Inside the class body the *column* references stay string literals
   (`'workspace_id'`) (§4) — this file and the migrations are the **only** two
