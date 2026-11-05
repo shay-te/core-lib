@@ -8,6 +8,10 @@ description: MANDATORY — load this skill BEFORE you add, fix, or restructure a
 Tests live **inside the library**, test **only the library**, and never import
 host code.
 
+**You never run tests (operator rule)** — not unittest, not pytest, not a script
+that mirrors a check. Write them to the bar below; the run commands and
+mutation checks in this skill are the operator's to run.
+
 ## The bar: a test suite that is HARD to pass
 
 Write tests that are **as challenging as you can make them**. A suite that
