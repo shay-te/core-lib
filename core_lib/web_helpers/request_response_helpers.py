@@ -1,7 +1,6 @@
 #
 # RESPONSE
 #
-import asyncio
 import json
 from http import HTTPStatus
 from http.client import responses
@@ -79,20 +78,7 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
 
 
 def generate_response_fastapi(data, status, media_type: MediaType, headers: dict = None):
-    # Starlette Response — works for FastAPI views and middlewares.
-    # FastAPI accepts these directly as view return values.
-    if headers is None:
-        headers = {}
-    # IntEnum compatibility — Starlette accepts int but `status_code` is
-    # explicitly typed int and HTTPStatus members satisfy that.
-    response = StarletteResponse(
-        content=data,
-        status_code=int(status),
-        media_type=media_type.value,
-    )
-    for key, value in headers.items():
-        response.headers[key] = value
-    return response
+    return StarletteResponse(content=data, status_code=int(status), media_type=media_type.value, headers=headers)
 
 
 #
@@ -107,18 +93,6 @@ def request_body_dict(request):
         return request.json
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
         # Starlette reads the body asynchronously. FastAPI runs a sync view in an AnyIO worker thread, which
-        # reaches back into the event loop to read it. An async view runs on the loop itself, where nothing
-        # synchronous can wait for the body.
-        if _running_on_event_loop():
-            raise RuntimeError('request_body_dict cannot read a FastAPI body inside an async view: '
-                               'use `await request.json()` there')
+        # reaches back into the event loop to read it. In an async view anyio raises RuntimeError: use
+        # `await request.json()` there.
         return json.loads(from_thread.run(request.body).decode('utf-8'))
-
-
-def _running_on_event_loop() -> bool:
-    # core_lib has no such check. `get_running_loop` succeeds only on the thread that runs the loop.
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return False
-    return True

@@ -107,11 +107,6 @@ class TestWebHelpersFastapi(unittest.TestCase):
         def sync_request_last(item_id: int, request: Request):
             return {'item_id': item_id, 'user': request.state.user}
 
-        @app.get('/sync-log-exception')
-        @RequireLogin()
-        def sync_log_exception(request: Request, log_exception: bool = False):
-            return {'log_exception': log_exception}
-
         @app.get('/named-handler')
         @RequireLogin([ROLE_ADMIN], security_handler_name=NAMED_HANDLER)
         def named_handler(request: Request):
@@ -207,12 +202,6 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual({'item_id': 3, 'user': {'id': USER_ID, 'role': ROLE_ADMIN}}, response.json())
 
-    def test_view_parameter_named_log_exception_reaches_the_view(self):
-        # `handle_exception` has an option of that name. The view's own parameter must not be taken for it.
-        response = self._client(_token(ROLE_ADMIN)).get('/sync-log-exception', params={'log_exception': 'true'})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual({'log_exception': True}, response.json())
-
     def test_route_runs_the_security_handler_it_names(self):
         # The named handler reads its own cookie, so the default handler's cookie alone must be refused.
         allowed = self._client(_token(ROLE_ADMIN), cookie_name=NAMED_COOKIE).get('/named-handler')
@@ -250,11 +239,11 @@ class TestWebHelpersFastapi(unittest.TestCase):
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual({'parsed': body}, response.json())
 
-    def test_request_body_dict_in_async_view_says_to_await_request_json(self):
+    def test_request_body_dict_in_async_view_raises(self):
         # An async view runs on the event loop, where a sync helper cannot read the body. It must fail, not
-        # return None as if the client had sent nothing, and say what to do instead.
+        # return None as if the client had sent nothing.
         client = self._client()
-        with self.assertRaisesRegex(RuntimeError, r'await request\.json\(\)'):
+        with self.assertRaises(RuntimeError):
             client.post('/body-async', json={'name': 'widget'})
 
     # UserAuthMiddleware

@@ -72,12 +72,7 @@ def _get_exception_status_code(exc):
 
 def handle_exception(func, *args, **kwargs):
     log_exception = kwargs.pop("log_exception", True)
-    return handle_exception_call(func, args, kwargs, log_exception)
 
-
-def handle_exception_call(func, args: tuple, kwargs: dict, log_exception: bool = True):
-    """`handle_exception` with `func`'s arguments passed as they are, so a `log_exception` among them reaches
-    `func`. FastAPI passes a view every parameter by keyword, whatever its name."""
     try:
         return func(*args, **kwargs)
 
@@ -89,6 +84,7 @@ def handle_exception_call(func, args: tuple, kwargs: dict, log_exception: bool =
         logger.exception(exc, exc_info=log_exception)
 
         return _get_exception_status_code(exc)
+
 
 
 class HandleException(object):

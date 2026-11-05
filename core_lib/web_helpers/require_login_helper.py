@@ -3,7 +3,7 @@ import inspect
 from flask import request as flask_request
 
 from core_lib.session.security_handler import SecurityHandler
-from core_lib.web_helpers.decorators import bind_request, handle_exception, handle_exception_call
+from core_lib.web_helpers.decorators import bind_request, handle_exception
 import logging
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 
@@ -23,8 +23,7 @@ def require_login(policies, func, *args, security_handler_name: str = None, **kw
             # Route the view function through handle_exception so its exceptions
             # become proper HTTP responses (rather than being silently swallowed
             # and returning None — which previously rendered as a blank page).
-            # `handle_exception` would take a view parameter named `log_exception` as its own option.
-            return handle_exception_call(func, args, kwargs)
+            return handle_exception(func, *args, **kwargs)
         return response
 
 

@@ -216,7 +216,7 @@ the specified cookie is present in the request, turn it to a `Session Object`, a
 class UserAuthMiddleware(MiddlewareMixin):
 ```
 
-On FastAPI, *core_lib.web_helpers.fastapi.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/fastapi/user_auth_middleware.py#L13){:target="_blank"} does the same and puts the session object on `request.state.user`. When the cookie is missing, `request.state.user` is not set, so read it with `getattr(request.state, 'user', None)`.
+On FastAPI, *core_lib.web_helpers.fastapi.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/fastapi/user_auth_middleware.py#L6){:target="_blank"} does the same and puts the session object on `request.state.user`. When the cookie is missing, `request.state.user` is not set, so read it with `getattr(request.state, 'user', None)`.
 
 ```python
 app.add_middleware(UserAuthMiddleware, cookie_name='user_cookie')
