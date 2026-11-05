@@ -83,3 +83,6 @@ rejected in review (§0).
   `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the
   real local backend rather than faking it in tests.
 - Registries stay in-memory — re-register on process boot (§10).
+- **Every constant sits at the top of the file**, right after the imports —
+  never between methods ("Constants live at the top of the file" in
+  `AGENTS.md`).

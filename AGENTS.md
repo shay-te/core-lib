@@ -193,6 +193,17 @@ derived from an entity.
 
 ---
 
+# Constants live at the top of the file — every kind of file (operator rule)
+
+A file declares its constants at its top, right after the imports: a module's names, keys, maps, field sets, tuning
+values and cache-key templates, a DataAccess's allow-list and `rule_validator`, a test's fixture ids, a JS module's
+constants. A class's own constants open its body, as an entity's `INDEX_*` names and nested enum do (§4) and as a Java
+class's `static final` fields do. Never between two functions, and never beside the one function that reads it.
+Constants that belong together sit together (a filter key beside the field it maps to), and the comment that explains
+a constant moves up with it.
+
+---
+
 # Scaffolding skills — MANDATORY routing gate (do not skip)
 
 Copy-paste-ready guides for building each part of a core-lib live under
@@ -1762,6 +1773,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 27. Any `import` or `__all__` in `foo_core_lib/__init__.py`, such as re-exporting `FooCoreLib` "for convenience". `setup.py` imports the package to read `__version__`, so the re-export loads the whole lib before its dependencies are installed and the build fails (§1).
 28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
 29. An enum declared at module level beside its entity (§4).
+30. A constant declared between functions, or beside the one function that reads it, instead of at the top of its file ("Constants live at the top of the file").
 
 ## 17. Final checklist before handing the lib over
 

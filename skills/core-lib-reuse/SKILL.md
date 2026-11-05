@@ -108,7 +108,8 @@ about its own data").
 it too — importing it from `service/` would invert the dependency. Used by
 services only, it is ONE `service/<topic>_helper.py` grouping the related
 functions (`argument_helper.py`) — never one function per file, never a bare
-`helper.py` (AGENTS §6.1).
+`helper.py` (AGENTS §6.1). A constant the helpers read sits at the top of that
+file, right after the imports (AGENTS "Constants live at the top of the file").
 
 ## Traps when adopting `result_to_dict`
 
