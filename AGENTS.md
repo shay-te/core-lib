@@ -1540,8 +1540,6 @@ def downgrade():
 
 ## 13. Tests — the philosophy and the exact mechanics
 
-**Agents never run a test suite — not unittest, not pytest, not a script that mirrors a check (operator rule).** Write and update the tests to everything below; every "run", mutation check and green-suite step in this file (§13, §15, §17) is the operator's.
-
 ### 13.0 The bar: a suite that is HARD to pass
 
 A suite that only walks the happy path is a green light with nothing behind it. Four standing requirements — the full treatment, with checklists, is [`skills/core-lib-tests`](skills/core-lib-tests/SKILL.md):
