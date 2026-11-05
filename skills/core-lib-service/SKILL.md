@@ -138,6 +138,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A method taking a row id also takes the tenant key** (`project_id`) and
   treats another tenant's row as absent (§6).
 - **Tuning values are module constants, not config**, until a host asks (§6).
+- **The usual value is the parameter's default**: a caller passes it only when
+  it differs. Host-specific values keep no default (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`. The Service takes the member as given: converting a request's
   int is the host's job, and the Service neither converts nor re-checks it.
