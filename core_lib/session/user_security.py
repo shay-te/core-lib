@@ -37,14 +37,10 @@ class UserSecurity(ABC):
             return None
 
     def _secure_entry(self, request, policies):
-        cookies = {}
-        server_type = WebHelpersUtils.get_server_type()
-        if server_type == WebHelpersUtils.ServerType.DJANGO:
+        if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
             cookies = request.COOKIES
-        elif server_type == WebHelpersUtils.ServerType.FLASK:
-            cookies = request.cookies
-        elif server_type == WebHelpersUtils.ServerType.FASTAPI:
-            # Starlette's `Request.cookies` is a plain dict-like.
+        else:
+            # Flask and FastAPI (Starlette) both call it `cookies`.
             cookies = request.cookies
         token = cookies.get(self.cookie_name)
         session_obj = self.from_session_data(self.token_handler.decode(token)) if token else None
