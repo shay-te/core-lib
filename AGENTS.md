@@ -329,7 +329,7 @@ Write the function first, then a decorator that calls it. That is how core-lib's
 | `@ResultToDict()` | `result_to_dict(value)` |
 | `@HandleException()` | `handle_exception(func, *args)` |
 | `@RequireLogin()` | `require_login(policies, view, *view_args)` |
-| `@Cache(...)` | `build_function_key(...)` for the key, and a `CacheHandler`'s `get` / `set` / `delete` |
+| `@Cache(...)` | `build_function_key(...)` for the key, and the handler from `CoreLib.cache_registry.get(handler_name)` for `get` / `set` / `delete`. Both work without the decorator, but its get-or-compute branch still sits in the wrapper, so do not copy that part |
 
 Two reasons:
 - **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
@@ -1314,7 +1314,7 @@ Event payloads are the `@ResultToDict`-style dicts (a listener gets `thing[Thing
 
 **Contract that bites:** `Observer.notify` catches, logs, and then RE-RAISES a listener's exception. `@Observe` fires AFTER the wrapped function body ran — so a host listener that throws makes the service method raise even though the DB write already committed. Listeners must be defensive (swallow their own errors) unless they intend to fail the service call.
 
-**A decorator the lib ships for HOSTS to put on their own functions validates everything at decoration time**, so a mistake fails at import, not on the first production call: every parameter name it is told to read (checked against `inspect.signature(func)`), and any identifier it derives — `f'{func.__module__}.{func.__qualname__}'` contains `<locals>` / `<lambda>` for a nested function, so validate it or require it explicitly. Every option after the first positional one is keyword-only (`*,`).
+**A decorator the lib ships for HOSTS to put on their own functions gets its validation from the function it wraps**, never from a copy in the decorator ("Every decorator is a thin wrapper over a plain function"), so a direct call is checked the same way. A mistake fails on the view's first call, which the host's own test of that view catches. It validates every parameter name it is told to read (checked against `inspect.signature(func)`), and any identifier it derives — `f'{func.__module__}.{func.__qualname__}'` contains `<locals>` / `<lambda>` for a nested function, so validate it or require it explicitly. Every option after the first positional one is keyword-only (`*,`).
 
 ## 9. Jobs (scheduled background work)
 

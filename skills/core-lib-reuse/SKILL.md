@@ -88,11 +88,14 @@ Verified by inventory, so you can stop looking:
 
 ## Writing a decorator: the function does the job, the decorator only calls it
 
-Write the plain function first, then a decorator that calls it. That is the shape of every core-lib decorator:
+Write the plain function first, then a decorator that calls it, the way core-lib's own are built:
 `@ResultToDict()` → `result_to_dict(value)`, `@HandleException()` → `handle_exception(func, *args)`,
-`@RequireLogin()` → `require_login(policies, view, *view_args)`, `@Cache(...)` → `build_function_key(...)` and a
-`CacheHandler`. A unit test then calls the function with plain inputs, and any caller (a job, a script, code that
-already holds the value) uses it without the decorator.
+`@RequireLogin()` → `require_login(policies, view, *view_args)`. A unit test then calls the function with plain
+inputs, and any caller (a job, a script, code that already holds the value) uses it without the decorator.
+
+`@Cache(...)` is the older shape. Its parts work without it: `build_function_key(...)` for the key, and the handler
+from `CoreLib.cache_registry.get(handler_name)` for `get` / `set` / `delete`. But its get-or-compute branch sits in
+the wrapper, so do not copy that part.
 
 The decorator passes the decorated call's arguments to the function **as they came**, plus its own options. Any
 branch, check, binding or reshaping left in the wrapper is logic a direct call never gets:

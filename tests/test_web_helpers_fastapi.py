@@ -286,6 +286,14 @@ class TestWebHelpersFastapi(unittest.TestCase):
         RequireLogin()(lambda request: None)(request=request)
         self.assertIsNone(_get_request())
 
+    def test_request_is_unbound_when_the_check_raises(self):
+        # An unregistered handler name raises while the request is bound: it must still be released.
+        view = RequireLogin(security_handler_name='no-such-handler')(lambda request: None)
+        request = Request({'type': 'http'})
+        with self.assertRaisesRegex(ValueError, 'no-such-handler'):
+            view(request=request)
+        self.assertIsNone(_get_request())
+
     def test_get_request_returns_none(self):
         # Only a `@RequireLogin` view binds the request, and only while it runs.
         self.assertIsNone(_get_request())
