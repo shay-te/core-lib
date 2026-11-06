@@ -159,6 +159,9 @@ class FooCoreLib(CoreLib):
 - **No `import` and no `__all__` in the package-root `__init__.py`.** It holds
   `__version__` and nothing else; a re-export of `FooCoreLib` there breaks the
   build (§1, AGENTS §16 #27).
+- **Constants at the top of the file**, right after the imports — in this file
+  and in every file the lib grows ("Constants live at the top of the file" in
+  `AGENTS.md`).
 
 ## The agnosticism litmus test
 
