@@ -195,6 +195,7 @@ class Thing(Base, SoftDeleteMixin):        # Base FIRST, then mixins
   whenever the table carries a UNIQUE index over business columns** — the
   index is then declared over `(business_cols…, deleted_at_token)` so a
   soft-deleted row stops colliding with a fresh insert.
+- Reading a token table: `deleted_at_token == 0` is live, never `deleted_at IS NULL` (see §4 of `AGENTS.md`).
 - Neither → hard-delete table.
 
 The mixin choice decides the DataAccess base (§5).
