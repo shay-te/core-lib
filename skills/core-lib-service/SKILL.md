@@ -141,6 +141,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **Every constant sits at the top of the file**, right after the imports —
   never between two methods or beside the one that reads it ("Constants live at
   the top of the file" in `AGENTS.md`).
+- **The usual value is the parameter's default**: a caller passes it only when
+  it differs. Host-specific values keep no default (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`. The Service takes the member as given: converting a request's
   int is the host's job, and the Service neither converts nor re-checks it.
