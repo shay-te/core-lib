@@ -1150,6 +1150,14 @@ ValueRuleValidator(Thing.options.key, list,
 - **Keep one table** mapping each constant-keyed JSON column to its rule, and a test that enumerates every JSON column in the entities and fails on one nobody classified. A column that is genuinely free-form (a host's raw answer) is listed as such, deliberately — the test forces the decision rather than leaving it to memory.
 - Assert the invariant end to end: a bad value through the **public** write path returns the validation error, never `PermissionError`.
 
+### 5.3 A list asks for the kind it wants — never excludes the kinds it does not
+
+When rows of one table serve several purposes (chats between users, between users and staff, between staff), the table carries the row's **kind** (a key in its JSON `meta_data`, valued from an enum), and a list filters on a **positive match** of the kind it wants. A filter that excludes the other kinds breaks the day a new kind is added, and needs a filter parameter in the library just to say "not this".
+
+- The kind is written wherever a row is created, in the one place that owns that purpose.
+- Rows that already exist get their kind from a data migration, derived from what identifies them (the migration reads the row, never the caller's wishes). It merges into the JSON and treats NULL as `{}`, and leaves the key alone when it is already set, so it is idempotent.
+- A list that must hold everything a host has (a colleague list) is returned whole by the service, which walks the library's pages itself; the host's screen does not page what it can fetch at once.
+
 ## 6. Services (`data_layers/service/thing_service.py`)
 
 Every service SUBCLASSES the core-lib base: `from core_lib.data_layers.service.service import Service` → `class ThingService(Service):` — all reference services do. Stateless. `__init__(self, thing_da: ThingDataAccess, ...)` stores `self._thing_da` plus any sibling services it depends on (services may depend on services; they never reach into a sibling's DA).
