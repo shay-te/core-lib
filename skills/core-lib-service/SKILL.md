@@ -138,6 +138,9 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A method taking a row id also takes the tenant key** (`project_id`) and
   treats another tenant's row as absent (§6).
 - **Tuning values are module constants, not config**, until a host asks (§6).
+- **Every constant sits at the top of the file**, right after the imports —
+  never between two methods or beside the one that reads it ("Constants live at
+  the top of the file" in `AGENTS.md`).
 - **The usual value is the parameter's default**: a caller passes it only when
   it differs. Host-specific values keep no default (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain

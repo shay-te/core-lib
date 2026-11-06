@@ -180,6 +180,9 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **`rule_validator` is module-level, next to the class** — ONE of them, built
   from an `allowed_update_types` list, one `ValueRuleValidator(Entity.col.key,
   type, custom_validator=...)` per column (§5).
+- **Every constant sits at the top of the file**, right after the imports, as
+  the allow-list and `rule_validator` do in the template — never between two
+  methods ("Constants live at the top of the file" in `AGENTS.md`).
 - **Never override `create`** (§5.1). `CRUD.create(data: dict)` plus that
   validator is the write API; the Service passes the whole payload. No second
   `create_rule_validator`, and no allow-list entry restating a column's type or

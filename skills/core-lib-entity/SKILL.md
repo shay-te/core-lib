@@ -252,6 +252,10 @@ The mixin choice decides the DataAccess base (§5).
   a query, a payload, a `frozenset` of names, a tuple, a module constant, a
   comparison. A stale literal in a filter set fails silently — the name stops
   matching and the column stops being excluded (§4.3).
+- **A class's constants open its body** — `__tablename__`, the `INDEX_*` names,
+  then the nested enum, before the first column, as the template shows; a module
+  constant goes right after the imports ("Constants live at the top of the
+  file" in `AGENTS.md`).
 - **Any column with `server_default` MUST also carry the matching Python
   `default=`** (`default=0, server_default='0'`) — otherwise a freshly inserted
   ORM row reads `None` for it before commit (§4).
