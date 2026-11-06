@@ -160,8 +160,9 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   two concurrent calls both pass the check (§6).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
-- **A decorator shipped for hosts** checks its parameter names and derived
-  identifiers at decoration time; options after the first are keyword-only (§8).
+- **A decorator shipped for hosts** gets its checks of parameter names and derived
+  identifiers from the function it wraps, never from a copy in the decorator;
+  options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).

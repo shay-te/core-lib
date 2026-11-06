@@ -8,7 +8,7 @@ from werkzeug.http import dump_cookie
 
 from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.session.security_handler import SecurityHandler
-from core_lib.web_helpers.flask.require_login import RequireLogin
+from core_lib.web_helpers.require_login import RequireLogin
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_user_security_utils import CustomerSecurity, user_data_access, User
 
