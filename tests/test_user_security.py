@@ -136,6 +136,7 @@ class TestUserSecurity(unittest.TestCase):
 
         self._test_secure_entry()
         self._test_expiry()
+        self._test_invalid_token()
         self._test_decorator_django()
 
     def test_secure_flask(self):
@@ -144,10 +145,11 @@ class TestUserSecurity(unittest.TestCase):
 
         self._test_secure_entry()
         self._test_expiry()
+        self._test_invalid_token()
         self._test_decorator_flask()
 
-    def _require_login(self, user: dict, policies: list, decorated_function: Callable[[], object] = None):
-        token = jwt.encode(user, secret_key)
+    def _require_login(self, user: dict, policies: list, decorated_function: Callable[[], object] = None, token: str = None):
+        token = token or jwt.encode(user, secret_key)
         if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
             header = dump_cookie(cookie_name, token)
             with self.app.test_request_context(environ_base={'HTTP_COOKIE': header}):
@@ -287,6 +289,12 @@ class TestUserSecurity(unittest.TestCase):
                 self.assertEqual(self._require_login(self.user_admin, POLICIES_NO).status_code, 401)
             self.assertIn('ExpiredSignatureError', str(cm.output))
             self.assertIn('handle_exception got ExpiredSignatureError error for function', str(cm.output))
+
+    def _test_invalid_token(self):
+        # Signed with another secret, or not a JWT at all: refused like an expired token, not a server error.
+        for token in (jwt.encode(self.user_admin, 'not-the-secret'), 'not-a-jwt'):
+            with self.subTest(token=token):
+                self.assertEqual(self._require_login(self.user_admin, [], token=token).status_code, 401)
 
     def _test_decorator_flask(self):
         self.assertEqual(self._require_login(self.user_delete, [], admin_entry_flask).status_code, 401)
