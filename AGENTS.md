@@ -1807,5 +1807,27 @@ new call site can't reintroduce a leak. A debug flow that genuinely needs more
 is a **separate** function with the trade-off stated in its docstring — never a
 loosening of the shared one.
 
+## A6. Declare a variable before the branches that assign it
+
+When `if` / `elif` branches assign a name that is read after them, declare it
+first, on its own line, with the value it keeps when no branch applies:
+
+```python
+cookies = {}
+if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
+    cookies = request.COOKIES
+elif WebHelpersUtils.get_server_type() in (WebHelpersUtils.ServerType.FLASK, WebHelpersUtils.ServerType.FASTAPI):
+    cookies = request.cookies
+token = cookies.get(self.cookie_name)
+```
+
+Python does not need the declaration; the reader does. It shows, before the
+branches, that the name exists and what kind of value it holds, so the line
+that reads it afterwards holds no surprise. Do not delete it to save a line.
+
+End such a chain with `elif`, not with an `else` that assigns the name too.
+A declaration that every path overwrites is never used, and SonarCloud reports
+it as an unused assignment.
+
 ---
 
