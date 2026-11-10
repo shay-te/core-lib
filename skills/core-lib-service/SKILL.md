@@ -166,6 +166,10 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).
 - **Invalidate caches on every mutation**, before the observer fan-out (§6).
+- **A list a UI shows is grouped, ordered and titled here, never in the
+  client** (operator's call): one call returns the groups whole, each with the
+  same keys (a data title as is, a fixed label as a key the client translates,
+  rows, sub-groups), empty groups left out. A paged list keeps its own call (§6).
 - **This service is agnostic — it ships the mechanism, never one caller's
   instance of it.** No named instrument/template/preset, no domain vocabulary
   (topic lists, category names, tag sets), no tuned magic number encoding a
