@@ -973,6 +973,7 @@ data_layers/
 `service/` holds services and the pure engines they call — behaviour, not type declarations. A `@dataclass` under `service/` is a data type filed under the logic layer; move it. The check: **`grep -rn "@dataclass" data_layers/service/` returns nothing.**
 
 - One class per file, file named after the class in snake_case — same rule as entities.
+- **Every JSON shape a public method returns is one of these (operator), never a set of `*_KEY` constants naming its keys.** Field names are the wire keys; code builds and reads the objects, and `dataclasses.asdict` runs only where the caller receives the dict. A host (the admin backend) follows the same rule.
 - Dependency direction is one-way: a data type may import entities and other data types, **never a service, DataAccess or engine.** That is what keeps it importable from any layer without a cycle.
 - The folder is conditional — a lib whose services only ever return entities doesn't create it.
 - Related exception (§A2): a *spec* — a frozen-dataclass DSL a consumer module reads as configuration — stays owned by that consumer module. `data_types/` is for types that flow through the layers, not for a module's private authoring DSL.

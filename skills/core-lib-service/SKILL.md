@@ -204,6 +204,12 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   not type declarations. A data type may import entities and other data types
   and **never** a service, DataAccess or engine — that one-way direction is what
   lets any layer import it without a cycle (§4.1).
+- **A response you build is a data type, never a set of key constants
+  (operator).** One dataclass per distinct JSON shape a public method returns,
+  its field names the wire keys. Code builds and reads the objects
+  (`row.conversation`); `dataclasses.asdict` runs only in the method a caller
+  receives the dict from. `*_KEY` constants naming a response's keys multiply
+  and drift; a helper that only fills a dataclass in is a thin wrapper.
 - **A column name is never a string literal — in any position.** Not just in a
   query or a payload: a `frozenset` of names to strip, a tuple of sort columns,
   a module constant, an `if key == '...'`, a `pop('...')`. All of them read
