@@ -157,6 +157,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   `update`); let the database and the `RuleValidator` refuse (§6). An
   external API that refuses a duplicate (409 for an existing account) is the
   same: call the create, catch only that status, let every other error out.
+  A setting that system already holds (a link lifespan) is set there, never
+  sent from code (operator).
 - **Several writes that must land together, or a guard checked before a
   write** (a set-once field, "not answered yet"), run in ONE session the service
   opens through the DA's `transaction()`, with the row read by
