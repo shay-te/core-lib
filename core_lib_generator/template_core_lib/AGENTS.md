@@ -61,3 +61,10 @@ _Anything generic — a rule every core-lib should follow — belongs in
 `core-lib/AGENTS.md` instead, so every core-lib inherits it. If you catch
 yourself re-explaining the same thing in a prompt, that is the signal to add it
 there._
+
+## Helper map
+
+_No helpers yet. One line per function in `helpers.py` / `*_helper.py`, plus the
+constants other modules import: its name and what it does. Read it before
+writing a helper; change the line with the code ("Every lib keeps a helper map"
+in `core-lib/AGENTS.md`)._
