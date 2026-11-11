@@ -124,7 +124,9 @@ functions (`argument_helper.py`) — never one function per file, never a bare
 
 0. Writing it in a host? If it is about a library's own data, it goes in that library ("Library or host?" above).
 1. Name the behaviour you need in one phrase ("entity → dict", "missing row → None").
-2. Search the table above; then `grep -rn "def <verb>" <core-lib>/core_lib/`.
+2. Search the table above and the lib's own `AGENTS.md` Helper map; then
+   `grep -rn "def <verb>" <core-lib>/core_lib/`.
 3. If it exists — call it. If it exists at 80% — call it and add the 20%.
-4. If it genuinely does not — write it in `helpers.py` at the library root, and
-   record in the docstring that you checked and what was missing.
+4. If it genuinely does not — write it in `helpers.py` at the library root,
+   record in the docstring that you checked and what was missing, and add its
+   line to the lib's Helper map (AGENTS "Every lib keeps a helper map").
