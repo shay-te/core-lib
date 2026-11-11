@@ -353,7 +353,13 @@ next reader does not re-check.
 - **`@NotFoundErrorHandler()` is not a get-or-none.** It goes the other way — falsy result → raise 404 — and it is already on the CRUD bases' `get`. A service that returns `None` for an absent row swallows that 404 itself, and must catch **only** 404: a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found".
 - **`result_to_dict` only converts values INSIDE a structure.** `result_to_dict(a_datetime)` returns the datetime unchanged. Convert a hand-built dict by decorating the METHOD with `@ResultToDict()`, not by calling the function per field. (Then mind the str-enum key trap — §skills.)
 
+### Every lib keeps a helper map in its own `AGENTS.md`
+
+A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in its `helpers.py` and `*_helper.py` modules, plus the constants other modules import, saying what each does. Read it before writing a helper, since the one you need may already sit one module over, and add, rename or remove the line in the same change as the code. A lib without a map gets one the first time someone works in it.
+
 ### Use the call that already returns it — no new function per field
+
+**Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
@@ -1146,6 +1152,14 @@ ValueRuleValidator(Thing.options.key, list,
 - **It checks only what needs no context.** A custom validator sees the column's value, never the row. Anything that depends on another column (a rule's *type* deciding which param it needs) stays in the Service.
 - **Keep one table** mapping each constant-keyed JSON column to its rule, and a test that enumerates every JSON column in the entities and fails on one nobody classified. A column that is genuinely free-form (a host's raw answer) is listed as such, deliberately — the test forces the decision rather than leaving it to memory.
 - Assert the invariant end to end: a bad value through the **public** write path returns the validation error, never `PermissionError`.
+
+### 5.3 A list asks for the kind it wants — never excludes the kinds it does not
+
+When rows of one table serve several purposes (chats between users, between users and staff, between staff), the table carries the row's **kind** (a key in its JSON `meta_data`, valued from an enum), and a list filters on a **positive match** of the kind it wants. A filter that excludes the other kinds breaks the day a new kind is added, and needs a filter parameter in the library just to say "not this".
+
+- The kind is written wherever a row is created, in the one place that owns that purpose.
+- Rows that already exist get their kind from a data migration, derived from what identifies them (the migration reads the row, never the caller's wishes). It merges into the JSON and treats NULL as `{}`, and leaves the key alone when it is already set, so it is idempotent.
+- A list that must hold everything a host has (a colleague list) is returned whole by the service, which walks the library's pages itself; the host's screen does not page what it can fetch at once.
 
 ## 6. Services (`data_layers/service/thing_service.py`)
 
