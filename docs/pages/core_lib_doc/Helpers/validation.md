@@ -70,7 +70,7 @@ print(is_float("string")) # False
 
 *core_lib.helpers.validation.is_int()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/validation.py#L28){:target="_blank"}
 
-Will validate if the passed argument is type `int` or not. 
+Will validate if the passed argument can be converted to an `int`. A bool is never an `int` answer, though Python counts it as one.
 
 ```python
 def is_int(val) -> bool:
@@ -90,7 +90,9 @@ def is_int(val) -> bool:
 from core_lib.helpers.validation import is_int
 
 print(is_int(14)) # True
+print(is_int("14")) # True
 print(is_int("string")) # False
+print(is_int(True)) # False
 ```
 
 ### is_email()

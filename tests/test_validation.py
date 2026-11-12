@@ -126,10 +126,10 @@ class TestIsInt(unittest.TestCase):
         self.assertTrue(is_int("-5"))
         self.assertTrue(is_int("0"))
 
-    def test_bool_is_int(self):
-        # bool is a subclass of int in Python — int(True) == 1
-        self.assertTrue(is_int(True))
-        self.assertTrue(is_int(False))
+    def test_rejects_bool(self):
+        # bool is a subclass of int in Python (int(True) == 1), yet a bool is never an int answer
+        self.assertFalse(is_int(True))
+        self.assertFalse(is_int(False))
 
     def test_whole_float_is_int(self):
         # int(1.0) == 1 — Python truncates floats to int
