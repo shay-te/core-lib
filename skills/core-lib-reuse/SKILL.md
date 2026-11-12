@@ -67,6 +67,8 @@ what core-lib lacks — so the next reader does not re-run your search.
 
 † in both `parse_utils` and `validation` — import from `validation`.
 
+`is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
+
 ## What core-lib does NOT provide (writing these is correct)
 
 Verified by inventory, so you can stop looking:

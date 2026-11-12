@@ -166,6 +166,13 @@ That is the whole class — no `create`, no guards, domain queries only.
 
 ## Rules to enforce (from AGENTS.md)
 
+- **A DataAccess knows only its own domain** (operator rule). A plain table's DA
+  (a group and its memberships) never filters by or joins for a feature built on
+  it (a sharing flag, who receives a share). Those queries go in the feature's DA,
+  which knows both and may join the plain tables; its Service owns them and their
+  cache. Check before writing a query: does every condition belong to this DA's
+  domain? If one belongs to a feature on top, the query belongs to that feature.
+
 - **Extends `DataAccess`** — every class in this folder, including shared bases
   and mixins. A shared reader written as a bare `object` is the only thing in
   `data_access/` not declaring what layer it is in. Put it ALONGSIDE the CRUD
