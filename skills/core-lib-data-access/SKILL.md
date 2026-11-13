@@ -132,6 +132,8 @@ to get it.
 | `CRUDSoftDeleteDataAccess` | soft | `SoftDeleteMixin` | `get()` filters `deleted_at IS NULL`; `delete()` sets it |
 | `CRUDSoftDeleteWithTokenDataAccess` | soft | both mixins | same + indexed `deleted_at_token` lookup |
 
+**A table with the token mixin is read as live with `Entity.deleted_at_token == 0`, never `Entity.deleted_at IS NULL`.** Every query written by hand (a list, a lookup by another column, a join, a count) tests the token: it is the indexed column, it is the one the CRUD `get` uses, and a row hidden from `get` must be hidden from every other read too. Testing `deleted_at` lets a row that one query calls deleted stay visible to another.
+
 Constructor for all CRUD variants:
 `__init__(self, db_entity, db: SqlAlchemyConnectionFactory, rule_validator: RuleValidator = None)`.
 
