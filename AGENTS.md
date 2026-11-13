@@ -202,7 +202,7 @@ also needs a migration), load all that apply. For a brand-new library, load
 | add a migration / alter / create / drop a table, column, index, or constraint | [`skills/core-lib-migration/SKILL.md`](skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`skills/core-lib-tests/SKILL.md`](skills/core-lib-tests/SKILL.md) |
 | create / bootstrap a whole new core-lib from scratch | [`skills/core-lib-new/SKILL.md`](skills/core-lib-new/SKILL.md) |
-| write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
+| write ANY helper / utility / decorator / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`skills/core-lib-error-handling/SKILL.md`](skills/core-lib-error-handling/SKILL.md) |
 
 **Adding a skill? This table is not the only place it must appear.** Add the row here AND in `core_lib_generator/template_core_lib/AGENTS.md`, which carries a convenience copy that every generated lib ships — a skill missing from that copy is one a generated lib is never told to load. (`core-lib-new` is the one deliberate omission: a generated lib already exists.)
@@ -362,6 +362,25 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 **Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
+
+## Every decorator is a thin wrapper over a plain function that does the job
+
+Write the function first, then a decorator that calls it. That is how core-lib's own decorators are built:
+
+| Decorator | Calls |
+|---|---|
+| `@ResultToDict()` | `result_to_dict(value)` |
+| `@HandleException()` | `handle_exception(func, *args)` |
+| `@RequireLogin()` | `require_login(policies, view, *view_args)` |
+| `@Cache(...)` | `build_function_key(...)` for the key, and the handler from `CoreLib.cache_registry.get(handler_name)` for `get` / `set` / `delete`. Both work without the decorator, but its get-or-compute branch still sits in the wrapper, so do not copy that part |
+
+Two reasons:
+- **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
+- **Any caller can use the function independently**: on a value it already holds, from a job or a script, or wherever a decorator does not fit.
+
+The decorator only passes the decorated call's arguments to the function, as they came. `@RequireLogin` hands `require_login` the view's arguments unchanged, and the function finds the request in them. A decorator that takes an argument apart for the function to put back holds the same branch twice, and a direct call cannot reach the decorator's copy. Likewise, a check the function already runs is not repeated in the decorator.
+
+Any other logic left in the decorator is logic a direct call silently misses. While binding the request for error middlewares lived in `@RequireLogin`, a direct `require_login(...)` call reported `request=None` to every middleware.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
@@ -1352,7 +1371,7 @@ Event payloads are the `@ResultToDict`-style dicts (a listener gets `thing[Thing
 
 **Contract that bites:** `Observer.notify` catches, logs, and then RE-RAISES a listener's exception. `@Observe` fires AFTER the wrapped function body ran — so a host listener that throws makes the service method raise even though the DB write already committed. Listeners must be defensive (swallow their own errors) unless they intend to fail the service call.
 
-**A decorator the lib ships for HOSTS to put on their own functions validates everything at decoration time**, so a mistake fails at import, not on the first production call: every parameter name it is told to read (checked against `inspect.signature(func)`), and any identifier it derives — `f'{func.__module__}.{func.__qualname__}'` contains `<locals>` / `<lambda>` for a nested function, so validate it or require it explicitly. Every option after the first positional one is keyword-only (`*,`).
+**A decorator the lib ships for HOSTS to put on their own functions gets its validation from the function it wraps**, never from a copy in the decorator ("Every decorator is a thin wrapper over a plain function"), so a direct call is checked the same way. A mistake fails on the view's first call, which the host's own test of that view catches. It validates every parameter name it is told to read (checked against `inspect.signature(func)`), and any identifier it derives — `f'{func.__module__}.{func.__qualname__}'` contains `<locals>` / `<lambda>` for a nested function, so validate it or require it explicitly. Every option after the first positional one is keyword-only (`*,`).
 
 ## 9. Jobs (scheduled background work)
 
@@ -1844,6 +1863,28 @@ suffix, hash, or partial. Route every redaction through **one** function so a
 new call site can't reintroduce a leak. A debug flow that genuinely needs more
 is a **separate** function with the trade-off stated in its docstring — never a
 loosening of the shared one.
+
+## A6. Declare a variable before the branches that assign it
+
+When `if` / `elif` branches assign a name that is read after them, declare it
+first, on its own line, with the value it keeps when no branch applies:
+
+```python
+cookies = {}
+if WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.DJANGO:
+    cookies = request.COOKIES
+elif WebHelpersUtils.get_server_type() in (WebHelpersUtils.ServerType.FLASK, WebHelpersUtils.ServerType.FASTAPI):
+    cookies = request.cookies
+token = cookies.get(self.cookie_name)
+```
+
+Python does not need the declaration; the reader does. It shows, before the
+branches, that the name exists and what kind of value it holds, so the line
+that reads it afterwards holds no surprise. Do not delete it to save a line.
+
+End such a chain with `elif`, not with an `else` that assigns the name too.
+A declaration that every path overwrites is never used, and SonarCloud reports
+it as an unused assignment.
 
 ---
 

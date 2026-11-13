@@ -37,7 +37,7 @@ whoever adds a skill must add the row in both places.
 | add or change an SDK-backed backend (object storage, a driver that owns its connection) / connection factory | [`core-lib-connection`](../core-lib/skills/core-lib-connection/SKILL.md) |
 | add a migration / alter / create / drop a table, column, index, constraint | [`core-lib-migration`](../core-lib/skills/core-lib-migration/SKILL.md) |
 | add / fix / restructure tests or raise coverage | [`core-lib-tests`](../core-lib/skills/core-lib-tests/SKILL.md) |
-| write ANY helper / utility / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`core-lib-reuse`](../core-lib/skills/core-lib-reuse/SKILL.md) |
+| write ANY helper / utility / decorator / converter / guard / parser, or a `helpers.py` — **check what `core_lib` already ships first** | [`core-lib-reuse`](../core-lib/skills/core-lib-reuse/SKILL.md) |
 | add / change / raise / catch any exception, error class, error code, or validation-failure type; pick an HTTP status | [`core-lib-error-handling`](../core-lib/skills/core-lib-error-handling/SKILL.md) |
 
 ## This library is AGNOSTIC

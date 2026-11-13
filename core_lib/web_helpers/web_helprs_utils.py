@@ -8,6 +8,7 @@ class WebHelpersUtils(object):
     class ServerType(enum.Enum):
         FLASK = 'flask'
         DJANGO = 'django'
+        FASTAPI = 'fastapi'
 
     @staticmethod
     def init(server_type: ServerType):

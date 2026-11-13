@@ -1,5 +1,7 @@
 import logging
 import traceback
+from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from http import HTTPStatus
 
@@ -13,6 +15,20 @@ from core_lib.web_helpers.request_response_helpers import response_message
 
 logger = logging.getLogger(__name__)
 
+# Django and FastAPI have no thread-local request proxy. `require_login` binds the request here while its view runs.
+_request = ContextVar('request', default=None)
+
+
+@contextmanager
+def bind_request(request):
+    """While the block runs, `_get_request` returns `request` on Django and FastAPI, so error middlewares get it."""
+    token = _request.set(request)
+    try:
+        yield
+    finally:
+        _request.reset(token)
+
+
 def _get_request():
     try:
         server_type = WebHelpersUtils.get_server_type()
@@ -22,18 +38,8 @@ def _get_request():
                 return flask_request
             except Exception as e:
                 logger.debug(f"Failed to fetch Flask request: {e}")
-        elif server_type == WebHelpersUtils.ServerType.DJANGO:
-            try:
-                # Django makes the request available per-thread only in views,
-                # but here we rely on func arguments or global context if available
-                # So we just leave it None unless explicitly added to context elsewhere
-                from django.core.handlers.wsgi import WSGIRequest
-                # You could extend this later to pull from threadlocals if needed
-                return None
-            except Exception as e:
-                logger.debug(f"Failed to resolve Django request: {e}")
         else:
-            return None
+            return _request.get()
     except Exception as e:
         logger.debug(f"Unable to determine server type: {e}")
 

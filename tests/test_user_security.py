@@ -13,8 +13,7 @@ from core_lib.cache.cache_handler_ram import CacheHandlerRam
 from core_lib.core_lib import CoreLib
 from core_lib.data_transform.result_to_dict import result_to_dict
 from core_lib.session.security_handler import SecurityHandler
-from core_lib.web_helpers.django.require_login import RequireLogin as RequireLoginDjango
-from core_lib.web_helpers.flask.require_login import RequireLogin as RequireLoginFlask
+from core_lib.web_helpers.require_login import RequireLogin
 from core_lib.web_helpers.require_login_helper import require_login
 from core_lib.web_helpers.web_helprs_utils import WebHelpersUtils
 from tests.test_data.test_user_security_utils import CustomerSecurity, user_data_access, User, has_access
@@ -156,14 +155,14 @@ class TestUserSecurity(unittest.TestCase):
                 self.assertEqual(flask_request.cookies[cookie_name], token)
                 if decorated_function:
                     return decorated_function()
-                return require_login(flask_request, policies, lambda: True)
+                return require_login(policies, lambda: True)
         else:
             django_request = HttpRequest
             django_request.COOKIES = {cookie_name: token}
             self.assertEqual(django_request.COOKIES[cookie_name], token)
             if decorated_function:
                 return decorated_function(django_request)
-            return require_login(django_request, policies, lambda: True)
+            return require_login(policies, lambda request: True, django_request)
 
     def _test_secure_entry(self):
 
@@ -305,7 +304,7 @@ class TestUserSecurity(unittest.TestCase):
         self.assertEqual(self._require_login(self.user_delete, [], delete_entry_django).status_code, 200)
 
 
-@RequireLoginDjango(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+@RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_django(request):
     """
     Skipped because this a testing function and returns nothing
@@ -313,7 +312,7 @@ def admin_entry_django(request):
     pass
 
 
-@RequireLoginDjango(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
+@RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_django(request):
     """
     Skipped because this a testing function and returns nothing
@@ -321,7 +320,7 @@ def delete_entry_django(request):
     pass
 
 
-@RequireLoginFlask(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
+@RequireLogin(policies=[User.PolicyRoles.ADMIN, User.Status.ACTIVE])
 def admin_entry_flask():
     """
     Skipped because this a testing function and returns nothing
@@ -329,7 +328,7 @@ def admin_entry_flask():
     pass
 
 
-@RequireLoginFlask(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
+@RequireLogin(policies=[User.PolicyRoles.DELETE, User.Status.ACTIVE])
 def delete_entry_flask():
     """
     Skipped because this a testing function and returns nothing
