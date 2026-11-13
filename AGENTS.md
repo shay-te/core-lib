@@ -361,6 +361,8 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 
 **Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
 
+**Fetch one, never loop to find one (operator, strict).** A question about ONE row ("this pair's row", "this user's row of that kind") is a DataAccess query that returns that row (`.first()`, on the columns an index covers) behind a cached Service method, never a list call scanned in a `for` / `any(...)` / comprehension. Scanning a list loads every row to keep one, and a list is uncached. The cached one-row read gets its key from the columns it filters by, and every write that changes or removes that row evicts it (an empty-body `@Cache(..., invalidate=True)` hook when the write's own parameters don't fill the key).
+
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
 ## The entity IS the type. Do not mirror it in a second class.

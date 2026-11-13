@@ -193,6 +193,8 @@ That is the whole class — no `create`, no guards, domain queries only.
   `nullable=False`. **`update` overrides strip immutable columns** before
   `super().update(id, data)` (§5).
 - **Never returns soft-deleted rows**; don't add `include_deleted` (§5).
+- **One row asked for → a query that returns that row** (`.first()` on the indexed columns),
+  never a list the Service then scans in Python (operator: fetch one, never loop).
 - **No query that exists only for a Service pre-check** (a `get_by_<unique
   columns>` read before a create): the unique index refuses the duplicate and
   the Service's `@DuplicateErrorHandler()` answers 409 (§6).
