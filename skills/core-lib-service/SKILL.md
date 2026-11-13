@@ -146,6 +146,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A method taking a row id also takes the tenant key** (`project_id`) and
   treats another tenant's row as absent (§6).
 - **Tuning values are module constants, not config**, until a host asks (§6).
+- **Every constant sits at the top of the file**, right after the imports —
+  never between two methods or beside the one that reads it ("Constants live at
+  the top of the file" in `AGENTS.md`).
+- **The usual value is the parameter's default**: a caller passes it only when
+  it differs. Host-specific values keep no default (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
   `enum.Enum`. The Service takes the member as given: converting a request's
   int is the host's job, and the Service neither converts nor re-checks it.
@@ -154,6 +159,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   service and host that reads it; never a private `_X_TYPES = {...}` dict at the
   top of a service file ("A map between two vocabularies is a constant too" in
   `AGENTS.md`).
+- **A caller never cuts fetched rows down** — no `{key: row[key] for key in KEYS}` in another service or the host.
+  Part of one row is a method on the entity's own Service that reads its cached getter and keeps a field set
+  (`get_summary(member_id)` over `get_full`, keeping `MEMBER_SUMMARY_FIELDS`), and every reader calls it, no new
+  query. The set is one constant in the library that owns the entity, never a private `_KEYS` tuple per service ("Part
+  of a row" and "A set of an entity's fields that several readers use is declared once" in `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
   A create whose duplicate is an error does not look the row up first: the
