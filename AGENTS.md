@@ -1186,13 +1186,15 @@ def get(self, thing_id: int):
 def update(self, thing_id: int, data: dict):
     return self._thing_da.update(thing_id, data)
 
-@ResultToDict()                      # list endpoints: no cache, just dicts
+@ResultToDict()                      # paged / open-ended search: no cache, just dicts
 def list(self, project_id: int, limit: int = 100, offset: int = 0): ...
 ```
 
 Rules:
 
 - `@Cache(...)` outermost on cached reads so a cache hit skips `@ResultToDict` and the DA entirely; `@ResultToDict()` outermost on `create` so the 409 from `@DuplicateErrorHandler` propagates before dict conversion. Write methods carry `@Cache(..., invalidate=True)` — the decorator runs the function FIRST, then deletes the key (and does not delete if the function raises).
+- **Cache every read whose key bounds its result, and invalidate on every write the code makes (operator rule).** A by-id `get` and a per-tenant or per-parent list are cached; only a paged read or one keyed by an open-ended filter stays uncached. Every write the library makes clears every key it changes, for every tenant or parent the change reaches (a row listed under several tenants clears each one's list), through one invalidation method the writers share. Data changed outside the library (inserted or edited by hand in the database) is cleared by hand by the operator: that is never a reason to leave a read uncached, and never a reason to assume a write path exists.
+- **The cache is JSON (memcached, redis): a dict's int keys come back as strings.** A read that returns `{int id: ...}` caches the rows (`@Cache` over `@ResultToDict` on a private method) and builds the dict after the cache, or every lookup by int misses on a cache hit while the cold call works.
 - A write that must also evict a key templated on DIFFERENT params uses the empty-body eviction-hook pattern: a private method decorated `@Cache(OTHER_KEY, handler_name=..., invalidate=True)` whose body is `pass`; the real write calls it with the params that fill the template (the current convention’s `_invalidate_project_mapping(project_id)` called by `delete`).
 - **Tenant-boundary discipline:** the external tenant key (`project_id`) is translated to the internal row key (`workspace_id`) in exactly one place — a `resolve_<x>_id(project_id)` (cached read that raises a domain `LookupError` subclass when absent) and/or an idempotent `ensure_<x>(project_id, ...)` get-or-create that recovers from a concurrent-create 409 by re-reading. Every other service method takes `project_id`, resolves it internally, and scopes ALL queries by the internal id — a cross-tenant call is a 0-rowcount/`None`/404, never a leak.
 - **A public method that takes a row id also takes the tenant key** (`cancel(appointment_id, project_id)`) and treats another tenant's row as absent — a primary key is not authority to read or write. The tell is a public method whose only argument is an id.
