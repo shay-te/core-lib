@@ -153,6 +153,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **No read before a write to answer 404/409.** A by-id write is the
   DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
   `update`); let the database and the `RuleValidator` refuse (§6).
+- **A delete that records what it removed** (history, an event) reads the row through
+  the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
   write** (a set-once field, "not answered yet"), run in ONE session the service
   opens through the DA's `transaction()`, with the row read by
