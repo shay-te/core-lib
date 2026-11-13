@@ -45,7 +45,7 @@ functions get assigned to.
 1. Confirm the DataAccess exists (use `core-lib-data-access` first).
 2. Create `data_layers/service/<entity>_service.py` extending `Service`.
 3. Wrap reads/writes with decorators in the right order.
-4. Add caching only where the win is real (cross-service hot paths).
+4. Cache every read whose key bounds its result, and clear it on every write (see "Cache decisions").
 5. Type enum parameters as the enum and take the member as given: no conversion
    from an int, no check of its own — the DataAccess's `RuleValidator` refuses a
    wrong value.
@@ -106,15 +106,23 @@ Copy these exactly (§6) — they are **not** one uniform order:
   it (the 409 mapping sits below the dict conversion).
 - **write/evict:** `@Cache(KEY, handler_name=..., invalidate=True)` — no
   `@ResultToDict()`.
-- **list:** `@ResultToDict()` only — never cached.
+- **list:** a per-tenant or per-parent list is a read (`@Cache` outermost); a paged or open-ended search is `@ResultToDict()` only.
 
 Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 ## Cache decisions
 
-- **Cache only cross-service hot paths** (service A asks service B the same
-  question every request). Host-app PK-by-id reads stay uncached — record the
-  "why not" in the service-class docstring (§6).
+- **Cache every read whose key bounds its result (operator rule, §6)**: a by-id
+  `get`, a per-tenant or per-parent list. Only a paged read or one keyed by an
+  open-ended filter stays uncached.
+- **Every write the library makes clears every key it changes, for every tenant
+  or parent it reaches** (a row listed under several tenants clears each one's
+  list), through one invalidation method its writers share. Data changed by hand
+  in the database is cleared by hand by the operator: never a reason to leave a
+  read uncached, and never assume a write path exists for it.
+- **The cache is JSON: a dict's int keys come back as strings.** Cache the rows
+  (a private `@Cache` + `@ResultToDict` read) and build the `{int id: ...}` dict
+  after the cache.
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
 - Methods that write a row directly through the DA carry
@@ -122,7 +130,7 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   service methods need no decorator.
 - `create` never evicts (misses aren't cached). Write-then-return-the-row must
   evict first, then re-read through the cached getter.
-- `list`/`search`/`all` stay uncached (unbounded key space).
+- A paged `list` / free `search` stays uncached (unbounded key space).
 
 ## Rules to enforce (from AGENTS.md)
 
@@ -159,6 +167,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   same: call the create, catch only that status, let every other error out.
   A setting that system already holds (a link lifespan) is set there, never
   sent from code (operator).
+- **A delete that records what it removed** (history, an event) reads the row through
+  the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
   write** (a set-once field, "not answered yet"), run in ONE session the service
   opens through the DA's `transaction()`, with the row read by
