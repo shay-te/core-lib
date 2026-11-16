@@ -187,6 +187,9 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **`rule_validator` is module-level, next to the class** — ONE of them, built
   from an `allowed_update_types` list, one `ValueRuleValidator(Entity.col.key,
   type, custom_validator=...)` per column (§5).
+- **Every constant sits at the top of the file**, right after the imports, as
+  the allow-list and `rule_validator` do in the template — never between two
+  methods ("Constants live at the top of the file" in `AGENTS.md`).
 - **Never override `create`** (§5.1). `CRUD.create(data: dict)` plus that
   validator is the write API; the Service passes the whole payload. No second
   `create_rule_validator`, and no allow-list entry restating a column's type or
@@ -210,6 +213,11 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **Errors:** your own arg guards raise `ValueError`; the base's guards are
   bare `assert` (→ `AssertionError`); a missing row on `get` is
   `StatusCodeException(404)` (§5).
+- **What a query returns** — the entity when its caller uses nearly all of it (never narrowed to drop a few unread
+  columns); only the columns shown when a list or report query reads many rows nobody has fetched, a shared field set
+  composed in (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a query for part of ONE row a cached
+  getter already returns: that is a Service method over the getter ("Part of a row" and "A set of an entity's fields
+  that several readers use is declared once" in `AGENTS.md`).
 - **Cross-entity guards** live in module-level helpers inside the DA file (§5).
 - **A DB DataAccess is only ever called BY a Service** — never from a host app,
   a test, or another lib (§5).

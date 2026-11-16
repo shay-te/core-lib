@@ -304,3 +304,6 @@ database. See §3 above for what a complete flow looks like, and add a
   fully tested").
 - Generic, product-free fixtures — fully agnostic.
 - Never commit `.coverage` / `.coverage.*` (delete before staging).
+- **A test file's constants sit at its top**, right after the imports (absent
+  ids, fixture values), never between test methods ("Constants live at the top
+  of the file" in `AGENTS.md`).

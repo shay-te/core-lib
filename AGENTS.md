@@ -166,6 +166,22 @@ has one file to open.
 - Key it the way its readers look up: by member, or by `.value` when a query
   compares stored ints. Say which in its comment.
 
+### A set of an entity's fields that several readers use is declared once
+
+When more than one reader takes the same columns of an entity (who a record is shown as, the fields every summary of
+it carries), the set is ONE constant in the library that owns the entity, written as the columns themselves, next to
+its other field sets (or in its constants module, as for maps):
+
+```python
+MEMBER_SUMMARY_FIELDS = (Member.first_name, Member.last_name, Member.email)
+```
+
+One row is cut to it by ONE method on the entity's Service, which every reader calls, host included ("Part of a row"
+below); a query over many rows selects it (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a private
+`_KEYS` tuple per service, and never a host re-typing it: the host imports the constant or calls the method. A reader
+that needs more composes it (`[*MEMBER_SUMMARY_FIELDS, Member.status]`) rather than re-listing it. Before declaring a
+set, grep the libraries for its columns: the copies usually exist already, under other names.
+
 ### Enforce it, do not just document it
 
 A rename cannot catch an alias, and neither can any behavioural test — by
@@ -174,6 +190,17 @@ checked in the SOURCE. Every core-lib should carry the equivalent of
 `tests/test_constants_contract.py`: parse `constants/`, and fail if any enum
 member is either a literal matching a known column/param name, or an expression
 derived from an entity.
+
+---
+
+# Constants live at the top of the file — every kind of file (operator rule)
+
+A file declares its constants at its top, right after the imports: a module's names, keys, maps, field sets, tuning
+values and cache-key templates, a DataAccess's allow-list and `rule_validator`, a test's fixture ids, a JS module's
+constants. A class's own constants open its body, as an entity's `INDEX_*` names and nested enum do (§4) and as a Java
+class's `static final` fields do. Never between two functions, and never beside the one function that reads it.
+Constants that belong together sit together (a filter key beside the field it maps to), and the comment that explains
+a constant moves up with it.
 
 ---
 
@@ -362,6 +389,25 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 **Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
+
+### Part of a row: the owning Service returns it, a caller never cuts rows down
+
+A service or host that fetches rows and keeps some keys (`{key: row[key] for key in WANTED_KEYS}`) cuts in the wrong
+place. The library that owns the entity returns what its callers need, and the read decides how:
+
+- **Nearly the whole row** (all but bookkeeping such as `deleted_at`): return the entity as its query returns it.
+  Never narrow a query to drop a few columns nobody reads; sending them is fine.
+- **A field set of one row a cached getter already returns**: a method on the entity's Service reads that getter and
+  keeps the set; every reader calls it, host included. No new query. Rows of another table shown beside a list (the
+  members of each item) are this case too: one cached call per distinct id, not a new `IN` query.
+
+  ```python
+  def get_summary(self, member_id: int) -> dict:
+      member = self.get_full(member_id)
+      return {field.key: member[field.key] for field in MEMBER_SUMMARY_FIELDS}
+  ```
+- **Many rows nobody has fetched** (a list or report query): the DataAccess query selects the columns the list shows.
+- One column of a cached row, for a check, is the section above: `service.get(id)[Entity.column.key]`.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
@@ -1199,6 +1245,7 @@ Rules:
 - **Tenant-boundary discipline:** the external tenant key (`project_id`) is translated to the internal row key (`workspace_id`) in exactly one place — a `resolve_<x>_id(project_id)` (cached read that raises a domain `LookupError` subclass when absent) and/or an idempotent `ensure_<x>(project_id, ...)` get-or-create that recovers from a concurrent-create 409 by re-reading. Every other service method takes `project_id`, resolves it internally, and scopes ALL queries by the internal id — a cross-tenant call is a 0-rowcount/`None`/404, never a leak.
 - **A public method that takes a row id also takes the tenant key** (`cancel(appointment_id, project_id)`) and treats another tenant's row as absent — a primary key is not authority to read or write. The tell is a public method whose only argument is an id.
 - **Tuning values are module constants, not config** (`CONNECT_STATE_TTL_SECONDS = 600`) until a host asks to change one. Config holds what differs per deployment: credentials, endpoints, host wording (required, no default — see "this library is AGNOSTIC").
+- **The value most callers pass is the parameter's default; a caller passes it only when it differs** (operator): a call repeating the usual value is duplication. Host-specific values keep no default ("this library is AGNOSTIC").
 - Missing required args raise `ValueError` at the top of the method. Argument guards that several services share live together in ONE `<topic>_helper.py` (`argument_helper.py`: `require_id`, `to_naive_utc`, …) — never one function per file, never a bare `helper.py`. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
 - **Let the database refuse what it can: no Service pre-check repeats a constraint.** A create whose duplicate is an error does not look the row up first: the unique index raises and `@DuplicateErrorHandler()` on the Service's `create` answers 409, while the read adds a query and a race window for nothing (`if existing: update else: create` is for an upsert only). Likewise a by-id write does not `get` the row first to raise 404: it is the DataAccess `update` under `@Cache(..., invalidate=True)`, as in the template above.
 - **A delete that records the row it removes (a history row, an event, a log item) reads it through the cached `get` BEFORE the delete**, under `@Cache(..., invalidate=True)`: a soft-deleted row no longer reads, and `get` 404s an absent id before anything is written.
@@ -1745,6 +1792,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 27. Any `import` or `__all__` in `foo_core_lib/__init__.py`, such as re-exporting `FooCoreLib` "for convenience". `setup.py` imports the package to read `__version__`, so the re-export loads the whole lib before its dependencies are installed and the build fails (§1).
 28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
 29. An enum declared at module level beside its entity (§4).
+30. A constant declared between functions, or beside the one function that reads it, instead of at the top of its file ("Constants live at the top of the file").
 
 ## 17. Final checklist before handing the lib over
 
