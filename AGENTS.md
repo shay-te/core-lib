@@ -53,6 +53,11 @@ A library also builds dicts that are NOT rows: an observer event payload, a
 JSON column's inner shape, a params blob. Those keys are a contract with a
 consumer and deserve one home. But **only the keys nothing else already owns.**
 
+A key a client puts in a row's JSON for its own use (the id of a chat message it already shows,
+so the echo can replace it) is declared in the same enum as every other key of that JSON, even when
+the server never reads it. When a second client needs a behaviour one client already has, it reuses
+that client's key and flow, never a new one (operator: the admin's pending message copies mobile's `temp_id`).
+
 ### If a name has an owner, use the owner. Do not re-declare it.
 
 The entity IS the declaration, and `Entity.column.key` is how every layer reads
