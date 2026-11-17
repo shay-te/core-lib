@@ -5,6 +5,8 @@ description: MANDATORY — load this skill BEFORE you add or change a client for
 
 # Build an HTTP API client (the `client/` pattern)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+
 `core_lib.client.client_base.ClientBase` is core-lib's HTTP client: it holds one
 `base_url`, a `requests.Session`, and optional default headers / timeout / auth, and
 exposes the verbs `_get` / `_post` / `_put` / `_delete(path, **kwargs)` (the path is

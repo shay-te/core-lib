@@ -1,10 +1,10 @@
-from core_lib.connection.connection_factory import ConnectionFactory
+from core_lib.connection.transactional_connection_factory import TransactionalConnectionFactory
 from tests.test_data.recording_connection import RecordingConnection
 
 
-class RecordingConnectionFactory(ConnectionFactory):
-    """A factory written the way a third-party library would: its `get()` builds a new
-    `RecordingConnection` per call, kept in `created`; `create_calls` holds each call's arguments."""
+class RecordingConnectionFactory(TransactionalConnectionFactory):
+    """A transactional connection factory, like `SqlAlchemyConnectionFactory`. `created` keeps every
+    connection it built; `connect_attempts` counts every attempt to build one."""
 
     def __init__(self, journal: list = None, commit_error: BaseException = None,
                  rollback_error: BaseException = None, create_error: BaseException = None):
@@ -13,10 +13,10 @@ class RecordingConnectionFactory(ConnectionFactory):
         self.rollback_error = rollback_error
         self.create_error = create_error
         self.created = []
-        self.create_calls = []
+        self.connect_attempts = 0
 
-    def get(self, *args, **kwargs) -> RecordingConnection:
-        self.create_calls.append((args, kwargs))
+    def create_connection(self) -> RecordingConnection:
+        self.connect_attempts += 1
         if self.create_error is not None:
             raise self.create_error
         connection = RecordingConnection(self.journal, self.commit_error, self.rollback_error)

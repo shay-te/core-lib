@@ -5,6 +5,8 @@ description: MANDATORY — load this skill BEFORE you add or change a Service, b
 
 # Create a core-lib Service (business logic + public API)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+
 The Service layer owns business logic, caching, and transformation, and is the
 library's **public API surface**. Callers outside the lib go through
 `core_lib.some_service.some_method(...)` — never into a DataAccess directly.

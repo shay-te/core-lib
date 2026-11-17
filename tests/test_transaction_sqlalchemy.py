@@ -8,7 +8,6 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
 
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
-from core_lib.connection.joined_connection import JoinedConnection
 from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
 from core_lib.connection.transaction_decorator import Transaction
 from core_lib.core_lib import CoreLib
@@ -353,8 +352,9 @@ class TestTransactionSqlAlchemy(unittest.TestCase):
         self.assertNotIn(first_a, outside)
 
     def test_s17_the_session_is_ended_once_by_the_transaction_never_by_a_block(self):
-        original_connection_exit = SqlAlchemyConnection.__exit__
-        original_joined_exit = JoinedConnection.__exit__
+        original_exit = SqlAlchemyConnection.__exit__
+        original_end = SqlAlchemyConnection.end
+        original_close = SqlAlchemyConnection.close
 
         @Transaction()
         def three_calls(name: str, fail_in_a_fourth: bool):
@@ -364,21 +364,29 @@ class TestTransactionSqlAlchemy(unittest.TestCase):
             if fail_in_a_fourth:
                 self.transaction_widget_data_access.raise_inside_block('fourth call fails')
 
+        def counts(connection_exit, connection_end, connection_close):
+            return (connection_exit.call_count, connection_end.call_count, connection_close.call_count,
+                    connection_end.call_args[0][1:])
+
         with mock.patch.object(SqlAlchemyConnection, '__exit__', autospec=True,
-                               side_effect=original_connection_exit) as connection_exit, \
-                mock.patch.object(JoinedConnection, '__exit__', autospec=True,
-                                  side_effect=original_joined_exit) as joined_exit:
+                               side_effect=original_exit) as connection_exit, \
+                mock.patch.object(SqlAlchemyConnection, 'end', autospec=True,
+                                  side_effect=original_end) as connection_end, \
+                mock.patch.object(SqlAlchemyConnection, 'close', autospec=True,
+                                  side_effect=original_close) as connection_close:
             three_calls('acme', False)
-            success = (joined_exit.call_count, connection_exit.call_count, connection_exit.call_args[0][1:])
-            joined_exit.reset_mock()
-            connection_exit.reset_mock()
+            success = counts(connection_exit, connection_end, connection_close)
+            for patched in (connection_exit, connection_end, connection_close):
+                patched.reset_mock()
             with self.assertRaises(ValueError):
                 three_calls('beta', True)
-            failure = (joined_exit.call_count, connection_exit.call_count, connection_exit.call_args[0][1:])
+            failure = counts(connection_exit, connection_end, connection_close)
 
-        self.assertEqual((3, 1, (None, None, None)), success)
-        joined_calls, connection_calls, (exec_type, exec_value, traceback) = failure
-        self.assertEqual((4, 1), (joined_calls, connection_calls))
+        # every block exits (3, then 4 with the failing one) without ending the session; the transaction ends it
+        # once (`end`), and only that end closes it
+        self.assertEqual((3, 1, 1, (None, None, None)), success)
+        exit_calls, end_calls, close_calls, (exec_type, exec_value, traceback) = failure
+        self.assertEqual((4, 1, 1), (exit_calls, end_calls, close_calls))
         self.assertIs(ValueError, exec_type)
         self.assertEqual('fourth call fails', str(exec_value))
         self.assertIsNotNone(traceback)

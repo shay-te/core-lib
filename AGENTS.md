@@ -209,6 +209,55 @@ a constant moves up with it.
 
 ---
 
+# Writing core-lib code — keep it super simple (operator rule, every `*-core-lib`)
+
+core-lib's code is short, plain and naive, and that is what makes it good. Code in core-lib and in every library built
+on it reads like the code around it, so a reader understands it at once. Before handing over, re-read the change and
+cut whatever this list forbids.
+
+**Plain code**
+
+- **Short methods, `if`s and loops, one case per line:** an `if` that returns for each case, never one boolean
+  expression packing several. `SqlAlchemyConnectionFactory.__eq__` reads "not a factory: no; an in-memory sqlite: only
+  itself; otherwise the same URL", one line each.
+- **No indirection a reader has to hunt for:** no metaprogramming (`__init_subclass__`, wrapping a subclass's methods
+  when its class is defined), no wrapper class around an object that can carry the behaviour itself, and no function
+  passed in as a parameter where the callee can call a method you find by name (`connection_factory.create_connection()`,
+  never a `create` callback).
+- **Never build an object only to throw it away:** look it up first, build it only when it is missing.
+- **Use core-lib's own building blocks before a new mechanism:** a `Registry` holding a dict keyed by thread id, not a
+  `ContextVar` with tokens and a thread check.
+- **No guard or error handling the rest of core-lib lacks** (refusing async functions, collecting every callback's
+  error): do what core-lib already does in the same situation.
+
+**One class, one meaning (separation of concerns)**
+
+- **Each class does one job, and its name says which.** `TransactionRegistry` stores which transaction is open on each
+  thread, `TransactionScope` is one transaction, a connection connects, and the decorator starts and ends. A class never
+  stores instances of itself; storing them is a registry's job.
+- **A feature lives in the classes that use it**, never in a base that every subclass inherits "in case".
+- **A feature other code may implement gets its own abstract class beside the base**
+  (`TransactionalConnectionFactory(ConnectionFactory)`, `TransactionalConnection(Connection)`). The abstract class
+  implements the shared flow (`get()`, `__exit__`); a subclass writes only small abstract methods (`create_connection`,
+  `flush`, `end`); the plain base stays untouched. A library is a clear interface: an abstract method a subclass cannot
+  forget, never a flag or a duck-typed method it has to know about.
+- **Existing names and signatures stay** across every subclass: `get()` stays `get()`, and a method added beside it
+  names what it does (§1).
+
+**Names and types say what a thing is**
+
+- **Name a value after what it is:** `transaction_scope`, `connection_factory`, never `transaction`, `factory` or
+  `create` for something more specific.
+- **Every parameter and return value has a type hint.** When the import would be circular, import it under
+  `typing.TYPE_CHECKING` and quote the hint (`Optional['TransactionScope']`).
+- **A dict of objects is keyed by the object**, so `==` decides, never by its `hash()` number: two in-memory sqlite
+  engines share a hash but are two databases.
+
+**When the design changes, delete what the old one left behind:** classes, fixture parameters, docs, docstrings, tests
+of removed behaviour.
+
+---
+
 # Scaffolding skills — MANDATORY routing gate (do not skip)
 
 Copy-paste-ready guides for building each part of a core-lib live under
@@ -755,7 +804,8 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 - Constants in `foo_core_lib/constants.py` (current convention): the cache handler key `FOO_CORE_LIB_CACHE = 'foo_core_lib'` and (if the lib fires events) the observer key `FOO_CORE_LIB_NAME = 'FOO_CORE_LIB'`. **(divergence: an older lib uses `<name>_core_lib_constants.py`; an older lib uses `constants/core_lib_constants.py` with `CACHE = 'CACHE_CUSTOM_FIELD'`; an older lib’s key is `CACHE_WORKFLOW = 'WORKFLOW_CACHE'`. New libs use `constants.py` + the `FOO_CORE_LIB_CACHE = 'foo_core_lib'` name/value shape.)**
 - Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file. A non-persisted data type `ThingResult` goes in `data_layers/data/data_types/thing_result.py` — same one-class-per-file rule, and never under `service/` (§4.1). A pure engine/helper module under `service/` ends `_helper.py` — those two suffixes are the only ones that folder allows (§6.1). Anything error-shaped goes in `error_handling/<snake_case_class>.py`, one class per file (§4.2).
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
-- **A method name never repeats what its class already is** (operator): the class name says it. A `ConnectionFactory` has `get()`, never `create_connection()` or `get_connection()`; a `ThingDataAccess` has `count()`, never `count_things()`.
+- **A subclass keeps its base class's method names** (operator): every `ConnectionFactory` keeps `get()`, and a change never replaces it with a renamed method across the factories. A method added beside it names what it does: `SqlAlchemyConnectionFactory.create_connection()` always builds a new connection, while `get()` may return the open transaction's.
+- **A function returns one type** (operator): never `self` on one branch and a URL on another. "Are these the same?" is Python's `__eq__` / `__hash__`, as `SqlAlchemyConnectionFactory` defines them.
 - The DataAccess instance is private: `self._thing_da` on the CoreLib (or a local variable in `__init__` if nothing else needs it — the older libs do that) and `self._thing_da` on the service that owns it. It is NEVER a public attribute.
 - Cache key templates (current convention): `'<lib>_<entity>_{param}'`, e.g. `'foo_thing_{project_id}_{thing_id}'`, defined as module-level constants next to the service: `CACHE_KEY_DOCUMENT = '...'`. **(divergence: the older libs keys predate this scheme and live as class attributes — `CACHE_WORKFLOW_GET_{workflow_id}`, `custom_field_{id}`. New libs use the current convention’s shape.)**
 - Index name constants on the entity: `INDEX_WORKSPACE_ID = 'ix_thing_workspace_id'` — `ix_<table>_<column>` for indexes (composite: `ix_<table>_<col1>_<col2>` or a meaningful pair name), `uq_<table>_<meaning>` for unique indexes (the current convention’s `INDEX_DOCUMENT_USER = 'uq_document_collaborator_doc_user'`). **(divergence: the older libs's older indexes use free-form literal names like `index_workflow_project_id` — old style, do not copy.)**
@@ -1261,7 +1311,7 @@ Rules:
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
 - Batch loops that delete/purge use a module-level batch constant (`EMPTY_TRASH_BATCH = 10_000`) so tests can patch the MODULE GLOBAL (allowed) instead of internals (forbidden).
-- **A write spanning tables, or a check-then-write behind a guard, is ONE `@Transaction()` on the Service method** (`core_lib.connection.transaction_decorator`), placed **innermost**, under `@DuplicateErrorHandler()` and `@Cache(..., invalidate=True)`. Every DataAccess call inside it joins one session — a DataAccess in another lib on the same database too, because the registry hands every lib the same factory (a lib on its own connection node, §3.1, is a second connection: §12). Each `with self._db.get()` block ends with a flush, so the id is set when `create` returns and a child row takes the parent's id directly; the return commits once, an exception rolls back. **A DataAccess never takes a `session` parameter** and never grows `transaction()` / `*_in_transaction` methods: it is written exactly as outside a transaction. A row lock is an ordinary DataAccess read (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`) called inside the transaction, held until the commit — without it two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2). A worker thread is not part of the transaction, and nothing is atomic across different connections (§12).
+- **A write spanning tables, or a check-then-write behind a guard, is ONE `@Transaction()` on the Service method** (`core_lib.connection.transaction_decorator`), placed **innermost**, under `@DuplicateErrorHandler()` and `@Cache(..., invalidate=True)`. Every DataAccess call inside it joins one session — a DataAccess in another lib on the same database too (a lib on its own database login, §3.1, is a second connection: §12). Each `with self._db.get()` block ends with a flush, so the id is set when `create` returns and a child row takes the parent's id directly; the return commits once, an exception rolls back. **A DataAccess never takes a `session` parameter** and never grows `transaction()` / `*_in_transaction` methods: it is written exactly as outside a transaction. A row lock is an ordinary DataAccess read (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`) called inside the transaction, held until the commit — without it two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2). A worker thread is not part of the transaction, and nothing is atomic across different connections (§12).
 - **A date that anchors a deadline or a retention period and cannot be corrected later is refused in the future and before the date it follows** (received → answered, detected → notified). A typo there silently moves a deadline, or keeps a row years past its period.
 
 ### 6.1 Every file in `service/` ends `_service.py` or `_helper.py`. Nothing else.
@@ -1575,12 +1625,12 @@ def downgrade():
 - **`@ResultToDict` epochs a NAIVE datetime as LOCAL time** (`.timestamp()`), so a naive-UTC column is off by the machine's UTC offset outside a UTC container. Tests derive expected epochs through `result_to_dict` itself (or run under `TZ=UTC`), never `calendar.timegm`.
 - **`ConnectionFactoryRegistry.get_or_reg(node)`** keys on `_instance_key_` — the FIRST registration wins, so a second node under the same key silently gets the first engine — and registers a copy made with `OmegaConf.to_container(node, resolve=False)`: an interpolation pointing outside the node no longer resolves in that copy (§3.1). A node with `_target_` but no `_instance_key_` is instantiated unregistered, with only a warning.
 - **`JobScheduler` catches `BaseException` around `job.run`, logs it and carries on** — a failing job raises nowhere and alarms no one (§9).
-- **`@Transaction()` keeps its scope in a `ContextVar`, joined only from the thread that opened it**, and only while the outermost decorated function runs. A nested `@Transaction()` on that thread joins it (no savepoints): only the outermost end commits. `asyncio.to_thread` (and `threading.Thread` from Python 3.14) copies the ContextVar into a worker, which still gets its own connection and commits on its own — a SQLAlchemy Session is not thread-safe.
-- **Inside a transaction a factory's `get()` returns one connection per factory**: the `ConnectionFactory` base wraps every subclass's own `get()` when the class is defined (only the most-derived one joins, so a `super().get()` inside it creates the connection). Whatever the arguments (the first call's create it), the connection is wrapped so a block's exit only calls `connection.flush()`: the SQL is sent, ids are set, a duplicate raises `IntegrityError` at the DataAccess call. The connection's own `__exit__` runs ONCE, when the transaction ends, in join order: `(None, None, None)` commits and closes, an exception rolls back and closes.
-- **One session means the ORM's rules apply across DataAccess calls.** While a loaded entity is still referenced, `get()` returns that same object without re-reading, so a raw SQL or `synchronize_session=False` update, or another thread's commit, is invisible to it (a column query still sees it). Changing an attribute of a returned entity is saved at the next flush. A second factory on the same database is a second connection: on sqlite it waits on the first one's write lock until `database is locked`; on Postgres it can block on the first one's row locks.
+- **`@Transaction()` registers its `TransactionScope` in `CoreLib.transaction_registry`, keyed by the calling thread**, only while the outermost decorated function runs. A nested `@Transaction()` on that thread joins it (no savepoints): only the outermost end commits. A worker thread (`asyncio.to_thread` included) finds nothing there, so it gets its own connection and commits on its own — a SQLAlchemy Session is not thread-safe.
+- **Only a `TransactionalConnectionFactory` joins a transaction** (in core-lib, `SqlAlchemyConnectionFactory`). Its `get()` is `TransactionScope.get(self)`: outside a transaction a new connection from its abstract `create_connection()`, inside one the transaction's one connection for that factory, created at its first use. Its connections are `TransactionalConnection`s: `in_transaction` is built in, and the base `__exit__` calls the abstract `flush()` while it is True (the SQL is sent, ids are set, a duplicate raises `IntegrityError` at the DataAccess call) and the abstract `end()` otherwise; the transaction calls `end()` ONCE per connection, in join order: `(None, None, None)` commits and closes, an exception rolls back and closes. A custom backend with real transactions subclasses both and writes `create_connection`, `flush` and `end`. The scope keys connections by the factory itself, never by its hash number, so equal factories (`==`) share one: `SqlAlchemyConnectionFactory` defines `__eq__` / `__hash__` by database URL, and same-URL in-memory sqlite engines (one hash, two databases) stay separate. Every other factory's `get()` behaves inside a transaction exactly as outside: Mongo needs a session passed to every call and a replica set, Solr / Elasticsearch / Object have no transactions, and a Neo4j `run` auto-commits.
+- **Each block lets go of its rows, as outside a transaction**: the SQLAlchemy flush is followed by `expunge_all()`, so a later `get()` reads the database again (a raw update or another thread's commit is seen) and a returned row changed in memory is not saved. A lib on its own database login (§3.1) has another URL, so it is a second connection and can wait on this one's locks.
 - **A swallowed exception does not mark the transaction rollback-only.** A swallowed DB error still fails it: the flush failed, so the commit raises `PendingRollbackError` and nothing is saved. A swallowed non-DB error (a 404, a `ValueError`) lets it commit.
-- **`@Cache` follows the transaction**: inside it a cached read neither reads nor fills the cache, and `invalidate=True` deletes only after the commit — dropped on rollback; a failing delete raises after the commit and the others still run. Outside a transaction `@Cache` is unchanged.
-- **A transaction is atomic per connection, and only where the backend rolls back.** SQLAlchemy commits or rolls back; a Neo4j `run` auto-commits; Mongo, Solr, Elasticsearch and Object connections have no rollback. There is no two-phase commit: when one connection's commit fails the later ones roll back, but the earlier ones stay committed.
+- **`@Cache` follows the transaction**: inside it a cached read neither reads nor fills the cache, and `invalidate=True` deletes only after the commit — dropped on rollback; a failing delete raises after the commit. Outside a transaction `@Cache` is unchanged.
+- **A transaction is atomic per database.** A write to another backend inside it is not undone by its rollback. Two SQLAlchemy databases are two sessions with no two-phase commit: when one commit fails the later ones roll back, but the earlier ones stay committed.
 
 ## 13. Tests — the philosophy and the exact mechanics
 

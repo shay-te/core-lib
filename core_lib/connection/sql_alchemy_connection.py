@@ -2,12 +2,12 @@ import logging
 
 from sqlalchemy.orm import sessionmaker, Session
 
-from core_lib.connection.connection import Connection
+from core_lib.connection.transactional_connection import TransactionalConnection
 
 logger = logging.getLogger(__name__)
 
 
-class SqlAlchemyConnection(Connection):
+class SqlAlchemyConnection(TransactionalConnection):
     def __init__(self, engine, on_exit):
         self.engine = engine
         self.on_exit = on_exit
@@ -16,16 +16,19 @@ class SqlAlchemyConnection(Connection):
     def __enter__(self) -> Session:
         return self.session
 
-    def __exit__(self, exec_type, exec_value, traceback):
+    def flush(self):
+        # send the SQL (ids are set) and let go of the rows, as a block outside a transaction does, so a later
+        # read goes to the database again
+        self.session.flush()
+        self.session.expunge_all()
+
+    def end(self, exec_type, exec_value, traceback):
         if exec_type or exec_value or traceback:
             logger.error("Error in DB handler", exc_info=(exec_type, exec_value, traceback))
             self.session.rollback()
 
         if self.on_exit:
             self.on_exit(self)
-
-    def flush(self):
-        self.session.flush()
 
     def close(self):
         # finally: a failed commit still closes the session, or its pooled connection leaks

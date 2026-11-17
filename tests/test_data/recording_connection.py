@@ -1,6 +1,6 @@
 import threading
 
-from core_lib.connection.connection import Connection
+from core_lib.connection.transactional_connection import TransactionalConnection
 
 EVENT_ENTER = 'enter'
 EVENT_FLUSH = 'flush'
@@ -8,12 +8,12 @@ EVENT_EXIT = 'exit'
 NO_ERROR = (None, None, None)  # the exit arguments of a clean end: a commit
 
 
-class RecordingConnection(Connection):
-    """A third-party connection that records every lifecycle call, with the calling thread.
+class RecordingConnection(TransactionalConnection):
+    """A transactional connection that records every lifecycle call, with the calling thread.
 
     `calls` holds `(event, thread_id, exit_arguments)` for this connection; `journal` is shared
     with other connections, so a test can read the order across factories as `(connection, event,
-    exit_arguments)`. It fails its commit (`__exit__` with no exception) or its rollback when told."""
+    exit_arguments)`. It fails its commit (`end` with no exception) or its rollback when told."""
 
     def __init__(self, journal: list, commit_error: BaseException = None, rollback_error: BaseException = None):
         self.journal = journal
@@ -29,7 +29,7 @@ class RecordingConnection(Connection):
     def flush(self):
         self._record(EVENT_FLUSH, None)
 
-    def __exit__(self, exec_type, exec_value, traceback):
+    def end(self, exec_type, exec_value, traceback):
         self._record(EVENT_EXIT, (exec_type, exec_value, traceback))
         if exec_type is None and self.commit_error is not None:
             raise self.commit_error

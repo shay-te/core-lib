@@ -1,14 +1,15 @@
 from omegaconf import DictConfig
 
-from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
+from core_lib.connection.transactional_connection_factory import TransactionalConnectionFactory
 from core_lib.data_layers.data.data_helpers import build_url
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 UNSUPPORTED_DB_POOL = ['sqlite', 'firebird', 'sybase', 'ibm_db_sa', 'redshift']
+IN_MEMORY_SQLITE_DATABASES = (None, '', ':memory:')
 
-class SqlAlchemyConnectionFactory(ConnectionFactory):
+class SqlAlchemyConnectionFactory(TransactionalConnectionFactory):
     def __init__(self, config: DictConfig):
         self.session_to_count = {}
         self._engine = self._create_engine(config)
@@ -25,7 +26,18 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
     def connection(self):
         return self._connection
 
-    def get(self, *args, **kwargs) -> SqlAlchemyConnection:
+    def __eq__(self, other) -> bool:
+        # two factories on one database share a transaction's session
+        if not isinstance(other, SqlAlchemyConnectionFactory):
+            return False
+        if self._engine.url.database in IN_MEMORY_SQLITE_DATABASES:
+            return other is self  # an in-memory sqlite is a new database for every engine
+        return other.engine.url == self._engine.url
+
+    def __hash__(self) -> int:
+        return hash(self._engine.url)
+
+    def create_connection(self) -> SqlAlchemyConnection:
         return SqlAlchemyConnection(self._engine, self._on_db_session_exit)
 
     def _on_db_session_exit(self, db_session: SqlAlchemyConnection):

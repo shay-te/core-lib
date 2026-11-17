@@ -10,9 +10,3 @@ class Connection(ABC):
     @abstractmethod
     def __exit__(self, type, value, traceback):
         pass
-
-    def flush(self):
-        """Push this block's writes to the backend without ending the transaction. Called by
-        JoinedConnection when a `with` block ends inside @Transaction(); a backend with nothing to
-        push keeps this no-op."""
-        pass

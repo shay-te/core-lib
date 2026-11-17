@@ -5,6 +5,8 @@ description: MANDATORY — load this skill BEFORE you add or change any table, m
 
 # Create a core-lib entity (Data layer)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+
 The Data layer holds **SQLAlchemy models only** — columns, relationships,
 mixins. No queries, no business logic. One file per table under
 `<name>_core_lib/data_layers/data/db/entities/`.

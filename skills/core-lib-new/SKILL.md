@@ -5,6 +5,8 @@ description: MANDATORY — load this skill BEFORE you create, bootstrap, or star
 
 # Create a new *-core-lib (end to end)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+
 **Read the canonical recipe in [`AGENTS.md`](../../AGENTS.md) first** — §0–§17
 (never invent, naming, folder tree, config, entities, DataAccess, services,
 composition root, observers, jobs, migrations, framework contracts, tests,

@@ -7,7 +7,6 @@ import unittest
 
 from core_lib.cache.cache_decorator import Cache
 from core_lib.cache.cache_handler_ram import CacheHandlerRam
-from core_lib.connection import transaction_scope
 from core_lib.connection.transaction_decorator import Transaction
 from core_lib.connection.transaction_scope import TransactionScope
 from core_lib.core_lib import CoreLib
@@ -85,13 +84,12 @@ class TestTransactionThreads(unittest.TestCase):
             raise outcome['error']
         return outcome['result']
 
-    def _assert_a_copied_context_worker_does_not_join(self, run_worker):
+    def _assert_a_worker_thread_does_not_join(self, run_worker):
         factory = RecordingConnectionFactory()
         observed = {}
 
         def worker():
-            observed['copied_scope'] = transaction_scope._CURRENT_SCOPE.get()
-            observed['current_scope'] = TransactionScope.current()
+            observed['current_scope'] = CoreLib.transaction_registry.get()
             with factory.get():
                 pass
             observed['worker_events_after_its_block'] = factory.created[1].events()
@@ -100,15 +98,15 @@ class TestTransactionThreads(unittest.TestCase):
         def parent():
             with factory.get():
                 pass
-            observed['parent_scope'] = TransactionScope.current()
+            observed['parent_scope'] = CoreLib.transaction_registry.get()
             run_worker(worker)
             observed['parent_events_after_worker'] = factory.created[0].events()
 
         parent()
 
         parent_connection, worker_connection = factory.created
-        self.assertIs(observed['parent_scope'], observed['copied_scope'])  # the scope WAS copied...
-        self.assertIsNone(observed['current_scope'])                       # ...and is not joined
+        self.assertIsInstance(observed['parent_scope'], TransactionScope)
+        self.assertIsNone(observed['current_scope'])  # the worker thread is not inside the parent's transaction
         self.assertEqual([EVENT_ENTER, EVENT_EXIT], observed['worker_events_after_its_block'])
         self.assertEqual([NO_ERROR], worker_connection.exit_arguments())
         self.assertTrue(worker_connection.thread_ids().isdisjoint(parent_connection.thread_ids()))
@@ -142,7 +140,7 @@ class TestTransactionThreads(unittest.TestCase):
         connections_per_thread = {}
         for connection in factory.created:
             self.assertEqual(1, len(connection.thread_ids()))
-            self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_FLUSH, EVENT_EXIT], connection.events())
+            self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT], connection.events())
             self.assertEqual([NO_ERROR], connection.exit_arguments())
             [thread_id] = connection.thread_ids()
             connections_per_thread[thread_id] = connections_per_thread.get(thread_id, 0) + 1
@@ -169,12 +167,12 @@ class TestTransactionThreads(unittest.TestCase):
         self.assertEqual(['worker-row'], self.transaction_widget_data_access.names_in_group(GROUP_ID))
         self.assertIsNot(sessions['parent'], sessions['worker'])
 
-    def test_t3_asyncio_to_thread_copies_the_scope_but_the_worker_does_not_join_it(self):
-        self._assert_a_copied_context_worker_does_not_join(
+    def test_t3_an_asyncio_to_thread_worker_does_not_join_the_transaction(self):
+        self._assert_a_worker_thread_does_not_join(
             lambda worker: asyncio.run(asyncio.to_thread(worker)))
 
     def test_t4_a_thread_running_a_copied_context_does_not_join_either(self):
-        self._assert_a_copied_context_worker_does_not_join(
+        self._assert_a_worker_thread_does_not_join(
             lambda worker: self._run_in_thread(worker, copy_context=True))
 
     def test_t5_a_copied_context_worker_runs_its_own_transaction(self):
@@ -183,7 +181,7 @@ class TestTransactionThreads(unittest.TestCase):
 
         @Transaction()
         def worker_transaction():
-            observed['worker_scope'] = TransactionScope.current()
+            observed['worker_scope'] = CoreLib.transaction_registry.get()
             for i in range(2):
                 with factory.get():
                     pass
@@ -196,16 +194,17 @@ class TestTransactionThreads(unittest.TestCase):
         def parent():
             with factory.get():
                 pass
-            observed['parent_scope'] = TransactionScope.current()
+            observed['parent_scope'] = CoreLib.transaction_registry.get()
             self._run_in_thread(worker, copy_context=True)
-            observed['parent_scope_after_worker'] = TransactionScope.current()
+            observed['parent_scope_after_worker'] = CoreLib.transaction_registry.get()
 
         parent()
 
         parent_connection, worker_connection = factory.created
         self.assertIsInstance(observed['worker_scope'], TransactionScope)
         self.assertIsNot(observed['parent_scope'], observed['worker_scope'])
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_FLUSH, EVENT_EXIT], observed['worker_events_when_done'])
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT],
+                         observed['worker_events_when_done'])
         self.assertEqual([NO_ERROR], worker_connection.exit_arguments())
         self.assertIs(observed['parent_scope'], observed['parent_scope_after_worker'])
         self.assertEqual([NO_ERROR], parent_connection.exit_arguments())
@@ -297,4 +296,4 @@ class TestTransactionThreads(unittest.TestCase):
 
         self.assertEqual('committed', asyncio.run(main()))
         self.assertEqual([NO_ERROR], factory.created[0].exit_arguments())
-        self.assertIsNone(TransactionScope.current())
+        self.assertIsNone(CoreLib.transaction_registry.get())

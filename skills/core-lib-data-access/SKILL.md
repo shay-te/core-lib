@@ -5,6 +5,8 @@ description: MANDATORY — load this skill BEFORE you add or change a DataAccess
 
 # Create a core-lib DataAccess (query layer)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+
 A DataAccess is **pure CRUD** over a single entity: insert one row, fetch one
 row, update one by PK, soft-delete one by PK, list by simple filters. No
 business logic, no reconciliation, no cross-row decisions, no scoping — those
