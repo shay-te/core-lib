@@ -106,6 +106,8 @@ Copy these exactly (§6) — they are **not** one uniform order:
   it (the 409 mapping sits below the dict conversion).
 - **write/evict:** `@Cache(KEY, handler_name=..., invalidate=True)` — no
   `@ResultToDict()`.
+- **one transaction:** `@Transaction()` innermost, under `@DuplicateErrorHandler()`
+  and `@Cache(..., invalidate=True)`.
 - **list:** a per-tenant or per-parent list is a read (`@Cache` outermost); a paged or open-ended search is `@ResultToDict()` only.
 
 Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
@@ -174,10 +176,15 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A delete that records what it removed** (history, an event) reads the row through
   the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
-  write** (a set-once field, "not answered yet"), run in ONE session the service
-  opens through the DA's `transaction()`, with the row read by
-  `get_for_update` — each plain CRUD call commits alone, and without the lock
-  two concurrent calls both pass the check (§6).
+  write** (a set-once field, "not answered yet"), are ONE `@Transaction()`
+  (`core_lib.connection.transaction_decorator`) on the Service method.
+  Every DataAccess call inside it joins one session — another lib's on the same
+  database too. Each block only flushes, so `create` returns the id and a child
+  row uses it directly; the return commits once, an exception rolls back. The
+  guarded row is read by an ordinary DataAccess query taking a row lock
+  (`with_for_update=True`), held until the commit — without it two concurrent
+  calls both pass the check. Never pass a `session`. A worker thread is not part
+  of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
 - **A decorator shipped for hosts** checks its parameter names and derived

@@ -87,6 +87,10 @@ entries:
                 - title: Neo4j Connection Registry
                   url: /neo4j_connection_factory.html
                   output: web
+
+                - title: Transaction
+                  url: /transaction.html
+                  output: web
         
           - title: Data Layers
             output: web

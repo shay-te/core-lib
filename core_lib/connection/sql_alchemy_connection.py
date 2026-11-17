@@ -24,7 +24,13 @@ class SqlAlchemyConnection(Connection):
         if self.on_exit:
             self.on_exit(self)
 
-    def close(self):
-        self.session.commit()
+    def flush(self):
         self.session.flush()
-        self.session.close()
+
+    def close(self):
+        # finally: a failed commit still closes the session, or its pooled connection leaks
+        try:
+            self.session.commit()
+            self.session.flush()
+        finally:
+            self.session.close()

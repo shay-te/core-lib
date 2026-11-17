@@ -1,9 +1,10 @@
 import logging
 from datetime import timedelta, datetime, timezone
-from functools import wraps
+from functools import partial, wraps
 from typing import Union
 import parsedatetime
 from core_lib.cache.cache_handler import CacheHandler
+from core_lib.connection.transaction_scope import TransactionScope
 
 from core_lib.core_lib import CoreLib
 from core_lib.helpers.func_utils import build_function_key
@@ -61,6 +62,7 @@ class Cache(object):
             if not cache_handler:
                 raise ValueError(f'CacheHandler by name {self.handler_name} was not found in `CoreLib.cache_registry`')
             key = build_function_key(self.key, func, *args, **kwargs)[: self.max_key_length].replace(' ', '_')
+            scope = TransactionScope.current()
 
             if self.invalidate:
                 result = func(*args, **kwargs)
@@ -68,8 +70,15 @@ class Cache(object):
                 # Reasons:
                 # 1. make cached item available during the invalidate function rum
                 # 2. On exception don't invalidate
-                cache_handler.delete(key)
+                if scope is None:
+                    cache_handler.delete(key)
+                else:
+                    scope.on_commit(partial(cache_handler.delete, key))  # after the commit; dropped on rollback
                 return result
+            elif scope is not None:
+                # inside a transaction: the cache may hold the row as it was before this transaction's
+                # writes, and these rows are not committed yet; so never read it and never fill it
+                return func(*args, **kwargs)
             else:
                 result = cache_handler.get(key)
                 if result is None:

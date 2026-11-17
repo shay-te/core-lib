@@ -49,6 +49,7 @@ what core-lib lacks — so the next reader does not re-run your search.
 | raise 404 when a getter finds nothing | `@NotFoundErrorHandler()` — `core_lib.error_handling.not_found_decorator` | raises `StatusCodeException(404)` when the result is **falsy**; already on the CRUD bases' `get` |
 | map a uniqueness violation to 409 | `@DuplicateErrorHandler()` — `core_lib.error_handling.duplicate_error_decorator` | never hand-write `except IntegrityError` |
 | cache a read | `@Cache(KEY, handler_name=...)` — `core_lib.cache.cache_decorator` | key templating via `build_function_key` |
+| run several DataAccess calls as one commit | `@Transaction()` — `core_lib.connection.transaction_decorator` | innermost decorator; never pass a session |
 | fire a host event | `@Observe(event_key=..., observer_name=...)` — `core_lib.observer.observer_decorator` | |
 | turn a bare `assert` into a status code | `with StatusCodeAssert(code, msg):` — `core_lib.error_handling.status_code_assert` | context manager |
 | call an HTTP API | subclass `ClientBase` — `core_lib.client.client_base` | `_get/_post/_put/_delete(path, **requests_kwargs)` on one `base_url`; `set_timeout` / `set_headers` / `set_auth`; the `session` is the test boundary — see `core-lib-client` |
