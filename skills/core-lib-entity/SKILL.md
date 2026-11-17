@@ -226,7 +226,8 @@ The mixin choice decides the DataAccess base (§5).
   author would set.
 - **`INTEGER`, not `Integer`**; VARCHAR lengths always explicit
   (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
-  dict payloads are `JSON` columns named `meta_data` (§4).
+  dict payloads are `JSON` columns named `meta_data` (§4); every key inside one is a member of
+  one enum, a key only a client uses included (a pending chat message's `temp_id`).
 - **The enum class is plain `enum.Enum`, NESTED inside its entity class and
   read as `Thing.ThingKind`** — never at module level beside it. Name it for
   what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.
