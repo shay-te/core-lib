@@ -129,7 +129,9 @@ file, right after the imports (AGENTS "Constants live at the top of the file").
 1. Name the behaviour you need in one phrase ("entity → dict", "missing row → None").
 2. Search the table above and the lib's own `AGENTS.md` Helper map; then
    `grep -rn "def <verb>" <core-lib>/core_lib/`.
-3. If it exists — call it. If it exists at 80% — call it and add the 20%.
+3. If it exists — call it. If it exists at 80% — call it and add the 20%. A second
+   kind of the same thing is a parameter on the existing function or route, never
+   a copy per kind (AGENTS "A new kind is a parameter").
 4. If it genuinely does not — write it in `helpers.py` at the library root,
    record in the docstring that you checked and what was missing, and add its
    line to the lib's Helper map (AGENTS "Every lib keeps a helper map").

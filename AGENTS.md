@@ -390,6 +390,8 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
+**A new kind is a parameter, never a second function or route (operator).** A list that serves two kinds takes the kind as a required argument (`all(couple_id, couple_type)`, not `all` + `all_for_connection`). A create whose path depends on facts the service can read takes the inputs the caller knows (the two user ids), loads the rest and routes internally (`create_confirmed_date(user_id_1, user_id_2, ...)`); callers never pick the path.
+
 ### Part of a row: the owning Service returns it, a caller never cuts rows down
 
 A service or host that fetches rows and keeps some keys (`{key: row[key] for key in WANTED_KEYS}`) cuts in the wrong
