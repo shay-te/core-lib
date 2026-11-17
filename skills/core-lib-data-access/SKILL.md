@@ -219,6 +219,11 @@ That is the whole class — no `create`, no guards, domain queries only.
   getter already returns: that is a Service method over the getter ("Part of a row" and "A set of an entity's fields
   that several readers use is declared once" in `AGENTS.md`).
 - **Cross-entity guards** live in module-level helpers inside the DA file (§5).
+- **A paged list is two methods over one private query builder:** `page(...,
+  start_row, page_size)` (`offset` + `limit`) and `count(...)` (`order_by(None)
+  .count()`), each one statement, so the page and its total never filter
+  differently. The builder orders by the list's order and then a unique column
+  (the id), or a page boundary inside a tie can repeat or skip a row (§5).
 - **A DB DataAccess is only ever called BY a Service** — never from a host app,
   a test, or another lib (§5).
 
