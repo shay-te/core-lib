@@ -114,6 +114,8 @@ self._calendar_clients = {CalendarProvider.ACME: acme_calendar_client}
   is injected (the agnosticism rule).
 - **Provider quirks stay in the provider's client** (status codes that mean success, error
   shapes); the abstract client's contract is what services rely on.
+- **Every constant sits at the top of the file** (paths, the status codes that mean success), right after the
+  imports, never between methods ("Constants live at the top of the file" in `AGENTS.md`).
 
 ## Testing
 
