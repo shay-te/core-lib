@@ -205,6 +205,8 @@ That is the whole class — no `create`, no guards, domain queries only.
   data)` / `update_in_transaction(session, row, data)` — same `rule_validator`,
   add or set only, never flush or commit — and `get_for_update(session, id)` with
   `SET LOCAL lock_timeout` then `with_for_update=True` (§6).
+  A foreign key to a row created in that same transaction is set through a
+  write-only `relationship(Other, lazy='raise')`, never by flushing for the id (§6).
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale
