@@ -1,5 +1,8 @@
 import logging
 
+from types import TracebackType
+from typing import Optional, Type
+
 from sqlalchemy.orm import sessionmaker, Session
 
 from core_lib.connection.transactional_connection import TransactionalConnection
@@ -13,19 +16,26 @@ class SqlAlchemyConnection(TransactionalConnection):
         self.on_exit = on_exit
         self.session = sessionmaker(bind=self.engine, expire_on_commit=False)()
 
-    def __enter__(self) -> Session:
+    def open(self) -> Session:
         return self.session
 
-    def flush(self):
-        # send the SQL (ids are set) and let go of the rows, as a block outside a transaction does, so a later
-        # read goes to the database again
-        self.session.flush()
+    def flush(self) -> None:
+        self.session.flush()  # the SQL is sent: ids are set, a duplicate raises here
+
+    def release(self) -> None:
+        # let go of the loaded rows and drop unsent writes, as the end of a block outside a transaction does: a
+        # later read goes to the database again, and a row changed in memory afterwards is not saved
         self.session.expunge_all()
 
-    def end(self, exec_type, exec_value, traceback):
+    def end(self, exec_type: Optional[Type[BaseException]], exec_value: Optional[BaseException],
+            traceback: Optional[TracebackType]) -> None:
         if exec_type or exec_value or traceback:
             logger.error("Error in DB handler", exc_info=(exec_type, exec_value, traceback))
-            self.session.rollback()
+            try:
+                self.session.rollback()
+            except BaseException:
+                self.session.close()  # a failed rollback still releases the connection, and never commits
+                raise
 
         if self.on_exit:
             self.on_exit(self)

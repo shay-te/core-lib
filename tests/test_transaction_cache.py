@@ -176,25 +176,28 @@ class TestTransactionCache(unittest.TestCase):
                          CoreLib.cache_registry.get(TRANSACTION_TEST_CACHE).get(_group_key(GROUP_ID)))
         self.assertEqual(['acme', 'beta'], self.transaction_widget_data_access.names_in_group(GROUP_ID))
 
-    def test_c8_a_failing_invalidation_raises_after_the_commit(self):
+    def test_c8_a_failing_invalidation_raises_after_the_commit_and_the_next_one_still_runs(self):
         delete_failure = ConnectionError('cache delete failed')
         CoreLib.cache_registry.unregister(TRANSACTION_TEST_CACHE)
         CoreLib.cache_registry.register(TRANSACTION_TEST_CACHE,
                                         _FailingDeleteCacheHandler(_group_key(GROUP_ID), delete_failure))
         self.addCleanup(self._restore_ram_handler)
         self._warm_group(GROUP_ID, 'acme')
+        self._warm_group(OTHER_GROUP_ID, 'acme')
 
         @Transaction()
-        def write_and_invalidate():
+        def write_and_invalidate_both():
             self.transaction_widget_data_access.create(_widget('beta'))
-            _invalidate_group(GROUP_ID)
+            _invalidate_group(GROUP_ID)        # its delete fails...
+            _invalidate_group(OTHER_GROUP_ID)  # ...and this one still runs
 
         with self.assertRaises(ConnectionError) as raised:
-            write_and_invalidate()
+            write_and_invalidate_both()
 
         self.assertIs(delete_failure, raised.exception)
         self.assertEqual(['acme', 'beta'], self.transaction_widget_data_access.names_in_group(GROUP_ID))
         self.assertEqual(['acme'], CoreLib.cache_registry.get(TRANSACTION_TEST_CACHE).get(_group_key(GROUP_ID)))
+        self.assertIsNone(CoreLib.cache_registry.get(TRANSACTION_TEST_CACHE).get(_group_key(OTHER_GROUP_ID)))
 
     def test_c9_outside_a_transaction_the_cache_behaves_as_before(self):
         self.transaction_widget_data_access.create(_widget('acme'))

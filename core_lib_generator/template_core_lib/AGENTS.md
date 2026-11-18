@@ -9,7 +9,7 @@ there is exactly one source of truth:
 
 | Read | For |
 |---|---|
-| `core-lib/AGENTS.md` | **Read first.** "Writing core-lib code — keep it super simple" (plain code, one class with one meaning, clear names and types), the AGNOSTIC principles, then the canonical recipe (§0–§17): naming, folder tree, config, entities, data types, error handling, DataAccess, services, composition root, observers, jobs, migrations, tests, packaging/`.gitignore`, build order, things to avoid, final checklist. |
+| `core-lib/AGENTS.md` | **Read first.** "Writing core-lib code — keep it super simple" (plain code, one class with one meaning — never a class that stores itself — clear names and types), the AGNOSTIC principles, then the canonical recipe (§0–§17): naming, folder tree, config, entities, data types, error handling, DataAccess, services, composition root, observers, jobs, migrations, tests, packaging/`.gitignore`, build order, things to avoid, final checklist. |
 | `core-lib/skills/` | Copy-paste scaffolding templates, one per core-lib part. |
 
 Find them in the `core-lib` checkout beside this repo (`../core-lib/`) or in the

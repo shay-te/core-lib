@@ -72,8 +72,8 @@ what core-lib lacks — so the next reader does not re-run your search.
 
 | Need | Use | Notes |
 |---|---|---|
-| store one object per key, process-wide | `Registry` / `DefaultRegistry` — `core_lib.registry` | `CoreLib.cache_registry`, `observer_registry`, `connection_factory_registry` and `transaction_registry` are all registries; a per-thread store is a `Registry` over a dict keyed by `threading.get_ident()`, not a `ContextVar` |
-| a backend whose SDK has real transactions joins `@Transaction()` | subclass `TransactionalConnectionFactory` / `TransactionalConnection` — `core_lib.connection` | write `create_connection()`, `flush()` and `end()`; `get()` and `__exit__` come from the base — see `core-lib-connection` |
+| store one object per key, process-wide — and the only place instances of a class are kept, never the class itself | `Registry` / `DefaultRegistry` — `core_lib.registry` | `CoreLib.cache_registry`, `observer_registry`, `connection_factory_registry` and `transaction_scope_registry` are all registries; a per-thread store is a `Registry` over a dict keyed by `threading.get_ident()`, not a `ContextVar` |
+| a backend whose SDK has real transactions joins `@Transaction()` | subclass `TransactionalConnectionFactory` / `TransactionalConnection` — `core_lib.connection` | write `create_connection()`, `identity()`, `open()`, `flush()`, `release()` and `end()`; `get()`, `__enter__` and `__exit__` come from the base — see `core-lib-connection` |
 
 `is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
 

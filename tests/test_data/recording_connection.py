@@ -4,6 +4,7 @@ from core_lib.connection.transactional_connection import TransactionalConnection
 
 EVENT_ENTER = 'enter'
 EVENT_FLUSH = 'flush'
+EVENT_RELEASE = 'release'
 EVENT_EXIT = 'exit'
 NO_ERROR = (None, None, None)  # the exit arguments of a clean end: a commit
 
@@ -22,12 +23,15 @@ class RecordingConnection(TransactionalConnection):
         self.resource = object()
         self.calls = []
 
-    def __enter__(self):
+    def open(self):
         self._record(EVENT_ENTER, None)
         return self.resource
 
     def flush(self):
         self._record(EVENT_FLUSH, None)
+
+    def release(self):
+        self._record(EVENT_RELEASE, None)
 
     def end(self, exec_type, exec_value, traceback):
         self._record(EVENT_EXIT, (exec_type, exec_value, traceback))

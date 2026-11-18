@@ -11,7 +11,7 @@ from core_lib.connection.transaction_decorator import Transaction
 from core_lib.connection.transaction_scope import TransactionScope
 from core_lib.core_lib import CoreLib
 from tests.test_data.engine_event_counter import EngineEventCounter
-from tests.test_data.recording_connection import EVENT_ENTER, EVENT_EXIT, EVENT_FLUSH, NO_ERROR
+from tests.test_data.recording_connection import EVENT_ENTER, EVENT_EXIT, EVENT_FLUSH, EVENT_RELEASE, NO_ERROR
 from tests.test_data.recording_connection_factory import RecordingConnectionFactory
 from tests.test_data.test_utils import connect_to_file_db
 from tests.test_data.transaction_widget import TransactionWidget
@@ -89,7 +89,7 @@ class TestTransactionThreads(unittest.TestCase):
         observed = {}
 
         def worker():
-            observed['current_scope'] = CoreLib.transaction_registry.get()
+            observed['current_scope'] = CoreLib.transaction_scope_registry.get()
             with factory.get():
                 pass
             observed['worker_events_after_its_block'] = factory.created[1].events()
@@ -98,7 +98,7 @@ class TestTransactionThreads(unittest.TestCase):
         def parent():
             with factory.get():
                 pass
-            observed['parent_scope'] = CoreLib.transaction_registry.get()
+            observed['parent_scope'] = CoreLib.transaction_scope_registry.get()
             run_worker(worker)
             observed['parent_events_after_worker'] = factory.created[0].events()
 
@@ -110,8 +110,8 @@ class TestTransactionThreads(unittest.TestCase):
         self.assertEqual([EVENT_ENTER, EVENT_EXIT], observed['worker_events_after_its_block'])
         self.assertEqual([NO_ERROR], worker_connection.exit_arguments())
         self.assertTrue(worker_connection.thread_ids().isdisjoint(parent_connection.thread_ids()))
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH], observed['parent_events_after_worker'])
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT], parent_connection.events())
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE], observed['parent_events_after_worker'])
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE, EVENT_EXIT], parent_connection.events())
 
     def test_t1_concurrent_transactions_on_one_shared_function_never_share_a_connection(self):
         factory = RecordingConnectionFactory()
@@ -140,7 +140,7 @@ class TestTransactionThreads(unittest.TestCase):
         connections_per_thread = {}
         for connection in factory.created:
             self.assertEqual(1, len(connection.thread_ids()))
-            self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT], connection.events())
+            self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE] * 2 + [EVENT_EXIT], connection.events())
             self.assertEqual([NO_ERROR], connection.exit_arguments())
             [thread_id] = connection.thread_ids()
             connections_per_thread[thread_id] = connections_per_thread.get(thread_id, 0) + 1
@@ -181,7 +181,7 @@ class TestTransactionThreads(unittest.TestCase):
 
         @Transaction()
         def worker_transaction():
-            observed['worker_scope'] = CoreLib.transaction_registry.get()
+            observed['worker_scope'] = CoreLib.transaction_scope_registry.get()
             for i in range(2):
                 with factory.get():
                     pass
@@ -194,16 +194,16 @@ class TestTransactionThreads(unittest.TestCase):
         def parent():
             with factory.get():
                 pass
-            observed['parent_scope'] = CoreLib.transaction_registry.get()
+            observed['parent_scope'] = CoreLib.transaction_scope_registry.get()
             self._run_in_thread(worker, copy_context=True)
-            observed['parent_scope_after_worker'] = CoreLib.transaction_registry.get()
+            observed['parent_scope_after_worker'] = CoreLib.transaction_scope_registry.get()
 
         parent()
 
         parent_connection, worker_connection = factory.created
         self.assertIsInstance(observed['worker_scope'], TransactionScope)
         self.assertIsNot(observed['parent_scope'], observed['worker_scope'])
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT],
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE] * 2 + [EVENT_EXIT],
                          observed['worker_events_when_done'])
         self.assertEqual([NO_ERROR], worker_connection.exit_arguments())
         self.assertIs(observed['parent_scope'], observed['parent_scope_after_worker'])
@@ -296,4 +296,4 @@ class TestTransactionThreads(unittest.TestCase):
 
         self.assertEqual('committed', asyncio.run(main()))
         self.assertEqual([NO_ERROR], factory.created[0].exit_arguments())
-        self.assertIsNone(CoreLib.transaction_registry.get())
+        self.assertIsNone(CoreLib.transaction_scope_registry.get())

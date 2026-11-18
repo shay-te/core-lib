@@ -105,8 +105,7 @@ class TestTransactionEdgeCases(unittest.TestCase):
         first_data_access = TransactionWidgetDataAccess(first_factory)
         second_data_access = TransactionWidgetDataAccess(second_factory)
         other_backend = RecordingConnectionFactory()
-        # same URL and the same hash, yet two databases: never equal to each other, always equal to itself
-        self.assertEqual(hash(first_factory), hash(second_factory))
+        # the same URL, yet two databases: never equal to each other, always equal to itself
         self.assertNotEqual(first_factory, second_factory)
         self.assertTrue(first_factory == first_factory)
         self.assertNotEqual(first_factory, other_backend)  # another kind of factory is never equal

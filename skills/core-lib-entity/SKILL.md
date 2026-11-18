@@ -6,6 +6,8 @@ description: MANDATORY — load this skill BEFORE you add or change any table, m
 # Create a core-lib entity (Data layer)
 
 > **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
 
 The Data layer holds **SQLAlchemy models only** — columns, relationships,
 mixins. No queries, no business logic. One file per table under

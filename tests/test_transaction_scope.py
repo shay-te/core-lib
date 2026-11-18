@@ -10,11 +10,11 @@ from core_lib.connection.transaction_scope import TransactionScope
 from core_lib.connection.transactional_connection import TransactionalConnection
 from core_lib.connection.transactional_connection_factory import TransactionalConnectionFactory
 from core_lib.core_lib import CoreLib
-from tests.test_data.recording_connection import EVENT_ENTER, EVENT_EXIT, EVENT_FLUSH, NO_ERROR, RecordingConnection
+from tests.test_data.recording_connection import EVENT_ENTER, EVENT_EXIT, EVENT_FLUSH, EVENT_RELEASE, NO_ERROR, RecordingConnection
 from tests.test_data.recording_connection_factory import RecordingConnectionFactory
 from tests.test_data.test_utils import connect_to_mongo
 
-SCOPE_LOGGER = 'core_lib.connection.transaction_scope'
+SCOPE_LOGGER = 'core_lib.connection.transaction_manager'
 
 
 class TestTransactionScope(unittest.TestCase):
@@ -53,8 +53,8 @@ class TestTransactionScope(unittest.TestCase):
         self.assertEqual(1, len(factory.created))
         connection = factory.created[0]
         self.assertEqual([connection.resource] * 3, resources)
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH] * 3, events_before_end)
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH] * 3 + [EVENT_EXIT], connection.events())
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE] * 3, events_before_end)
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE] * 3 + [EVENT_EXIT], connection.events())
         self.assertEqual([NO_ERROR], connection.exit_arguments())
 
     def test_g3_two_factories_each_get_one_connection_ended_in_join_order(self):
@@ -98,8 +98,8 @@ class TestTransactionScope(unittest.TestCase):
 
         self.assertIs(failure, raised.exception)
         connection_a, connection_b = factory_a.created[0], factory_b.created[0]
-        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_EXIT], connection_a.events())
-        self.assertEqual([EVENT_ENTER, EVENT_EXIT], connection_b.events())
+        self.assertEqual([EVENT_ENTER, EVENT_FLUSH, EVENT_RELEASE, EVENT_EXIT], connection_a.events())
+        self.assertEqual([EVENT_ENTER, EVENT_RELEASE, EVENT_EXIT], connection_b.events())   # the failed block sent nothing
         for connection in (connection_a, connection_b):
             [(exec_type, exec_value, traceback)] = connection.exit_arguments()
             self.assertIs(RuntimeError, exec_type)
@@ -119,7 +119,7 @@ class TestTransactionScope(unittest.TestCase):
                 pass
             with factory_b.get():
                 pass
-            CoreLib.transaction_registry.get().on_commit(lambda: callbacks_run.append('after commit'))
+            CoreLib.transaction_scope_registry.get().on_commit.append(lambda: callbacks_run.append('after commit'))
 
         with self.assertRaises(ConnectionError) as raised:
             use_a_then_b()
@@ -262,24 +262,24 @@ class TestTransactionScope(unittest.TestCase):
 
         @Transaction()
         def inner():
-            seen['nested'] = CoreLib.transaction_registry.get()
+            seen['nested'] = CoreLib.transaction_scope_registry.get()
 
         @Transaction()
         def outer(should_fail: bool):
-            seen['inside'] = CoreLib.transaction_registry.get()
+            seen['inside'] = CoreLib.transaction_scope_registry.get()
             inner()
             if should_fail:
                 raise RuntimeError('fail on purpose')
 
-        self.assertIsNone(CoreLib.transaction_registry.get())
+        self.assertIsNone(CoreLib.transaction_scope_registry.get())
         outer(False)
         self.assertIsInstance(seen['inside'], TransactionScope)
         self.assertIs(seen['inside'], seen['nested'])
-        self.assertIsNone(CoreLib.transaction_registry.get())
+        self.assertIsNone(CoreLib.transaction_scope_registry.get())
 
         with self.assertRaises(RuntimeError):
             outer(True)
-        self.assertIsNone(CoreLib.transaction_registry.get())
+        self.assertIsNone(CoreLib.transaction_scope_registry.get())
 
     def test_g11_keeps_name_doc_arguments_and_return_value(self):
         def add_widget(group_id, name, suffix='-widget'):
@@ -322,7 +322,7 @@ class TestTransactionScope(unittest.TestCase):
         def callback(number):
             def run():
                 exits = [event for event in journal if event[1] == EVENT_EXIT]
-                runs.append((number, len(exits), CoreLib.transaction_registry.get()))
+                runs.append((number, len(exits), CoreLib.transaction_scope_registry.get()))
             return run
 
         @Transaction()
@@ -331,10 +331,10 @@ class TestTransactionScope(unittest.TestCase):
                 pass
             with factory_b.get():
                 pass
-            scope = CoreLib.transaction_registry.get()
-            scope.on_commit(callback(1))
-            scope.on_commit(callback(2))
-            scope.on_commit(callback(3))
+            scope = CoreLib.transaction_scope_registry.get()
+            scope.on_commit.append(callback(1))
+            scope.on_commit.append(callback(2))
+            scope.on_commit.append(callback(3))
 
         register_three()
 
@@ -348,7 +348,7 @@ class TestTransactionScope(unittest.TestCase):
         def register_then_fail():
             with factory.get():
                 pass
-            CoreLib.transaction_registry.get().on_commit(lambda: runs.append('ran'))
+            CoreLib.transaction_scope_registry.get().on_commit.append(lambda: runs.append('ran'))
             raise RuntimeError('rolled back')
 
         with self.assertRaises(RuntimeError):
@@ -361,16 +361,16 @@ class TestTransactionScope(unittest.TestCase):
         class FactoryWithoutCreateConnection(TransactionalConnectionFactory):
             pass
 
-        class ConnectionWithoutFlushAndEnd(TransactionalConnection):
-            def __enter__(self):
-                return self
+        class ConnectionWithoutItsMethods(TransactionalConnection):
+            pass
 
         with self.assertRaises(TypeError) as factory_error:
             FactoryWithoutCreateConnection()
         with self.assertRaises(TypeError) as connection_error:
-            ConnectionWithoutFlushAndEnd()
+            ConnectionWithoutItsMethods()
 
-        self.assertIn('create_connection', str(factory_error.exception))
-        self.assertIn('end', str(connection_error.exception))
-        self.assertIn('flush', str(connection_error.exception))
+        for method in ('create_connection', 'identity'):
+            self.assertIn(method, str(factory_error.exception))
+        for method in ('open', 'flush', 'release', 'end'):
+            self.assertIn(method, str(connection_error.exception))
         self.assertFalse(RecordingConnection([]).in_transaction)

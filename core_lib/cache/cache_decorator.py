@@ -61,7 +61,7 @@ class Cache(object):
             if not cache_handler:
                 raise ValueError(f'CacheHandler by name {self.handler_name} was not found in `CoreLib.cache_registry`')
             key = build_function_key(self.key, func, *args, **kwargs)[: self.max_key_length].replace(' ', '_')
-            scope = CoreLib.transaction_registry.get()
+            scope = CoreLib.transaction_scope_registry.get()
 
             if self.invalidate:
                 result = func(*args, **kwargs)
@@ -72,7 +72,7 @@ class Cache(object):
                 if scope is None:
                     cache_handler.delete(key)
                 else:
-                    scope.on_commit(partial(cache_handler.delete, key))  # after the commit; dropped on rollback
+                    scope.on_commit.append(partial(cache_handler.delete, key))  # after the commit; dropped on rollback
                 return result
             elif scope is not None:
                 # inside a transaction: the cache may hold the row as it was before this transaction's

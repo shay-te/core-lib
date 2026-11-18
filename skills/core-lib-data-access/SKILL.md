@@ -6,6 +6,8 @@ description: MANDATORY — load this skill BEFORE you add or change a DataAccess
 # Create a core-lib DataAccess (query layer)
 
 > **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
 
 A DataAccess is **pure CRUD** over a single entity: insert one row, fetch one
 row, update one by PK, soft-delete one by PK, list by simple filters. No

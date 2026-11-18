@@ -6,6 +6,8 @@ description: MANDATORY — load this skill BEFORE you add or change a client for
 # Build an HTTP API client (the `client/` pattern)
 
 > **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
 
 `core_lib.client.client_base.ClientBase` is core-lib's HTTP client: it holds one
 `base_url`, a `requests.Session`, and optional default headers / timeout / auth, and

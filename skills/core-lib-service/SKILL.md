@@ -6,6 +6,8 @@ description: MANDATORY — load this skill BEFORE you add or change a Service, b
 # Create a core-lib Service (business logic + public API)
 
 > **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
 
 The Service layer owns business logic, caching, and transformation, and is the
 library's **public API surface**. Callers outside the lib go through
@@ -108,8 +110,11 @@ Copy these exactly (§6) — they are **not** one uniform order:
   it (the 409 mapping sits below the dict conversion).
 - **write/evict:** `@Cache(KEY, handler_name=..., invalidate=True)` — no
   `@ResultToDict()`.
-- **one transaction:** `@Transaction()` innermost, under `@DuplicateErrorHandler()`
-  and `@Cache(..., invalidate=True)`.
+- **one transaction:** `@Transaction()` under every decorator that must see its
+  commit — `@Cache(...)` (read or `invalidate=True`), `@DuplicateErrorHandler()`,
+  `@Observe`, `@ResultToDict()`, and `@staticmethod` / `@classmethod` above all —
+  but **above** `@NotFoundErrorHandler()`, so a 404 rolls the write back. Each
+  wrong order is pinned in `tests/test_transaction_decorator.py` (AGENTS §6).
 - **list:** a per-tenant or per-parent list is a read (`@Cache` outermost); a paged or open-ended search is `@ResultToDict()` only.
 
 Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
