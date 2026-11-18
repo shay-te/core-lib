@@ -53,6 +53,11 @@ A library also builds dicts that are NOT rows: an observer event payload, a
 JSON column's inner shape, a params blob. Those keys are a contract with a
 consumer and deserve one home. But **only the keys nothing else already owns.**
 
+A key a client puts in a row's JSON for its own use (the id of a chat message it already shows,
+so the echo can replace it) is declared in the same enum as every other key of that JSON, even when
+the server never reads it. When a second client needs a behaviour one client already has, it reuses
+that client's key and flow, never a new one (operator: the admin's pending message copies mobile's `temp_id`).
+
 ### If a name has an owner, use the owner. Do not re-declare it.
 
 The entity IS the declaration, and `Entity.column.key` is how every layer reads
@@ -166,6 +171,22 @@ has one file to open.
 - Key it the way its readers look up: by member, or by `.value` when a query
   compares stored ints. Say which in its comment.
 
+### A set of an entity's fields that several readers use is declared once
+
+When more than one reader takes the same columns of an entity (who a record is shown as, the fields every summary of
+it carries), the set is ONE constant in the library that owns the entity, written as the columns themselves, next to
+its other field sets (or in its constants module, as for maps):
+
+```python
+MEMBER_SUMMARY_FIELDS = (Member.first_name, Member.last_name, Member.email)
+```
+
+One row is cut to it by ONE method on the entity's Service, which every reader calls, host included ("Part of a row"
+below); a query over many rows selects it (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a private
+`_KEYS` tuple per service, and never a host re-typing it: the host imports the constant or calls the method. A reader
+that needs more composes it (`[*MEMBER_SUMMARY_FIELDS, Member.status]`) rather than re-listing it. Before declaring a
+set, grep the libraries for its columns: the copies usually exist already, under other names.
+
 ### Enforce it, do not just document it
 
 A rename cannot catch an alias, and neither can any behavioural test — by
@@ -174,6 +195,17 @@ checked in the SOURCE. Every core-lib should carry the equivalent of
 `tests/test_constants_contract.py`: parse `constants/`, and fail if any enum
 member is either a literal matching a known column/param name, or an expression
 derived from an entity.
+
+---
+
+# Constants live at the top of the file — every kind of file (operator rule)
+
+A file declares its constants at its top, right after the imports: a module's names, keys, maps, field sets, tuning
+values and cache-key templates, a DataAccess's allow-list and `rule_validator`, a test's fixture ids, a JS module's
+constants. A class's own constants open its body, as an entity's `INDEX_*` names and nested enum do (§4) and as a Java
+class's `static final` fields do. Never between two functions, and never beside the one function that reads it.
+Constants that belong together sit together (a filter key beside the field it maps to), and the comment that explains
+a constant moves up with it.
 
 ---
 
@@ -362,6 +394,25 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 **Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
+
+### Part of a row: the owning Service returns it, a caller never cuts rows down
+
+A service or host that fetches rows and keeps some keys (`{key: row[key] for key in WANTED_KEYS}`) cuts in the wrong
+place. The library that owns the entity returns what its callers need, and the read decides how:
+
+- **Nearly the whole row** (all but bookkeeping such as `deleted_at`): return the entity as its query returns it.
+  Never narrow a query to drop a few columns nobody reads; sending them is fine.
+- **A field set of one row a cached getter already returns**: a method on the entity's Service reads that getter and
+  keeps the set; every reader calls it, host included. No new query. Rows of another table shown beside a list (the
+  members of each item) are this case too: one cached call per distinct id, not a new `IN` query.
+
+  ```python
+  def get_summary(self, member_id: int) -> dict:
+      member = self.get_full(member_id)
+      return {field.key: member[field.key] for field in MEMBER_SUMMARY_FIELDS}
+  ```
+- **Many rows nobody has fetched** (a list or report query): the DataAccess query selects the columns the list shows.
+- One column of a cached row, for a check, is the section above: `service.get(id)[Entity.column.key]`.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
@@ -1090,7 +1141,8 @@ Rules:
 - **Never `session.commit()` or `session.flush()` in a DataAccess.** `SqlAlchemyConnection` commits and flushes when the `with self._db.get()` block exits (rollback on an exception), on a session with `expire_on_commit=False`, so a written entity keeps its generated id. A session the service hands in is the service's `with self._thing_da.transaction()` block and commits when that exits. A service that needs the stored row reads it back through its cached `get` after the write — never by flushing early.
 - `update` overrides guard immutable columns (strip `project_id`/FKs from the payload) before `super().update(id, data)`.
 - Domain queries (`get_by_project`, `full_text_search`, `list_trash`, `search_by_name`, …) live on the DataAccess, written in the query-builder style the other DAs use (`session.query(Entity).filter(...).all()` chains). Do NOT refactor an existing DA's access pattern to a different style — that exact change was rejected in review.
-- Normal update paths validate STRICT (the base's plain `validate_dict(data)` — unknown key raises `PermissionError`; tests rely on that). For a PARTIAL metadata-style bulk update where callers may pass a superset dict, use `self._rule_validator.validate_dict(data, strict_mode=False, strict_output=True)` (unknown keys silently DROPPED) and `session.query(...).update(validated, synchronize_session=False)` — `synchronize_session=False` avoids `InvalidRequestError: Invalid expression type` on bulk updates. Library uses the strict form on 2 of 3 update paths and the lenient form only on `DocumentDataAccess.update_metadata` — default to strict.
+- A paged list is a `page(..., start_row, page_size)` and a `count(...)` built by one private query builder, one statement each, so the page and its total filter alike; the builder orders by the list's order and then a unique column, so a page boundary in a tie neither repeats nor skips a row. The Service keeps both uncached (§6).
+- Normal update paths validate STRICT (the base's plain `validate_dict(data)` — unknown key raises `PermissionError`; tests rely on that). For a PARTIAL metadata-style bulk update where callers may pass a superset dict, use `self._rule_validator.validate_dict(data, strict_mode=False, strict_output=True)` (unknown keys silently DROPPED) and `session.query(...).update(validated, synchronize_session=False)` — `synchronize_session=False` avoids `InvalidRequestError: Invalid expression type` on bulk updates. Library uses the strict form on 2 of 3 update paths and the lenient form only on `DocumentDataAccess.update_metadata` — default to strict. **A hand-written bulk update validates the payload it WRITES, never the caller's dict:** build the update from a module constant of the columns it writes, then validate and write that. Strict-validating a host's whole row (sent back as it was read, `id` and timestamps included) refuses every call with `no ValueRuleValidator found for key: created_at` (package-core-lib's `update_multiple` shipped that way).
 - Column references in queries/payloads are `Entity.col.key` / `Entity.col` — never string literals. Same for a name in ANY other position: a set, tuple, constant, comparison or argument (§4.3).
 - Cross-entity guards live in module-level helpers inside the DA file (the current convention’s `_assert_collection_in_workspace(session, workspace_id, collection_id)` raising `StatusCodeException(404)`), called inside `create`/`update` before writing.
 - Errors: DA-level argument guards raise `ValueError`; base-CRUD arg guards are bare `assert` (so `AssertionError`); "not found" on `get` is `StatusCodeException(404)` raised by the base's `@NotFoundErrorHandler()`; uniqueness violations bubble up as `sqlalchemy.exc.IntegrityError` for the service's `@DuplicateErrorHandler` to map.
@@ -1200,6 +1252,7 @@ Rules:
 - **Tenant-boundary discipline:** the external tenant key (`project_id`) is translated to the internal row key (`workspace_id`) in exactly one place — a `resolve_<x>_id(project_id)` (cached read that raises a domain `LookupError` subclass when absent) and/or an idempotent `ensure_<x>(project_id, ...)` get-or-create that recovers from a concurrent-create 409 by re-reading. Every other service method takes `project_id`, resolves it internally, and scopes ALL queries by the internal id — a cross-tenant call is a 0-rowcount/`None`/404, never a leak.
 - **A public method that takes a row id also takes the tenant key** (`cancel(appointment_id, project_id)`) and treats another tenant's row as absent — a primary key is not authority to read or write. The tell is a public method whose only argument is an id.
 - **Tuning values are module constants, not config** (`CONNECT_STATE_TTL_SECONDS = 600`) until a host asks to change one. Config holds what differs per deployment: credentials, endpoints, host wording (required, no default — see "this library is AGNOSTIC").
+- **The value most callers pass is the parameter's default; a caller passes it only when it differs** (operator): a call repeating the usual value is duplication. Host-specific values keep no default ("this library is AGNOSTIC").
 - Missing required args raise `ValueError` at the top of the method. Argument guards that several services share live together in ONE `<topic>_helper.py` (`argument_helper.py`: `require_id`, `to_naive_utc`, …) — never one function per file, never a bare `helper.py`. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
 - **Let the database refuse what it can: no Service pre-check repeats a constraint.** A create whose duplicate is an error does not look the row up first: the unique index raises and `@DuplicateErrorHandler()` on the Service's `create` answers 409, while the read adds a query and a race window for nothing (`if existing: update else: create` is for an upsert only). Likewise a by-id write does not `get` the row first to raise 404: it is the DataAccess `update` under `@Cache(..., invalidate=True)`, as in the template above. The same holds for an external API that refuses a duplicate (an identity provider answering 409 for an existing account): call the create, catch only that one status as the answer, and let every other error propagate. A setting the external system already holds (an identity provider's link lifespan) is set there, not sent from code (operator).
 - **A delete that records the row it removes (a history row, an event, a log item) reads it through the cached `get` BEFORE the delete**, under `@Cache(..., invalidate=True)`: a soft-deleted row no longer reads, and `get` 404s an absent id before anything is written.
@@ -1208,7 +1261,7 @@ Rules:
 - Services return plain dicts (via `@ResultToDict`) — a host app or test reads fields as `row[Thing.name.key]`. Enum columns arrive as their INT VALUE, datetimes as epoch floats (§12).
 - Pure derivations (key builders, slugs, content types) are module-level `_helpers` at the bottom of the service file — testable without the CoreLib.
 - Batch loops that delete/purge use a module-level batch constant (`EMPTY_TRASH_BATCH = 10_000`) so tests can patch the MODULE GLOBAL (allowed) instead of internals (forbidden).
-- **A write spanning tables, or a check-then-write behind a guard, runs in ONE session the service opens.** Each CRUD call commits on its own, so the DA adds — beside the base, never overriding `create`/`update` (§5.1) — `transaction()` (`return self._db.get()`), `create_in_transaction(session, data)` / `update_in_transaction(session, row, data)` that validate with the same module `rule_validator` and only add or set — never flush, never commit (§5) — and `get_for_update(session, id)` (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`). Without the row lock, two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2).
+- **A write spanning tables, or a check-then-write behind a guard, runs in ONE session the service opens.** Each CRUD call commits on its own, so the DA adds — beside the base, never overriding `create`/`update` (§5.1) — `transaction()` (`return self._db.get()`), `create_in_transaction(session, data)` / `update_in_transaction(session, row, data)` that validate with the same module `rule_validator` and only add or set — never flush, never commit (§5) — and `get_for_update(session, id)` (`SET LOCAL lock_timeout = '5s'`, then `session.get(Entity, id, with_for_update=True)`). Without the row lock, two concurrent calls both pass a "field still empty" / "not answered yet" check and both write. `FOR UPDATE` is a no-op on sqlite — a lib relying on it tests on Postgres (§13.2). A foreign key to a row created in the same transaction (an invite pointing at the appointment it just booked) is set through a write-only many-to-one `relationship(Other, lazy='raise')`: the commit writes the new row first and fills the key, so nothing flushes early to learn an id (`calendar_core_lib`'s `CalendarBookingInvite.appointment`).
 - **A date that anchors a deadline or a retention period and cannot be corrected later is refused in the future and before the date it follows** (received → answered, detected → notified). A typo there silently moves a deadline, or keeps a row years past its period.
 
 ### 6.1 Every file in `service/` ends `_service.py` or `_helper.py`. Nothing else.
@@ -1385,6 +1438,7 @@ class ThingDueJob(Job):
 - `initial_delay` is MANDATORY (`load_jobs` raises `ValueError` when falsy). A job that is also a `CoreLibListener` is auto-attached.
 - **A job that raises is only LOGGED** (§12). When a silent failure matters — a purge, a watchdog — the service method the job calls alarms through the lib's observer (the host's listener delivers it) and then re-raises; the job stays a one-line delegation.
 - **A retention purge: one anchor timestamp per table, one period per table from config.** The cutoff (`SELECT now() - make_interval(months => :months)`) is computed by the DATABASE once per table per run and reused for every batch; a NULL anchor (an open case) is never purged; a period of 0 / empty means never. No per-row `expires_at` or retention class — changing a period then applies to every row, with nothing to backfill.
+- **A batch run (a job, a one-shot backfill) logs its progress at INFO (operator):** each phase's start and end, each page (rows done, last id, elapsed, running counts) and each row (its id, the users it is about, its result). A run that logs only its start and its end looks stuck.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
 ## 10. SDK-backed backends (object storage etc.) — the `connections/` pattern
@@ -1746,6 +1800,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 27. Any `import` or `__all__` in `foo_core_lib/__init__.py`, such as re-exporting `FooCoreLib` "for convenience". `setup.py` imports the package to read `__version__`, so the re-export loads the whole lib before its dependencies are installed and the build fails (§1).
 28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
 29. An enum declared at module level beside its entity (§4).
+30. A constant declared between functions, or beside the one function that reads it, instead of at the top of its file ("Constants live at the top of the file").
 
 ## 17. Final checklist before handing the lib over
 
