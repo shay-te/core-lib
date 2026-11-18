@@ -433,6 +433,28 @@ class TestTransactionDecorator(unittest.TestCase):
         self.assertEqual([(EVENT_WIDGET_WRITTEN, True)] * 2, listener.events)   # before the commit, even the lost one
         self.assertEqual(['right-saved', 'wrong-saved'], self._names())
 
+    def test_d5_the_right_order_called_inside_another_transaction_notifies_before_the_outer_commit(self):
+        # pins today's limit: the inner @Transaction() joins, so @Observe fires when the INNER method returns
+        listener = _RecordingListener()
+        CoreLib.observer_registry.register(DECORATOR_TEST_OBSERVER, Observer(listener))
+        self.addCleanup(CoreLib.observer_registry.unregister, DECORATOR_TEST_OBSERVER)
+
+        @Observe(event_key=EVENT_WIDGET_WRITTEN, observer_name=DECORATOR_TEST_OBSERVER)
+        @Transaction()
+        def inner(name: str):
+            self.transaction_widget_data_access.create(_widget(name))
+
+        @Transaction()
+        def outer_that_fails():
+            inner('heard-then-lost')
+            raise ValueError('the outer transaction fails after the inner one returned')
+
+        with self.assertRaises(ValueError):
+            outer_that_fails()
+
+        self.assertEqual([(EVENT_WIDGET_WRITTEN, True)], listener.events)   # heard inside the outer transaction
+        self.assertEqual([], self._names())                                 # and the write it heard of was rolled back
+
     def test_d6_result_to_dict_gives_the_same_row_in_either_order(self):
         @ResultToDict()
         @Transaction()
