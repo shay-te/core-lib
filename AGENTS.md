@@ -104,6 +104,11 @@ documents the shape of a payload; a single string has no shape to document, and
 two one-member enums in one module managed to declare the *same* value twice
 before anyone noticed.
 
+**Several values of ONE kind are one enum named for that kind, never a run of module constants (operator).** The
+values a column stores (an audit row's `component`, `target_type`, a fixed `actor_id`) group as `AuditComponent.X`,
+`AuditTargetType.X`, not `AUDIT_EVENT_X = '...'` lines side by side; the code passes the member and reads `.value`
+only where the string leaves for storage. Mind the shape rule above: a kind with one value stays a constant.
+
 **An enum that mirrors a METHOD SIGNATURE is not a declaration.** `@Observe`
 builds its event value with `get_func_parameters_as_dict`, so the payload's keys
 ARE the emitting method's parameter names — rename a parameter and the real key
