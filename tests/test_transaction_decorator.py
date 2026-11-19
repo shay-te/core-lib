@@ -182,17 +182,16 @@ class TestTransactionDecorator(unittest.TestCase):
     def test_x4_an_exception_that_cannot_be_printed_still_rolls_back(self):
         # the rollback logs the error with its traceback; printing it fails, and logging must not stop the rollback
         failure = _BrokenStr()
-        previous = logging.raiseExceptions
-        logging.raiseExceptions = False   # logging's own "--- Logging error ---" report, kept off the test output
-        self.addCleanup(setattr, logging, 'raiseExceptions', previous)
 
         @Transaction()
         def write_then_fail():
             self.transaction_widget_data_access.create(_widget('rolled-back'))
             raise failure
 
-        with self.assertRaises(_BrokenStr) as raised:
-            write_then_fail()
+        # raiseExceptions off: logging's own "--- Logging error ---" report is kept off the test output
+        with mock.patch.object(logging, 'raiseExceptions', False):
+            with self.assertRaises(_BrokenStr) as raised:
+                write_then_fail()
 
         self.assertIs(failure, raised.exception)
         self.assertEqual([], self._names())

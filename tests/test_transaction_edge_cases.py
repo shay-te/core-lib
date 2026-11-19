@@ -107,7 +107,7 @@ class TestTransactionEdgeCases(unittest.TestCase):
         other_backend = RecordingConnectionFactory()
         # the same URL, yet two databases: never equal to each other, always equal to itself
         self.assertNotEqual(first_factory, second_factory)
-        self.assertTrue(first_factory == first_factory)
+        self.assertTrue(first_factory == first_factory)  # NOSONAR - compares the factory with itself on purpose
         self.assertNotEqual(first_factory, other_backend)  # another kind of factory is never equal
 
         @Transaction()

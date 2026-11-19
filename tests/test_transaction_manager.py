@@ -57,14 +57,17 @@ class TestTransactionManager(unittest.TestCase):
         block_failure = ValueError('the block fails')
         rollback_failure = OSError('the rollback fails')
 
+        def write_then_fail():
+            with self.first_factory.get() as session:
+                session.add(TransactionWidget(group_id=GROUP_ID, name='never-saved'))
+                session.flush()
+                session.rollback = mock.Mock(side_effect=rollback_failure)
+                raise block_failure
+
         with EngineEventCounter(self.first_factory.engine) as counter:
             with self.assertLogs(CONNECTION_LOGGER, 'ERROR'):
                 with self.assertRaises(OSError) as raised:
-                    with self.first_factory.get() as session:
-                        session.add(TransactionWidget(group_id=GROUP_ID, name='never-saved'))
-                        session.flush()
-                        session.rollback = mock.Mock(side_effect=rollback_failure)
-                        raise block_failure
+                    write_then_fail()
 
         self.assertIs(rollback_failure, raised.exception)
         self.assertIs(block_failure, raised.exception.__context__)   # the block's own error is still attached

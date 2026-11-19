@@ -37,7 +37,7 @@ class TransactionManager(object):
                     connection.end(None, None, None)
                 else:
                     connection.end(type(failure), failure, failure.__traceback__)
-            except BaseException as end_error:
+            except BaseException as end_error:  # NOSONAR - an interrupt must not skip ending the other connections
                 if failure is None:
                     failure = end_error
                 else:
@@ -55,7 +55,7 @@ class TransactionManager(object):
         for callback in transaction_scope.on_commit:
             try:
                 callback()
-            except BaseException as callback_error:
+            except BaseException as callback_error:  # NOSONAR - an interrupt must not skip the other callbacks
                 if first_error is None:
                     first_error = callback_error
                 else:

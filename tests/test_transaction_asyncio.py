@@ -121,8 +121,9 @@ class TestTransactionAsyncio(unittest.TestCase):
         async def main():
             await asyncio.to_thread(write_then_fail)
 
+        coroutine = main()
         with self.assertRaises(LookupError) as raised:
-            asyncio.run(main())
+            asyncio.run(coroutine)
 
         self.assertIs(failure, raised.exception)
         self.assertEqual([], self._names())
@@ -440,8 +441,9 @@ class TestTransactionAsyncio(unittest.TestCase):
         async def consume():
             return [scope async for scope in async_rows()]
 
+        coroutine = consume()
         with self.assertRaises(RuntimeError):
-            asyncio.run(consume())
+            asyncio.run(coroutine)
         scopes = list(rows())
 
         self.assertEqual([None], scopes)   # no transaction around the body
@@ -454,8 +456,9 @@ class TestTransactionAsyncio(unittest.TestCase):
                 group.create_task(asyncio.to_thread(self._write_or_fail, 'kept', False))
                 group.create_task(asyncio.to_thread(self._write_or_fail, 'rolled-back', True))
 
+        coroutine = main()
         with self.assertRaises(BaseException):   # an ExceptionGroup
-            asyncio.run(main())
+            asyncio.run(coroutine)
 
         self.assertEqual(['kept'], self._names())
 

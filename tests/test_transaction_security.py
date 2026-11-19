@@ -189,8 +189,9 @@ class TestTransactionSecurity(unittest.TestCase):
         def write_a_duplicate():
             self.transaction_widget_data_access.create(_widget(SECRET_VALUE, SECRET_GROUP_ID))
 
+        duplicate = _widget(SECRET_VALUE, SECRET_GROUP_ID)
         with self.assertRaises(IntegrityError) as outside:
-            self.transaction_widget_data_access.create(_widget(SECRET_VALUE, SECRET_GROUP_ID))
+            self.transaction_widget_data_access.create(duplicate)
         with self.assertRaises(IntegrityError) as inside:
             write_a_duplicate()
 

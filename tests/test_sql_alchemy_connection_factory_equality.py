@@ -57,22 +57,20 @@ class TestSqlAlchemyConnectionFactoryEquality(unittest.TestCase):
         return factory
 
     def _assert_equal_both_ways(self, left, right):
-        self.assertTrue(left == right)
-        self.assertTrue(right == left)
-        self.assertFalse(left != right)
+        self.assertEqual(left, right)
+        self.assertEqual(right, left)
         self.assertEqual(hash(left), hash(right))   # equal objects must hash alike
 
     def _assert_not_equal_both_ways(self, left, right):
-        self.assertFalse(left == right)
-        self.assertFalse(right == left)
-        self.assertTrue(left != right)
+        self.assertNotEqual(left, right)
+        self.assertNotEqual(right, left)
 
     # __eq__
 
     def test_q1_every_kind_of_factory_equals_itself(self):
         for factory in (self._sqlite(self.file_a), self._sqlite(), self._sqlite(':memory:'), self._server()):
-            self.assertTrue(factory == factory)
-            self.assertFalse(factory != factory)
+            self.assertTrue(factory == factory)   # NOSONAR - compares the factory with itself on purpose
+            self.assertFalse(factory != factory)  # NOSONAR - compares the factory with itself on purpose
 
     def test_q2_factories_on_one_file_are_equal_symmetric_and_transitive(self):
         first, second, third = self._sqlite(self.file_a), self._sqlite(self.file_a), self._sqlite(self.file_a)
@@ -190,8 +188,9 @@ class TestSqlAlchemyConnectionFactoryEquality(unittest.TestCase):
                      self._server(), self._server(file='widgets?sslmode=require')]
 
         for factory in factories:
-            self.assertIs(str, type(factory.identity()))
-            self.assertEqual(factory.identity(), factory.identity())   # stable
+            identity = factory.identity()
+            self.assertIs(str, type(identity))
+            self.assertEqual(identity, factory.identity())   # stable
         self.assertIn(self.file_a, factories[0].identity())
         self.assertTrue(factories[5].identity().startswith('postgresql://acme:***@db.example.com:5432/widgets'))
 

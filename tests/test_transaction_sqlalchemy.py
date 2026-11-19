@@ -201,8 +201,9 @@ class TestTransactionSqlAlchemy(unittest.TestCase):
     def test_s8_without_a_transaction_each_block_commits_on_its_own(self):
         with EngineEventCounter(self.factory.engine) as counter:
             self.transaction_widget_data_access.create(_widget('acme'))
+            duplicate = _widget('acme')
             with self.assertRaises(IntegrityError):
-                self.transaction_widget_data_access.create(_widget('acme'))
+                self.transaction_widget_data_access.create(duplicate)
 
         self.assertEqual(1, counter.commits)
         self.assertEqual(['acme'], self.transaction_widget_data_access.names_in_group(GROUP_ID))
@@ -425,11 +426,14 @@ class TestTransactionSqlAlchemy(unittest.TestCase):
         self.transaction_widget_data_access.create(_widget('acme'))
         reached_end_of_block = []
 
+        def add_a_duplicate():
+            with self.factory.get() as session:
+                session.add(TransactionWidget(**_widget('acme')))
+                reached_end_of_block.append(True)
+
         with EngineEventCounter(self.factory.engine) as counter:
             with self.assertRaises(IntegrityError):
-                with self.factory.get() as session:
-                    session.add(TransactionWidget(**_widget('acme')))
-                    reached_end_of_block.append(True)
+                add_a_duplicate()
 
         self.assertEqual([True], reached_end_of_block)
         self.assertEqual(1, counter.checkouts)

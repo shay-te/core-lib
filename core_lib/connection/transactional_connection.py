@@ -21,16 +21,16 @@ class TransactionalConnection(Connection, ABC):
         return self.open()
 
     def __exit__(self, exec_type: Optional[Type[BaseException]], exec_value: Optional[BaseException],
-                 traceback: Optional[TracebackType]) -> bool:
+                 traceback: Optional[TracebackType]) -> None:
+        # returns None, so an error in the block goes up; inside a transaction, its end rolls back through `end`
         self.open_blocks -= 1
         if not self.in_transaction:
             self.end(exec_type, exec_value, traceback)
-            return False
-        if exec_type is None:
-            self.flush()
-        if self.open_blocks == 0:
-            self.release()
-        return False  # an error goes up: the transaction's end rolls back through `end`
+        else:
+            if exec_type is None:
+                self.flush()
+            if self.open_blocks == 0:
+                self.release()
 
     @abstractmethod
     def open(self) -> Any:
