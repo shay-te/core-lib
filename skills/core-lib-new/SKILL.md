@@ -73,6 +73,8 @@ validation-failure type**.
    `version_table` changes. Never invent a lib-prefixed database key
    (`FOO_DB_PROTOCOL`, `FOO_DB_FILE`, …). A host's install compose for the lib
    is `defaults:` only, and tests reach sqlite through the test yaml (§13.5).
+   A host app lists each lib it builds flat in its `app_config.yaml` defaults,
+   never a config group of libraries (§3.4).
 6. **Migration** for the first entity (`core-lib-migration`).
 7. **Tests** (`core-lib-tests`) — real collaborators, agnostic fixtures, run
    with `python -P`. Finish by building the wheel and installing it into a
