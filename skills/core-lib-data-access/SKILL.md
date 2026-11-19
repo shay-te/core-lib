@@ -186,7 +186,9 @@ That is the whole class — no `create`, no guards, domain queries only.
   subclass's `__init__` (§5).
 - **`rule_validator` is module-level, next to the class** — ONE of them, built
   from an `allowed_update_types` list, one `ValueRuleValidator(Entity.col.key,
-  type, custom_validator=...)` per column (§5).
+  type, custom_validator=...)` per column (§5). Exactly one: `RuleValidator`
+  keys its rules by column, so a second rule for a column silently replaces the
+  first (a merge that adds the column on both sides keeps the stricter) (§12).
 - **Every constant sits at the top of the file**, right after the imports, as
   the allow-list and `rule_validator` do in the template — never between two
   methods ("Constants live at the top of the file" in `AGENTS.md`).
