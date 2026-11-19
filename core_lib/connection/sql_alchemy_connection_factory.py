@@ -1,14 +1,15 @@
 from omegaconf import DictConfig
 
-from core_lib.connection.connection_factory import ConnectionFactory
 from core_lib.connection.sql_alchemy_connection import SqlAlchemyConnection
+from core_lib.connection.transactional_connection_factory import TransactionalConnectionFactory
 from core_lib.data_layers.data.data_helpers import build_url
 from sqlalchemy import create_engine, engine
 from core_lib.data_layers.data.db.sqlalchemy.base import Base
 
 UNSUPPORTED_DB_POOL = ['sqlite', 'firebird', 'sybase', 'ibm_db_sa', 'redshift']
+IN_MEMORY_SQLITE_DATABASES = (None, '', ':memory:', 'file::memory:')
 
-class SqlAlchemyConnectionFactory(ConnectionFactory):
+class SqlAlchemyConnectionFactory(TransactionalConnectionFactory):
     def __init__(self, config: DictConfig):
         self.session_to_count = {}
         self._engine = self._create_engine(config)
@@ -25,7 +26,14 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
     def connection(self):
         return self._connection
 
-    def get(self, *args, **kwargs) -> SqlAlchemyConnection:
+    def identity(self) -> str:
+        url = self._engine.url
+        identity = url.render_as_string(hide_password=True)  # a password is a credential, not what is reached
+        if url.database in IN_MEMORY_SQLITE_DATABASES or url.query.get('mode') == 'memory':
+            return '{} engine {}'.format(identity, id(self._engine))  # an in-memory sqlite: a database per engine
+        return identity
+
+    def create_connection(self) -> SqlAlchemyConnection:
         return SqlAlchemyConnection(self._engine, self._on_db_session_exit)
 
     def _on_db_session_exit(self, db_session: SqlAlchemyConnection):
@@ -51,5 +59,6 @@ class SqlAlchemyConnectionFactory(ConnectionFactory):
             pool_recycle=pool_recycle,
             echo=log_queries,
             pool_pre_ping=pool_pre_ping,
+            hide_parameters=True,  # an error or a log line never shows the values being written
             **extra_params
         )

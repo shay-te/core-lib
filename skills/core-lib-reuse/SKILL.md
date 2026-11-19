@@ -49,6 +49,7 @@ what core-lib lacks — so the next reader does not re-run your search.
 | raise 404 when a getter finds nothing | `@NotFoundErrorHandler()` — `core_lib.error_handling.not_found_decorator` | raises `StatusCodeException(404)` when the result is **falsy**; already on the CRUD bases' `get` |
 | map a uniqueness violation to 409 | `@DuplicateErrorHandler()` — `core_lib.error_handling.duplicate_error_decorator` | never hand-write `except IntegrityError` |
 | cache a read | `@Cache(KEY, handler_name=...)` — `core_lib.cache.cache_decorator` | key templating via `build_function_key` |
+| run several DataAccess calls as one commit | `@Transaction()` — `core_lib.connection.transaction_decorator` | innermost decorator; never pass a session |
 | fire a host event | `@Observe(event_key=..., observer_name=...)` — `core_lib.observer.observer_decorator` | |
 | turn a bare `assert` into a status code | `with StatusCodeAssert(code, msg):` — `core_lib.error_handling.status_code_assert` | context manager |
 | call an HTTP API | subclass `ClientBase` — `core_lib.client.client_base` | `_get/_post/_put/_delete(path, **requests_kwargs)` on one `base_url`; `set_timeout` / `set_headers` / `set_auth`; the `session` is the test boundary — see `core-lib-client` |
@@ -66,6 +67,13 @@ what core-lib lacks — so the next reader does not re-run your search.
 | `core_lib.rule_validator.rule_validator` | `RuleValidator` / `ValueRuleValidator` — write-path validation; **never hand-roll a field allow-list** |
 
 † in both `parse_utils` and `validation` — import from `validation`.
+
+**Building blocks (subclass these before writing a mechanism of your own)**
+
+| Need | Use | Notes |
+|---|---|---|
+| store one object per key, process-wide — and the only place instances of a class are kept, never the class itself | `Registry` / `DefaultRegistry` — `core_lib.registry` | `CoreLib.cache_registry`, `observer_registry`, `connection_factory_registry` and `transaction_scope_registry` are all registries; a per-thread store is a `Registry` over a dict keyed by `threading.get_ident()`, not a `ContextVar` |
+| a backend whose SDK has real transactions joins `@Transaction()` | subclass `TransactionalConnectionFactory` / `TransactionalConnection` — `core_lib.connection` | write `create_connection()`, `identity()`, `open()`, `flush()`, `release()` and `end()`; `get()`, `__enter__` and `__exit__` come from the base — see `core-lib-connection` |
 
 `is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
 
