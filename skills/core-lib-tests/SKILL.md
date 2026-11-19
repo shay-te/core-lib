@@ -307,3 +307,15 @@ database. See §3 above for what a complete flow looks like, and add a
 - **A test file's constants sit at its top**, right after the imports (absent
   ids, fixture values), never between test methods ("Constants live at the top
   of the file" in `AGENTS.md`).
+- **Shapes SonarCloud rejects in a test** (AGENTS.md "Repo-specific context"):
+  - `assertTrue(a == b)` / `assertFalse(a == b)`: use `assertEqual` /
+    `assertNotEqual` (S5906). Comparing an object with itself on purpose keeps
+    `assertTrue(x == x)` plus `# NOSONAR - <why>`.
+  - The same expression on both sides of `assertEqual`: store the first call and
+    compare the second with it (S5863).
+  - More than one call that can raise inside `with self.assertRaises(...)`: build
+    arguments and coroutines before the `with` (`coroutine = main()`, then
+    `asyncio.run(coroutine)`), and move a whole `with` block into a local
+    function (S5778).
+  - A module global assigned in a test, even with `addCleanup`: use
+    `with mock.patch.object(module, 'name', value):` (S8997).
