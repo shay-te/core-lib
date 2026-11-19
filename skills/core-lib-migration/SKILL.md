@@ -21,6 +21,14 @@ Every schema change during initial development is **folded back into**
 `<date>_1_create_db.py` — you do not stack revisions. Only after release do new
 revisions get added (§11.2).
 
+## After release: ONE migration per change (operator)
+
+One change (one ticket) adds exactly one migration file per lib, holding all of
+it (tables, columns, data backfills): numbered the default branch's head + 1 and
+dated the latest. A merge that brings another migration with that number means
+you renumber yours to the new head + 1 (filename, `revision`, `down_revision`,
+`.migration_ver`).
+
 ## Naming
 
 - File: `<YYYY-MM-DD>_<N>_<reason_slug>.py` — e.g. `2026-06-21_1_create_db.py`.
