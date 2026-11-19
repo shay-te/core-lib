@@ -104,6 +104,9 @@ it logs). What the host owns (option lists, key names, thresholds) comes in as a
 the next product re-implements it and the copies drift (AGENTS "The other direction: the library owns the rules
 about its own data").
 
+Already written in one host and now needed by a second? Move it into the library and point both at it, never a
+copy; the first host keeps working, with a thin wrapper only for what it alone adds (same AGENTS section).
+
 ## Where a lib-local helper goes
 
 `<name>_core_lib/helpers.py`, at the **library root**, when a DataAccess needs

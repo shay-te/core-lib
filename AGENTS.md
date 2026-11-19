@@ -355,6 +355,11 @@ What the host owns stays a parameter: the helper takes the field's options, the 
 never reads the host's config or constants. The host then calls the library helper and adds only its policy around
 it (which status to answer, what to log).
 
+**When a second host needs code the first host already wrote, move it into the shared library and point both at
+it — never a copy in the new host (operator).** The first host must keep working: its callers import the library,
+and a thin wrapper stays in that host only for what it alone adds, passed in through a neutral parameter. The same
+holds for any package two products share, UI code included.
+
 Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
 library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
 was missing from the library.
