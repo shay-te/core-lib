@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change a DataAccess
 
 # Create a core-lib DataAccess (query layer)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 A DataAccess is **pure CRUD** over a single entity: insert one row, fetch one
 row, update one by PK, soft-delete one by PK, list by simple filters. No
 business logic, no reconciliation, no cross-row decisions, no scoping — those
@@ -106,9 +110,10 @@ See "A DataAccess holds NO business logic" in `AGENTS.md`.
 `SqlAlchemyConnection` does both when the `with self._db.get() as session:` block
 exits — commit, flush, close; rollback on an exception — and its sessions use
 `expire_on_commit=False`, so the entity a write returns still carries its
-generated id afterwards. A session the Service hands in is no different: it is
-the Service's `with self._thing_da.transaction() as session:` block, which commits
-when it exits. A DataAccess only adds rows and sets attributes.
+generated id afterwards. Inside the Service's `@Transaction()` the same block
+only flushes — the id is set when `create` returns — and the commit waits for the
+transaction; the DataAccess code is identical either way. A DataAccess only adds
+rows and sets attributes.
 
 If the Service needs the stored row — its id, a value the database filled in —
 it reads it back through its own cached `get` after the write. Never flush early
@@ -200,13 +205,13 @@ That is the whole class — no `create`, no guards, domain queries only.
   columns>` read before a create): the unique index refuses the duplicate and
   the Service's `@DuplicateErrorHandler()` answers 409 (§6).
 - **A write the service must commit together with another table's, or a
-  check-then-write behind a guard**, gets session-taking methods BESIDE the
-  base (never an override): `transaction()`, `create_in_transaction(session,
-  data)` / `update_in_transaction(session, row, data)` — same `rule_validator`,
-  add or set only, never flush or commit — and `get_for_update(session, id)` with
-  `SET LOCAL lock_timeout` then `with_for_update=True` (§6).
-  A foreign key to a row created in that same transaction is set through a
-  write-only `relationship(Other, lazy='raise')`, never by flushing for the id (§6).
+  check-then-write behind a guard, needs nothing here.** The Service puts
+  `@Transaction()` on its method and every call to this DataAccess joins that
+  one session by itself. The DataAccess stays session-free: no `session`
+  parameter, no `transaction()` / `*_in_transaction` / `get_for_update(session, …)`
+  methods. A row lock is an ordinary query method (`SET LOCAL lock_timeout`, then
+  `session.get(Entity, id, with_for_update=True)`) the Service calls inside its
+  transaction (§6).
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale

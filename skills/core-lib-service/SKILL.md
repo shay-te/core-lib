@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change a Service, b
 
 # Create a core-lib Service (business logic + public API)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 The Service layer owns business logic, caching, and transformation, and is the
 library's **public API surface**. Callers outside the lib go through
 `core_lib.some_service.some_method(...)` — never into a DataAccess directly.
@@ -106,6 +110,11 @@ Copy these exactly (§6) — they are **not** one uniform order:
   it (the 409 mapping sits below the dict conversion).
 - **write/evict:** `@Cache(KEY, handler_name=..., invalidate=True)` — no
   `@ResultToDict()`.
+- **one transaction:** `@Transaction()` under every decorator that must see its
+  commit — `@Cache(...)` (read or `invalidate=True`), `@DuplicateErrorHandler()`,
+  `@Observe`, `@ResultToDict()`, and `@staticmethod` / `@classmethod` above all —
+  but **above** `@NotFoundErrorHandler()`, so a 404 rolls the write back. Each
+  wrong order is pinned in `tests/test_transaction_decorator.py` (AGENTS §6).
 - **list:** a per-tenant or per-parent list is a read (`@Cache` outermost); a paged or open-ended search is `@ResultToDict()` only.
 
 Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
@@ -180,10 +189,15 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A delete that records what it removed** (history, an event) reads the row through
   the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
-  write** (a set-once field, "not answered yet"), run in ONE session the service
-  opens through the DA's `transaction()`, with the row read by
-  `get_for_update` — each plain CRUD call commits alone, and without the lock
-  two concurrent calls both pass the check (§6).
+  write** (a set-once field, "not answered yet"), are ONE `@Transaction()`
+  (`core_lib.connection.transaction_decorator`) on the Service method.
+  Every DataAccess call inside it joins one session — another lib's on the same
+  database too. Each block only flushes, so `create` returns the id and a child
+  row uses it directly; the return commits once, an exception rolls back. The
+  guarded row is read by an ordinary DataAccess query taking a row lock
+  (`with_for_update=True`), held until the commit — without it two concurrent
+  calls both pass the check. Never pass a `session`. A worker thread is not part
+  of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
 - **A list shown beside a create that routes by its inputs** takes the same

@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change an SDK-backe
 
 # Create an SDK-backed backend (the `connections/` pattern)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 > **Calling an HTTP API yourself?** That is not this pattern: build a `ClientBase` subclass in
 > `client/` — load `core-lib-client`. This skill is for a backend reached through an SDK that
 > owns its connection.
@@ -83,6 +87,7 @@ rejected in review (§0).
   `addressing_style: auto` → `path`). Ship `docker-compose-dev.yaml` with the
   real local backend rather than faking it in tests.
 - Registries stay in-memory — re-register on process boot (§10).
+- **A backend with real transactions joins `@Transaction()` through two abstract classes** (core-lib `AGENTS.md` §12): the factory subclasses `TransactionalConnectionFactory` and writes `create_connection()` and `identity()`, a `str` naming what its connections reach, never a secret (its `get()`, `__eq__` and `__hash__` come from the base), the connection subclasses `TransactionalConnection` and writes `open()`, `flush()`, `release()` and `end()` (its `__enter__` and `__exit__` come from the base). A backend without transactions stays a plain `ConnectionFactory` / `Connection`.
 - **Every constant sits at the top of the file**, right after the imports —
   never between methods ("Constants live at the top of the file" in
   `AGENTS.md`).
