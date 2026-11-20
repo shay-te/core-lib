@@ -211,7 +211,9 @@ That is the whole class — no `create`, no guards, domain queries only.
   parameter, no `transaction()` / `*_in_transaction` / `get_for_update(session, …)`
   methods. A row lock is an ordinary query method (`SET LOCAL lock_timeout`, then
   `session.get(Entity, id, with_for_update=True)`) the Service calls inside its
-  transaction (§6).
+  transaction (§6). Rows that do not exist yet (a list's order) take a
+  transaction advisory lock keyed by the parent id instead
+  (`pg_advisory_xact_lock`, a no-op on sqlite). The lib owns it; hosts never see it.
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale
