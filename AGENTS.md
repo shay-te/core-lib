@@ -11,6 +11,15 @@
 
 ---
 
+# Agents write tests; the operator runs them (operator rule)
+
+An agent never runs a test suite, a mutation check, a linter, a server, or anything in the background or in
+Docker (`docker compose up`, `moto.server`): a process left running blocks the operator's machine. It writes and
+updates the tests, and its done summary says what was not run. Every "run" in this file and in `skills/` is the
+operator's step.
+
+---
+
 # A column name is NEVER a string literal — `Entity.column.key`
 
 One rule, stated once, because it is the single most repeated review
