@@ -568,6 +568,9 @@ class TestParseToggleIndices(unittest.TestCase):
     def test_trailing_dash_dropped(self):
         self.assertEqual(_parse_toggle_indices("1-", 5), [])
 
+    def test_double_dash_token_dropped(self):
+        self.assertEqual(_parse_toggle_indices("1-2-3, 4", 5), [3])
+
 
 # ── prompt_multi_select ───────────────────────────────────────────────────────
 

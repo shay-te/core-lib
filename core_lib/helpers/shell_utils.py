@@ -44,35 +44,37 @@ def _coalesce_prompt_value(raw: str, default) -> str:
     return ''
 
 
+def _int_range(start_text: str, end_text: str) -> range:
+    """The numbers from start to end inclusive, in either order; empty when either is not an int."""
+    try:
+        start = int(start_text)
+        end = int(end_text)
+    except ValueError:
+        return range(0)
+    return range(min(start, end), max(start, end) + 1)
+
+
+def _toggle_token_numbers(token: str) -> range:
+    """The 1-based numbers one token names: ``3``, or a range ``1-3``."""
+    start_text, dash, end_text = token.partition('-')
+    if not dash or not start_text:
+        return _int_range(token, token)
+    return _int_range(start_text, end_text)
+
+
 def _parse_toggle_indices(raw: str, max_index: int) -> list:
     """Parse ``1,3,5`` / ``1 3 5`` / ``1-3,7`` into 0-based indices.
 
     Out-of-range and unparseable tokens are dropped silently — a typo in
     one token shouldn't drop the whole edit.
     """
-    cleaned = raw.replace(',', ' ').strip()
-    if not cleaned:
-        return []
-    out = []
-    for token in cleaned.split():
-        if '-' in token and not token.startswith('-'):
-            start_text, _, end_text = token.partition('-')
-            try:
-                start = int(start_text)
-                end = int(end_text)
-            except ValueError:
-                continue
-            for n in range(min(start, end), max(start, end) + 1):
-                if 1 <= n <= max_index:
-                    out.append(n - 1)
-            continue
-        try:
-            n = int(token)
-        except ValueError:
-            continue
-        if 1 <= n <= max_index:
-            out.append(n - 1)
-    return out
+    tokens = raw.replace(',', ' ').split()
+    return [
+        number - 1
+        for token in tokens
+        for number in _toggle_token_numbers(token)
+        if 1 <= number <= max_index
+    ]
 
 
 # ── string ────────────────────────────────────────────────────────────────────
@@ -275,6 +277,34 @@ def prompt_list(
         is_valid = True
 
 
+def _initial_multi_select_state(items: list, initial_selected: Optional[Sequence[bool]]) -> list:
+    if initial_selected is None:
+        return [False] * len(items)
+    selected = [bool(is_selected) for is_selected in initial_selected]
+    if len(selected) != len(items):
+        raise ValueError('initial_selected must match items in length')
+    return selected
+
+
+def _print_multi_select(
+    title: str,
+    items: list,
+    selected: list,
+    label: Callable[[ListItem], str],
+    instructions: str,
+    empty_message: str,
+) -> None:
+    print()
+    print(title)
+    if not items:
+        print(f'  {empty_message}')
+    for position, (item, is_selected) in enumerate(zip(items, selected), start=1):
+        mark = '[x]' if is_selected else '[ ]'
+        print(f'  {position:>3}. {mark}  {label(item)}')
+    print()
+    print(instructions)
+
+
 def prompt_multi_select(
     items: Sequence[ListItem],
     title: str,
@@ -298,32 +328,23 @@ def prompt_multi_select(
     warnings) — the picker only owns index, checkbox, and the toggle loop.
     """
     items = list(items)
-    if initial_selected is None:
-        selected = [False] * len(items)
-    else:
-        selected = [bool(s) for s in initial_selected]
-        if len(selected) != len(items):
-            raise ValueError('initial_selected must match items in length')
+    selected = _initial_multi_select_state(items, initial_selected)
     label = label_for if label_for is not None else str
 
-    while True:
-        print()
-        print(title)
-        if not items:
-            print(f'  {empty_message}')
-        else:
-            for i, item in enumerate(items, start=1):
-                mark = '[x]' if selected[i - 1] else '[ ]'
-                print(f'  {i:>3}. {mark}  {label(item)}')
-        print()
-        print(instructions)
+    result = selected
+    is_choosing = True
+    while is_choosing:
+        _print_multi_select(title, items, selected, label, instructions, empty_message)
         raw = _prompt('> ')
         if raw.lower() in ('q', 'quit', 'exit'):
-            return None
-        if not raw:
-            return selected
-        for idx in _parse_toggle_indices(raw, len(items)):
-            selected[idx] = not selected[idx]
+            result = None
+            is_choosing = False
+        elif not raw:
+            is_choosing = False
+        else:
+            for index in _parse_toggle_indices(raw, len(items)):
+                selected[index] = not selected[index]
+    return result
 
 
 def prompt_comma_list(
