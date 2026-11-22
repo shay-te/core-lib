@@ -155,6 +155,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+- **One concept, one name** — a method, its parameters and its callers use the
+  host's term for the thing everywhere; a synonym in one layer is renamed (§1).
 - **Minimum surface** — every public method has a caller in this change; one
   the plan lists for a LATER step is written in that step. No "may happen"
   branches (§0).
@@ -185,7 +187,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   unique index answers 409 (the `if existing` read is for an upsert only).
 - **No read before a write to answer 404/409.** A by-id write is the
   DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
-  `update`); let the database and the `RuleValidator` refuse (§6).
+  `update`); let the database and the `RuleValidator` refuse (§6). An
+  external API that refuses a duplicate (409 for an existing account) is the
+  same: call the create, catch only that status, let every other error out.
+  A setting that system already holds (a link lifespan) is set there, never
+  sent from code (operator).
 - **A delete that records what it removed** (history, an event) reads the row through
   the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
