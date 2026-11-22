@@ -9,7 +9,7 @@ entries:
             output: web
             folderitems:
                 - title: Getting started
-                  url: /index.html
+                  url: /getting_started.html
                   output: web
                   type: homepage
 
@@ -86,6 +86,10 @@ entries:
 
                 - title: Neo4j Connection Registry
                   url: /neo4j_connection_factory.html
+                  output: web
+
+                - title: Transaction
+                  url: /transaction.html
                   output: web
         
           - title: Data Layers

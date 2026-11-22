@@ -4,6 +4,7 @@ from omegaconf import DictConfig
 
 from core_lib.cache.cache_registry import CacheRegistry
 from core_lib.connection.connection_factory_registry import ConnectionFactoryRegistry
+from core_lib.connection.transaction_scope_registry import TransactionScopeRegistry
 from core_lib.core_lib_listener import CoreLibListener
 from core_lib.error_handling.core_lib_init_exception import CoreLibInitException
 from core_lib.helpers.config_instances import instantiate_config_group_generator_dict
@@ -20,6 +21,7 @@ class CoreLib(object):
     cache_registry = CacheRegistry()
     observer_registry = ObserverRegistry()
     connection_factory_registry = ConnectionFactoryRegistry()
+    transaction_scope_registry = TransactionScopeRegistry()
     handle_exception_middleware = MiddlewareChain()
     scheduler = JobScheduler()
 
@@ -35,6 +37,7 @@ class CoreLib(object):
         ):
             initial_delay = job_config.get('initial_delay')
             frequency = job_config.get('frequency')
+            is_run_in_parallel = job_config.get('is_run_in_parallel', False)
 
             if not initial_delay:
                 raise ValueError(f'job invalid initial_delay config `{job_config.initial_delay}`')
@@ -46,9 +49,9 @@ class CoreLib(object):
                 job.set_data_handler(job_to_data_handler.get(job_name))
 
             if frequency:
-                CoreLib.scheduler.schedule(initial_delay, frequency, job)
+                CoreLib.scheduler.schedule(initial_delay, frequency, job, is_run_in_parallel)
             else:
-                CoreLib.scheduler.schedule_once(initial_delay, job)
+                CoreLib.scheduler.schedule_once(initial_delay, job, is_run_in_parallel)
 
             if isinstance(job, CoreLibListener):
                 logger.debug(

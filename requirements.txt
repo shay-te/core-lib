@@ -1,5 +1,5 @@
 #Core lib
-hydra-core==1.2
+hydra-core==1.3.6
 python-dateutil
 PyJWT
 argh
@@ -11,7 +11,7 @@ redis
 click
 
 # Connectors
-sqlalchemy==1.4.44
+sqlalchemy==2.0.52
 alembic
 pymysql
 psycopg2-binary
@@ -34,7 +34,7 @@ requests
 
 # Test
 python-dotenv
-moto==3.1.4
+moto==5.2.3
 freezegun
 mongomock
 flask_wtf

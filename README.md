@@ -89,7 +89,7 @@ pip install core-lib
 
 ## Documentation
 
-Full documentation, examples, and guides: [https://shay-te.github.io/core-lib/](https://shay-te.github.io/core-lib/)
+Full documentation, examples, and guides: [https://shay-te.github.io/core-lib/getting_started.html](https://shay-te.github.io/core-lib/getting_started.html)
 
 ---
 

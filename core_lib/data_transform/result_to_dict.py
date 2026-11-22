@@ -106,7 +106,9 @@ def result_to_dict(return_val, properties_as_dict: bool = True, callback: Callab
                 results[key] = result_to_dict(value, properties_as_dict=properties_as_dict, callback=callback)
 
     elif isinstance(return_val, Row):
-        results = __dict_to_dict(return_val)
+        # SQLAlchemy 2.0 Row iterates values, not key/value pairs, so dict(row)
+        # raises. `_mapping` gives the key/value view on both 1.4 and 2.0.
+        results = __dict_to_dict(return_val._mapping)
     else:
         results = return_val
 
