@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change a Service, b
 
 # Create a core-lib Service (business logic + public API)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 The Service layer owns business logic, caching, and transformation, and is the
 library's **public API surface**. Callers outside the lib go through
 `core_lib.some_service.some_method(...)` — never into a DataAccess directly.
@@ -45,8 +49,10 @@ functions get assigned to.
 1. Confirm the DataAccess exists (use `core-lib-data-access` first).
 2. Create `data_layers/service/<entity>_service.py` extending `Service`.
 3. Wrap reads/writes with decorators in the right order.
-4. Add caching only where the win is real (cross-service hot paths).
-5. Type enum parameters as the enum and validate with an explicit raise.
+4. Cache every read whose key bounds its result, and clear it on every write (see "Cache decisions").
+5. Type enum parameters as the enum and take the member as given: no conversion
+   from an int, no check of its own — the DataAccess's `RuleValidator` refuses a
+   wrong value.
 6. Any pure logic that grew its own name goes in `<name>_helper.py` beside it.
 
 ## Canonical template
@@ -87,9 +93,7 @@ class WidgetService(Service):
     def update(self, widget_id: int, data: dict):
         return self._widget_da.update(widget_id, data)
 
-    def set_status(self, widget_id: int, status: Widget.Status):
-        if not isinstance(status, Widget.Status):     # enum at the boundary
-            raise ValueError('status must be a Widget.Status member')
+    def set_status(self, widget_id: int, status: Widget.Status):   # the member, never its int
         return self.update(widget_id, {Widget.status.key: status})
 ```
 
@@ -106,15 +110,34 @@ Copy these exactly (§6) — they are **not** one uniform order:
   it (the 409 mapping sits below the dict conversion).
 - **write/evict:** `@Cache(KEY, handler_name=..., invalidate=True)` — no
   `@ResultToDict()`.
-- **list:** `@ResultToDict()` only — never cached.
+- **one transaction:** `@Transaction()` under every decorator that must see its
+  commit — `@Cache(...)` (read or `invalidate=True`), `@DuplicateErrorHandler()`,
+  `@Observe`, `@ResultToDict()`, and `@staticmethod` / `@classmethod` above all —
+  but **above** `@NotFoundErrorHandler()`, so a 404 rolls the write back. Each
+  wrong order is pinned in `tests/test_transaction_decorator.py` (AGENTS §6).
+- **list:** a per-tenant or per-parent list is a read (`@Cache` outermost); a paged or open-ended search is `@ResultToDict()` only.
 
 Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 ## Cache decisions
 
-- **Cache only cross-service hot paths** (service A asks service B the same
-  question every request). Host-app PK-by-id reads stay uncached — record the
-  "why not" in the service-class docstring (§6).
+- **Cache every read whose key bounds its result (operator rule, §6)**: a by-id
+  `get`, a per-tenant or per-parent list. Only a paged read or one keyed by an
+  open-ended filter stays uncached.
+- **Every write the library makes clears every key it changes, for every tenant
+  or parent it reaches** (a row listed under several tenants clears each one's
+  list), through one invalidation method its writers share. Data changed by hand
+  in the database is cleared by hand by the operator: never a reason to leave a
+  read uncached, and never assume a write path exists for it.
+- **The cache is JSON: a dict's int keys come back as strings.** Cache the rows
+  (a private `@Cache` + `@ResultToDict` read) and build the `{int id: ...}` dict
+  after the cache.
+- **A whole row cached with no expiry has a version in its key**, and the change
+  that adds a column to its entity, or a migration rewriting its stored rows,
+  bumps it. Otherwise the previous release's records are served forever: a
+  reader of the new column raises `KeyError`, and a write that merges into the
+  stale record writes it back. Test it by serving a record under the previous
+  key (§6).
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
 - Methods that write a row directly through the DA carry
@@ -122,7 +145,7 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   service methods need no decorator.
 - `create` never evicts (misses aren't cached). Write-then-return-the-row must
   evict first, then re-read through the cached getter.
-- `list`/`search`/`all` stay uncached (unbounded key space).
+- A paged `list` / free `search` stays uncached (unbounded key space).
 
 ## Rules to enforce (from AGENTS.md)
 
@@ -132,25 +155,62 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
-- **Minimum surface** — every public method has a caller or a ticket line;
-  no "may happen" branches (§0).
+- **Minimum surface** — every public method has a caller in this change; one
+  the plan lists for a LATER step is written in that step. No "may happen"
+  branches (§0).
 - **A method taking a row id also takes the tenant key** (`project_id`) and
   treats another tenant's row as absent (§6).
 - **Tuning values are module constants, not config**, until a host asks (§6).
+- **Every constant sits at the top of the file**, right after the imports —
+  never between two methods or beside the one that reads it ("Constants live at
+  the top of the file" in `AGENTS.md`).
+- **The usual value is the parameter's default**: a caller passes it only when
+  it differs. Host-specific values keep no default (§6).
 - **Enums cross the boundary as enums, never raw ints** (§6); plain
-  `enum.Enum`.
+  `enum.Enum`. The Service takes the member as given: converting a request's
+  int is the host's job, and the Service neither converts nor re-checks it.
+- **A map between two enums is a constant, declared once** — `<SOURCE>_TO_<TARGET>`
+  in the constants module of the vocabulary it maps into, imported by every
+  service and host that reads it; never a private `_X_TYPES = {...}` dict at the
+  top of a service file ("A map between two vocabularies is a constant too" in
+  `AGENTS.md`).
+- **A caller never cuts fetched rows down** — no `{key: row[key] for key in KEYS}` in another service or the host.
+  Part of one row is a method on the entity's own Service that reads its cached getter and keeps a field set
+  (`get_summary(member_id)` over `get_full`, keeping `MEMBER_SUMMARY_FIELDS`), and every reader calls it, no new
+  query. The set is one constant in the library that owns the entity, never a private `_KEYS` tuple per service ("Part
+  of a row" and "A set of an entity's fields that several readers use is declared once" in `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
+  A create whose duplicate is an error does not look the row up first: the
+  unique index answers 409 (the `if existing` read is for an upsert only).
+- **No read before a write to answer 404/409.** A by-id write is the
+  DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
+  `update`); let the database and the `RuleValidator` refuse (§6).
+- **A delete that records what it removed** (history, an event) reads the row through
+  the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
-  write** (a set-once field, "not answered yet"), run in ONE session the service
-  opens through the DA's `transaction()`, with the row read by
-  `get_for_update` — each plain CRUD call commits alone, and without the lock
-  two concurrent calls both pass the check (§6).
+  write** (a set-once field, "not answered yet"), are ONE `@Transaction()`
+  (`core_lib.connection.transaction_decorator`) on the Service method.
+  Every DataAccess call inside it joins one session — another lib's on the same
+  database too. Each block only flushes, so `create` returns the id and a child
+  row uses it directly; the return commits once, an exception rolls back. The
+  guarded row is read by an ordinary DataAccess query taking a row lock
+  (`with_for_update=True`), held until the commit — without it two concurrent
+  calls both pass the check. Never pass a `session`. A worker thread is not part
+  of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
+<<<<<<< HEAD
 - **A decorator shipped for hosts** gets its checks of parameter names and derived
   identifiers from the function it wraps, never from a copy in the decorator;
   options after the first are keyword-only (§8).
+=======
+- **A list shown beside a create that routes by its inputs** takes the same
+  inputs and calls the create's private routing method, in the same Service:
+  never a read of one of the places, never a second decision in the host (§6.4).
+- **A decorator shipped for hosts** checks its parameter names and derived
+  identifiers at decoration time; options after the first are keyword-only (§8).
+>>>>>>> origin/master
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).

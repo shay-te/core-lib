@@ -111,7 +111,7 @@ Why it is shaped that way:
 | content is well-formed but cannot be processed (a definition that would not score) | **422** `UNPROCESSABLE_ENTITY` — the client shows these to the author; it does not retry |
 | the request is fine, the STORED state forbids it (re-publishing a version, a trend on a trait, incomparable versions) | **409** `CONFLICT` |
 | a row that must exist does not | **404** — usually raised for you by `@NotFoundErrorHandler()` on the CRUD base's `get` |
-| a uniqueness violation | **409** via `@DuplicateErrorHandler()` — never hand-write `except IntegrityError` |
+| a uniqueness violation | **409** via `@DuplicateErrorHandler()` — never hand-write `except IntegrityError`, and never look the row up first |
 | a missing/empty required ARGUMENT | plain `ValueError` at the top of the service method — not an error class (§6) |
 
 ## Test it — walk the package, don't scan a namespace

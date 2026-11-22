@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change a DataAccess
 
 # Create a core-lib DataAccess (query layer)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 A DataAccess is **pure CRUD** over a single entity: insert one row, fetch one
 row, update one by PK, soft-delete one by PK, list by simple filters. No
 business logic, no reconciliation, no cross-row decisions, no scoping — those
@@ -106,9 +110,10 @@ See "A DataAccess holds NO business logic" in `AGENTS.md`.
 `SqlAlchemyConnection` does both when the `with self._db.get() as session:` block
 exits — commit, flush, close; rollback on an exception — and its sessions use
 `expire_on_commit=False`, so the entity a write returns still carries its
-generated id afterwards. A session the Service hands in is no different: it is
-the Service's `with self._thing_da.transaction() as session:` block, which commits
-when it exits. A DataAccess only adds rows and sets attributes.
+generated id afterwards. Inside the Service's `@Transaction()` the same block
+only flushes — the id is set when `create` returns — and the commit waits for the
+transaction; the DataAccess code is identical either way. A DataAccess only adds
+rows and sets attributes.
 
 If the Service needs the stored row — its id, a value the database filled in —
 it reads it back through its own cached `get` after the write. Never flush early
@@ -166,6 +171,13 @@ That is the whole class — no `create`, no guards, domain queries only.
 
 ## Rules to enforce (from AGENTS.md)
 
+- **A DataAccess knows only its own domain** (operator rule). A plain table's DA
+  (a group and its memberships) never filters by or joins for a feature built on
+  it (a sharing flag, who receives a share). Those queries go in the feature's DA,
+  which knows both and may join the plain tables; its Service owns them and their
+  cache. Check before writing a query: does every condition belong to this DA's
+  domain? If one belongs to a feature on top, the query belongs to that feature.
+
 - **Extends `DataAccess`** — every class in this folder, including shared bases
   and mixins. A shared reader written as a bare `object` is the only thing in
   `data_access/` not declaring what layer it is in. Put it ALONGSIDE the CRUD
@@ -180,18 +192,28 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **`rule_validator` is module-level, next to the class** — ONE of them, built
   from an `allowed_update_types` list, one `ValueRuleValidator(Entity.col.key,
   type, custom_validator=...)` per column (§5).
+- **Every constant sits at the top of the file**, right after the imports, as
+  the allow-list and `rule_validator` do in the template — never between two
+  methods ("Constants live at the top of the file" in `AGENTS.md`).
 - **Never override `create`** (§5.1). `CRUD.create(data: dict)` plus that
   validator is the write API; the Service passes the whole payload. No second
   `create_rule_validator`, and no allow-list entry restating a column's type or
   `nullable=False`. **`update` overrides strip immutable columns** before
   `super().update(id, data)` (§5).
 - **Never returns soft-deleted rows**; don't add `include_deleted` (§5).
+- **No query that exists only for a Service pre-check** (a `get_by_<unique
+  columns>` read before a create): the unique index refuses the duplicate and
+  the Service's `@DuplicateErrorHandler()` answers 409 (§6).
 - **A write the service must commit together with another table's, or a
-  check-then-write behind a guard**, gets session-taking methods BESIDE the
-  base (never an override): `transaction()`, `create_in_transaction(session,
-  data)` / `update_in_transaction(session, row, data)` — same `rule_validator`,
-  add or set only, never flush or commit — and `get_for_update(session, id)` with
-  `SET LOCAL lock_timeout` then `with_for_update=True` (§6).
+  check-then-write behind a guard, needs nothing here.** The Service puts
+  `@Transaction()` on its method and every call to this DataAccess joins that
+  one session by itself. The DataAccess stays session-free: no `session`
+  parameter, no `transaction()` / `*_in_transaction` / `get_for_update(session, …)`
+  methods. A row lock is an ordinary query method (`SET LOCAL lock_timeout`, then
+  `session.get(Entity, id, with_for_update=True)`) the Service calls inside its
+  transaction (§6). Rows that do not exist yet (a list's order) take a
+  transaction advisory lock keyed by the parent id instead
+  (`pg_advisory_xact_lock`, a no-op on sqlite). The lib owns it; hosts never see it.
 - **Column references are `Entity.col.key` / `Entity.col`** — never string
   literals (§5), and that holds in EVERY position, not just a query: a set,
   tuple, module constant, comparison or argument. In a filter set a stale
@@ -200,7 +222,17 @@ That is the whole class — no `create`, no guards, domain queries only.
 - **Errors:** your own arg guards raise `ValueError`; the base's guards are
   bare `assert` (→ `AssertionError`); a missing row on `get` is
   `StatusCodeException(404)` (§5).
+- **What a query returns** — the entity when its caller uses nearly all of it (never narrowed to drop a few unread
+  columns); only the columns shown when a list or report query reads many rows nobody has fetched, a shared field set
+  composed in (`session.query(Member.id, *MEMBER_SUMMARY_FIELDS)`). Never a query for part of ONE row a cached
+  getter already returns: that is a Service method over the getter ("Part of a row" and "A set of an entity's fields
+  that several readers use is declared once" in `AGENTS.md`).
 - **Cross-entity guards** live in module-level helpers inside the DA file (§5).
+- **A paged list is two methods over one private query builder:** `page(...,
+  start_row, page_size)` (`offset` + `limit`) and `count(...)` (`order_by(None)
+  .count()`), each one statement, so the page and its total never filter
+  differently. The builder orders by the list's order and then a unique column
+  (the id), or a page boundary inside a tie can repeat or skip a row (§5).
 - **A DB DataAccess is only ever called BY a Service** — never from a host app,
   a test, or another lib (§5).
 

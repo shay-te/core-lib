@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change any table, m
 
 # Create a core-lib entity (Data layer)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 The Data layer holds **SQLAlchemy models only** — columns, relationships,
 mixins. No queries, no business logic. One file per table under
 `<name>_core_lib/data_layers/data/db/entities/`.
@@ -226,7 +230,8 @@ The mixin choice decides the DataAccess base (§5).
   author would set.
 - **`INTEGER`, not `Integer`**; VARCHAR lengths always explicit
   (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
-  dict payloads are `JSON` columns named `meta_data` (§4).
+  dict payloads are `JSON` columns named `meta_data` (§4); every key inside one is a member of
+  one enum, a key only a client uses included (a pending chat message's `temp_id`).
 - **The enum class is plain `enum.Enum`, NESTED inside its entity class and
   read as `Thing.ThingKind`** — never at module level beside it. Name it for
   what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.
@@ -252,6 +257,10 @@ The mixin choice decides the DataAccess base (§5).
   a query, a payload, a `frozenset` of names, a tuple, a module constant, a
   comparison. A stale literal in a filter set fails silently — the name stops
   matching and the column stops being excluded (§4.3).
+- **A class's constants open its body** — `__tablename__`, the `INDEX_*` names,
+  then the nested enum, before the first column, as the template shows; a module
+  constant goes right after the imports ("Constants live at the top of the
+  file" in `AGENTS.md`).
 - **Any column with `server_default` MUST also carry the matching Python
   `default=`** (`default=0, server_default='0'`) — otherwise a freshly inserted
   ORM row reads `None` for it before commit (§4).

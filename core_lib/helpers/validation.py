@@ -26,7 +26,8 @@ def is_float(val) -> bool:
 
 
 def is_int(val) -> bool:
-    if val is None:
+    # A bool is never an int answer: True is an int in Python, so it would read as 1.
+    if val is None or isinstance(val, bool):
         return False
     try:
         int(val)

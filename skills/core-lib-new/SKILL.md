@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you create, bootstrap, or star
 
 # Create a new *-core-lib (end to end)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 **Read the canonical recipe in [`AGENTS.md`](../../AGENTS.md) first** — §0–§17
 (never invent, naming, folder tree, config, entities, DataAccess, services,
 composition root, observers, jobs, migrations, framework contracts, tests,
@@ -159,6 +163,9 @@ class FooCoreLib(CoreLib):
 - **No `import` and no `__all__` in the package-root `__init__.py`.** It holds
   `__version__` and nothing else; a re-export of `FooCoreLib` there breaks the
   build (§1, AGENTS §16 #27).
+- **Constants at the top of the file**, right after the imports — in this file
+  and in every file the lib grows ("Constants live at the top of the file" in
+  `AGENTS.md`).
 
 ## The agnosticism litmus test
 

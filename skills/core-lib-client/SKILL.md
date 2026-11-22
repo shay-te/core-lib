@@ -5,6 +5,10 @@ description: MANDATORY — load this skill BEFORE you add or change a client for
 
 # Build an HTTP API client (the `client/` pattern)
 
+> **Keep it super simple.** Plain code, one class with one meaning, names and types that say what a thing is: [`AGENTS.md`](../../AGENTS.md) "Writing core-lib code — keep it super simple". Re-read your change against it before handing over.
+>
+> **Never a class that stores itself.** A class never keeps, looks up or reaches into instances of itself (no class-level dict of its own instances, no static "current one" lookup, no reading another instance's `_private` fields). Split it: a dataclass for the data, a `Registry` for the store, a logic class for the work (AGENTS.md, "One class, one meaning").
+
 `core_lib.client.client_base.ClientBase` is core-lib's HTTP client: it holds one
 `base_url`, a `requests.Session`, and optional default headers / timeout / auth, and
 exposes the verbs `_get` / `_post` / `_put` / `_delete(path, **kwargs)` (the path is
@@ -114,6 +118,8 @@ self._calendar_clients = {CalendarProvider.ACME: acme_calendar_client}
   is injected (the agnosticism rule).
 - **Provider quirks stay in the provider's client** (status codes that mean success, error
   shapes); the abstract client's contract is what services rely on.
+- **Every constant sits at the top of the file** (paths, the status codes that mean success), right after the
+  imports, never between methods ("Constants live at the top of the file" in `AGENTS.md`).
 
 ## Testing
 
