@@ -60,17 +60,50 @@ class Cache(object):
 - **`key`** *`(str)`*:  Default `None`, The key used to store the value. possible values are:
   `None`: the decorated  `function.__qualname__` is used.     
 
-  `some_key{param_1}{param_2}`: Build a key with the `param_1` and `param_2` values. When a parameter is optional or empty _ will be used. 
+  `some_key{param_1}{param_2}`: Build a key with the `param_1` and `param_2` values. A parameter whose value is falsy (`0`, `None`, `''`, `False`, `[]`) renders as `!E<name>E!`, and a placeholder naming no parameter renders as `!M<name>M!`.
   
 - **`max_key_length`** *`(int)`*: Default `250`, the maximum length of key string to be accepted by decorator.
 
-- **`expire`** *`(timedelta/string)`*: Default `None`, Period of time when the value is expired.
+- **`expire`** *`(timedelta/string)`*: Default `None`, Period of time when the value is expired. `None` keeps the value until it is invalidated. A string (`'1 hour'`) is parsed once, when the function is decorated, to exactly the time written. Each handler keeps its backend's precision and refuses finer: RAM any length, Redis whole milliseconds, memcached whole seconds. An `expire` of zero or less raises `ValueError` on the RAM, Redis and memcached handlers. An `expire` the handler cannot keep exactly raises `ValueError` on the store, because the cache never changes the time a caller chose.
 
 - **`invalidate`** *`(bool)`*: Default `False`, Remove the value from the cache using the key.
 
 - **`handler_name`** *`(str)`*: Default `None`, The key of `CacheHandler` that registered into the `CoreLib.cache_registry`.
 
-- **`cache_empty_result`** *`(bool)`*: Default `True`, when `True`, will cache empty values as `{}`, `[]`, `()`, `""` and `set()`.
+- **`cache_empty_result`** *`(bool)`*: Default `True`, when `True`, will cache empty values as `{}`, `[]`, `""` and `0`.
+
+**Warning: two different calls can share one cached value.** The key is the only thing that tells cached results apart, and `@Cache` shapes it before any handler sees it:
+
+- spaces become `_`, so `'acme widget'` and `'acme_widget'` share one entry;
+- line breaks (`\n`, `\r`) are removed;
+- the key is cut to `max_key_length` characters, so two keys alike up to that length share one entry;
+- every falsy argument renders as the same `!E<name>E!`, so `get(0)` and `get(None)` share one entry.
+
+A call that shares an entry gets the other call's result. Build keys from ids and short codes, never from free text (names, emails, search terms), and keep them under the limit.
+
+### What every handler does the same, and what each backend adds
+
+The RAM, Redis and memcached handlers behave the same where it matters:
+
+- **Wrong data raises; it is never changed to fit.** A key, value or `expire` a handler cannot keep exactly as given raises. The cache never rewrites a key, rounds an expire or converts a value.
+- **A store that fails raises and changes nothing.** Whatever the reason (a refused key, value or `expire`, a value over the backend's size limit, a server that cannot be reached), `set` raises, and any older value under the key stays.
+- **An unreachable server never takes a store:** `set` raises on Redis and memcached alike. Reads and deletes follow the backend's own client (table below).
+- **An `expire` of zero or less raises `ValueError`**, and an expired value is gone, on every handler.
+- **Nothing is caught for you:** no fallback to "uncached", no retry, no deleting a key behind your back. What to do when the cache refuses a value or fails is the caller's decision.
+
+No handler is limited to what another can do. Each takes everything its backend can keep:
+
+| | RAM | Redis | memcached |
+|---|---|---|---|
+| Key | any `str` | any `str` (Redis keys are binary-safe, up to 512 MB) | not empty, at most 250 **bytes**, no space or control character; any other raises python-memcached's `MemcachedKeyError` on `get`, `set` and `delete` |
+| Value | any object, kept as given | `dict`, `list`, `int` or `str`, kept as JSON; anything else raises `ValueError` | as Redis |
+| `expire` | any length | whole milliseconds | whole seconds |
+| One value's size | no limit | 512 MB | 1 MB (raises `RuntimeError`) |
+| Server down | - | every operation raises `redis.exceptions.ConnectionError` | `set` raises `RuntimeError`; python-memcached raises nothing for the rest: `get` answers a miss, `delete` and `flush_all` do nothing |
+
+So code that runs on one handler can be refused by another: a key with a space works on Redis and RAM but raises on memcached, and a 500 ms `expire` works on RAM and Redis but raises on memcached. Test with the handler production uses. A non-ASCII character takes 2 to 4 bytes, so a key within `max_key_length`'s 250 characters can be over memcached's 250 bytes.
+
+What a hit returns differs the same way: Redis and memcached keep JSON, so a hit is a fresh copy, a dict's int keys come back as strings, a tuple inside the value comes back as a list, and a value holding something JSON cannot encode (a `set`, a `datetime` inside it) raises `TypeError` on the store. The RAM handler returns the object itself, as given.
 
 
 
@@ -80,25 +113,34 @@ class Cache(object):
 
 `CacheHandler` is an empty base abstract class with `get`, `set`, `delete`, and `flush_all` operations. You can implement it to support any caching service  
 
-By default, `Core-Lib` provides four built-in `CacheHandler` implementations.
+By default, `Core-Lib` provides four built-in `CacheHandler` implementations, all behaving as above. A handler of your own should too: raise for what its backend cannot keep exactly (`core_lib/cache/cache_helpers.py` has the checks the handlers share).
 
-1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py#L6){:target="_blank"}
+1. `core_lib.cache.cache_handler_ram.CacheHandlerRam` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_ram.py){:target="_blank"}
 
-​		Cache data inside the memory will get invalidated upon the termination of the running process.
+   Cache data inside the memory of the running process; it is gone when the process ends. It keeps any key and the value object itself, with an `expire` of any length; an expired value is dropped when it is next read.
 
-2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py#L8){:target="_blank"}
+2. `core_lib.cache.cache_handler_memcached.CacheHandlerMemcached` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_memcached.py){:target="_blank"}
 
    Cache data inside [memcached](https://memcached.org){:target="_blank"} server
 
-3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py#L9){:target="_blank"}
+   - An `expire` over 30 days is sent as the equivalent Unix time, the form memcached requires for it, so it lasts exactly as long as asked. memcached reads that time against its **own** clock: keep the server's clock in step with the clients' (NTP), or such a value lives longer or shorter by the difference.
+   - A store memcached does not make (a value over its 1 MB item limit, or the server unreachable) raises `RuntimeError`.
+   - Keys and `expire` as in the table above: memcached's own key limits, and whole seconds.
+   - memcached's clock ticks once a second, so a value with an `expire` of N seconds lives between N-1 and N seconds.
+
+3. `core_lib.cache.cache_handler_redis.CacheHandlerRedis` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_redis.py){:target="_blank"}
 
    Cache data inside [redis](https://redis.io){:target="_blank"} server
 
-4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py#L9){:target="_blank"}
+   - Any key, and an `expire` to the millisecond (sent as `PX`).
+   - An unreachable server raises `redis.exceptions.ConnectionError`.
+   - `flush_all` sends `FLUSHALL`, which empties **every database** of the Redis server, not only the handler's own: never share the cache's Redis with other data.
 
-​		A dummy class, without implementation, used for testing purposes
+4. `core_lib.cache.cache_handler_no_cache.CacheHandlerNoCache` [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/cache/cache_handler_no_cache.py){:target="_blank"}
 
-**Note:** `CacheHandlerMemcached` and `CacheHandlerRedis` will support only `dict` and  `list` data types. To cache any other data type, use the `@ResultToDict` decorator before the `@Cache` decorator. Example:
+   Keeps nothing and checks nothing: every `get` is a miss.
+
+**Note:** `CacheHandlerMemcached` and `CacheHandlerRedis` support only `dict`, `list`, `int` and `str` values (any other value raises `ValueError`). To cache an entity or any other data type on them, put the `@ResultToDict` decorator under the `@Cache` decorator. Example:
 
 ```python
 @Cache(CACHE_SOME_KEY)
