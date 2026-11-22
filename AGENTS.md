@@ -433,6 +433,20 @@ Do not confuse this with "fix the consumer, not the shared library": that rule i
 library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
 was missing from the library.
 
+## Only what is needed: reuse the path that exists, let wrong input fail (operator, every repo)
+
+The operator's basic rule, for every library and every host.
+
+- **Never a new utility beside one that exists.** Before writing code, find where the system already does the job and
+  call that path: a new route that uploads a file is one call to the service that already uploads it, with no
+  validator, pattern or upload helper of its own.
+- **No wrapper around one call.** Write it at the call site: `Thing.Kind(kind)`, never a `to_kind` / `is_x_allowed` /
+  `assert_x` function around a single line, and no reason or key constant only such a wrapper needs.
+- **Wrong input fails; don't handle every small thing.** A bad value raises where it is used (the enum's `ValueError`,
+  the database's error) and the host's existing error handling answers it (`@HandleException`). Add no pre-check,
+  translation or message for it. A rule that protects the data (a lock, an ownership check, a validity rule the
+  library owns, above) still raises on purpose.
+
 ## Before writing a helper, check core-lib for it
 
 The third form of the same mistake. A mirror type re-declares a shape; a
