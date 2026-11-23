@@ -5,6 +5,11 @@ description: MANDATORY — load this skill BEFORE you add, fix, or restructure a
 
 # Write core-lib tests
 
+> **You write the tests; the operator runs them.** Never run a suite, a mutation
+> check, a server or anything in the background or in Docker yourself: every
+> "run" below is the operator's step (`AGENTS.md`, "Agents write tests; the
+> operator runs them").
+
 Tests live **inside the library**, test **only the library**, and never import
 host code.
 

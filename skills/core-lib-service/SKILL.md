@@ -132,6 +132,12 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **The cache is JSON: a dict's int keys come back as strings.** Cache the rows
   (a private `@Cache` + `@ResultToDict` read) and build the `{int id: ...}` dict
   after the cache.
+- **A whole row cached with no expiry has a version in its key**, and the change
+  that adds a column to its entity, or a migration rewriting its stored rows,
+  bumps it. Otherwise the previous release's records are served forever: a
+  reader of the new column raises `KeyError`, and a write that merges into the
+  stale record writes it back. Test it by serving a record under the previous
+  key (§6).
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
 - Methods that write a row directly through the DA carry
@@ -151,8 +157,10 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   (§6).
 - **A method names the action, not its class's noun** — `WidgetService.get` /
   `create` / `update`, never `get_widget` / `create_widget` (§1).
-- **A parameter keeps the name of the value it carries** — the column's name
-  (`previous_task_id`), never a synonym such as `after_task_id` (§1).
+- **One concept, one name** — a method, its parameters and its callers use the
+  host's term for the thing everywhere, and a parameter keeps the name of the
+  value it carries: the column's name (`previous_task_id`), never a synonym such
+  as `after_task_id`. A synonym in one layer is renamed (§1).
 - **Minimum surface** — every public method has a caller in this change; one
   the plan lists for a LATER step is written in that step. No "may happen"
   branches (§0).
@@ -183,7 +191,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   unique index answers 409 (the `if existing` read is for an upsert only).
 - **No read before a write to answer 404/409.** A by-id write is the
   DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
-  `update`); let the database and the `RuleValidator` refuse (§6).
+  `update`); let the database and the `RuleValidator` refuse (§6). An
+  external API that refuses a duplicate (409 for an existing account) is the
+  same: call the create, catch only that status, let every other error out.
+  A setting that system already holds (a link lifespan) is set there, never
+  sent from code (operator).
 - **A delete that records what it removed** (history, an event) reads the row through
   the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
@@ -198,6 +210,9 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
+- **A list shown beside a create that routes by its inputs** takes the same
+  inputs and calls the create's private routing method, in the same Service:
+  never a read of one of the places, never a second decision in the host (§6.4).
 - **A decorator shipped for hosts** checks its parameter names and derived
   identifiers at decoration time; options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
