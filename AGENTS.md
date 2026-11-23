@@ -468,6 +468,8 @@ next reader does not re-check.
 
 A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in its `helpers.py` and `*_helper.py` modules, plus the constants other modules import, saying what each does. Read it before writing a helper, since the one you need may already sit one module over, and add, rename or remove the line in the same change as the code. A lib without a map gets one the first time someone works in it.
 
+**A helper two packages need lives in the lowest one both import (operator).** When a lib and a project or lib that imports it carry the same logic, it moves into the imported lib and both import it; a domain-free one both could take from `core_lib` goes to `core_lib`. Never a copy on each side. The lib ships before its importers use the helper.
+
 ### Use the call that already returns it — no new function per field
 
 **Details of the people or things a list's rows point at (operator):** never a join across libs, never the details copied into each row. Collect the distinct ids once per response and read each through its owner's cached `get`; the host keeps the map beside the list (the admin chat's `senders`).
