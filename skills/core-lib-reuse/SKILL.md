@@ -82,6 +82,8 @@ both sides import it. Never a copy on each side.
 
 `is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
 
+A helper that checks a stored value normalises it first (trim, lower-case) and parses a structured one (a colour, a date) before comparing: a comparison against one spelling misses the others (AGENTS "Writing core-lib code — keep it super simple").
+
 ## What core-lib does NOT provide (writing these is correct)
 
 Verified by inventory, so you can stop looking:

@@ -245,6 +245,9 @@ cut whatever this list forbids.
   core-lib already does in the same situation. Collecting errors is right only where the steps are independent and
   the work is already done: after the commit every callback runs, and the first error is raised once all ran
   (`TransactionManager._run_on_commit`), so one failing cache delete never leaves the next keys stale.
+- **A check on a stored value reads what it means, never one spelling of it (operator):** trim and lower-case a
+  string before comparing it, and parse a structured value (a colour, a date) before comparing its parts. A
+  comparison against one spelling silently misses the others (`'#FFFFFF'`, `'#fff'`, `' White '`).
 
 **One class, one meaning (separation of concerns)**
 
