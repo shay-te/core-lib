@@ -38,6 +38,11 @@ return {k: v for k, v in encoded.items() if k not in _NOT_IN_A_TEMPLATE}
 And when you DO have to write one, say in the docstring that you checked and
 what core-lib lacks — so the next reader does not re-run your search.
 
+**A helper two packages need lives in the lowest one both import.** Grep the
+libs this one imports AND the projects that import it: logic found on both
+sides moves into the imported lib (domain-free logic into `core_lib`), and
+both sides import it. Never a copy on each side.
+
 ## Inventory — what `core_lib` already provides
 
 **Decorators (reach for these before any try/except or manual conversion)**
