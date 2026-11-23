@@ -149,6 +149,10 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+- **A method names the action, not its class's noun** — `WidgetService.get` /
+  `create` / `update`, never `get_widget` / `create_widget` (§1).
+- **A parameter keeps the name of the value it carries** — the column's name
+  (`previous_task_id`), never a synonym such as `after_task_id` (§1).
 - **Minimum surface** — every public method has a caller in this change; one
   the plan lists for a LATER step is written in that step. No "may happen"
   branches (§0).
