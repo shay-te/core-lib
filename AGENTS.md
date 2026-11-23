@@ -11,6 +11,15 @@
 
 ---
 
+# Agents write tests; the operator runs them (operator rule)
+
+An agent never runs a test suite, a mutation check, a linter, a server, or anything in the background or in
+Docker (`docker compose up`, `moto.server`): a process left running blocks the operator's machine. It writes and
+updates the tests, and its done summary says what was not run. Every "run" in this file and in `skills/` is the
+operator's step.
+
+---
+
 # A column name is NEVER a string literal — `Entity.column.key`
 
 One rule, stated once, because it is the single most repeated review
@@ -232,10 +241,33 @@ cut whatever this list forbids.
 - **Never build an object only to throw it away:** look it up first, build it only when it is missing.
 - **Use core-lib's own building blocks before a new mechanism:** a `Registry` holding a dict keyed by thread id, not a
   `ContextVar` with tokens and a thread check.
+- **Wrong data from a caller fails; nothing "protects" it by changing it (operator).** A value core-lib or a
+  backend cannot take exactly as given (a malformed argument, a cache key memcached refuses, an `expire` of a part
+  of a second, a type the cache cannot hold) raises: a `ValueError` naming the value, or the backend's own error.
+  It is never rewritten, rounded, cut, hashed, clamped or replaced by a default to make it fit. A protection that
+  changes the value changes the caller's behaviour without telling them: a changed key merges two keys, so a
+  caller gets another call's result; a changed time silently changes a business rule. Only an encoding that keeps
+  the exact meaning is allowed (memcached's absolute Unix time for an expire over 30 days). Every such limit is
+  written in the docs, so the caller can send a value that fits.
+- **Every implementation of one interface behaves the same, and keeps its backend's advantages (operator).** The
+  cache handlers, the connection factories, the clients: wrong data and failures are handled alike on each (a
+  failed store raises and leaves the older value; nothing is silently changed). A backend
+  whose library fails silently (python-memcached answers `0` for a store it refused) is made to raise, like the
+  others. But no implementation is cut down to another's limits: each refuses only what ITS backend cannot keep
+  (memcached's 250-byte keys stay memcached's; Redis keeps any key and millisecond expires; RAM keeps any object,
+  no JSON). A limit is never made a parameter or a shared rule for backends that do not have it.
+- **core-lib reports a backend's failure; it never handles it for the caller (operator).** No catch-and-delete, no
+  fallback to "uncached", no retry, no default value: whether a failed cache, a refused value or a down server
+  fails the request or is worked around is the decision of whoever uses core-lib, not of core-lib. When a
+  behaviour choice reaches the caller (fail or fall back, which error, which default), ask the operator; do not
+  choose.
 - **No guard or error handling the rest of core-lib lacks** (refusing async functions at decoration): do what
   core-lib already does in the same situation. Collecting errors is right only where the steps are independent and
   the work is already done: after the commit every callback runs, and the first error is raised once all ran
   (`TransactionManager._run_on_commit`), so one failing cache delete never leaves the next keys stale.
+- **A check on a stored value reads what it means, never one spelling of it (operator):** trim and lower-case a
+  string before comparing it, and parse a structured value (a colour, a date) before comparing its parts. A
+  comparison against one spelling silently misses the others (`'#FFFFFF'`, `'#fff'`, `' White '`).
 
 **One class, one meaning (separation of concerns)**
 
@@ -424,6 +456,20 @@ Do not confuse this with "fix the consumer, not the shared library": that rule i
 library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
 was missing from the library.
 
+## Only what is needed: reuse the path that exists, let wrong input fail (operator, every repo)
+
+The operator's basic rule, for every library and every host.
+
+- **Never a new utility beside one that exists.** Before writing code, find where the system already does the job and
+  call that path: a new route that uploads a file is one call to the service that already uploads it, with no
+  validator, pattern or upload helper of its own.
+- **No wrapper around one call.** Write it at the call site: `Thing.Kind(kind)`, never a `to_kind` / `is_x_allowed` /
+  `assert_x` function around a single line, and no reason or key constant only such a wrapper needs.
+- **Wrong input fails; don't handle every small thing.** A bad value raises where it is used (the enum's `ValueError`,
+  the database's error) and the host's existing error handling answers it (`@HandleException`). Add no pre-check,
+  translation or message for it. A rule that protects the data (a lock, an ownership check, a validity rule the
+  library owns, above) still raises on purpose.
+
 ## Before writing a helper, check core-lib for it
 
 The third form of the same mistake. A mirror type re-declares a shape; a
@@ -458,6 +504,8 @@ next reader does not re-check.
 ### Every lib keeps a helper map in its own `AGENTS.md`
 
 A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in its `helpers.py` and `*_helper.py` modules, plus the constants other modules import, saying what each does. Read it before writing a helper, since the one you need may already sit one module over, and add, rename or remove the line in the same change as the code. A lib without a map gets one the first time someone works in it.
+
+**A helper two packages need lives in the lowest one both import (operator).** When a lib and a project or lib that imports it carry the same logic, it moves into the imported lib and both import it; a domain-free one both could take from `core_lib` goes to `core_lib`. Never a copy on each side. The lib ships before its importers use the helper.
 
 ### Use the call that already returns it — no new function per field
 
@@ -839,12 +887,14 @@ Nothing to the right of an arrow is ever imported/called by anything to its left
 
 ## 1. Naming (exact — no variation)
 
+- **One concept, one name, in every layer and every repo that touches it** — route, view, service method, config key, constant, test, page and i18n key. Use the term the host uses for that person or thing; a synonym in one layer (`client` here, `public_user` there) is a defect to rename, never a style choice. A value keeps its column's name in every parameter, request key, API field and client value that carries it (operator): a task's place is `previous_task_id` all the way, never `after_task_id`.
 - Repo `foo-core-lib` → python package `foo_core_lib` → main class `FooCoreLib` in `foo_core_lib/foo_core_lib.py`.
 - `foo_core_lib/__init__.py` carries ONLY `__version__ = '0.0.0.1'` (plus its one comment line). **No `import`, no re-export of `FooCoreLib`, no `__all__`.** The build reads the version by importing the package (the generated `setup.py` runs `import foo_core_lib`), and that import executes `__init__.py`. A `from foo_core_lib.foo_core_lib import FooCoreLib` line there loads the whole lib (`core_lib`, SQLAlchemy, Hydra) before the build has installed any of it, and the build fails. This broke a real generated lib's build. Consumers and tests import the class from its module: `from foo_core_lib.foo_core_lib import FooCoreLib`. `from foo_core_lib import FooCoreLib` is not supported. Every other `__init__.py` in the package tree is an EMPTY file (0 bytes) — but it must exist (`config/`, `data_layers/` and each subpackage, `migrations/`, `migrations/versions/`, `hydra_plugins/foo_core_lib/`, `tests/`, `tests/helpers/`, `tests/data/`).
 - Constants in `foo_core_lib/constants.py` (current convention): the cache handler key `FOO_CORE_LIB_CACHE = 'foo_core_lib'` and (if the lib fires events) the observer key `FOO_CORE_LIB_NAME = 'FOO_CORE_LIB'`. **(divergence: an older lib uses `<name>_core_lib_constants.py`; an older lib uses `constants/core_lib_constants.py` with `CACHE = 'CACHE_CUSTOM_FIELD'`; an older lib’s key is `CACHE_WORKFLOW = 'WORKFLOW_CACHE'`. New libs use `constants.py` + the `FOO_CORE_LIB_CACHE = 'foo_core_lib'` name/value shape.)**
 - Per domain object `Thing`: entity `Thing` in `data_layers/data/db/entities/thing.py` (`__tablename__ = 'thing'` — singular); DataAccess `ThingDataAccess` in `data_layers/data_access/thing_data_access.py`; service `ThingService` in `data_layers/service/thing_service.py`. One class per file. A non-persisted data type `ThingResult` goes in `data_layers/data/data_types/thing_result.py` — same one-class-per-file rule, and never under `service/` (§4.1). A pure engine/helper module under `service/` ends `_helper.py` — those two suffixes are the only ones that folder allows (§6.1). Anything error-shaped goes in `error_handling/<snake_case_class>.py`, one class per file (§4.2).
 - **The public CoreLib attribute is the service class name minus `Service`, snake_case, SINGULAR:** `WorkspaceService → self.workspace`, `DocumentService → self.document`, `DocumentCollaboratorService → self.document_collaborator`. NEVER plural (`self.documents` is wrong and was explicitly rejected).
 - **A subclass keeps its base class's method names** (operator): every `ConnectionFactory` keeps `get()`, and a change never replaces it with a renamed method across the factories. A method added beside it names what it does: `SqlAlchemyConnectionFactory.create_connection()` always builds a new connection, while `get()` may return the open transaction's.
+- **A method doesn't repeat what its class handles** (operator): `WidgetService.get` / `create` / `update` / `delete` (a host's `AdminApiTaskService.all` / `get` / ... too), never `get_widget` / `create_widget`, since the call site already reads `self.widget.get(...)`. A method names a noun only when it isn't the class's own (`set_status`, `get_summary`); a free function imported by name keeps its noun, since no class shows where it is called.
 - **A function returns one type** (operator): never `self` on one branch and a URL on another. "Are these the same?" is Python's `__eq__` / `__hash__`, which `TransactionalConnectionFactory` builds from one `identity()` string.
 - The DataAccess instance is private: `self._thing_da` on the CoreLib (or a local variable in `__init__` if nothing else needs it — the older libs do that) and `self._thing_da` on the service that owns it. It is NEVER a public attribute.
 - Cache key templates (current convention): `'<lib>_<entity>_{param}'`, e.g. `'foo_thing_{project_id}_{thing_id}'`, defined as module-level constants next to the service: `CACHE_KEY_DOCUMENT = '...'`. **(divergence: the older libs keys predate this scheme and live as class attributes — `CACHE_WORKFLOW_GET_{workflow_id}`, `custom_field_{id}`. New libs use the current convention’s shape.)**
@@ -1345,7 +1395,7 @@ Rules:
 - **Tuning values are module constants, not config** (`CONNECT_STATE_TTL_SECONDS = 600`) until a host asks to change one. Config holds what differs per deployment: credentials, endpoints, host wording (required, no default — see "this library is AGNOSTIC").
 - **The value most callers pass is the parameter's default; a caller passes it only when it differs** (operator): a call repeating the usual value is duplication. Host-specific values keep no default ("this library is AGNOSTIC").
 - Missing required args raise `ValueError` at the top of the method. Argument guards that several services share live together in ONE `<topic>_helper.py` (`argument_helper.py`: `require_id`, `to_naive_utc`, …) — never one function per file, never a bare `helper.py`. Mutations return the affected rowcount so a caller can detect a no-op (missing row / cross-tenant) without an extra read. Getters return `None` for absent (swallowing the DA's 404); "payload builder" methods that must exist raise `StatusCodeException(HTTPStatus.NOT_FOUND, ...)` themselves.
-- **Let the database refuse what it can: no Service pre-check repeats a constraint.** A create whose duplicate is an error does not look the row up first: the unique index raises and `@DuplicateErrorHandler()` on the Service's `create` answers 409, while the read adds a query and a race window for nothing (`if existing: update else: create` is for an upsert only). Likewise a by-id write does not `get` the row first to raise 404: it is the DataAccess `update` under `@Cache(..., invalidate=True)`, as in the template above.
+- **Let the database refuse what it can: no Service pre-check repeats a constraint.** A create whose duplicate is an error does not look the row up first: the unique index raises and `@DuplicateErrorHandler()` on the Service's `create` answers 409, while the read adds a query and a race window for nothing (`if existing: update else: create` is for an upsert only). Likewise a by-id write does not `get` the row first to raise 404: it is the DataAccess `update` under `@Cache(..., invalidate=True)`, as in the template above. The same holds for an external API that refuses a duplicate (an identity provider answering 409 for an existing account): call the create, catch only that one status as the answer, and let every other error propagate. A setting the external system already holds (an identity provider's link lifespan) is set there, not sent from code (operator).
 - **A delete that records the row it removes (a history row, an event, a log item) reads it through the cached `get` BEFORE the delete**, under `@Cache(..., invalidate=True)`: a soft-deleted row no longer reads, and `get` 404s an absent id before anything is written.
 - **A Service takes enum members, never their ints.** A parameter typed `Thing.ThingKind` receives the member. Converting a request's int into it is the host's job at its own boundary, so the Service neither converts nor re-checks it; an int or a wrong value fails in the DataAccess's `RuleValidator`.
 - **A row's PARENT can be soft-deleted too, and that is still an absence.** Swallowing the 404 on the row you asked for is only half of it: a read that walks stored children and resolves each one's parent hits rows whose parent went away after they were written, and it must skip rather than raise. Get this wrong on ONE method and the surface becomes incoherent — in the case that prompted this rule, `history`, `scores`, `latest_per_scale` and `compare_pair` all returned empty on a soft-deleted parent while `result_for` raised a `ValueError` from a PURE ENGINE's argument guard, so the caller got an error naming a parameter rather than the record. Swallow only 404 (a helper like `row_or_none(get, row_id)` at the library root, since a DataAccess needs it too) — catching the base `StatusCodeException` turns a 409 into a silent "not found".
@@ -1535,6 +1585,7 @@ class ThingDueJob(Job):
 - **A job that raises is only LOGGED** (§12). When a silent failure matters — a purge, a watchdog — the service method the job calls alarms through the lib's observer (the host's listener delivers it) and then re-raises; the job stays a one-line delegation.
 - **A retention purge: one anchor timestamp per table, one period per table from config.** The cutoff (`SELECT now() - make_interval(months => :months)`) is computed by the DATABASE once per table per run and reused for every batch; a NULL anchor (an open case) is never purged; a period of 0 / empty means never. No per-row `expires_at` or retention class — changing a period then applies to every row, with nothing to backfill.
 - **A batch run (a job, a one-shot backfill) logs its progress at INFO (operator):** each phase's start and end, each page (rows done, last id, elapsed, running counts) and each row (its id, the users it is about, its result). A run that logs only its start and its end looks stuck.
+- **A one-shot backfill is temporary code, marked for removal (operator):** every piece it adds (the service method, the paged read it needs, its wiring, the host's script and docker service, their tests) sits between `# @DEPRECATED@ remove on <date>` and `# @DEPRECATED ENDS@`, or opens a whole file with the first, so one grep deletes all of it once it has run on production. It runs again safely: a row already done is skipped, never redone.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
 ## 10. SDK-backed backends (object storage etc.) — the `connections/` pattern
@@ -1661,7 +1712,7 @@ def downgrade():
 - **`get` on every CRUD base is wrapped in `@NotFoundErrorHandler()`, which raises `StatusCodeException(404)` on ANY falsy result** (None, `[]`, `0`, `''`). Services must try/except it when "absent → None" is the contract.
 - **`@DuplicateErrorHandler()`** catches only `sqlalchemy.exc.IntegrityError` and raises `StatusCodeException(HTTPStatus.CONFLICT)`. It is NOT applied by the CRUD base — put it on your create paths.
 - **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == Thing.ThingKind.ALPHA.value` (an int) and timestamps as floats.
-- **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
+- **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores — so two calls differing only in a space, past char 250, or between two falsy arguments (`get(0)` / `get(None)`) SHARE one entry, and the second gets the first's result: build keys from ids, never free text (documented in `docs/pages/core_lib_doc/cache.md`). **Each handler takes what its backend can keep and raises for the rest, never rewriting it**: RAM any key, object and expire; Redis any key, a JSON value (`dict` / `list` / `int` / `str`) and whole milliseconds; memcached the same values, whole seconds, and python-memcached's own key limits (250 BYTES, no space or control character: `MemcachedKeyError`). RAM, Redis and memcached refuse an `expire` of zero or less (`whole_expire`; RAM with a 1 µs unit, so any positive time is kept); a store a handler cannot make (over its size limit, server down) raises and leaves the older value; a down Redis raises on every operation, a down memcached only on `set` (python-memcached answers reads as misses); core-lib never catches either (`tests/test_cache_handler_contract.py` pins the shared part). Redis and memcached keep JSON (int dict keys come back as strings, a hit is a copy); RAM keeps the object as given. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time, to exactly the time written. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
 - **`IntEnum` TypeDecorator is truthiness-based.** READ side: a stored `0` comes back as `None` (`self._enumtype(value) if value else None`) — so **enum values MUST start at 1**. BIND side: a plain `enum.Enum` member (the convention, §4) is always truthy and binds its `.value` — but a python `enum.IntEnum` member with value 0 is falsy and binds NULL. Both directions are safe as long as values start at 1.
 - **Mixins carry Python-side `default=` only** (no `server_default`, no `nullable=False`) and `_creation_order = 9998` pins them to the end of the table.
 - **`DefaultRegistry.register` raises `ValueError` on a duplicate key** (hence guarded registration); `unregister` is silent when absent; `get()` with no key falls back to the FIRST registered object; `registered()` lists keys.

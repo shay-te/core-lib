@@ -38,6 +38,11 @@ return {k: v for k, v in encoded.items() if k not in _NOT_IN_A_TEMPLATE}
 And when you DO have to write one, say in the docstring that you checked and
 what core-lib lacks — so the next reader does not re-run your search.
 
+**A helper two packages need lives in the lowest one both import.** Grep the
+libs this one imports AND the projects that import it: logic found on both
+sides moves into the imported lib (domain-free logic into `core_lib`), and
+both sides import it. Never a copy on each side.
+
 ## Inventory — what `core_lib` already provides
 
 **Decorators (reach for these before any try/except or manual conversion)**
@@ -76,6 +81,8 @@ what core-lib lacks — so the next reader does not re-run your search.
 | a backend whose SDK has real transactions joins `@Transaction()` | subclass `TransactionalConnectionFactory` / `TransactionalConnection` — `core_lib.connection` | write `create_connection()`, `identity()`, `open()`, `flush()`, `release()` and `end()`; `get()`, `__enter__` and `__exit__` come from the base — see `core-lib-connection` |
 
 `is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
+
+A helper that checks a stored value normalises it first (trim, lower-case) and parses a structured one (a colour, a date) before comparing: a comparison against one spelling misses the others (AGENTS "Writing core-lib code — keep it super simple").
 
 ## What core-lib does NOT provide (writing these is correct)
 
