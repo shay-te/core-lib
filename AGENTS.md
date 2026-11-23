@@ -241,6 +241,26 @@ cut whatever this list forbids.
 - **Never build an object only to throw it away:** look it up first, build it only when it is missing.
 - **Use core-lib's own building blocks before a new mechanism:** a `Registry` holding a dict keyed by thread id, not a
   `ContextVar` with tokens and a thread check.
+- **Wrong data from a caller fails; nothing "protects" it by changing it (operator).** A value core-lib or a
+  backend cannot take exactly as given (a malformed argument, a cache key memcached refuses, an `expire` of a part
+  of a second, a type the cache cannot hold) raises: a `ValueError` naming the value, or the backend's own error.
+  It is never rewritten, rounded, cut, hashed, clamped or replaced by a default to make it fit. A protection that
+  changes the value changes the caller's behaviour without telling them: a changed key merges two keys, so a
+  caller gets another call's result; a changed time silently changes a business rule. Only an encoding that keeps
+  the exact meaning is allowed (memcached's absolute Unix time for an expire over 30 days). Every such limit is
+  written in the docs, so the caller can send a value that fits.
+- **Every implementation of one interface behaves the same, and keeps its backend's advantages (operator).** The
+  cache handlers, the connection factories, the clients: wrong data and failures are handled alike on each (a
+  failed store raises and leaves the older value; nothing is silently changed). A backend
+  whose library fails silently (python-memcached answers `0` for a store it refused) is made to raise, like the
+  others. But no implementation is cut down to another's limits: each refuses only what ITS backend cannot keep
+  (memcached's 250-byte keys stay memcached's; Redis keeps any key and millisecond expires; RAM keeps any object,
+  no JSON). A limit is never made a parameter or a shared rule for backends that do not have it.
+- **core-lib reports a backend's failure; it never handles it for the caller (operator).** No catch-and-delete, no
+  fallback to "uncached", no retry, no default value: whether a failed cache, a refused value or a down server
+  fails the request or is worked around is the decision of whoever uses core-lib, not of core-lib. When a
+  behaviour choice reaches the caller (fail or fall back, which error, which default), ask the operator; do not
+  choose.
 - **No guard or error handling the rest of core-lib lacks** (refusing async functions at decoration): do what
   core-lib already does in the same situation. Collecting errors is right only where the steps are independent and
   the work is already done: after the commit every callback runs, and the first error is raised once all ran
@@ -1673,7 +1693,7 @@ def downgrade():
 - **`get` on every CRUD base is wrapped in `@NotFoundErrorHandler()`, which raises `StatusCodeException(404)` on ANY falsy result** (None, `[]`, `0`, `''`). Services must try/except it when "absent → None" is the contract.
 - **`@DuplicateErrorHandler()`** catches only `sqlalchemy.exc.IntegrityError` and raises `StatusCodeException(HTTPStatus.CONFLICT)`. It is NOT applied by the CRUD base — put it on your create paths.
 - **`@ResultToDict()`** converts: Enum → `.value`; `datetime` → epoch FLOAT (`.timestamp()`); `date` → midnight epoch; `Decimal` → float; entity → dict of columns (+ loaded relationships, cycle-guarded); lists recursed; namedtuples → dicts; **`None` passes through**. So tests read `row[Thing.kind.key] == Thing.ThingKind.ALPHA.value` (an int) and timestamps as floats.
-- **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
+- **`@Cache`:** key is a `str.format` template bound BY PARAMETER NAME from the wrapped function's signature (positional, kwargs, then declared defaults) — a placeholder that names a non-parameter renders as `!M{name}M!`, a falsy param as `!E{name}E!`; newlines are stripped, the key is truncated to 250 chars, and spaces are REPLACED with underscores — so two calls differing only in a space, past char 250, or between two falsy arguments (`get(0)` / `get(None)`) SHARE one entry, and the second gets the first's result: build keys from ids, never free text (documented in `docs/pages/core_lib_doc/cache.md`). **Each handler takes what its backend can keep and raises for the rest, never rewriting it**: RAM any key, object and expire; Redis any key, a JSON value (`dict` / `list` / `int` / `str`) and whole milliseconds; memcached the same values, whole seconds, and python-memcached's own key limits (250 BYTES, no space or control character: `MemcachedKeyError`). RAM, Redis and memcached refuse an `expire` of zero or less (`whole_expire`; RAM with a 1 µs unit, so any positive time is kept); a store a handler cannot make (over its size limit, server down) raises and leaves the older value; a down Redis raises on every operation, a down memcached only on `set` (python-memcached answers reads as misses); core-lib never catches either (`tests/test_cache_handler_contract.py` pins the shared part). Redis and memcached keep JSON (int dict keys come back as strings, a hit is a copy); RAM keeps the object as given. Unknown `handler_name` raises `ValueError` at call time. `invalidate=True` runs the function FIRST, then deletes the key, and skips deletion when the function raises. String `expire` (e.g. `'1h'`) is parsed at decoration time, to exactly the time written. **A `None` result is NEVER cached** — `get`-swallowed-404 lookups (§6) hit the DB every call; there is no negative caching.
 - **`IntEnum` TypeDecorator is truthiness-based.** READ side: a stored `0` comes back as `None` (`self._enumtype(value) if value else None`) — so **enum values MUST start at 1**. BIND side: a plain `enum.Enum` member (the convention, §4) is always truthy and binds its `.value` — but a python `enum.IntEnum` member with value 0 is falsy and binds NULL. Both directions are safe as long as values start at 1.
 - **Mixins carry Python-side `default=` only** (no `server_default`, no `nullable=False`) and `_creation_order = 9998` pins them to the end of the table.
 - **`DefaultRegistry.register` raises `ValueError` on a duplicate key** (hence guarded registration); `unregister` is silent when absent; `get()` with no key falls back to the FIRST registered object; `registered()` lists keys.
