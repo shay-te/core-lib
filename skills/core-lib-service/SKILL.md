@@ -200,17 +200,12 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
-<<<<<<< HEAD
-- **A decorator shipped for hosts** gets its checks of parameter names and derived
-  identifiers from the function it wraps, never from a copy in the decorator;
-  options after the first are keyword-only (§8).
-=======
 - **A list shown beside a create that routes by its inputs** takes the same
   inputs and calls the create's private routing method, in the same Service:
   never a read of one of the places, never a second decision in the host (§6.4).
-- **A decorator shipped for hosts** checks its parameter names and derived
-  identifiers at decoration time; options after the first are keyword-only (§8).
->>>>>>> origin/master
+- **A decorator shipped for hosts** gets its checks of parameter names and derived
+  identifiers from the function it wraps, never from a copy in the decorator;
+  options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).

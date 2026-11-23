@@ -465,26 +465,6 @@ A `*-core-lib`'s `AGENTS.md` carries a **Helper map**: one line per function in 
 
 Before adding a DataAccess query or Service method, check whether an existing call already returns the data. Reading one column of a row the service already `get`s (cached) is `service.get(id)[Entity.column.key]` at the call site — not a new `get_<column>(id)` pair in the DataAccess and Service. A new function needs a reason the existing one cannot serve; "it reads only one field" is not one.
 
-<<<<<<< HEAD
-## Every decorator is a thin wrapper over a plain function that does the job
-
-Write the function first, then a decorator that calls it. That is how core-lib's own decorators are built:
-
-| Decorator | Calls |
-|---|---|
-| `@ResultToDict()` | `result_to_dict(value)` |
-| `@HandleException()` | `handle_exception(func, *args)` |
-| `@RequireLogin()` | `require_login(policies, view, *view_args)` |
-| `@Cache(...)` | `build_function_key(...)` for the key, and the handler from `CoreLib.cache_registry.get(handler_name)` for `get` / `set` / `delete`. Both work without the decorator, but its get-or-compute branch still sits in the wrapper, so do not copy that part |
-
-Two reasons:
-- **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
-- **Any caller can use the function independently**: on a value it already holds, from a job or a script, or wherever a decorator does not fit.
-
-The decorator only passes the decorated call's arguments to the function, as they came. `@RequireLogin` hands `require_login` the view's arguments unchanged, and the function finds the request in them. A decorator that takes an argument apart for the function to put back holds the same branch twice, and a direct call cannot reach the decorator's copy. Likewise, a check the function already runs is not repeated in the decorator.
-
-Any other logic left in the decorator is logic a direct call silently misses. While binding the request for error middlewares lived in `@RequireLogin`, a direct `require_login(...)` call reported `request=None` to every middleware.
-=======
 ### Part of a row: the owning Service returns it, a caller never cuts rows down
 
 A service or host that fetches rows and keeps some keys (`{key: row[key] for key in WANTED_KEYS}`) cuts in the wrong
@@ -503,7 +483,25 @@ place. The library that owns the entity returns what its callers need, and the r
   ```
 - **Many rows nobody has fetched** (a list or report query): the DataAccess query selects the columns the list shows.
 - One column of a cached row, for a check, is the section above: `service.get(id)[Entity.column.key]`.
->>>>>>> origin/master
+
+## Every decorator is a thin wrapper over a plain function that does the job
+
+Write the function first, then a decorator that calls it. That is how core-lib's own decorators are built:
+
+| Decorator | Calls |
+|---|---|
+| `@ResultToDict()` | `result_to_dict(value)` |
+| `@HandleException()` | `handle_exception(func, *args)` |
+| `@RequireLogin()` | `require_login(policies, view, *view_args)` |
+| `@Cache(...)` | `build_function_key(...)` for the key, and the handler from `CoreLib.cache_registry.get(handler_name)` for `get` / `set` / `delete`. Both work without the decorator, but its get-or-compute branch still sits in the wrapper, so do not copy that part |
+
+Two reasons:
+- **Unit tests call the function directly**, with plain inputs. They don't need to decorate a throwaway function to reach the logic.
+- **Any caller can use the function independently**: on a value it already holds, from a job or a script, or wherever a decorator does not fit.
+
+The decorator only passes the decorated call's arguments to the function, as they came. `@RequireLogin` hands `require_login` the view's arguments unchanged, and the function finds the request in them. A decorator that takes an argument apart for the function to put back holds the same branch twice, and a direct call cannot reach the decorator's copy. Likewise, a check the function already runs is not repeated in the decorator.
+
+Any other logic left in the decorator is logic a direct call silently misses. While binding the request for error middlewares lived in `@RequireLogin`, a direct `require_login(...)` call reported `request=None` to every middleware.
 
 ## The entity IS the type. Do not mirror it in a second class.
 
