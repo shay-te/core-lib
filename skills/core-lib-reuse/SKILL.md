@@ -117,7 +117,8 @@ library, public, even if one host is its only caller today. Ask: **would a secon
 it?** If yes, write it in the library; the host calls it and keeps only its own policy (the status it answers, what
 it logs). What the host owns (option lists, key names, thresholds) comes in as a parameter. Written in the host,
 the next product re-implements it and the copies drift (AGENTS "The other direction: the library owns the rules
-about its own data").
+about its own data"). Example: matching given names in text is pii-core-lib's (`scrub(person_names=)`); which names
+(the client's own) and on which screen is the host's.
 
 ## Where a lib-local helper goes
 
