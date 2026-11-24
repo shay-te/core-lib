@@ -1432,6 +1432,10 @@ Ask it as a question, per invariant: **which paths can write this column, and do
 
 When a create takes what the caller knows (two users) and decides where the row goes (their relationship, else their connection), the list shown beside it takes the same inputs and calls the same private routing method, in the same Service. A list that reads only one of the places, or a host that decides again, never holds what the create just wrote. objective_love's `UserConversationDateService.create_confirmed_date` and `all_for_pair` both decide through `_get_couple_conversation_id`.
 
+### 6.5 A second entry point to a flow calls the method that already runs it (operator)
+
+A new caller of a flow that already exists (another screen sending a message into the conversation the Service finds by its subject, or creates when there is none) calls the same public Service method, its find-or-create included. Never a second copy of the flow, and never a host splitting it into "find the row, then write to it": two paths drift, and only one keeps the checks. When the new caller differs only in who receives it (an SMS to a matchmaker's contact phone, not the user's own phone), extract the shared step (the provider send) into a public method of the Service that has it, and let both callers use it; the new caller's Service resolves the recipient itself, never trusting one from the client.
+
 ## 7. Composition root (`foo_core_lib.py`)
 
 ```python
