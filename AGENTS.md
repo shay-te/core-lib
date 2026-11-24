@@ -435,6 +435,13 @@ was missing from the library.
 
 ## Before writing a helper, check core-lib for it
 
+**Use only existing tools — write no new code they cover (operator, strict).** Before writing any function, helper,
+wrapper, constant, data-access method or service, search `core_lib` (its helpers, decorators, connections) and, in a
+`*-core-lib`, the libs it imports. Use what does the job even when it is a near fit: adapt the call site, never a
+variant. New code only for what nothing existing does, the smallest change, and the summary names what was searched.
+
+**No overbuilding (operator, strict).** Build only what the task asks: no rule tables, enums, status markers, retries, background workers, config or parameters for cases the task does not name, and no flexibility "for later". The smallest code that does the job; when in doubt, leave it out.
+
 The third form of the same mistake. A mirror type re-declares a shape; a
 re-typed constant re-declares a name; a hand-rolled helper re-declares
 BEHAVIOUR that already exists one package down — and this one hides best,
