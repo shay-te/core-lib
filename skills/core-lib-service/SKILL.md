@@ -140,6 +140,15 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   key (§6).
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
+- **Build a key from ids and short codes, never free text.** `@Cache` turns spaces
+  into `_`, drops line breaks, cuts at 250 characters and renders every falsy
+  argument as one placeholder, so such calls SHARE one entry and get each other's
+  results. A handler raises for what its backend cannot keep, and never rewrites
+  it (`AGENTS.md`, "Wrong data from a caller fails"): memcached refuses a key over
+  250 bytes or with a space or control character, and an `expire` with a part of a
+  second; Redis and memcached refuse a value other than `dict` / `list` / `int` /
+  `str` and return a hit as JSON gives it back (string dict keys). RAM keeps any
+  key and object. Test with the handler production uses.
 - Methods that write a row directly through the DA carry
   `@Cache(SAME_KEY, invalidate=True)`. Orchestrators that write only via other
   service methods need no decorator.
@@ -155,8 +164,12 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+- **A method names the action, not its class's noun** — `WidgetService.get` /
+  `create` / `update`, never `get_widget` / `create_widget` (§1).
 - **One concept, one name** — a method, its parameters and its callers use the
-  host's term for the thing everywhere; a synonym in one layer is renamed (§1).
+  host's term for the thing everywhere, and a parameter keeps the name of the
+  value it carries: the column's name (`previous_task_id`), never a synonym such
+  as `after_task_id`. A synonym in one layer is renamed (§1).
 - **Minimum surface** — every public method has a caller in this change; one
   the plan lists for a LATER step is written in that step. No "may happen"
   branches (§0).
