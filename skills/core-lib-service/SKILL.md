@@ -190,7 +190,8 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   row uses it directly; the return commits once, an exception rolls back. The
   guarded row is read by an ordinary DataAccess query taking a row lock
   (`with_for_update=True`), held until the commit — without it two concurrent
-  calls both pass the check. Never pass a `session`. A worker thread is not part
+  calls both pass the check. A Service never touches a session (operator): it never
+  opens, takes or passes one, and calls only DataAccess methods. A worker thread is not part
   of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
