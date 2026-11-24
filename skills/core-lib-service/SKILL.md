@@ -209,6 +209,9 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **A list shown beside a create that routes by its inputs** takes the same
   inputs and calls the create's private routing method, in the same Service:
   never a read of one of the places, never a second decision in the host (§6.4).
+- **A second entry point to an existing flow calls the method that already
+  runs it** (operator), its find-or-create included: never a second copy of the
+  flow, never a host's "find the row, then write to it" (§6.5).
 - **A decorator shipped for hosts** checks its parameter names and derived
   identifiers at decoration time; options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
