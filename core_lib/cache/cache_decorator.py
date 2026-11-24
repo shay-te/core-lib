@@ -1,4 +1,5 @@
 import logging
+import math
 from datetime import timedelta, datetime, timezone
 from functools import partial, wraps
 from typing import Union
@@ -22,7 +23,9 @@ def parse(d_time: str) -> datetime:
 
 
 def _parse_datetime(expire: str) -> timedelta:
-    return parse(expire) - datetime.utcnow()
+    # `parse` counts from the clock's whole second, so the raw difference falls short of the time written by up to
+    # a second ('1 hour' gives 3599.98 s); rounding up gives back exactly what was written
+    return timedelta(seconds=math.ceil((parse(expire) - datetime.utcnow()).total_seconds()))
 
 
 def _get_expire(expire) -> timedelta:

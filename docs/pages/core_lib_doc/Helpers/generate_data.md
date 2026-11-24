@@ -13,9 +13,9 @@ This helper provides functions that generate different types of data for us.
 
 ### generate_random_string()
 
-*core_lib.helpers.generate_data.generate_random_string()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L6){:target="_blank"}
+*core_lib.helpers.generate_data.generate_random_string()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py){:target="_blank"}
 
-Generates a random string of length `10` by default. Has options to add uppercase, numeric and special characters to the generated string too.
+Generates a random string of length `10` by default. Has options to add uppercase, numeric and special characters to the generated string too. The string always has `length` characters; when that is fewer than the kinds requested, it holds one character of as many of them as fit, picked at random.
 
 ```python
 def generate_random_string(length: int = 10, upper: bool = False, digits: bool = False, special: bool = False) -> str:
@@ -24,9 +24,9 @@ def generate_random_string(length: int = 10, upper: bool = False, digits: bool =
 **Arguments**
 
 - **`length`** *`(int)`*: Default `10`, Length of the generated string.
-- **`upper`** *`(bool)`*: Default `False`, When `True` the string will include uppercase characters.
-- **`digits`** *`(bool)`*: Default `False`, When `True` the string will include numeric digits characters.
-- **`special`** *`(bool)`*: Default `False`, When `True` the string will include special characters or symbols.
+- **`upper`** *`(bool)`*: Default `False`, When `True` the string will include at least one uppercase character.
+- **`digits`** *`(bool)`*: Default `False`, When `True` the string will include at least one numeric digit.
+- **`special`** *`(bool)`*: Default `False`, When `True` the string will include at least one special character (punctuation).
 
 **Returns**
 
@@ -45,7 +45,7 @@ generate_random_string(10, True, True, True) # returns a string with length 10, 
 
 ### generate_email()
 
-*core_lib.helpers.generate_data.generate_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L17){:target="_blank"}
+*core_lib.helpers.generate_data.generate_email()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py){:target="_blank"}
 
 Generates an Email with the provided domain name. The length of the Email ID name will be 10 characters.
 
@@ -71,7 +71,7 @@ generate_email('core-lib.com') # returns an email id => qsrhbaykhg@core-lib.com
 
 ### generate_datetime()
 
-*core_lib.helpers.generate_data.generate_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py#L21){:target="_blank"}
+*core_lib.helpers.generate_data.generate_datetime()* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/helpers/generate_data.py){:target="_blank"}
 
 Generates a `datetime` within a specified range, if no range is provided the function will generate a `datetime` between `today - 10 days` and `today + 10 days` period.
 
