@@ -427,7 +427,9 @@ uploads" or "this endpoint answers 400 with no body" are the host's policy.
 
 What the host owns stays a parameter: the helper takes the field's options, the host's key names, a threshold —
 never reads the host's config or constants. The host then calls the library helper and adds only its policy around
-it (which status to answer, what to log).
+it (which status to answer, what to log). Example: pii-core-lib removes the names it is given (`scrub(person_names=)`,
+in the same pass as its patterns); the admin backend passes the client's own first, middle and last name, and
+decides that the shared user card is where that runs.
 
 Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
 library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
