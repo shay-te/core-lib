@@ -1940,7 +1940,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
 29. An enum declared at module level beside its entity (§4).
 30. A constant declared between functions, or beside the one function that reads it, instead of at the top of its file ("Constants live at the top of the file").
-31. A `session` parameter on a DataAccess or Service, or a `transaction()` / `*_in_transaction` / `get_for_update(session, …)` method. Use `@Transaction()` (§6).
+31. A Service that touches a session at all (operator): opens one (`with … as session`), takes or passes one; a `session` parameter on a DataAccess; a `transaction()` / `*_in_transaction` / `get_for_update(session, …)` method. Use `@Transaction()` on the Service method, and only DataAccess calls inside it (§6).
 32. A class that stores, finds or reaches into instances of itself: a class-level dict of its own instances, a static "current one" lookup, a method reading another instance's `_private` fields. Split it into a dataclass (data), a `Registry` (store) and a logic class ("One class, one meaning").
 
 ## 17. Final checklist before handing the lib over
