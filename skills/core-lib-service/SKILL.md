@@ -164,6 +164,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+
+- **A private helper used once and two lines or fewer goes into its caller**
+  (operator) — no `_notify_received` for two statements one method calls. It
+  stays a function when a second caller needs it, when it is longer, or when it
+  carries a rule the caller's lines would bury ("Plain code" in `AGENTS.md`).
 - **A method names the action, not its class's noun** — `WidgetService.get` /
   `create` / `update`, never `get_widget` / `create_widget` (§1).
 - **One concept, one name** — a method, its parameters and its callers use the
@@ -190,10 +195,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   top of a service file ("A map between two vocabularies is a constant too" in
   `AGENTS.md`).
 - **A caller never cuts fetched rows down** — no `{key: row[key] for key in KEYS}` in another service or the host.
-  Part of one row is a method on the entity's own Service that reads its cached getter and keeps a field set
-  (`get_summary(member_id)` over `get_full`, keeping `MEMBER_SUMMARY_FIELDS`), and every reader calls it, no new
-  query. The set is one constant in the library that owns the entity, never a private `_KEYS` tuple per service ("Part
-  of a row" and "A set of an entity's fields that several readers use is declared once" in `AGENTS.md`).
+  Part of one row is a method on the entity's own Service (operator): `get_summary(member_id)` over its own DataAccess
+  query selecting `MEMBER_SUMMARY_FIELDS`, under its own `@Cache` key that is dropped wherever the row's other keys
+  are (update, reset, manual deletes), and every reader calls it. The set is one constant in the library that owns the
+  entity, never a private `_KEYS` tuple per service ("Part of a row" and "A set of an entity's fields that several
+  readers use is declared once" in `AGENTS.md`).
 - **Unique-constraint races** → `@DuplicateErrorHandler()`, positive
   `if existing: update else: create`, never `try/except IntegrityError` (§6).
   A create whose duplicate is an error does not look the row up first: the

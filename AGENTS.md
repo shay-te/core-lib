@@ -238,6 +238,12 @@ cut whatever this list forbids.
   when its class is defined), no wrapper class around an object that can carry the behaviour itself, and no function
   passed in as a parameter where the callee can call a method you find by name (`connection_factory.create_connection()`,
   never a `create` callback).
+- **A private helper used once and two lines or fewer goes into its caller (operator).** A `_name(...)` method or
+  module function that nothing else calls and whose body is at most two lines of code (comments and the `def` not
+  counted) is a hop for the reader to chase: write its lines where it was called (`_notify_received`, `_get_pair_users`
+  and a one-line `_get_newest_first_key` were each inlined into the one method that used them). It stays a function
+  when a second caller needs it, when it is longer than two lines, or when it carries a rule the caller's lines
+  would bury (then it is named for the rule).
 - **Never build an object only to throw it away:** look it up first, build it only when it is missing.
 - **Use core-lib's own building blocks before a new mechanism:** a `Registry` holding a dict keyed by thread id, not a
   `ContextVar` with tokens and a thread check.
@@ -528,14 +534,17 @@ place. The library that owns the entity returns what its callers need, and the r
 
 - **Nearly the whole row** (all but bookkeeping such as `deleted_at`): return the entity as its query returns it.
   Never narrow a query to drop a few columns nobody reads; sending them is fine.
-- **A field set of one row a cached getter already returns**: a method on the entity's Service reads that getter and
-  keeps the set; every reader calls it, host included. No new query. Rows of another table shown beside a list (the
-  members of each item) are this case too: one cached call per distinct id, not a new `IN` query.
+- **A field set of one row several readers show** (operator): the entity's own DataAccess query selecting only the
+  set's columns, and a method on its Service under its own `@Cache` key, that every reader calls, host included. The
+  key is dropped everywhere the row's other keys are: the update, the reset, and any manual `cache_handler.delete`.
+  Never a cut of the cached full row. Rows of another table shown beside a list (the members of each item) are this
+  case too: one cached call per distinct id, not a new `IN` query.
 
   ```python
+  @Cache(CACHE_MEMBER_SUMMARY, handler_name=CACHE)
+  @ResultToDict()
   def get_summary(self, member_id: int) -> dict:
-      member = self.get_full(member_id)
-      return {field.key: member[field.key] for field in MEMBER_SUMMARY_FIELDS}
+      return self._data_access.get_summary(member_id)   # session.query(*MEMBER_SUMMARY_FIELDS)
   ```
 - **Many rows nobody has fetched** (a list or report query): the DataAccess query selects the columns the list shows.
 - One column of a cached row, for a check, is the section above: `service.get(id)[Entity.column.key]`.
