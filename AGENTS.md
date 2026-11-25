@@ -460,6 +460,7 @@ was missing from the library.
 
 The operator's basic rule, for every library and every host.
 
+- **Use the existing logic; never add logic nobody asked for (operator, strict).** A second function for a fact the system already answers is rejected, even when it is small: ask "did we provide this before?" first, then call that path with the input the new caller has.
 - **Never a new utility beside one that exists.** Before writing code, find where the system already does the job and
   call that path: a new route that uploads a file is one call to the service that already uploads it, with no
   validator, pattern or upload helper of its own.
@@ -498,7 +499,8 @@ next reader does not re-check.
 **Full inventory: [`skills/core-lib-reuse/SKILL.md`](skills/core-lib-reuse/SKILL.md)** — every decorator and helper module `core_lib` ships, what it does NOT ship, and the traps in adopting `result_to_dict`. Load it before writing any helper. The three that bite most often:
 
 - **A decorator usually already does it.** Before hand-writing a try/except or a conversion loop, check `@ResultToDict()`, `@NotFoundErrorHandler()`, `@DuplicateErrorHandler()`, `@Cache`, `@Observe`, `StatusCodeAssert`. A dict-building loop over `__table__.columns` IS `result_to_dict` with every conversion removed.
-- **`@NotFoundErrorHandler()` is not a get-or-none.** It goes the other way — falsy result → raise 404 — and it is already on the CRUD bases' `get`. A service that returns `None` for an absent row swallows that 404 itself, and must catch **only** 404: a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found".
+- **A missing row fails: never `None`, and a service never catches the 404 (operator).** `@NotFoundErrorHandler()` raises 404 on a falsy result and is already on the CRUD bases' `get`; let it propagate and the host's `@HandleException` answers it. No `try/except StatusCodeException` around a `get`, no `return None` for an absent row, and no `None` for a row that fails a rule (another tenant's, a deleted one): raise `StatusCodeException(HTTPStatus.NOT_FOUND)`. The caller then checks nothing for `None`.
+- **No data transfer: return the source, never a rebuilt copy (operator).** A service never reads a row and re-keys it into another dict field by field, then again in the next layer. It returns the row it read, with `@ResultToDict()` on the method doing the conversion; a computed extra key goes onto the dict it already holds. A row the grid shows is the grid's own row: read it from the index the grid reads, filtered by id and tenant, in the service that owns those queries (the search service), never rebuilt from the database.
 - **`result_to_dict` only converts values INSIDE a structure.** `result_to_dict(a_datetime)` returns the datetime unchanged. Convert a hand-built dict by decorating the METHOD with `@ResultToDict()`, not by calling the function per field. (Then mind the str-enum key trap — §skills.)
 
 ### Every lib keeps a helper map in its own `AGENTS.md`

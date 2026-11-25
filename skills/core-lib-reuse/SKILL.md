@@ -89,16 +89,8 @@ A helper that checks a stored value normalises it first (trim, lower-case) and p
 Verified by inventory, so you can stop looking:
 
 - **No decoder.** `result_to_dict` is encode-only — there is no `dict_to_entity`.
-- **No get-or-none.** `@NotFoundErrorHandler()` goes the OTHER way (`None` → raise 404). If a service must return `None` for an absent row, it swallows the DataAccess's 404 itself. Catch **only** 404 — a bare `except StatusCodeException:` also swallows a 409, turning a real answer into "not found":
-  ```python
-  def row_or_none(get, row_id):
-      try:
-          return get(row_id)
-      except StatusCodeException as missing:
-          if missing.status_code != HTTPStatus.NOT_FOUND:
-              raise
-          return None
-  ```
+- **No get-or-none, and no catching the 404 (operator).** `@NotFoundErrorHandler()` raises 404 on a falsy result (`None` → 404). A service lets it propagate, since `@HandleException` answers it: no `try/except StatusCodeException`, no `return None` for an absent row or for a row that fails a rule (another tenant's, a deleted one). Raise `StatusCodeException(HTTPStatus.NOT_FOUND)` instead; the caller never checks for `None`.
+- **No data transfer (operator).** Never read a row and rebuild it as another dict field by field, then again in the next layer. Return the source and let `@ResultToDict()` on the method convert it; add a computed key to the dict you already hold. A row the grid shows is read from the index the grid reads (filtered by id and tenant, in the search service), not rebuilt from the database.
 - **No argument-guard helper.** `core_lib.helpers.validation` is `is_*`/`parse_*` only; `StatusCodeAssert` maps `AssertionError`, it does not check arguments. A lib-local `require(**kwargs)` raising `ValueError` is right (§6 convention).
 - **No encryption helper.** A thin wrapper over `cryptography.fernet.Fernet` (encrypt/decrypt a JSON dict, `ttl=` on decrypt for short-lived tokens) is right — a few lines. Fernet validates the key itself, and its `InvalidToken` needs no wrapper class.
 - **No transient-default mixin**, and do not write one — a column `default=` fires at INSERT by design (§4).
