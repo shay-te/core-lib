@@ -303,6 +303,12 @@ cut whatever this list forbids.
   comment saying why (`TransactionalConnectionFactory.get()` imports `TransactionManager`), so the other can import it
   at its top for its hints. `tests/test_transaction_type_hints.py` checks all three: hints resolve, every module imports
   first in a fresh interpreter, no `TYPE_CHECKING` anywhere in `core_lib`.
+- **A service has one name everywhere: its class name in snake_case (operator).** `AdminSharedUserPreviewService` is
+  `admin_shared_user_preview_service` as the importing service's constructor parameter, its `self._…` attribute, the
+  host's local variable and the test's keyword. An importing service never shortens or renames it
+  (`shared_user_preview_service` for `AdminSharedUserPreviewService` is a bug): a reader finds every use with one search,
+  and the wiring is checkable by name. A service with a twin of the same class name in another library (`UserService`) is
+  imported under an alias, and the alias names the library (`una_user_service`), never a new meaning.
 - **A dict of objects is keyed by the object**, so `==` decides, never by its `hash()` number: two in-memory sqlite
   engines share a hash but are two databases.
 

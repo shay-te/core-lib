@@ -120,6 +120,14 @@ the next product re-implements it and the copies drift (AGENTS "The other direct
 about its own data"). Example: matching given strings in text is pii-core-lib's (`scrub(strings_to_scrub=)`, named for what
 it does, never for what the host passes); which strings (the client's own names) and on which screen is the host's.
 
+## A new helper goes where every caller can reach it (operator)
+
+Before you write a helper, find every place that could use it: grep the verb and the shape of the data in the library
+and the hosts. Then put it where ALL of them can import it (the library's `helpers.py`, the host's shared helper file),
+never in the first caller's file or folder. Reading the other places only tells you where it belongs: do NOT edit
+those callers to adopt it in this task (a task changes what it was asked to). Name them in the summary so the operator
+can fold them in. A helper written next to its only caller today is a copy the next caller re-writes.
+
 ## Where a lib-local helper goes
 
 `<name>_core_lib/helpers.py`, at the **library root**, when a DataAccess needs
@@ -145,7 +153,8 @@ file, right after the imports (AGENTS "Constants live at the top of the file").
 1. Name the behaviour you need in one phrase ("entity → dict", "missing row → None").
 2. Search the table above and the lib's own `AGENTS.md` Helper map; then
    `grep -rn "def <verb>" <core-lib>/core_lib/`.
-3. If it exists — call it. If it exists at 80% — call it and add the 20%.
+3. If it exists — call it. If it exists at 80% — call it and add the 20%. Before adding the 20% or a new helper, list who
+   else could call it and place it where they all can ("A new helper goes where every caller can reach it").
 4. If it genuinely does not — write it in `helpers.py` at the library root,
    record in the docstring that you checked and what was missing, and add its
    line to the lib's Helper map (AGENTS "Every lib keeps a helper map").
