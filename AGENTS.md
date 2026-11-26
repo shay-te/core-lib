@@ -441,6 +441,68 @@ real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
 
+## Preset rows a host adds to a library table (operator)
+
+A preset is a row users create their own records from. Its content is the host's, so it never lives in library source.
+When you write presets for a host:
+
+- **Only the basics:** what the record needs to exist (name, type, its texts and choices). Never copy the settings of
+  an existing record (visibility, editability, requirement flags, colors), even when the data you were handed carries
+  them: whoever creates a record from the preset chooses them. A preset keeps a setting only when it cannot work
+  without it (a lock it enforces).
+- **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
+  that shows it.
+- **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
+- **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand.
+- **Timestamps in that SQL are a plain `NOW()`** (operator), with no time zone conversion.
+- **Instructions and placeholders follow the next section.**
+
+## Instructions and placeholder text for form fields (operator)
+
+Wherever you write a form field's instructions or placeholder, write them as a UX writer would: clear, short and
+natural.
+
+1. Instructions are friendly, simple and conversational. They **start with "Need help?"**, followed by useful guidance.
+2. Placeholders are short, clear and about the question: a natural example, or a prompt saying what to enter or select.
+3. Don't repeat the question when you don't need to, don't over-explain a clear one, and keep instructions short.
+4. By field type: a text field says what information to give; a textarea invites the user to elaborate, with examples
+   where they help; a dropdown says what to select; a multi-select says **"Select all that apply."**; a yes/no stays
+   simple ("Select yes or no"); a conditional field says when to fill it ("If yes, please...").
+5. **Keep the question's wording and meaning.** Never rewrite or rename it unless asked.
+6. Don't invent questions or fields. Keep the options you are given, and reword them only when asked. Text never names
+   a choice the field doesn't offer.
+7. Use inclusive, respectful, professional language, in every translation too.
+8. A field type the operator names is kept. With only a question, pick the best type. Asked which type fits, recommend
+   one and say briefly why.
+
+When the operator asks for the texts in chat, handle each question on its own, with no extra introduction, conclusion
+or explanation:
+
+> **Type:** Text / Textarea / Single-select dropdown / Multi-select checkboxes / Date picker / Yes-No
+>
+> **Instructions:** *Need help? Share your hobbies, interests, favorite activities, and how you enjoy spending your
+> free time.*
+>
+> **Placeholder:** Describe your hobbies, interests, and how you like to spend your free time.
+
+The italics only mark the instructions in chat; the stored text has no asterisks.
+
+## Store one unit, convert only for display (operator)
+
+A measured quantity (a length, a weight, a distance) has one stored unit, metric, in whole numbers. The library and
+its host never learn a second one.
+
+- **The column holds that unit**, and so does everything that reads or writes it: arguments, returned dicts, filters,
+  search indexes, import and export. A comment on the column, or its name, says which unit it is.
+- **Another unit is only a way of showing the value**, applied where it is shown, by whoever shows it. It is never
+  stored, and a library function never takes a "unit" argument to return a converted number.
+- **Limits are in the stored unit**, declared once in a constants enum the validator reads and clients are sent,
+  never repeated in another unit.
+- **A picker in the other unit keeps the stored values and only renames them**, so a picked value is never converted
+  back, which would drift by a rounding.
+- **Text being imported is read as the stored unit only.** A value naming another unit is refused, never stored as if
+  it were the stored one.
+
 ## The other direction: the library owns the rules about its own data
 
 Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
