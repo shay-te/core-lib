@@ -94,6 +94,9 @@ self._calendar_clients = {CalendarProvider.ACME: acme_calendar_client}
 
 ## Rules
 
+- **Send exactly what the API serves (operator).** Take every path, parameter name and value from the code that serves
+  it, or the provider's current docs. Never call a route that may exist later, and add no call for a step the provider
+  already takes itself (`AGENTS.md`, "Only what is needed").
 - **Every request goes through the `ClientBase` verbs** (`self._post(path, ...)`) — never
   `requests.post(...)`, a second `requests.Session`, or `self.session.request(...)` with a
   hand-built URL. The base owns the session, URL joining, timeout and default headers.
