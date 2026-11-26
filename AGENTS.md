@@ -454,17 +454,21 @@ When you write presets for a host:
   Write six hex digits: a browser's color picker reads no shorter form.
 - **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
   that shows it.
-- **STRICT: never store half a translation key** (operator). A stored text, name or choice, is the whole key,
-  namespace included (`<namespace>.<preset>.options.<choice>`). No app adds a prefix to a stored string or builds the
-  key from part of it. This holds for every stored string that is a key, in presets and everywhere else.
+- **STRICT: a stored text or name is a whole translation key, namespace included; a choice is short, under a stored
+  prefix** (operator). A preset's choices are short names, and the record stores the namespace they share beside them
+  (`options_i18n_prefix: <namespace>.<preset>.options`). An app translates `<prefix>.<choice>` and shows a choice with
+  no such key as written, so a choice a user types reads as typed. That is the only key an app puts together: never
+  from a prefix it hard-codes, and never for any other stored string.
 - **STRICT: name a new key the way the app names its keys** (operator): where they are camelCase, never snake_case.
   An underscore belongs only in a segment copying a code name the key is looked up by (a column, an enum member), or in
   a plural suffix. Read the app's locale file before naming a key.
-- **A key is never on screen** (operator): every place an app shows a stored choice translates it through one shared
-  function, while the saved and sent value stays the key. Add the key only after finding each of those places
-  (forms, tables, filters, chips, comparisons, charts, editors).
+- **A choice with a key is never shown untranslated** (operator): every place an app shows a stored choice translates
+  it through one shared function that takes the choice and the prefix, while the saved and sent value stays the short
+  choice. Store the prefix only after finding each of those places (forms, tables, filters, chips, comparisons,
+  charts, editors) and checking that each has the record's prefix at hand.
 - **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
-- **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand.
+- **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand. A one-off
+  query repairing rows already added is given in chat and never kept in that file (operator).
 - **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
 - **Before it, fix the id's auto-increment** (operator): a row once inserted with a hand-written id leaves the sequence
   behind and the next insert fails. Write a block that is safe to run on a healthy table: create the sequence if it is
