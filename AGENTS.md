@@ -477,6 +477,10 @@ The operator's basic rule, for every library and every host.
   the database's error) and the host's existing error handling answers it (`@HandleException`). Add no pre-check,
   translation or message for it. A rule that protects the data (a lock, an ownership check, a validity rule the
   library owns, above) still raises on purpose.
+- **Build only on what the other side really serves (operator).** Before code calls another service's or library's
+  route, method or event, read the code that serves it and send exactly its path, names and values. Never write a call
+  for one that may exist later, never add a step the other side already takes itself, and remove what a merged change
+  added that nothing needs.
 
 ## Before writing a helper, check core-lib for it
 
