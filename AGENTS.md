@@ -454,6 +454,9 @@ When you write presets for a host:
   Write six hex digits: a browser's color picker reads no shorter form.
 - **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
   that shows it.
+- **STRICT: never store half a translation key** (operator). A stored text, name or choice, is the whole key,
+  namespace included (`<namespace>.<preset>.options.<choice>`). No app adds a prefix to a stored string or builds the
+  key from part of it. This holds for every stored string that is a key, in presets and everywhere else.
 - **A key is never on screen** (operator): every place an app shows a stored choice translates it through one shared
   function, while the saved and sent value stays the key. Add the key only after finding each of those places
   (forms, tables, filters, chips, comparisons, charts, editors).
