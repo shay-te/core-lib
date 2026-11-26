@@ -457,6 +457,9 @@ When you write presets for a host:
 - **STRICT: never store half a translation key** (operator). A stored text, name or choice, is the whole key,
   namespace included (`<namespace>.<preset>.options.<choice>`). No app adds a prefix to a stored string or builds the
   key from part of it. This holds for every stored string that is a key, in presets and everywhere else.
+- **STRICT: name a new key the way the app names its keys** (operator): where they are camelCase, never snake_case.
+  An underscore belongs only in a segment copying a code name the key is looked up by (a column, an enum member), or in
+  a plural suffix. Read the app's locale file before naming a key.
 - **A key is never on screen** (operator): every place an app shows a stored choice translates it through one shared
   function, while the saved and sent value stays the key. Add the key only after finding each of those places
   (forms, tables, filters, chips, comparisons, charts, editors).
