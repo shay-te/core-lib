@@ -149,8 +149,9 @@ instrument on this without editing a line of library source?**
 
 **Writing preset rows for a host's table** (rows users create records from)? Follow
 `AGENTS.md`, "Preset rows a host adds to a library table": only the basics (no copied settings), every text and
-choice a translation key, no "Prefer not to say" choice, and the SQL handed over in a Markdown file in the host's
-repository, with a plain `NOW()` for timestamps. Their instructions and placeholders follow `AGENTS.md`,
+choice a translation key (shown translated everywhere), a color for every choice (`#ffffff` by default), no "Prefer not to say" choice, and the SQL handed over in a Markdown file in the host's
+repository: first a block that fixes the id's auto-increment, then one bulk `INSERT`, with a plain `NOW()` for
+timestamps. Their instructions and placeholders follow `AGENTS.md`,
 "Instructions and placeholder text for form fields" (instructions start with "Need help?").
 
 **A column that holds a measurement?** It stores one unit, metric, in whole numbers; another unit exists only where the

@@ -447,13 +447,22 @@ A preset is a row users create their own records from. Its content is the host's
 When you write presets for a host:
 
 - **Only the basics:** what the record needs to exist (name, type, its texts and choices). Never copy the settings of
-  an existing record (visibility, editability, requirement flags, colors), even when the data you were handed carries
-  them: whoever creates a record from the preset chooses them. A preset keeps a setting only when it cannot work
-  without it (a lock it enforces).
+  an existing record (visibility, editability, requirement flags, its colors), even when the data you were handed
+  carries them: whoever creates a record from the preset chooses them. A preset keeps a setting only when it cannot
+  work without it (a lock it enforces).
+- **Every choice gets a color, white `#ffffff` by default** (operator), where the record keeps a color per choice.
+  Write six hex digits: a browser's color picker reads no shorter form.
 - **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
   that shows it.
+- **A key is never on screen** (operator): every place an app shows a stored choice translates it through one shared
+  function, while the saved and sent value stays the key. Add the key only after finding each of those places
+  (forms, tables, filters, chips, comparisons, charts, editors).
 - **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
 - **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand.
+- **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
+- **Before it, fix the id's auto-increment** (operator): a row once inserted with a hand-written id leaves the sequence
+  behind and the next insert fails. Write a block that is safe to run on a healthy table: create the sequence if it is
+  missing, make it the column's default, and set it past the highest id, soft-deleted rows included.
 - **Timestamps in that SQL are a plain `NOW()`** (operator), with no time zone conversion.
 - **Instructions and placeholders follow the next section.**
 
