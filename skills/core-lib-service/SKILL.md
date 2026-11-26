@@ -132,12 +132,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 - **The cache is JSON: a dict's int keys come back as strings.** Cache the rows
   (a private `@Cache` + `@ResultToDict` read) and build the `{int id: ...}` dict
   after the cache.
-- **A whole row cached with no expiry has a version in its key**, and the change
-  that adds a column to its entity, or a migration rewriting its stored rows,
-  bumps it. Otherwise the previous release's records are served forever: a
-  reader of the new column raises `KeyError`, and a write that merges into the
-  stale record writes it back. Test it by serving a record under the previous
-  key (§6).
+- **A cache key never carries a version (operator, strict, §6).** No `_v2`, and
+  no key change when an entity gains a column or a migration rewrites cached
+  rows, even for a whole row cached with no expiry: the operator always flushes
+  the cache. Write no fallback or test for a record cached by an earlier release,
+  and don't raise it as a review finding.
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
 - **Build a key from ids and short codes, never free text.** `@Cache` turns spaces
