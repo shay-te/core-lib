@@ -155,6 +155,8 @@ for every choice (`#ffffff` by default), no "Prefer not to say" choice, and the 
 repository: first a block that fixes the id's auto-increment, then one bulk `INSERT`, with a plain `NOW()` for
 timestamps. A one-off query repairing rows already added goes in chat, not in that file. Their instructions and placeholders follow `AGENTS.md`,
 "Instructions and placeholder text for form fields" (instructions start with "Need help?").
+A "preferred" companion preset takes several answers, copies its base preset's choices, order and
+`options_i18n_prefix`, is named "preferred <base name>", and changes whenever the base does.
 
 **A column that holds a measurement?** It stores one unit, metric, in whole numbers; another unit exists only where the
 value is shown (`AGENTS.md`, "Store one unit, convert only for display").

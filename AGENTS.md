@@ -467,6 +467,10 @@ When you write presets for a host:
   choice. Store the prefix only after finding each of those places (forms, tables, filters, chips, comparisons,
   charts, editors) and checking that each has the record's prefix at hand.
 - **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
+- **A "preferred" companion preset copies its base preset** (operator). A preset asking what someone wants in another
+  preset's answer has exactly the base's choices, in the same order, and stores the base's `options_i18n_prefix`, so it
+  has no choice texts of its own. It takes several answers even where the base takes one, and is named "preferred" plus
+  the base's name. Change the two together.
 - **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand. A one-off
   query repairing rows already added is given in chat and never kept in that file (operator).
 - **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
