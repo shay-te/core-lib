@@ -1662,9 +1662,11 @@ class ThingDueJob(Job):
 - **An import a host runs by hand follows the import the family already has (operator):** the same env var names, a
   log of what it will write and as whom followed by a wait before it writes, its own compose service and entrypoint
   with background jobs off, and its input folder out of Git and the image (it holds client data). It writes through
-  the service the app writes with. One bad row never stops the others, and the report ends with every row not
-  imported: its row as the spreadsheet shows it (the header is row 1, blank rows counted), the identifying value as
-  the file writes it, and why, so the operator can fix it or send it to the client.
+  the service the app writes with. One bad row never stops the others: a status-code error from any step of a row
+  (a lookup's 404, a create's 400 or 409) is caught for that row. Each row saved logs a success line naming the
+  record it went to and its identifying value, and the report ends with every row not imported: its row as the
+  spreadsheet shows it (the header is row 1, blank rows counted), the identifying value as the file writes it, and
+  why, so the operator can fix it or send it to the client.
 - **A one-shot backfill is temporary code, marked for removal (operator):** every piece it adds (the service method, the paged read it needs, its wiring, the host's script and docker service, their tests) sits between `# @DEPRECATED@ remove on <date>` and `# @DEPRECATED ENDS@`, or opens a whole file with the first, so one grep deletes all of it once it has run on production. It runs again safely: a row already done is skipped, never redone.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
