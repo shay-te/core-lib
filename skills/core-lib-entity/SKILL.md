@@ -237,6 +237,9 @@ The mixin choice decides the DataAccess base (§5).
   and one Service method answers it for every read it changes (§4). A pending
   row that later creates another (awaiting approval) stores it under the same
   key and passes it on; until then reads follow the pending row.
+- **No extra database call for another column of a row already read
+  (operator)**: one cached read returns what every question needs (a list, so
+  "no row" is cached too), and the Service answers each from it (§4).
 - **The enum class is plain `enum.Enum`, NESTED inside its entity class and
   read as `Thing.ThingKind`** — never at module level beside it. Name it for
   what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.
