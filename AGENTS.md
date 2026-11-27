@@ -477,6 +477,9 @@ The operator's basic rule, for every library and every host.
   the database's error) and the host's existing error handling answers it (`@HandleException`). Add no pre-check,
   translation or message for it. A rule that protects the data (a lock, an ownership check, a validity rule the
   library owns, above) still raises on purpose.
+- **A member of a family supports what its siblings support (operator).** A new or lagging one, and one that wraps
+  another, takes the same option under the same name and default and passes it through, so a feature the caller has
+  on its siblings works on it too. See how the siblings do it before adding it; never a second way.
 
 ## Before writing a helper, check core-lib for it
 

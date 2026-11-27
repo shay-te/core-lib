@@ -43,6 +43,11 @@ libs this one imports AND the projects that import it: logic found on both
 sides moves into the imported lib (domain-free logic into `core_lib`), and
 both sides import it. Never a copy on each side.
 
+**A member of a family supports what its siblings support (operator).** A new or
+lagging one, and one that wraps another, takes the same option under the same name
+and default and passes it through. Read how the siblings do it first, and reuse
+that: never a second way (AGENTS "Only what is needed").
+
 ## Inventory — what `core_lib` already provides
 
 **Decorators (reach for these before any try/except or manual conversion)**
