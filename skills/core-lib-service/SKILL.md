@@ -158,6 +158,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 ## Rules to enforce (from AGENTS.md)
 
+- **An import run by hand** follows the existing import's pattern and env vars, writes through the app's own service,
+  catches each row's status-code errors, logs a success line per row saved, and ends its report with every row not
+  imported: spreadsheet row, identifying value and reason (operator; AGENTS §9, "An import a host runs by hand").
+- **A getter under `@NotFoundErrorHandler()` raises 404, never returns `None`**: check the DataAccess before writing
+  `if not row` after a lookup.
 - **Extends `Service`** — every class in this folder. And the corollary: if a
   module here is not a Service, it does not belong in `service/`. That folder
   is a layer, not somewhere to park a helper.

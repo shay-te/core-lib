@@ -448,6 +448,87 @@ real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
 
+## Preset rows a host adds to a library table (operator)
+
+A preset is a row users create their own records from. Its content is the host's, so it never lives in library source.
+When you write presets for a host:
+
+- **Only the basics:** what the record needs to exist (name, type, its texts and choices). Never copy the settings of
+  an existing record (visibility, editability, requirement flags, its colors), even when the data you were handed
+  carries them: whoever creates a record from the preset chooses them. A preset keeps a setting only when it cannot
+  work without it (a lock it enforces).
+- **Every choice gets a color, white `#ffffff` by default** (operator), where the record keeps a color per choice.
+  Write six hex digits: a browser's color picker reads no shorter form.
+- **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
+  that shows it.
+- **STRICT: a stored text or name is a whole translation key, namespace included; a choice is short, under a stored
+  prefix** (operator). A preset's choices are short names, and the record stores the namespace they share beside them
+  (`options_i18n_prefix: <namespace>.<preset>.options`). An app translates `<prefix>.<choice>` and shows a choice with
+  no such key as written, so a choice a user types reads as typed. That is the only key an app puts together: never
+  from a prefix it hard-codes, and never for any other stored string.
+- **STRICT: name a new key the way the app names its keys** (operator): where they are camelCase, never snake_case.
+  An underscore belongs only in a segment copying a code name the key is looked up by (a column, an enum member), or in
+  a plural suffix. Read the app's locale file before naming a key.
+- **A choice with a key is never shown untranslated** (operator): every place an app shows a stored choice translates
+  it through one shared function that takes the choice and the prefix, while the saved and sent value stays the short
+  choice. Store the prefix only after finding each of those places (forms, tables, filters, chips, comparisons,
+  charts, editors) and checking that each has the record's prefix at hand.
+- **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
+- **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand. A one-off
+  query repairing rows already added is given in chat and never kept in that file (operator).
+- **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
+- **Before it, fix the id's auto-increment** (operator): a row once inserted with a hand-written id leaves the sequence
+  behind and the next insert fails. Write a block that is safe to run on a healthy table: create the sequence if it is
+  missing, make it the column's default, and set it past the highest id, soft-deleted rows included.
+- **Timestamps in that SQL are a plain `NOW()`** (operator), with no time zone conversion.
+- **Instructions and placeholders follow the next section.**
+
+## Instructions and placeholder text for form fields (operator)
+
+Wherever you write a form field's instructions or placeholder, write them as a UX writer would: clear, short and
+natural.
+
+1. Instructions are friendly, simple and conversational. They **start with "Need help?"**, followed by useful guidance.
+2. Placeholders are short, clear and about the question: a natural example, or a prompt saying what to enter or select.
+3. Don't repeat the question when you don't need to, don't over-explain a clear one, and keep instructions short.
+4. By field type: a text field says what information to give; a textarea invites the user to elaborate, with examples
+   where they help; a dropdown says what to select; a multi-select says **"Select all that apply."**; a yes/no stays
+   simple ("Select yes or no"); a conditional field says when to fill it ("If yes, please...").
+5. **Keep the question's wording and meaning.** Never rewrite or rename it unless asked.
+6. Don't invent questions or fields. Keep the options you are given, and reword them only when asked. Text never names
+   a choice the field doesn't offer.
+7. Use inclusive, respectful, professional language, in every translation too.
+8. A field type the operator names is kept. With only a question, pick the best type. Asked which type fits, recommend
+   one and say briefly why.
+
+When the operator asks for the texts in chat, handle each question on its own, with no extra introduction, conclusion
+or explanation:
+
+> **Type:** Text / Textarea / Single-select dropdown / Multi-select checkboxes / Date picker / Yes-No
+>
+> **Instructions:** *Need help? Share your hobbies, interests, favorite activities, and how you enjoy spending your
+> free time.*
+>
+> **Placeholder:** Describe your hobbies, interests, and how you like to spend your free time.
+
+The italics only mark the instructions in chat; the stored text has no asterisks.
+
+## Store one unit, convert only for display (operator)
+
+A measured quantity (a length, a weight, a distance) has one stored unit, metric, in whole numbers. The library and
+its host never learn a second one.
+
+- **The column holds that unit**, and so does everything that reads or writes it: arguments, returned dicts, filters,
+  search indexes, import and export. A comment on the column, or its name, says which unit it is.
+- **Another unit is only a way of showing the value**, applied where it is shown, by whoever shows it. It is never
+  stored, and a library function never takes a "unit" argument to return a converted number.
+- **Limits are in the stored unit**, declared once in a constants enum the validator reads and clients are sent,
+  never repeated in another unit.
+- **A picker in the other unit keeps the stored values and only renames them**, so a picked value is never converted
+  back, which would drift by a rounding.
+- **Text being imported is read as the stored unit only.** A value naming another unit is refused, never stored as if
+  it were the stored one.
+
 ## The other direction: the library owns the rules about its own data
 
 Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
@@ -1588,6 +1669,14 @@ class ThingDueJob(Job):
 - **A job that raises is only LOGGED** (§12). When a silent failure matters — a purge, a watchdog — the service method the job calls alarms through the lib's observer (the host's listener delivers it) and then re-raises; the job stays a one-line delegation.
 - **A retention purge: one anchor timestamp per table, one period per table from config.** The cutoff (`SELECT now() - make_interval(months => :months)`) is computed by the DATABASE once per table per run and reused for every batch; a NULL anchor (an open case) is never purged; a period of 0 / empty means never. No per-row `expires_at` or retention class — changing a period then applies to every row, with nothing to backfill.
 - **A batch run (a job, a one-shot backfill) logs its progress at INFO (operator):** each phase's start and end, each page (rows done, last id, elapsed, running counts) and each row (its id, the users it is about, its result). A run that logs only its start and its end looks stuck.
+- **An import a host runs by hand follows the import the family already has (operator):** the same env var names, a
+  log of what it will write and as whom followed by a wait before it writes, its own compose service and entrypoint
+  with background jobs off, and its input folder out of Git and the image (it holds client data). It writes through
+  the service the app writes with. One bad row never stops the others: a status-code error from any step of a row
+  (a lookup's 404, a create's 400 or 409) is caught for that row. Each row saved logs a success line naming the
+  record it went to and its identifying value, and the report ends with every row not imported: its row as the
+  spreadsheet shows it (the header is row 1, blank rows counted), the identifying value as the file writes it, and
+  why, so the operator can fix it or send it to the client.
 - **A one-shot backfill is temporary code, marked for removal (operator):** every piece it adds (the service method, the paged read it needs, its wiring, the host's script and docker service, their tests) sits between `# @DEPRECATED@ remove on <date>` and `# @DEPRECATED ENDS@`, or opens a whole file with the first, so one grep deletes all of it once it has run on production. It runs again safely: a row already done is skipped, never redone.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 

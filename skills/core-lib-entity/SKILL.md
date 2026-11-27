@@ -147,6 +147,18 @@ litmus test in `AGENTS.md` (§4.0 for the entity-specific form). The second
 question is the one that catches these: **could a stranger build their OWN
 instrument on this without editing a line of library source?**
 
+**Writing preset rows for a host's table** (rows users create records from)? Follow
+`AGENTS.md`, "Preset rows a host adds to a library table": only the basics (no copied settings), every text a whole
+translation key and every choice a short name under a stored `options_i18n_prefix` (**strict: no other half key, and
+keys named like the app's other keys, camelCase, never an invented snake_case**; shown translated everywhere), a color
+for every choice (`#ffffff` by default), no "Prefer not to say" choice, and the SQL handed over in a Markdown file in the host's
+repository: first a block that fixes the id's auto-increment, then one bulk `INSERT`, with a plain `NOW()` for
+timestamps. A one-off query repairing rows already added goes in chat, not in that file. Their instructions and placeholders follow `AGENTS.md`,
+"Instructions and placeholder text for form fields" (instructions start with "Need help?").
+
+**A column that holds a measurement?** It stores one unit, metric, in whole numbers; another unit exists only where the
+value is shown (`AGENTS.md`, "Store one unit, convert only for display").
+
 ## Steps
 
 1. Pick the table name and columns. Decide soft-delete strategy (see mixins).
