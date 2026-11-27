@@ -20,6 +20,13 @@ operator's step.
 
 ---
 
+# A question gets an answer, not a change (operator rule)
+
+When the operator asks to check, explain or plan something, an agent reads and answers: it edits no file, a rules file
+included. It changes code only once the operator says which change to make.
+
+---
+
 # A column name is NEVER a string literal — `Entity.column.key`
 
 One rule, stated once, because it is the single most repeated review
