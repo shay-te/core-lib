@@ -131,6 +131,13 @@ class TestPromptStr(unittest.TestCase):
         with patch("builtins.input", return_value=""):
             self.assertEqual(prompt_str("Name", allow_empty=True), "")
 
+    def test_fail_message_after_rejected_value_and_title_again_after_empty(self):
+        with patch("builtins.input", side_effect=["bad", "", "good"]) as mock_input:
+            result = prompt_str("Name", validate_callback=lambda value: value == "good", validate_fail_message="Try again")
+        self.assertEqual(result, "good")
+        prompts = [prompt_call.args[0] for prompt_call in mock_input.call_args_list]
+        self.assertEqual(prompts, ["Name: ", "Try again: ", "Name: "])
+
 
 # ── prompt_yes_no ─────────────────────────────────────────────────────────────
 
@@ -416,6 +423,13 @@ class TestPromptList(unittest.TestCase):
             return reject_count[0] > 1
         with patch("builtins.input", side_effect=["1", "1"]), patch("builtins.print"):
             self.assertEqual(prompt_list(["a", "b"], "Pick", validate_callback=reject_once), 0)
+
+    def test_title_again_after_out_of_range_following_rejected_item(self):
+        with patch("builtins.print"), patch("builtins.input", side_effect=["1", "9", "2"]) as mock_input:
+            result = prompt_list(["a", "b"], "Pick", validate_callback=lambda item: item != "a", validate_fail_message="Taken")
+        self.assertEqual(result, 1)
+        prompts = [prompt_call.args[0] for prompt_call in mock_input.call_args_list]
+        self.assertEqual(prompts, ["Pick: ", "Taken: ", "Pick: "])
 
 
 # ── prompt_comma_list ─────────────────────────────────────────────────────────
@@ -808,3 +822,121 @@ class TestPromptMultiSelect(unittest.TestCase):
         removes = [i for i, (was, now) in enumerate(zip(initial, final)) if was and not now]
         self.assertEqual(adds, [3])
         self.assertEqual(removes, [0])
+
+
+# ── prompt_file_name ──────────────────────────────────────────────────────────
+
+class TestPromptFileName(unittest.TestCase):
+    def test_hyphens_become_underscores(self):
+        with patch("builtins.input", return_value="my-file"):
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "my_file")
+
+    def test_unsafe_characters_removed(self):
+        with patch("builtins.input", return_value="my file1.txt"):
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "myfiletxt")
+
+    def test_retries_until_something_safe_remains(self):
+        with patch("builtins.input", side_effect=["123", "", "ok"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "ok")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_prompt_text(self):
+        with patch("builtins.input", return_value="ok") as mock_input:
+            shell_utils.prompt_file_name("Name")
+        mock_input.assert_called_once_with("Name: ")
+
+
+# ── prompt_email ──────────────────────────────────────────────────────────────
+
+class TestPromptEmail(unittest.TestCase):
+    def test_valid_email_returned(self):
+        with patch("builtins.input", return_value="a@b.com"):
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+
+    def test_retries_on_invalid(self):
+        with patch("builtins.input", side_effect=["bad", "x@y", "a@b.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value="") as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email", default="d@e.com"), "d@e.com")
+        mock_input.assert_called_once_with("Email [default: d@e.com]: ")
+
+    def test_typed_value_beats_default(self):
+        with patch("builtins.input", return_value="a@b.com"):
+            self.assertEqual(shell_utils.prompt_email("Email", default="d@e.com"), "a@b.com")
+
+    def test_empty_without_default_retries(self):
+        with patch("builtins.input", side_effect=["", "a@b.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+        self.assertEqual(mock_input.call_count, 2)
+
+
+# ── prompt_url ────────────────────────────────────────────────────────────────
+
+class TestPromptUrl(unittest.TestCase):
+    def test_valid_url_returned(self):
+        with patch("builtins.input", return_value="https://acme.com"):
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+
+    def test_retries_on_invalid(self):
+        with patch("builtins.input", side_effect=["acme", "ftp://acme.com", "https://acme.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_url("Url", default="https://acme.com"), "https://acme.com")
+
+    def test_empty_allowed_returns_empty_string(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_url("Url", allow_empty=True), "")
+
+    def test_empty_not_allowed_and_no_default_retries(self):
+        with patch("builtins.input", side_effect=["", "https://acme.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+        self.assertEqual(mock_input.call_count, 2)
+
+    def test_invalid_value_still_retries_when_empty_allowed(self):
+        with patch("builtins.input", side_effect=["acme", ""]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url", allow_empty=True), "")
+        self.assertEqual(mock_input.call_count, 2)
+
+
+# ── prompt_timeframe ──────────────────────────────────────────────────────────
+
+class TestPromptTimeframe(unittest.TestCase):
+    def test_duration_returned_as_typed(self):
+        with patch("builtins.input", return_value="1h30m"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "1h30m")
+
+    def test_boot_means_zero_seconds(self):
+        with patch("builtins.input", return_value="boot"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "0s")
+
+    def test_startup_means_zero_seconds(self):
+        with patch("builtins.input", return_value="startup"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "0s")
+
+    def test_retries_on_unparseable(self):
+        with patch("builtins.input", side_effect=["soon", "5s"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "5s")
+        self.assertEqual(mock_input.call_count, 2)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", default="10m"), "10m")
+
+    def test_empty_default_boot_means_zero_seconds(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", default="boot"), "0s")
+
+    def test_empty_allowed_returns_empty_string(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", allow_empty=True), "")
+
+    def test_empty_not_allowed_and_no_default_retries(self):
+        with patch("builtins.input", side_effect=["", "5s"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "5s")
+        self.assertEqual(mock_input.call_count, 2)
