@@ -168,19 +168,41 @@ def get() -> UserSecurity:
 
 # RequireLogin Decorator
 
-*core_lib.web_helpers.django.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/django/require_login.py#L10){:target="_blank"}
+*core_lib.web_helpers.require_login.RequireLogin* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/require_login.py#L19){:target="_blank"}
 
 This decorator with be responsible for authorization or authentication using `UserSecurity` functions and `SecurityHandler`.
 It will accept `policies` from the user and `request` object from the function parameters, then the decorator will call the `_secure_entry` function and return the response.
+One decorator serves Flask, Django and FastAPI. The old `core_lib.web_helpers.flask.require_login` and `core_lib.web_helpers.django.require_login` paths still import it, with a `DeprecationWarning`.
 
 ```python
 class RequireLogin(object):
-    def __init__(self, policies: list = []):
+    def __init__(self, policies=None, security_handler_name: str = None):
 ```
 
 **Arguments**
 
 - **`policies`** *`(list)`* : List of policies which will be further passed on the the `UserSecurity` functions.
+- **`security_handler_name`** *`(str)`* : The name a `UserSecurity` was registered under with `SecurityHandler.register`. Default: the unnamed one.
+
+Put `@RequireLogin` below the route decorator (`@app.get` on FastAPI, `@app.route` on Flask). The route decorator registers the function it is given, so with `@RequireLogin` above it the route serves the undecorated view and is public.
+
+## FastAPI
+
+A FastAPI view declares a `request: Request` parameter, named `request`. FastAPI passes a view only what its signature declares, and `RequireLogin` finds the request by that name. The view is a plain `def`, not `async def`: core-lib services are synchronous, and FastAPI runs a `def` view in its thread pool. An `async def` view raises `TypeError` when it is called.
+
+```python
+from fastapi import FastAPI, Request
+
+from core_lib.web_helpers.require_login import RequireLogin
+
+app = FastAPI()
+
+
+@app.get('/items/{item_id}')
+@RequireLogin(policies=[User.PolicyRoles.USER, User.Status.ACTIVE])
+def get_item(request: Request, item_id: int):
+    return core_lib.item.get(item_id)
+```
 
 
 # UserAuthMiddleware
@@ -192,6 +214,12 @@ the specified cookie is present in the request, turn it to a `Session Object`, a
 
 ```python
 class UserAuthMiddleware(MiddlewareMixin):
+```
+
+On FastAPI, *core_lib.web_helpers.fastapi.user_auth_middleware.UserAuthMiddleware* [[source]](https://github.com/shay-te/core-lib/blob/master/core_lib/web_helpers/fastapi/user_auth_middleware.py#L6){:target="_blank"} does the same and puts the session object on `request.state.user`. When the cookie is missing, `request.state.user` is not set, so read it with `getattr(request.state, 'user', None)`.
+
+```python
+app.add_middleware(UserAuthMiddleware, cookie_name='user_cookie')
 ```
 
 ## Example
@@ -213,7 +241,7 @@ from core_lib.session.jwt_token_handler import JWTTokenHandler
 from core_lib.session.security_handler import SecurityHandler
 from core_lib.session.user_security import UserSecurity
 from core_lib.web_helpers.decorators import HandleException
-from core_lib.web_helpers.django.require_login import RequireLogin
+from core_lib.web_helpers.require_login import RequireLogin
 from core_lib.web_helpers.request_response_helpers import response_status
 
 

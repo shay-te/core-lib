@@ -233,8 +233,9 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   flow, never a host's "find the row, then write to it" (§6.5). A caller that
   differs only in the recipient shares the extracted public step (the provider
   send) and resolves the recipient in its own Service, never from the client.
-- **A decorator shipped for hosts** checks its parameter names and derived
-  identifiers at decoration time; options after the first are keyword-only (§8).
+- **A decorator shipped for hosts** gets its checks of parameter names and derived
+  identifiers from the function it wraps, never from a copy in the decorator;
+  options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
   in addition to firing the observer event; pass raw enum/datetime values to
   history `create` (§A4).

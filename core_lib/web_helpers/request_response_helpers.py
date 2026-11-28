@@ -11,6 +11,8 @@ from core_lib.helpers.constants import MediaType, HttpHeaders
 
 from django.http import HttpResponse
 from flask import Flask
+from anyio import from_thread
+from starlette.responses import Response as StarletteResponse
 
 
 def response_status(status: int = HTTPStatus.OK.value):
@@ -57,6 +59,8 @@ def generate_response(data, status, media_type: MediaType = MediaType.TEXT_HTML,
         return generate_response_django(data, status, media_type, headers)
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
         return generate_response_flask(data, status, media_type, headers)
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
+        return generate_response_fastapi(data, status, media_type, headers)
 
 
 def generate_response_django(data, status, media_type: MediaType, headers: dict = {}):
@@ -73,6 +77,10 @@ def generate_response_flask(data, status, media_type: MediaType, headers: dict =
     return response
 
 
+def generate_response_fastapi(data, status, media_type: MediaType, headers: dict = None):
+    return StarletteResponse(content=data, status_code=int(status), media_type=media_type.value, headers=headers)
+
+
 #
 # HELPERS
 #
@@ -83,3 +91,8 @@ def request_body_dict(request):
         return json.loads(request.body.decode('utf-8'))
     elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FLASK:
         return request.json
+    elif WebHelpersUtils.get_server_type() == WebHelpersUtils.ServerType.FASTAPI:
+        # Starlette reads the body asynchronously. FastAPI runs a sync view in an AnyIO worker thread, which
+        # reaches back into the event loop to read it. In an async view anyio raises RuntimeError: use
+        # `await request.json()` there.
+        return json.loads(from_thread.run(request.body).decode('utf-8'))

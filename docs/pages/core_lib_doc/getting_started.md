@@ -211,7 +211,7 @@ if __name__ == '__main__':
 ```python
 from core_lib.web_helpers.request_response_helpers import request_body_dict, response_ok, response_json
 from core_lib.web_helpers.decorators import HandleException
-from core_lib.web_helpers.flask.require_login import RequireLogin
+from core_lib.web_helpers.require_login import RequireLogin
 
 app = Flask(__name__)
 your_core_lib = YourCoreLibInstance.get()  # singleton, created once at startup

@@ -1,18 +1,13 @@
-from functools import wraps
-import logging
-from core_lib.web_helpers.require_login_helper import require_login
-logger = logging.getLogger(__name__)
+"""Deprecated: `RequireLogin` moved to `core_lib.web_helpers.require_login`, one decorator for every framework."""
+import warnings
 
+from core_lib.web_helpers.require_login import RequireLogin
 
-class RequireLogin(object):
-    def __init__(self, policies=None):
-        if policies is None:
-            policies = []
-        self.policies = policies
+__all__ = ['RequireLogin']
 
-    def __call__(self, func, *args, **kwargs):
-        @wraps(func)
-        def __wrapper(request, *args, **kwargs):
-            return require_login(request, self.policies, func, *args, **kwargs)
-
-        return __wrapper
+warnings.warn(
+    '`core_lib.web_helpers.django.require_login` is deprecated: '
+    'import RequireLogin from `core_lib.web_helpers.require_login`',
+    DeprecationWarning,
+    stacklevel=2,
+)
