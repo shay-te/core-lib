@@ -471,9 +471,15 @@ When you write presets for a host:
   preset's answer has exactly the base's choices, in the same order, and stores the base's `options_i18n_prefix`, so it
   has no choice texts of its own. It takes several answers even where the base takes one, and is named "preferred" plus
   the base's name. Change the two together.
+- **Adding a choice to a preset already in use** (operator): update the preset row where it is, never insert it again,
+  and its "preferred" companion with it. Records made from a preset hold their own copy of the choices: add them there
+  too, changing only the choices and their colors, so their other settings and saved answers stay. Keep each color with
+  its choice as positions move, and rename or remove none. Before moving the preset's change timestamp, check for a job
+  that re-copies newer presets over records. After a direct query, clear the cache.
 - **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand. A one-off
   query repairing rows already added is given in chat and never kept in that file (operator).
-- **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
+- **All the rows go in one bulk `INSERT`** (operator), so either all are added or none. Rows you add to the file later
+  join that statement; never give it a second one.
 - **Before it, fix the id's auto-increment** (operator): a row once inserted with a hand-written id leaves the sequence
   behind and the next insert fails. Write a block that is safe to run on a healthy table: create the sequence if it is
   missing, make it the column's default, and set it past the highest id, soft-deleted rows included.

@@ -152,11 +152,13 @@ instrument on this without editing a line of library source?**
 translation key and every choice a short name under a stored `options_i18n_prefix` (**strict: no other half key, and
 keys named like the app's other keys, camelCase, never an invented snake_case**; shown translated everywhere), a color
 for every choice (`#ffffff` by default), no "Prefer not to say" choice, and the SQL handed over in a Markdown file in the host's
-repository: first a block that fixes the id's auto-increment, then one bulk `INSERT`, with a plain `NOW()` for
+repository: first a block that fixes the id's auto-increment, then one bulk `INSERT` (later rows join it), with a plain `NOW()` for
 timestamps. A one-off query repairing rows already added goes in chat, not in that file. Their instructions and placeholders follow `AGENTS.md`,
 "Instructions and placeholder text for form fields" (instructions start with "Need help?").
 A "preferred" companion preset takes several answers, copies its base preset's choices, order and
 `options_i18n_prefix`, is named "preferred <base name>", and changes whenever the base does.
+Adding a choice to a preset already in use? Update the row in place, add the choice to the records made from it
+without touching their other settings or answers, then clear the cache (same `AGENTS.md` section).
 
 **A column that holds a measurement?** It stores one unit, metric, in whole numbers; another unit exists only where the
 value is shown (`AGENTS.md`, "Store one unit, convert only for display").
