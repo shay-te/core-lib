@@ -4,11 +4,13 @@ from unittest.mock import patch
 
 from core_lib.helpers import shell_utils
 from core_lib.helpers.shell_utils import (
+    _parse_toggle_indices,
     prompt_bool,
     prompt_comma_list,
     prompt_enum,
     prompt_int,
     prompt_list,
+    prompt_multi_select,
     prompt_options,
     prompt_str,
     prompt_yes_no,
@@ -128,6 +130,13 @@ class TestPromptStr(unittest.TestCase):
         # allow_empty wins when default is None and allow_none is False
         with patch("builtins.input", return_value=""):
             self.assertEqual(prompt_str("Name", allow_empty=True), "")
+
+    def test_fail_message_after_rejected_value_and_title_again_after_empty(self):
+        with patch("builtins.input", side_effect=["bad", "", "good"]) as mock_input:
+            result = prompt_str("Name", validate_callback=lambda value: value == "good", validate_fail_message="Try again")
+        self.assertEqual(result, "good")
+        prompts = [prompt_call.args[0] for prompt_call in mock_input.call_args_list]
+        self.assertEqual(prompts, ["Name: ", "Try again: ", "Name: "])
 
 
 # ── prompt_yes_no ─────────────────────────────────────────────────────────────
@@ -415,6 +424,13 @@ class TestPromptList(unittest.TestCase):
         with patch("builtins.input", side_effect=["1", "1"]), patch("builtins.print"):
             self.assertEqual(prompt_list(["a", "b"], "Pick", validate_callback=reject_once), 0)
 
+    def test_title_again_after_out_of_range_following_rejected_item(self):
+        with patch("builtins.print"), patch("builtins.input", side_effect=["1", "9", "2"]) as mock_input:
+            result = prompt_list(["a", "b"], "Pick", validate_callback=lambda item: item != "a", validate_fail_message="Taken")
+        self.assertEqual(result, 1)
+        prompts = [prompt_call.args[0] for prompt_call in mock_input.call_args_list]
+        self.assertEqual(prompts, ["Pick: ", "Taken: ", "Pick: "])
+
 
 # ── prompt_comma_list ─────────────────────────────────────────────────────────
 
@@ -477,3 +493,450 @@ class TestPromptCommaList(unittest.TestCase):
     def test_whitespace_only_input_treated_as_empty(self):
         with patch("builtins.input", side_effect=["   ", "a,b"]):
             self.assertEqual(prompt_comma_list("Values", allow_empty=False), ["a", "b"])
+
+
+# ── _parse_toggle_indices ─────────────────────────────────────────────────────
+
+class TestParseToggleIndices(unittest.TestCase):
+    def test_empty_string(self):
+        self.assertEqual(_parse_toggle_indices("", 5), [])
+
+    def test_whitespace_only(self):
+        self.assertEqual(_parse_toggle_indices("   ", 5), [])
+
+    def test_single_index_one_based_to_zero_based(self):
+        self.assertEqual(_parse_toggle_indices("1", 5), [0])
+        self.assertEqual(_parse_toggle_indices("5", 5), [4])
+
+    def test_comma_separated(self):
+        self.assertEqual(_parse_toggle_indices("1,3,5", 5), [0, 2, 4])
+
+    def test_space_separated(self):
+        self.assertEqual(_parse_toggle_indices("1 3 5", 5), [0, 2, 4])
+
+    def test_mixed_commas_and_spaces(self):
+        self.assertEqual(_parse_toggle_indices("1, 3 5", 5), [0, 2, 4])
+
+    def test_range_inclusive(self):
+        self.assertEqual(_parse_toggle_indices("1-3", 5), [0, 1, 2])
+
+    def test_mixed_range_and_singles(self):
+        self.assertEqual(_parse_toggle_indices("1-3,7", 10), [0, 1, 2, 6])
+
+    def test_reversed_range_normalises(self):
+        # "3-1" should still yield 1..3 — order in input shouldn't matter
+        self.assertEqual(_parse_toggle_indices("3-1", 5), [0, 1, 2])
+
+    def test_single_element_range(self):
+        self.assertEqual(_parse_toggle_indices("2-2", 5), [1])
+
+    def test_out_of_range_single_dropped(self):
+        self.assertEqual(_parse_toggle_indices("99", 3), [])
+
+    def test_out_of_range_range_partially_clamped(self):
+        # "1-5" with max=3 should yield 1,2,3 (not error)
+        self.assertEqual(_parse_toggle_indices("1-5", 3), [0, 1, 2])
+
+    def test_range_starting_above_max_drops(self):
+        self.assertEqual(_parse_toggle_indices("8-10", 5), [])
+
+    def test_non_numeric_token_dropped(self):
+        self.assertEqual(_parse_toggle_indices("abc, 1", 5), [0])
+
+    def test_non_numeric_in_range_dropped(self):
+        self.assertEqual(_parse_toggle_indices("a-b", 5), [])
+        self.assertEqual(_parse_toggle_indices("1-abc", 5), [])
+        self.assertEqual(_parse_toggle_indices("abc-3", 5), [])
+
+    def test_zero_rejected(self):
+        # 1-based input — 0 is invalid
+        self.assertEqual(_parse_toggle_indices("0", 5), [])
+
+    def test_negative_single_rejected(self):
+        # int("-5") parses but fails the 1<=n<=max check
+        self.assertEqual(_parse_toggle_indices("-5", 5), [])
+
+    def test_range_with_zero_clamps(self):
+        # "0-2" — zero clamped out, 1 and 2 kept
+        self.assertEqual(_parse_toggle_indices("0-2", 5), [0, 1])
+
+    def test_max_index_zero_drops_everything(self):
+        # empty items list — all input is invalid
+        self.assertEqual(_parse_toggle_indices("1,2,3", 0), [])
+
+    def test_duplicates_preserved(self):
+        # toggle semantics rely on this — "1,1" toggles twice (no-op)
+        self.assertEqual(_parse_toggle_indices("1,1", 5), [0, 0])
+
+    def test_preserves_input_order(self):
+        # order matters when the consumer applies XOR semantics
+        self.assertEqual(_parse_toggle_indices("3,1,2", 5), [2, 0, 1])
+
+    def test_garbage_around_valid_tokens(self):
+        self.assertEqual(_parse_toggle_indices("1, foo, 2-3, bar", 5), [0, 1, 2])
+
+    def test_lone_dash_dropped(self):
+        # leading-dash branch shouldn't be treated as a range
+        self.assertEqual(_parse_toggle_indices("-", 5), [])
+
+    def test_trailing_dash_dropped(self):
+        self.assertEqual(_parse_toggle_indices("1-", 5), [])
+
+    def test_double_dash_token_dropped(self):
+        self.assertEqual(_parse_toggle_indices("1-2-3, 4", 5), [3])
+
+
+# ── prompt_multi_select ───────────────────────────────────────────────────────
+
+class TestPromptMultiSelect(unittest.TestCase):
+    def test_empty_input_applies_initial_state_unchanged(self):
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[True, False, True],
+            )
+        self.assertEqual(result, [True, False, True])
+
+    def test_default_initial_selected_is_all_false(self):
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            result = prompt_multi_select(["a", "b", "c"], "Pick")
+        self.assertEqual(result, [False, False, False])
+
+    def test_quit_returns_none(self):
+        with patch("builtins.input", return_value="q"), patch("builtins.print"):
+            self.assertIsNone(prompt_multi_select(["a", "b"], "Pick"))
+
+    def test_quit_uppercase_returns_none(self):
+        with patch("builtins.input", return_value="Q"), patch("builtins.print"):
+            self.assertIsNone(prompt_multi_select(["a", "b"], "Pick"))
+
+    def test_quit_word_returns_none(self):
+        for word in ("quit", "exit", "QUIT", "Exit"):
+            with patch("builtins.input", return_value=word), patch("builtins.print"):
+                self.assertIsNone(prompt_multi_select(["a"], "Pick"))
+
+    def test_quit_does_not_apply_pending_toggles(self):
+        # toggle then quit — toggles must be discarded
+        with patch("builtins.input", side_effect=["1", "q"]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[False, False],
+            )
+        self.assertIsNone(result)
+
+    def test_single_toggle_then_apply(self):
+        with patch("builtins.input", side_effect=["2", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[False, False, False],
+            )
+        self.assertEqual(result, [False, True, False])
+
+    def test_toggle_off(self):
+        with patch("builtins.input", side_effect=["2", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[True, True, True],
+            )
+        self.assertEqual(result, [True, False, True])
+
+    def test_multiple_toggles_in_single_input(self):
+        with patch("builtins.input", side_effect=["1,3", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[False, False, False],
+            )
+        self.assertEqual(result, [True, False, True])
+
+    def test_range_toggle(self):
+        with patch("builtins.input", side_effect=["1-3", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[False, False, False],
+            )
+        self.assertEqual(result, [True, True, True])
+
+    def test_multi_step_toggling(self):
+        # toggle 1, then toggle 2, then apply
+        with patch("builtins.input", side_effect=["1", "2", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b", "c"], "Pick", initial_selected=[False, False, False],
+            )
+        self.assertEqual(result, [True, True, False])
+
+    def test_toggle_same_index_twice_in_one_input_cancels(self):
+        with patch("builtins.input", side_effect=["1,1", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[False, False],
+            )
+        self.assertEqual(result, [False, False])
+
+    def test_toggle_same_index_twice_across_inputs_cancels(self):
+        with patch("builtins.input", side_effect=["1", "1", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[False, False],
+            )
+        self.assertEqual(result, [False, False])
+
+    def test_out_of_range_silently_ignored_does_not_apply(self):
+        # input is non-empty (so not "apply"), but every token is invalid →
+        # nothing toggles, picker keeps prompting
+        with patch("builtins.input", side_effect=["99", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[True, False],
+            )
+        self.assertEqual(result, [True, False])
+
+    def test_non_numeric_input_keeps_prompting(self):
+        with patch("builtins.input", side_effect=["abc", "1", ""]), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[False, False],
+            )
+        self.assertEqual(result, [True, False])
+
+    def test_whitespace_only_treated_as_empty_apply(self):
+        # _prompt strips, so "   " → "" → apply
+        with patch("builtins.input", return_value="   "), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a"], "Pick", initial_selected=[True],
+            )
+        self.assertEqual(result, [True])
+
+    def test_empty_items_apply_returns_empty_list(self):
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            result = prompt_multi_select([], "Pick")
+        self.assertEqual(result, [])
+
+    def test_empty_items_quit_returns_none(self):
+        with patch("builtins.input", return_value="q"), patch("builtins.print"):
+            self.assertIsNone(prompt_multi_select([], "Pick"))
+
+    def test_initial_selected_length_mismatch_raises(self):
+        with self.assertRaises(ValueError):
+            prompt_multi_select(["a", "b"], "Pick", initial_selected=[True])
+
+    def test_initial_selected_too_long_raises(self):
+        with self.assertRaises(ValueError):
+            prompt_multi_select(["a"], "Pick", initial_selected=[True, False])
+
+    def test_initial_selected_truthiness_normalised_to_bool(self):
+        # passing 1/0 should still produce a clean list[bool]
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            result = prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[1, 0],
+            )
+        self.assertEqual(result, [True, False])
+        self.assertTrue(all(isinstance(s, bool) for s in result))
+
+    def test_label_for_called_with_each_item(self):
+        seen = []
+        def label(item):
+            seen.append(item)
+            return f'<{item}>'
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            prompt_multi_select(["a", "b", "c"], "Pick", label_for=label)
+        self.assertEqual(seen, ["a", "b", "c"])
+
+    def test_label_for_default_uses_str(self):
+        # arbitrary objects should render via str() with no callback
+        class Obj(object):
+            def __str__(self):
+                return "rendered"
+        with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+            prompt_multi_select([Obj()], "Pick")
+        printed = ' '.join(str(c.args[0]) for c in mock_print.call_args_list if c.args)
+        self.assertIn("rendered", printed)
+
+    def test_label_for_receives_original_item_identity(self):
+        # label_for must get the *same* object the caller passed, so
+        # the consumer can compute custom suffixes from item state
+        sentinel = object()
+        received = []
+        with patch("builtins.input", return_value=""), patch("builtins.print"):
+            prompt_multi_select(
+                [sentinel], "Pick", label_for=lambda i: received.append(i) or "x",
+            )
+        self.assertIs(received[0], sentinel)
+
+    def test_items_accepts_any_sequence(self):
+        # tuple input shouldn't break — function should list() it internally
+        with patch("builtins.input", side_effect=["1", ""]), patch("builtins.print"):
+            result = prompt_multi_select(("a", "b"), "Pick")
+        self.assertEqual(result, [True, False])
+
+    def test_caller_iterable_not_mutated(self):
+        original = ["a", "b", "c"]
+        with patch("builtins.input", side_effect=["1,2,3", ""]), patch("builtins.print"):
+            prompt_multi_select(original, "Pick", initial_selected=[False] * 3)
+        self.assertEqual(original, ["a", "b", "c"])
+
+    def test_initial_selected_iterable_not_mutated(self):
+        initial = [False, False, False]
+        with patch("builtins.input", side_effect=["1,3", ""]), patch("builtins.print"):
+            prompt_multi_select(["a", "b", "c"], "Pick", initial_selected=initial)
+        self.assertEqual(initial, [False, False, False])
+
+    def test_render_shows_checkbox_marks(self):
+        # both [x] and [ ] should appear when state is mixed
+        with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+            prompt_multi_select(
+                ["a", "b"], "Pick", initial_selected=[True, False],
+            )
+        printed = '\n'.join(str(c.args[0]) for c in mock_print.call_args_list if c.args)
+        self.assertIn("[x]", printed)
+        self.assertIn("[ ]", printed)
+
+    def test_render_shows_indices_one_based(self):
+        with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+            prompt_multi_select(["a", "b", "c"], "Pick")
+        printed = '\n'.join(str(c.args[0]) for c in mock_print.call_args_list if c.args)
+        # 1-based numbering — must show "1." not "0."
+        self.assertIn("1.", printed)
+        self.assertIn("3.", printed)
+        self.assertNotIn("0.", printed)
+
+    def test_render_shows_empty_message_when_no_items(self):
+        with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+            prompt_multi_select(
+                [], "Pick", empty_message="<NOTHING HERE>",
+            )
+        printed = '\n'.join(str(c.args[0]) for c in mock_print.call_args_list if c.args)
+        self.assertIn("<NOTHING HERE>", printed)
+
+    def test_render_shows_title_each_iteration(self):
+        # operator must see the updated table after every toggle round
+        # (not just on the first render) — that's the whole point of looping
+        title = "PICKER_TITLE_MARKER"
+        with patch("builtins.input", side_effect=["1", "2", ""]), patch("builtins.print") as mock_print:
+            prompt_multi_select(["a", "b"], title)
+        printed_lines = [str(c.args[0]) for c in mock_print.call_args_list if c.args]
+        title_renders = sum(1 for line in printed_lines if line == title)
+        # 3 input rounds = 3 renders of the title
+        self.assertEqual(title_renders, 3)
+
+    def test_full_diff_workflow_matches_consumer_pattern(self):
+        # mirrors the REP approval-list use case: caller passes initial
+        # state, picker returns final state, caller diffs to compute
+        # add/remove operations
+        items = ["repo-a", "repo-b", "repo-c", "repo-d"]
+        initial = [True, False, True, False]
+        # operator: revoke repo-a (toggle 1), approve repo-d (toggle 4)
+        with patch("builtins.input", side_effect=["1,4", ""]), patch("builtins.print"):
+            final = prompt_multi_select(items, "Pick", initial_selected=initial)
+        self.assertEqual(final, [False, False, True, True])
+        adds = [i for i, (was, now) in enumerate(zip(initial, final)) if now and not was]
+        removes = [i for i, (was, now) in enumerate(zip(initial, final)) if was and not now]
+        self.assertEqual(adds, [3])
+        self.assertEqual(removes, [0])
+
+
+# ── prompt_file_name ──────────────────────────────────────────────────────────
+
+class TestPromptFileName(unittest.TestCase):
+    def test_hyphens_become_underscores(self):
+        with patch("builtins.input", return_value="my-file"):
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "my_file")
+
+    def test_unsafe_characters_removed(self):
+        with patch("builtins.input", return_value="my file1.txt"):
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "myfiletxt")
+
+    def test_retries_until_something_safe_remains(self):
+        with patch("builtins.input", side_effect=["123", "", "ok"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_file_name("Name"), "ok")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_prompt_text(self):
+        with patch("builtins.input", return_value="ok") as mock_input:
+            shell_utils.prompt_file_name("Name")
+        mock_input.assert_called_once_with("Name: ")
+
+
+# ── prompt_email ──────────────────────────────────────────────────────────────
+
+class TestPromptEmail(unittest.TestCase):
+    def test_valid_email_returned(self):
+        with patch("builtins.input", return_value="a@b.com"):
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+
+    def test_retries_on_invalid(self):
+        with patch("builtins.input", side_effect=["bad", "x@y", "a@b.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value="") as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email", default="d@e.com"), "d@e.com")
+        mock_input.assert_called_once_with("Email [default: d@e.com]: ")
+
+    def test_typed_value_beats_default(self):
+        with patch("builtins.input", return_value="a@b.com"):
+            self.assertEqual(shell_utils.prompt_email("Email", default="d@e.com"), "a@b.com")
+
+    def test_empty_without_default_retries(self):
+        with patch("builtins.input", side_effect=["", "a@b.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_email("Email"), "a@b.com")
+        self.assertEqual(mock_input.call_count, 2)
+
+
+# ── prompt_url ────────────────────────────────────────────────────────────────
+
+class TestPromptUrl(unittest.TestCase):
+    def test_valid_url_returned(self):
+        with patch("builtins.input", return_value="https://acme.com"):
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+
+    def test_retries_on_invalid(self):
+        with patch("builtins.input", side_effect=["acme", "ftp://acme.com", "https://acme.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+        self.assertEqual(mock_input.call_count, 3)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_url("Url", default="https://acme.com"), "https://acme.com")
+
+    def test_empty_allowed_returns_empty_string(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_url("Url", allow_empty=True), "")
+
+    def test_empty_not_allowed_and_no_default_retries(self):
+        with patch("builtins.input", side_effect=["", "https://acme.com"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url"), "https://acme.com")
+        self.assertEqual(mock_input.call_count, 2)
+
+    def test_invalid_value_still_retries_when_empty_allowed(self):
+        with patch("builtins.input", side_effect=["acme", ""]) as mock_input:
+            self.assertEqual(shell_utils.prompt_url("Url", allow_empty=True), "")
+        self.assertEqual(mock_input.call_count, 2)
+
+
+# ── prompt_timeframe ──────────────────────────────────────────────────────────
+
+class TestPromptTimeframe(unittest.TestCase):
+    def test_duration_returned_as_typed(self):
+        with patch("builtins.input", return_value="1h30m"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "1h30m")
+
+    def test_boot_means_zero_seconds(self):
+        with patch("builtins.input", return_value="boot"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "0s")
+
+    def test_startup_means_zero_seconds(self):
+        with patch("builtins.input", return_value="startup"):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "0s")
+
+    def test_retries_on_unparseable(self):
+        with patch("builtins.input", side_effect=["soon", "5s"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "5s")
+        self.assertEqual(mock_input.call_count, 2)
+
+    def test_empty_uses_default(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", default="10m"), "10m")
+
+    def test_empty_default_boot_means_zero_seconds(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", default="boot"), "0s")
+
+    def test_empty_allowed_returns_empty_string(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(shell_utils.prompt_timeframe("Delay", allow_empty=True), "")
+
+    def test_empty_not_allowed_and_no_default_retries(self):
+        with patch("builtins.input", side_effect=["", "5s"]) as mock_input:
+            self.assertEqual(shell_utils.prompt_timeframe("Delay"), "5s")
+        self.assertEqual(mock_input.call_count, 2)
