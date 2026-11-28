@@ -38,6 +38,16 @@ return {k: v for k, v in encoded.items() if k not in _NOT_IN_A_TEMPLATE}
 And when you DO have to write one, say in the docstring that you checked and
 what core-lib lacks — so the next reader does not re-run your search.
 
+**A helper two packages need lives in the lowest one both import.** Grep the
+libs this one imports AND the projects that import it: logic found on both
+sides moves into the imported lib (domain-free logic into `core_lib`), and
+both sides import it. Never a copy on each side.
+
+**A member of a family supports what its siblings support (operator).** A new or
+lagging one, and one that wraps another, takes the same option under the same name
+and default and passes it through. Read how the siblings do it first, and reuse
+that: never a second way (AGENTS "Only what is needed").
+
 ## Inventory — what `core_lib` already provides
 
 **Decorators (reach for these before any try/except or manual conversion)**
@@ -77,6 +87,8 @@ what core-lib lacks — so the next reader does not re-run your search.
 
 `is_int(value)` says whether `int(value)` works, never for a bool (`True` would read as 1): `"14"` and `1.0` pass, for typed input such as the shell prompts. An id from a request body must also be an int itself: `isinstance(value, int) and is_int(value)`. Never hand-write the bool exclusion.
 
+A helper that checks a stored value normalises it first (trim, lower-case) and parses a structured one (a colour, a date) before comparing: a comparison against one spelling misses the others (AGENTS "Writing core-lib code — keep it super simple").
+
 ## What core-lib does NOT provide (writing these is correct)
 
 Verified by inventory, so you can stop looking:
@@ -110,7 +122,16 @@ library, public, even if one host is its only caller today. Ask: **would a secon
 it?** If yes, write it in the library; the host calls it and keeps only its own policy (the status it answers, what
 it logs). What the host owns (option lists, key names, thresholds) comes in as a parameter. Written in the host,
 the next product re-implements it and the copies drift (AGENTS "The other direction: the library owns the rules
-about its own data").
+about its own data"). Example: matching given strings in text is pii-core-lib's (`scrub(strings_to_scrub=)`, named for what
+it does, never for what the host passes); which strings (the client's own names) and on which screen is the host's.
+
+## A new helper goes where every caller can reach it (operator)
+
+Before you write a helper, find every place that could use it: grep the verb and the shape of the data in the library
+and the hosts. Then put it where ALL of them can import it (the library's `helpers.py`, the host's shared helper file),
+never in the first caller's file or folder. Reading the other places only tells you where it belongs: do NOT edit
+those callers to adopt it in this task (a task changes what it was asked to). Name them in the summary so the operator
+can fold them in. A helper written next to its only caller today is a copy the next caller re-writes.
 
 ## Where a lib-local helper goes
 
@@ -137,7 +158,8 @@ file, right after the imports (AGENTS "Constants live at the top of the file").
 1. Name the behaviour you need in one phrase ("entity → dict", "missing row → None").
 2. Search the table above and the lib's own `AGENTS.md` Helper map; then
    `grep -rn "def <verb>" <core-lib>/core_lib/`.
-3. If it exists — call it. If it exists at 80% — call it and add the 20%.
+3. If it exists — call it. If it exists at 80% — call it and add the 20%. Before adding the 20% or a new helper, list who
+   else could call it and place it where they all can ("A new helper goes where every caller can reach it").
 4. If it genuinely does not — write it in `helpers.py` at the library root,
    record in the docstring that you checked and what was missing, and add its
    line to the lib's Helper map (AGENTS "Every lib keeps a helper map").

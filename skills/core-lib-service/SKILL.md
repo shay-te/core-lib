@@ -140,6 +140,15 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   key (§6).
 - Key template names every parameter the value depends on; templates are
   module-level constants (§6).
+- **Build a key from ids and short codes, never free text.** `@Cache` turns spaces
+  into `_`, drops line breaks, cuts at 250 characters and renders every falsy
+  argument as one placeholder, so such calls SHARE one entry and get each other's
+  results. A handler raises for what its backend cannot keep, and never rewrites
+  it (`AGENTS.md`, "Wrong data from a caller fails"): memcached refuses a key over
+  250 bytes or with a space or control character, and an `expire` with a part of a
+  second; Redis and memcached refuse a value other than `dict` / `list` / `int` /
+  `str` and return a hit as JSON gives it back (string dict keys). RAM keeps any
+  key and object. Test with the handler production uses.
 - Methods that write a row directly through the DA carry
   `@Cache(SAME_KEY, invalidate=True)`. Orchestrators that write only via other
   service methods need no decorator.
@@ -149,12 +158,23 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 ## Rules to enforce (from AGENTS.md)
 
+- **An import run by hand** follows the existing import's pattern and env vars, writes through the app's own service,
+  catches each row's status-code errors, logs a success line per row saved, and ends its report with every row not
+  imported: spreadsheet row, identifying value and reason (operator; AGENTS §9, "An import a host runs by hand").
+- **A getter under `@NotFoundErrorHandler()` raises 404, never returns `None`**: check the DataAccess before writing
+  `if not row` after a lookup.
 - **Extends `Service`** — every class in this folder. And the corollary: if a
   module here is not a Service, it does not belong in `service/`. That folder
   is a layer, not somewhere to park a helper.
 
 - **Public vs private** — `_`-prefixed internals are not called from outside
   (§6).
+- **A method names the action, not its class's noun** — `WidgetService.get` /
+  `create` / `update`, never `get_widget` / `create_widget` (§1).
+- **One concept, one name** — a method, its parameters and its callers use the
+  host's term for the thing everywhere, and a parameter keeps the name of the
+  value it carries: the column's name (`previous_task_id`), never a synonym such
+  as `after_task_id`. A synonym in one layer is renamed (§1).
 - **Minimum surface** — every public method has a caller in this change; one
   the plan lists for a LATER step is written in that step. No "may happen"
   branches (§0).
@@ -185,7 +205,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   unique index answers 409 (the `if existing` read is for an upsert only).
 - **No read before a write to answer 404/409.** A by-id write is the
   DataAccess `update` under `@Cache(..., invalidate=True)` (the template's
-  `update`); let the database and the `RuleValidator` refuse (§6).
+  `update`); let the database and the `RuleValidator` refuse (§6). An
+  external API that refuses a duplicate (409 for an existing account) is the
+  same: call the create, catch only that status, let every other error out.
+  A setting that system already holds (a link lifespan) is set there, never
+  sent from code (operator).
 - **A delete that records what it removed** (history, an event) reads the row through
   the cached `get` before the delete, under `@Cache(..., invalidate=True)` (§6).
 - **Several writes that must land together, or a guard checked before a
@@ -196,13 +220,19 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   row uses it directly; the return commits once, an exception rolls back. The
   guarded row is read by an ordinary DataAccess query taking a row lock
   (`with_for_update=True`), held until the commit — without it two concurrent
-  calls both pass the check. Never pass a `session`. A worker thread is not part
+  calls both pass the check. A Service never touches a session (operator): it never
+  opens, takes or passes one, and calls only DataAccess methods. A worker thread is not part
   of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
 - **A list shown beside a create that routes by its inputs** takes the same
   inputs and calls the create's private routing method, in the same Service:
   never a read of one of the places, never a second decision in the host (§6.4).
+- **A second entry point to an existing flow calls the method that already
+  runs it** (operator), its find-or-create included: never a second copy of the
+  flow, never a host's "find the row, then write to it" (§6.5). A caller that
+  differs only in the recipient shares the extracted public step (the provider
+  send) and resolves the recipient in its own Service, never from the client.
 - **A decorator shipped for hosts** checks its parameter names and derived
   identifiers at decoration time; options after the first are keyword-only (§8).
 - **State transitions** (stateful entities) write a history row + an outbox row
