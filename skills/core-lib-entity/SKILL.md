@@ -147,6 +147,18 @@ litmus test in `AGENTS.md` (§4.0 for the entity-specific form). The second
 question is the one that catches these: **could a stranger build their OWN
 instrument on this without editing a line of library source?**
 
+**Writing preset rows for a host's table** (rows users create records from)? Follow
+`AGENTS.md`, "Preset rows a host adds to a library table": only the basics (no copied settings), every text a whole
+translation key and every choice a short name under a stored `options_i18n_prefix` (**strict: no other half key, and
+keys named like the app's other keys, camelCase, never an invented snake_case**; shown translated everywhere), a color
+for every choice (`#ffffff` by default), no "Prefer not to say" choice, and the SQL handed over in a Markdown file in the host's
+repository: first a block that fixes the id's auto-increment, then one bulk `INSERT`, with a plain `NOW()` for
+timestamps. A one-off query repairing rows already added goes in chat, not in that file. Their instructions and placeholders follow `AGENTS.md`,
+"Instructions and placeholder text for form fields" (instructions start with "Need help?").
+
+**A column that holds a measurement?** It stores one unit, metric, in whole numbers; another unit exists only where the
+value is shown (`AGENTS.md`, "Store one unit, convert only for display").
+
 ## Steps
 
 1. Pick the table name and columns. Decide soft-delete strategy (see mixins).
@@ -232,6 +244,14 @@ The mixin choice decides the DataAccess base (§5).
   (`VARCHAR(length=255)`; names 512, keys/paths 1024). Free text is `Text`;
   dict payloads are `JSON` columns named `meta_data` (§4); every key inside one is a member of
   one enum, a key only a client uses included (a pending chat message's `temp_id`).
+- **An option chosen when a row is created goes in that row's `meta_data`
+  (operator)**: a row with no value reads as the safe behaviour (no backfill),
+  and one Service method answers it for every read it changes (§4). A pending
+  row that later creates another (awaiting approval) stores it under the same
+  key and passes it on; until then reads follow the pending row.
+- **No extra database call for another column of a row already read
+  (operator)**: one cached read returns what every question needs (a list, so
+  "no row" is cached too), and the Service answers each from it (§4).
 - **The enum class is plain `enum.Enum`, NESTED inside its entity class and
   read as `Thing.ThingKind`** — never at module level beside it. Name it for
   what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`.

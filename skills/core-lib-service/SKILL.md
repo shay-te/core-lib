@@ -158,6 +158,11 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
 
 ## Rules to enforce (from AGENTS.md)
 
+- **An import run by hand** follows the existing import's pattern and env vars, writes through the app's own service,
+  catches each row's status-code errors, logs a success line per row saved, and ends its report with every row not
+  imported: spreadsheet row, identifying value and reason (operator; AGENTS §9, "An import a host runs by hand").
+- **A getter under `@NotFoundErrorHandler()` raises 404, never returns `None`**: check the DataAccess before writing
+  `if not row` after a lookup.
 - **Extends `Service`** — every class in this folder. And the corollary: if a
   module here is not a Service, it does not belong in `service/`. That folder
   is a layer, not somewhere to park a helper.
@@ -215,13 +220,19 @@ Always pass `handler_name=FOO_CORE_LIB_CACHE` (from `constants.py`).
   row uses it directly; the return commits once, an exception rolls back. The
   guarded row is read by an ordinary DataAccess query taking a row lock
   (`with_for_update=True`), held until the commit — without it two concurrent
-  calls both pass the check. Never pass a `session`. A worker thread is not part
+  calls both pass the check. A Service never touches a session (operator): it never
+  opens, takes or passes one, and calls only DataAccess methods. A worker thread is not part
   of the transaction, and nothing is atomic across connections (§6, §12).
 - **A date anchoring a deadline or retention, never correctable later**, is
   refused in the future and before the date it follows (§6).
 - **A list shown beside a create that routes by its inputs** takes the same
   inputs and calls the create's private routing method, in the same Service:
   never a read of one of the places, never a second decision in the host (§6.4).
+- **A second entry point to an existing flow calls the method that already
+  runs it** (operator), its find-or-create included: never a second copy of the
+  flow, never a host's "find the row, then write to it" (§6.5). A caller that
+  differs only in the recipient shares the extracted public step (the provider
+  send) and resolves the recipient in its own Service, never from the client.
 - **A decorator shipped for hosts** gets its checks of parameter names and derived
   identifiers from the function it wraps, never from a copy in the decorator;
   options after the first are keyword-only (§8).

@@ -20,6 +20,13 @@ operator's step.
 
 ---
 
+# A question gets an answer, not a change (operator rule)
+
+When the operator asks to check, explain or plan something, an agent reads and answers: it edits no file, a rules file
+included. It changes code only once the operator says which change to make.
+
+---
+
 # A column name is NEVER a string literal — `Entity.column.key`
 
 One rule, stated once, because it is the single most repeated review
@@ -303,6 +310,12 @@ cut whatever this list forbids.
   comment saying why (`TransactionalConnectionFactory.get()` imports `TransactionManager`), so the other can import it
   at its top for its hints. `tests/test_transaction_type_hints.py` checks all three: hints resolve, every module imports
   first in a fresh interpreter, no `TYPE_CHECKING` anywhere in `core_lib`.
+- **A service has one name everywhere: its class name in snake_case (operator).** `AdminSharedUserPreviewService` is
+  `admin_shared_user_preview_service` as the importing service's constructor parameter, its `self._…` attribute, the
+  host's local variable and the test's keyword. An importing service never shortens or renames it
+  (`shared_user_preview_service` for `AdminSharedUserPreviewService` is a bug): a reader finds every use with one search,
+  and the wiring is checkable by name. A service with a twin of the same class name in another library (`UserService`) is
+  imported under an alias, and the alias names the library (`una_user_service`), never a new meaning.
 - **A dict of objects is keyed by the object**, so `==` decides, never by its `hash()` number: two in-memory sqlite
   engines share a hash but are two databases.
 
@@ -435,6 +448,87 @@ real case without the mechanism knowing the case exists. If your flagship
 example is importable from library source rather than from `tests/` or
 `examples/`, that is the smell.
 
+## Preset rows a host adds to a library table (operator)
+
+A preset is a row users create their own records from. Its content is the host's, so it never lives in library source.
+When you write presets for a host:
+
+- **Only the basics:** what the record needs to exist (name, type, its texts and choices). Never copy the settings of
+  an existing record (visibility, editability, requirement flags, its colors), even when the data you were handed
+  carries them: whoever creates a record from the preset chooses them. A preset keeps a setting only when it cannot
+  work without it (a lock it enforces).
+- **Every choice gets a color, white `#ffffff` by default** (operator), where the record keeps a color per choice.
+  Write six hex digits: a browser's color picker reads no shorter form.
+- **Every user-facing text is a translation key, each choice included**, translated in every locale file of every app
+  that shows it.
+- **STRICT: a stored text or name is a whole translation key, namespace included; a choice is short, under a stored
+  prefix** (operator). A preset's choices are short names, and the record stores the namespace they share beside them
+  (`options_i18n_prefix: <namespace>.<preset>.options`). An app translates `<prefix>.<choice>` and shows a choice with
+  no such key as written, so a choice a user types reads as typed. That is the only key an app puts together: never
+  from a prefix it hard-codes, and never for any other stored string.
+- **STRICT: name a new key the way the app names its keys** (operator): where they are camelCase, never snake_case.
+  An underscore belongs only in a segment copying a code name the key is looked up by (a column, an enum member), or in
+  a plural suffix. Read the app's locale file before naming a key.
+- **A choice with a key is never shown untranslated** (operator): every place an app shows a stored choice translates
+  it through one shared function that takes the choice and the prefix, while the saved and sent value stays the short
+  choice. Store the prefix only after finding each of those places (forms, tables, filters, chips, comparisons,
+  charts, editors) and checking that each has the record's prefix at hand.
+- **No opt-out choice** such as "Prefer not to say": whoever wants it adds it to their own record.
+- **Hand the rows over as SQL in a Markdown file** in the host's repository when they are added by hand. A one-off
+  query repairing rows already added is given in chat and never kept in that file (operator).
+- **All the rows go in one bulk `INSERT`** (operator), so either all are added or none.
+- **Before it, fix the id's auto-increment** (operator): a row once inserted with a hand-written id leaves the sequence
+  behind and the next insert fails. Write a block that is safe to run on a healthy table: create the sequence if it is
+  missing, make it the column's default, and set it past the highest id, soft-deleted rows included.
+- **Timestamps in that SQL are a plain `NOW()`** (operator), with no time zone conversion.
+- **Instructions and placeholders follow the next section.**
+
+## Instructions and placeholder text for form fields (operator)
+
+Wherever you write a form field's instructions or placeholder, write them as a UX writer would: clear, short and
+natural.
+
+1. Instructions are friendly, simple and conversational. They **start with "Need help?"**, followed by useful guidance.
+2. Placeholders are short, clear and about the question: a natural example, or a prompt saying what to enter or select.
+3. Don't repeat the question when you don't need to, don't over-explain a clear one, and keep instructions short.
+4. By field type: a text field says what information to give; a textarea invites the user to elaborate, with examples
+   where they help; a dropdown says what to select; a multi-select says **"Select all that apply."**; a yes/no stays
+   simple ("Select yes or no"); a conditional field says when to fill it ("If yes, please...").
+5. **Keep the question's wording and meaning.** Never rewrite or rename it unless asked.
+6. Don't invent questions or fields. Keep the options you are given, and reword them only when asked. Text never names
+   a choice the field doesn't offer.
+7. Use inclusive, respectful, professional language, in every translation too.
+8. A field type the operator names is kept. With only a question, pick the best type. Asked which type fits, recommend
+   one and say briefly why.
+
+When the operator asks for the texts in chat, handle each question on its own, with no extra introduction, conclusion
+or explanation:
+
+> **Type:** Text / Textarea / Single-select dropdown / Multi-select checkboxes / Date picker / Yes-No
+>
+> **Instructions:** *Need help? Share your hobbies, interests, favorite activities, and how you enjoy spending your
+> free time.*
+>
+> **Placeholder:** Describe your hobbies, interests, and how you like to spend your free time.
+
+The italics only mark the instructions in chat; the stored text has no asterisks.
+
+## Store one unit, convert only for display (operator)
+
+A measured quantity (a length, a weight, a distance) has one stored unit, metric, in whole numbers. The library and
+its host never learn a second one.
+
+- **The column holds that unit**, and so does everything that reads or writes it: arguments, returned dicts, filters,
+  search indexes, import and export. A comment on the column, or its name, says which unit it is.
+- **Another unit is only a way of showing the value**, applied where it is shown, by whoever shows it. It is never
+  stored, and a library function never takes a "unit" argument to return a converted number.
+- **Limits are in the stored unit**, declared once in a constants enum the validator reads and clients are sent,
+  never repeated in another unit.
+- **A picker in the other unit keeps the stored values and only renames them**, so a picked value is never converted
+  back, which would drift by a rounding.
+- **Text being imported is read as the stored unit only.** A value naming another unit is refused, never stored as if
+  it were the stored one.
+
 ## The other direction: the library owns the rules about its own data
 
 Agnosticism keeps the host's content OUT of the library. The mirror rule keeps the library's own knowledge IN it:
@@ -450,7 +544,9 @@ uploads" or "this endpoint answers 400 with no body" are the host's policy.
 
 What the host owns stays a parameter: the helper takes the field's options, the host's key names, a threshold —
 never reads the host's config or constants. The host then calls the library helper and adds only its policy around
-it (which status to answer, what to log).
+it (which status to answer, what to log). Example: pii-core-lib removes the strings it is given (`scrub(strings_to_scrub=)`,
+in the same pass as its patterns) and never knows what they are; the admin backend passes the client's own first,
+middle and last name, and decides that the shared user card is where that runs.
 
 Do not confuse this with "fix the consumer, not the shared library": that rule is about not bending a shared
 library to work around a consumer's problem. A rule about the library's own data is not a consumer's problem; it
@@ -469,6 +565,9 @@ The operator's basic rule, for every library and every host.
   the database's error) and the host's existing error handling answers it (`@HandleException`). Add no pre-check,
   translation or message for it. A rule that protects the data (a lock, an ownership check, a validity rule the
   library owns, above) still raises on purpose.
+- **A member of a family supports what its siblings support (operator).** A new or lagging one, and one that wraps
+  another, takes the same option under the same name and default and passes it through, so a feature the caller has
+  on its siblings works on it too. See how the siblings do it before adding it; never a second way.
 
 ## Before writing a helper, check core-lib for it
 
@@ -1123,6 +1222,9 @@ Rules, each load-bearing:
 - **No database schema of its own.** The tables sit in the host's default schema, beside the host's own — never `{'schema': ...}` in `__table_args__`. Every core-lib entity shares `Base.metadata`, so a host's `create_all` (`create_db: true`) would fail on a schema that does not exist yet, and the lib would need a `CREATE SCHEMA` hook, schema-wide grants and search-path caveats that no other lib has. Instead, prefix a table name with the library's name when the bare name could clash with a host's table (`foo_event`, never `event`; indexes `ix_foo_event_*`), and name the module and the class after the table (`foo_event.py`, `FooEvent`).
 - **Any column with a `server_default` MUST also carry the matching Python `default=`** (`default=0, server_default='0'`). With only `server_default`, a freshly inserted ORM row holds `None` for the column until re-fetched — which surfaces as `None` through `@ResultToDict` and as `DetachedInstanceError` under lazy refresh. This was a real bug that hand-written fake-DA tests hid and the real composed stack exposed.
 - VARCHAR lengths are always explicit (`VARCHAR(length=255)`, names get 512, keys/paths get 1024). Free text is `Text`. Dict payloads are `JSON` columns named `meta_data` (not `metadata` — that name collides with SQLAlchemy).
+- **An option chosen when a row is created is stored in that row's `meta_data` (operator)**, under a key from one enum. A row with no value reads as the safe behaviour, so old rows need no backfill; match the value that changes the behaviour (`is False`), never its absence. One Service method answers it, and every read the option changes asks that method: find them all in the change that adds the option.
+- **Don't add a database call for another column of a row you already read (operator: "why we need another db call").** An "exists" read that a second question needs more from becomes one cached read returning the columns both need, and the Service answers each question from it. A rule over a `meta_data` value is then one Python function, not a JSON filter repeated per query. When "no row" is a common answer, return a list: `@Cache` stores an empty list and never `None`.
+- **A pending row that later creates another (a request awaiting approval) carries the option to it (operator).** Store it on the pending row's `meta_data` under the same key, built and validated by the same Service method, and pass the stored value when creating the other row. Until that row exists, reads follow the pending row; a rejected or removed one reads as the safe behaviour. Every flow that creates the row is such a read and write too.
 - FKs whose child rows must die with the parent declare it in the schema: `ForeignKey('document.id', ondelete='CASCADE')` (collaborators/favorites die with their document — `empty_trash` relies on it).
 - **An enum a table uses is NESTED inside its entity class and read as `Thing.ThingKind`**, never declared at module level beside it; every entity in the older libs does this. Name it for what it holds (`ThingKind`, `ThingStatus`), not a bare `Kind`/`Status`: a host that publishes enums by class name would get two `status` keys.
 - **No `__mapper_args__` on an entity, `eager_defaults` included.** SQLAlchemy 2.0 (the pinned version) already reads server-generated values back on INSERT, and no core-lib entity sets mapper options. This rule and the nested-enum rule above are checked in SOURCE by a test — an `ast` walk over `entities/` with a planted-offender case — because the enum rule, written down alone, was broken anyway.
@@ -1449,6 +1551,10 @@ Ask it as a question, per invariant: **which paths can write this column, and do
 
 When a create takes what the caller knows (two users) and decides where the row goes (their relationship, else their connection), the list shown beside it takes the same inputs and calls the same private routing method, in the same Service. A list that reads only one of the places, or a host that decides again, never holds what the create just wrote. objective_love's `UserConversationDateService.create_confirmed_date` and `all_for_pair` both decide through `_get_couple_conversation_id`.
 
+### 6.5 A second entry point to a flow calls the method that already runs it (operator)
+
+A new caller of a flow that already exists (another screen sending a message into the conversation the Service finds by its subject, or creates when there is none) calls the same public Service method, its find-or-create included. Never a second copy of the flow, and never a host splitting it into "find the row, then write to it": two paths drift, and only one keeps the checks. When the new caller differs only in who receives it (an SMS to a matchmaker's contact phone, not the user's own phone), extract the shared step (the provider send) into a public method of the Service that has it, and let both callers use it; the new caller's Service resolves the recipient itself, never trusting one from the client.
+
 ## 7. Composition root (`foo_core_lib.py`)
 
 ```python
@@ -1585,6 +1691,14 @@ class ThingDueJob(Job):
 - **A job that raises is only LOGGED** (§12). When a silent failure matters — a purge, a watchdog — the service method the job calls alarms through the lib's observer (the host's listener delivers it) and then re-raises; the job stays a one-line delegation.
 - **A retention purge: one anchor timestamp per table, one period per table from config.** The cutoff (`SELECT now() - make_interval(months => :months)`) is computed by the DATABASE once per table per run and reused for every batch; a NULL anchor (an open case) is never purged; a period of 0 / empty means never. No per-row `expires_at` or retention class — changing a period then applies to every row, with nothing to backfill.
 - **A batch run (a job, a one-shot backfill) logs its progress at INFO (operator):** each phase's start and end, each page (rows done, last id, elapsed, running counts) and each row (its id, the users it is about, its result). A run that logs only its start and its end looks stuck.
+- **An import a host runs by hand follows the import the family already has (operator):** the same env var names, a
+  log of what it will write and as whom followed by a wait before it writes, its own compose service and entrypoint
+  with background jobs off, and its input folder out of Git and the image (it holds client data). It writes through
+  the service the app writes with. One bad row never stops the others: a status-code error from any step of a row
+  (a lookup's 404, a create's 400 or 409) is caught for that row. Each row saved logs a success line naming the
+  record it went to and its identifying value, and the report ends with every row not imported: its row as the
+  spreadsheet shows it (the header is row 1, blank rows counted), the identifying value as the file writes it, and
+  why, so the operator can fix it or send it to the client.
 - **A one-shot backfill is temporary code, marked for removal (operator):** every piece it adds (the service method, the paged read it needs, its wiring, the host's script and docker service, their tests) sits between `# @DEPRECATED@ remove on <date>` and `# @DEPRECATED ENDS@`, or opens a whole file with the first, so one grep deletes all of it once it has run on production. It runs again safely: a row already done is skipped, never redone.
 - **Test consequence:** a `startup` job queries its table the moment `start_core_lib()` runs — before any test created rows. The test helper must then pre-create tables on the FACTORY engine AND run `install()` before `start_core_lib()` (an older lib’s helper, §13.4). A lib with no startup jobs skips both.
 
@@ -1957,7 +2071,7 @@ def sync_create_start_core_lib() -> FooCoreLib:
 28. `session.commit()` / `session.flush()` in a DataAccess — the connection commits on exit (§5).
 29. An enum declared at module level beside its entity (§4).
 30. A constant declared between functions, or beside the one function that reads it, instead of at the top of its file ("Constants live at the top of the file").
-31. A `session` parameter on a DataAccess or Service, or a `transaction()` / `*_in_transaction` / `get_for_update(session, …)` method. Use `@Transaction()` (§6).
+31. A Service that touches a session at all (operator): opens one (`with … as session`), takes or passes one; a `session` parameter on a DataAccess; a `transaction()` / `*_in_transaction` / `get_for_update(session, …)` method. Use `@Transaction()` on the Service method, and only DataAccess calls inside it (§6).
 32. A class that stores, finds or reaches into instances of itself: a class-level dict of its own instances, a static "current one" lookup, a method reading another instance's `_private` fields. Split it into a dataclass (data), a `Registry` (store) and a logic class ("One class, one meaning").
 
 ## 17. Final checklist before handing the lib over
